@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>NativeLingo — 英语跟读评估</title>
+  <link rel="stylesheet" href="styles.css?v=6" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>NativeLingo</h1>
+      <p class="subtitle">跟读评估 · 发音准确度与流畅度</p>
+      <span id="backend-status" class="status status-pending">连接后端中…</span>
+      <nav class="tabs">
+        <button class="tab tab-active" data-mode="video">视频跟读</button>
+        <button class="tab" data-mode="audio">上传音频</button>
+      </nav>
+    </header>
+
+    <main>
+      <!-- ============ VIDEO MODE ============ -->
+      <div id="mode-video" class="mode">
+        <!-- pick video -->
+        <section class="card">
+          <h2>1. 选择参考视频</h2>
+          <p class="hint">从 <code>videos/</code> 目录选择一个视频。首次选择会自动转写并按句子切分。</p>
+          <div id="video-list" class="video-list">加载视频列表…</div>
+        </section>
+
+        <!-- sentences + range -->
+        <section id="sentence-section" class="card" hidden>
+          <h2>2. 选择跟读句子范围</h2>
+          <p class="hint">点击一句设为<strong>起始</strong>,再点另一句设为<strong>结束</strong>(可只选一句)。</p>
+          <div id="range-info" class="range-info">尚未选择</div>
+          <div id="sentence-list" class="sentence-list"></div>
+        </section>
+
+        <!-- shadow recording -->
+        <section id="shadow-section" class="card" hidden>
+          <h2>3. 跟读录制</h2>
+          <p class="hint">点击开始后,画面会<strong>无声</strong>播放所选片段(带字幕),请对着字幕模仿跟读。</p>
+          <video id="shadow-video" class="shadow-video" muted playsinline></video>
+          <div class="record-row">
+            <button id="shadow-record-btn" class="btn btn-record">● 开始跟读</button>
+            <button id="shadow-replay-btn" class="btn btn-record" title="重放画面">↺ 重放画面</button>
+            <span id="shadow-timer" class="timer">00:00</span>
+          </div>
+          <audio id="shadow-learner-player" controls hidden></audio>
+          <button id="shadow-analyze-btn" class="btn btn-primary" disabled>分析我的发音</button>
+          <span id="shadow-analyze-status" class="analyze-status"></span>
+        </section>
+      </div>
+
+      <!-- ============ AUDIO MODE ============ -->
+      <div id="mode-audio" class="mode" hidden>
+        <section class="card">
+          <h2>1. 参考音频</h2>
+          <p class="hint">选择一段标准英语音频作为模仿对象。</p>
+          <input type="file" id="ref-file" accept="audio/*" />
+          <audio id="ref-player" controls hidden></audio>
+        </section>
+        <section class="card">
+          <h2>2. 录制你的跟读</h2>
+          <p class="hint">听完参考音频后,点击录音并模仿跟读。</p>
+          <div class="record-row">
+            <button id="record-btn" class="btn btn-record" disabled>● 开始录音</button>
+            <span id="record-timer" class="timer">00:00</span>
+          </div>
+          <audio id="learner-player" controls hidden></audio>
+        </section>
+        <section class="card">
+          <h2>3. 分析</h2>
+          <button id="analyze-btn" class="btn btn-primary" disabled>分析我的发音</button>
+          <span id="analyze-status" class="analyze-status"></span>
+        </section>
+      </div>
+
+      <!-- ============ SHARED RESULTS ============ -->
+      <section id="results" class="card results" hidden>
+        <h2>评估结果</h2>
+        <div id="reference-text" class="reference-text" hidden></div>
+        <div class="scores">
+          <div class="score-card">
+            <div class="score-value" id="overall-score">–</div>
+            <div class="score-label">综合</div>
+          </div>
+          <div class="score-card">
+            <div class="score-value" id="accuracy-score">–</div>
+            <div class="score-label">准确度</div>
+          </div>
+          <div class="score-card">
+            <div class="score-value" id="fluency-score">–</div>
+            <div class="score-label">流畅度</div>
+          </div>
+        </div>
+        <div id="rate-info" class="rate-info"></div>
+
+        <div id="detail-block" hidden>
+          <h3>逐句 · 逐词明细</h3>
+          <p class="legend">
+            <span class="w-chip w-good">达标</span>
+            <span class="w-chip w-weak">偏弱</span>
+            <span class="w-chip w-bad">明显不准</span>
+            <span class="w-chip w-missed">疑似漏读/读错</span>
+          </p>
+          <div id="sentence-details"></div>
+          <!-- in-place clip playback (no video, no scroll) -->
+          <audio id="ref-clip-player" hidden></audio>
+          <audio id="my-clip-player" hidden></audio>
+        </div>
+
+        <h3>改进建议</h3>
+        <ul id="tips-list" class="tips"></ul>
+        <div id="prosody-info" class="prosody"></div>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="main.js?v=6"></script>
+</body>
+</html>

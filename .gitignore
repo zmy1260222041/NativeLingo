@@ -1,0 +1,65 @@
+# ─────────────────────────────────────────────
+# NativeLingo .gitignore
+# ─────────────────────────────────────────────
+
+# ── macOS ──
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ── Python ──
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Node / frontend ──
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vite/
+
+# ── Rust / Tauri ──
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# ── App runtime output & large media ──────────
+# Reference videos are large binaries: kept on disk, kept out of git.
+# Use Git LFS if you need them version-controlled.
+videos/*.mp4
+videos/*.mov
+videos/*.mkv
+videos/*.avi
+videos/*.m4v
+# Learner recordings / rendered audio produced at runtime
+recordings/
+*.aiff
+
+# ── Secrets / env ──
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Claude Code (local only) ──
+# Shared .claude/settings.json may be committed; ignore the local override.
+.claude/settings.local.json
+
+# ── Editors ──
+.vscode/
+.idea/
+*.swp
+*~
