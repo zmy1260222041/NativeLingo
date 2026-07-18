@@ -17,7 +17,8 @@ import json
 import os
 import re
 
-from .video import resolve_video, videos_dir
+from .video import resolve_video, videos_dir, extract_audio
+from . import forced_align
 
 # Small model keeps first-run transcription fast on CPU/Metal while giving good
 # English timestamps. Upgrade to "small"/"medium" for accuracy if needed.
@@ -39,8 +40,9 @@ def _get_model():
     return _model
 
 
-# bump when the cache schema changes so old caches are regenerated
-CACHE_VERSION = 2
+# bump when the cache schema changes so old caches are regenerated.
+# v3: word timestamps now come from MMS forced alignment (not whisper attention).
+CACHE_VERSION = 3
 
 
 def _cache_path(video_path: str) -> str:
@@ -100,6 +102,74 @@ def _merge_into_sentences(segments) -> list[dict]:
     return sentences
 
 
+def _aligned_words(segments, video_path: str) -> list[dict]:
+    """Flat ordered word list ``{word, start, end}`` across all segments.
+
+    Word timestamps come from MMS forced alignment (whole-video, one call) when
+    available; we fall back to faster-whisper's attention-based timestamps
+    otherwise. We keep whisper for the *text* either way — only the timestamps
+    are upgraded, because whisper's word boundaries clip tails and collapse
+    short words.
+    """
+    base: list[dict] = []
+    for seg in segments:
+        for w in (getattr(seg, "words", None) or []):
+            tok = w.word.strip()
+            if not tok:
+                continue
+            base.append({"word": tok, "start": float(w.start), "end": float(w.end)})
+
+    if base and forced_align.is_available():
+        try:
+            audio = extract_audio(video_path)  # full 16 kHz mono waveform
+            spans = forced_align.align_words([b["word"] for b in base], audio)
+        except Exception:  # noqa: BLE001 - fall back to whisper timestamps
+            spans = None
+        if spans is not None:
+            for b, sp in zip(base, spans):
+                if sp is not None:
+                    b["start"], b["end"] = sp
+
+    for b in base:
+        b["start"] = round(b["start"], 3)
+        b["end"] = round(b["end"], 3)
+    return base
+
+
+def _merge_words_into_sentences(words: list[dict]) -> list[dict]:
+    """Merge a flat ordered word list into sentences by terminal punctuation.
+
+    Each output sentence: ``{index, start, end, text, words}``. The word's
+    original text (with trailing punctuation) drives sentence-end detection;
+    the timestamps are whatever ``_aligned_words`` produced.
+    """
+    sentences: list[dict] = []
+    cur: list[dict] = []
+
+    def flush():
+        nonlocal cur
+        if cur:
+            text = re.sub(r"\s+", " ", " ".join(w["word"] for w in cur)).strip()
+            if text:
+                sentences.append(
+                    {
+                        "index": len(sentences),
+                        "start": round(cur[0]["start"], 3),
+                        "end": round(cur[-1]["end"], 3),
+                        "text": text,
+                        "words": [dict(w) for w in cur],
+                    }
+                )
+        cur = []
+
+    for w in words:
+        cur.append(w)
+        if _SENTENCE_END.search(w["word"]):
+            flush()
+    flush()
+    return sentences
+
+
 def transcribe_waveform(wav) -> list[dict]:
     """Transcribe an in-memory 16 kHz mono float32 waveform into sentences,
     same shape as ``transcribe_sentences``'s ``sentences`` (not cached).
@@ -141,9 +211,11 @@ def transcribe_sentences(name: str, force: bool = False) -> dict:
         language="en",
         vad_filter=True,           # skip long silences -> better boundaries
         beam_size=1,
-        word_timestamps=True,      # needed for per-word scoring
+        word_timestamps=True,      # fallback word timestamps; refined by forced alignment
     )
-    sentences = _merge_into_sentences(segments)
+    segments = list(segments)
+    flat_words = _aligned_words(segments, video_path)
+    sentences = _merge_words_into_sentences(flat_words)
     result = {
         "version": CACHE_VERSION,
         "video": os.path.basename(video_path),

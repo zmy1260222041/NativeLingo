@@ -15,6 +15,7 @@ import numpy as np
 
 from .audio_io import load_audio, trim_silence, trim_silence_with_offset, TARGET_SR
 from .transcribe import transcribe_waveform
+from . import forced_align
 from .word_diff import diagnose_words
 from .ssl_encoder import SSLEncoder
 from .speaker_norm import normalize_pair
@@ -111,36 +112,69 @@ def analyze_detailed(
     payload = generate_feedback(track_b, prosody)
 
     details = compute_sentence_details(dtw, ref_sentences, learner_offset=learner_offset)
+    dur = len(orig_learner) / float(TARGET_SR)
 
-    # Independent learner segmentation: the learner's replay boundaries should
-    # come from *their own* audio, not from warping the reference's timing onto
-    # it (different speech rate clips words at sentence borders). When the
-    # learner's own transcription segments 1:1 with the reference range, use its
-    # natural spans (with a small pad); otherwise keep the DTW-derived fallback.
-    try:
-        learner_sents = transcribe_waveform(orig_learner)
-    except Exception:  # noqa: BLE001 — never fail analysis over replay spans
-        learner_sents = []
-    if learner_sents and len(learner_sents) == len(details):
-        dur = len(orig_learner) / float(TARGET_SR)
-        for d, ls in zip(details, learner_sents):
-            d.learner_start = round(max(0.0, ls["start"] - 0.1), 2)
-            d.learner_end = round(min(dur, ls["end"] + 0.15), 2)
-
-    # --- per-word pronunciation improvement directions (读法改进方向) ---
-    # Compare each flagged reference word to the matched learner word and name
-    # the acoustic difference (stress, linking, length, pitch) in words.
+    # Per-word reference text, flat, in selected-range order.
     ref_flat = [
         {"si": d.index, "wi": wi, "word": w.word,
          "start": w.start, "end": w.end, "status": w.status}
         for d in details
         for wi, w in enumerate(d.words)
     ]
-    learner_flat = [
-        {"word": w["word"], "start": w["start"], "end": w["end"]}
-        for s in learner_sents
-        for w in s.get("words", [])
-    ]
+
+    # Learner replay spans: align the REFERENCE text to the learner's audio.
+    # Because we align the intended transcript (not an ASR decode of what was
+    # actually said), a mispronounced word still maps 1:1 to the word it should
+    # be -- the aligner finds the best monotonic fit of that text to the audio
+    # regardless of how clearly it was pronounced. This also yields a replay
+    # span for *every* word (not just flagged ones) and drops the difflib match.
+    learner_flat: list[dict] = []
+    try:
+        aligned = forced_align.align_words([r["word"] for r in ref_flat], orig_learner)
+    except Exception:  # noqa: BLE001 - never fail analysis over replay spans
+        aligned = None
+    aligned_ok = aligned is not None
+
+    if aligned_ok:
+        idx = 0
+        for d in details:
+            sent_starts: list[float] = []
+            sent_ends: list[float] = []
+            for w in d.words:
+                sp = aligned[idx] if idx < len(aligned) else None
+                idx += 1
+                lw = {"word": w.word, "start": 0.0, "end": 0.0}
+                if sp is not None:
+                    s = max(0.0, sp[0] - 0.03)   # small head/tail pad so the
+                    e = min(dur, sp[1] + 0.06)   # clip isn't shaved at the edges
+                    w.learner_start = round(s, 3)
+                    w.learner_end = round(e, 3)
+                    lw["start"], lw["end"] = w.learner_start, w.learner_end
+                    sent_starts.append(s)
+                    sent_ends.append(e)
+                learner_flat.append(lw)
+            if sent_starts:
+                d.learner_start = round(max(0.0, min(sent_starts) - 0.05), 2)
+                d.learner_end = round(min(dur, max(sent_ends) + 0.10), 2)
+    else:
+        # Fallback: independent learner transcription + difflib match.
+        try:
+            learner_sents = transcribe_waveform(orig_learner)
+        except Exception:  # noqa: BLE001
+            learner_sents = []
+        if learner_sents and len(learner_sents) == len(details):
+            for d, ls in zip(details, learner_sents):
+                d.learner_start = round(max(0.0, ls["start"] - 0.1), 2)
+                d.learner_end = round(min(dur, ls["end"] + 0.15), 2)
+        learner_flat = [
+            {"word": w["word"], "start": w["start"], "end": w["end"]}
+            for s in learner_sents
+            for w in s.get("words", [])
+        ]
+
+    # --- per-word pronunciation improvement directions (读法改进方向) ---
+    # diagnose_words compares each flagged reference word to the matched learner
+    # word and names the acoustic difference (stress, linking, length, pitch).
     try:
         diffs = diagnose_words(ref_wav, orig_learner, ref_flat, learner_flat)
     except Exception:  # noqa: BLE001 - never let diagnosis break the response
@@ -150,8 +184,11 @@ def analyze_detailed(
             wd = diffs.get((d.index, wi))
             if wd is not None:
                 w.tip = wd.tip
-                w.learner_start = wd.learner_start
-                w.learner_end = wd.learner_end
+                # keep the alignment-derived span (accurate); only let diagnosis
+                # supply the word span in the no-alignment fallback path.
+                if not aligned_ok and wd.learner_end > wd.learner_start:
+                    w.learner_start = wd.learner_start
+                    w.learner_end = wd.learner_end
 
     payload["sentences"] = [_asdict(d) for d in details]
     return payload

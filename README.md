@@ -2,6 +2,8 @@
 
 英语口语**跟读评估**桌面应用。学习者跟读一段参考英语音频,软件对比两段音频,指出**发音准确度**与**流畅度**上的缺陷并给出改进建议。
 
+> 当前版本 **v1.1**(2026-07-08):词边界改用 torchaudio MMS 强制对齐,原声词 / 学习者词回放不再被截断。版本演进与完整技术特点见 [CHANGELOG.md](CHANGELOG.md)。
+
 ## 核心思路:从语音克隆原理"逆向"评估
 
 现代语音克隆 / 表现力 TTS 之所以可行,是因为模型内部学到了一个**解耦潜空间**,把语音拆成「内容 / 说话人音色 / 韵律」三类独立因子:
@@ -28,7 +30,7 @@
 - 桌面壳:Tauri v2(Rust)
 - 后端:Python + FastAPI,作为本地 sidecar(绑定 `127.0.0.1` + 每次启动随机 token)
 - 前端:原生 HTML/JS + Web Audio 录音
-- 语音/ML:torch · transformers(wav2vec2) · librosa · praat-parselmouth
+- 语音/ML:torch · torchaudio(MMS 强制对齐) · transformers(wav2vec2) · faster-whisper(转写) · librosa · praat-parselmouth
 
 ## 运行
 
@@ -69,13 +71,13 @@ npx tauri dev
 | **定位** | DTW 路径投影到转录网格(`detail.py`) | GOP/MDD 用强制对齐;Richter 同样用路径投影 | ✅ 技巧正确,与 Richter 一致 |
 | **反馈** | 逐词韵律 diff:重音/时长/音高/连读(`word_diff.py`) | MDD 给“音素替换诊断”;多数系统只给分数不给建议 | 🟢 **最强、最稀缺的差异化点,应放大** |
 | **参考** | 单条参考(视频原声) | Richter:参考集(native + non-native);GOP 用音素声学模型 | ⚠️ 单参考会被该说话人口音/习惯主导 → 引入相对 DTW(双参考集) |
-| **音素级诊断** | 无(仅词级) | MDD 家族:能说“/θ/ 发成了 /s/” | ⚠️ 最常见 L2 错误是音素替换,定位不到 → WhisperX/强制对齐 + GOP,或 wav2vec2 + CTC 头做 MDD |
+| **音素级诊断** | 词边界已有(v1.1 MMS 对齐),无音素诊断 | MDD 家族:能说“/θ/ 发成了 /s/” | ⚠️ 仍缺音素替换诊断 → wav2vec2 + CTC 头做 MDD,定位到音素 |
 | **内容串扰** | DTW 距离混了“发音差”与“说错词” | MDD/GOP 能区分 | ⚠️ 现以 `cover_ratio<0.35 → missed` 部分缓解 |
 
-据此排出行动项(以 tag `v1.0` 为基准):
+据此排出行动项(v1.1 已落地第 4 项的词边界部分,见 [CHANGELOG.md](CHANGELOG.md)):
 
 1. **校准打分**(最高 ROI)—— speechocean762 上跑现有 pipeline,用 isotonic 回归拟合距离→人工分,替换 `score_b.py` 的手工 `_lin_map`。
 2. **相对 DTW** —— 预算一个小参考库(native + L2),取 Richter 差和比 `(Cost_other − Cost_std)/(Cost_other + Cost_std)`,提升 speaker-independence,仍零标注。
 3. **编码器选层/换模型** —— `ssl_encoder.py` 取中层或加权多层,对比 large / xls-r。
-4. **音素级诊断**(可选轨)—— WhisperX 强制对齐 + GOP,或 wav2vec2 + CTC 头做 MDD,把问题定位到单词/音素。
+4. **音素级诊断**(可选轨)—— 词边界已由 v1.1 MMS 强制对齐提供;仍缺音素替换诊断 → wav2vec2 + CTC 头做 MDD,定位到音素。
 5. **工程收尾** —— 把 `feedback.llm_hook` 接本地 Qwen2-Audio 生成更丰富的教学反馈;PyInstaller 冻结后端为独立 sidecar 二进制,实现真正可分发的 `.dmg`。
