@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "video": "7.1.mp4",
   "duration": 636.134,
   "sentences": [
@@ -208,8 +208,8 @@
     {
       "index": 4,
       "start": 10.42,
-      "end": 15.56,
-      "text": "Put simply, it means that if you were born here in the United States, you are a citizen of the United States.",
+      "end": 13.42,
+      "text": "Put simply, it means that if you were born here in the United States,",
       "words": [
         {
           "word": "Put",
@@ -280,7 +280,15 @@
           "word": "States,",
           "start": 13.08,
           "end": 13.42
-        },
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "start": 13.44,
+      "end": 15.56,
+      "text": "you are a citizen of the United States.",
+      "words": [
         {
           "word": "you",
           "start": 13.44,
@@ -324,10 +332,10 @@
       ]
     },
     {
-      "index": 5,
+      "index": 6,
       "start": 15.6,
-      "end": 23.961,
-      "text": "President Trump had tried to change that via executive order, arguing that children of people here illegally or temporarily are not automatic citizens.",
+      "end": 18.68,
+      "text": "President Trump had tried to change that via executive order,",
       "words": [
         {
           "word": "President",
@@ -378,7 +386,15 @@
           "word": "order,",
           "start": 18.42,
           "end": 18.68
-        },
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "start": 18.8,
+      "end": 23.961,
+      "text": "arguing that children of people here illegally or temporarily are not automatic citizens.",
+      "words": [
         {
           "word": "arguing",
           "start": 18.8,
@@ -447,10 +463,10 @@
       ]
     },
     {
-      "index": 6,
+      "index": 8,
       "start": 24.301,
-      "end": 30.461,
-      "text": "And the case had been so important to the president that he actually watched the arguments in person, the first sitting president to do that.",
+      "end": 28.621,
+      "text": "And the case had been so important to the president that he actually watched the arguments in person,",
       "words": [
         {
           "word": "And",
@@ -541,7 +557,15 @@
           "word": "person,",
           "start": 28.201,
           "end": 28.621
-        },
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "start": 28.661,
+      "end": 30.461,
+      "text": "the first sitting president to do that.",
+      "words": [
         {
           "word": "the",
           "start": 28.661,
@@ -580,7 +604,7 @@
       ]
     },
     {
-      "index": 7,
+      "index": 10,
       "start": 30.961,
       "end": 32.041,
       "text": "And now we have a ruling.",
@@ -618,7 +642,7 @@
       ]
     },
     {
-      "index": 8,
+      "index": 11,
       "start": 32.061,
       "end": 34.041,
       "text": "So let's go back to our CBS News.",
@@ -666,7 +690,7 @@
       ]
     },
     {
-      "index": 9,
+      "index": 12,
       "start": 34.121,
       "end": 38.021,
       "text": "Chief legal correspondent, Jan Crawford, who's reading through the ruling, hot off the presses.",
@@ -744,7 +768,7 @@
       ]
     },
     {
-      "index": 10,
+      "index": 13,
       "start": 38.061,
       "end": 38.841,
       "text": "Jan, good morning.",
@@ -767,7 +791,7 @@
       ]
     },
     {
-      "index": 11,
+      "index": 14,
       "start": 38.881,
       "end": 39.941,
       "text": "How did the court decide?",
@@ -800,10 +824,10 @@
       ]
     },
     {
-      "index": 12,
+      "index": 15,
       "start": 40.841,
-      "end": 52.681,
-      "text": "In factically, rejecting the president's attempt with an executive order to redefine what it means to be a citizen in this country, the idea, the long -held belief, that if you're born here on U .S.",
+      "end": 48.341,
+      "text": "In factically, rejecting the president's attempt with an executive order to redefine what it means to be a citizen in this country,",
       "words": [
         {
           "word": "In",
@@ -914,7 +938,15 @@
           "word": "country,",
           "start": 47.981,
           "end": 48.341
-        },
+        }
+      ]
+    },
+    {
+      "index": 16,
+      "start": 48.641,
+      "end": 52.681,
+      "text": "the idea, the long -held belief, that if you're born here on U .S.",
+      "words": [
         {
           "word": "the",
           "start": 48.641,
@@ -988,7 +1020,7 @@
       ]
     },
     {
-      "index": 13,
+      "index": 17,
       "start": 52.741,
       "end": 53.921,
       "text": "soil, you're a U .S.",
@@ -1021,7 +1053,7 @@
       ]
     },
     {
-      "index": 14,
+      "index": 18,
       "start": 53.961,
       "end": 54.401,
       "text": "citizen.",
@@ -1034,10 +1066,10 @@
       ]
     },
     {
-      "index": 15,
+      "index": 19,
       "start": 54.781,
-      "end": 66.281,
-      "text": "The opinion by Chief Justice John Roberts says at the Constitution, the 14th Amendment, the citizenship clause, makes very clear that if you're born here, that long -held understanding that you're a U .S.",
+      "end": 61.261,
+      "text": "The opinion by Chief Justice John Roberts says at the Constitution, the 14th Amendment, the citizenship clause,",
       "words": [
         {
           "word": "The",
@@ -1123,7 +1155,15 @@
           "word": "clause,",
           "start": 60.801,
           "end": 61.261
-        },
+        }
+      ]
+    },
+    {
+      "index": 20,
+      "start": 61.541,
+      "end": 66.281,
+      "text": "makes very clear that if you're born here, that long -held understanding that you're a U .S.",
+      "words": [
         {
           "word": "makes",
           "start": 61.541,
@@ -1212,7 +1252,7 @@
       ]
     },
     {
-      "index": 16,
+      "index": 21,
       "start": 66.321,
       "end": 66.741,
       "text": "citizen.",
@@ -1225,10 +1265,10 @@
       ]
     },
     {
-      "index": 17,
+      "index": 22,
       "start": 66.781,
-      "end": 87.242,
-      "text": "The president had argued that Congress and the country had ratified that provision because it was concerned about giving citizenship to former enslaved people and their descendants and not to the some, you know, the million, the 250 ,000, I think babies born here every year to people who are here illegally or temporarily.",
+      "end": 71.322,
+      "text": "The president had argued that Congress and the country had ratified that provision",
       "words": [
         {
           "word": "The",
@@ -1294,7 +1334,15 @@
           "word": "provision",
           "start": 70.762,
           "end": 71.322
-        },
+        }
+      ]
+    },
+    {
+      "index": 23,
+      "start": 72.602,
+      "end": 79.462,
+      "text": "because it was concerned about giving citizenship to former enslaved people and their descendants and not to the some,",
+      "words": [
         {
           "word": "because",
           "start": 72.602,
@@ -1389,7 +1437,15 @@
           "word": "some,",
           "start": 79.242,
           "end": 79.462
-        },
+        }
+      ]
+    },
+    {
+      "index": 24,
+      "start": 80.082,
+      "end": 82.38,
+      "text": "you know, the million, the 250 ,000,",
+      "words": [
         {
           "word": "you",
           "start": 80.082,
@@ -1424,7 +1480,15 @@
           "word": ",000,",
           "start": 81.62,
           "end": 82.38
-        },
+        }
+      ]
+    },
+    {
+      "index": 25,
+      "start": 82.522,
+      "end": 87.242,
+      "text": "I think babies born here every year to people who are here illegally or temporarily.",
+      "words": [
         {
           "word": "I",
           "start": 82.522,
@@ -1503,10 +1567,10 @@
       ]
     },
     {
-      "index": 18,
+      "index": 26,
       "start": 87.302,
-      "end": 94.442,
-      "text": "He wanted to carve that out and end that, say that citizenship would only apply to people who are here unlawfully, who are domiciled here.",
+      "end": 89.162,
+      "text": "He wanted to carve that out and end that,",
       "words": [
         {
           "word": "He",
@@ -1552,7 +1616,15 @@
           "word": "that,",
           "start": 88.942,
           "end": 89.162
-        },
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "start": 89.222,
+      "end": 94.442,
+      "text": "say that citizenship would only apply to people who are here unlawfully, who are domiciled here.",
+      "words": [
         {
           "word": "say",
           "start": 89.222,
@@ -1636,7 +1708,7 @@
       ]
     },
     {
-      "index": 19,
+      "index": 28,
       "start": 94.702,
       "end": 102.242,
       "text": "The justices today rejecting those efforts by the president with a stroke of a pen to redefine what it means to be a citizen.",
@@ -1764,7 +1836,7 @@
       ]
     },
     {
-      "index": 20,
+      "index": 29,
       "start": 102.562,
       "end": 106.502,
       "text": "This was a surprisingly narrowly divided decision, Tony.",
@@ -1812,10 +1884,10 @@
       ]
     },
     {
-      "index": 21,
+      "index": 30,
       "start": 107.042,
-      "end": 113.962,
-      "text": "After the argument, I think a lot of us thought that it might be seven, two, that there might be more consensus around this argument.",
+      "end": 110.442,
+      "text": "After the argument, I think a lot of us thought that it might be seven,",
       "words": [
         {
           "word": "After",
@@ -1891,7 +1963,15 @@
           "word": "seven,",
           "start": 110.162,
           "end": 110.442
-        },
+        }
+      ]
+    },
+    {
+      "index": 31,
+      "start": 110.522,
+      "end": 113.962,
+      "text": "two, that there might be more consensus around this argument.",
+      "words": [
         {
           "word": "two,",
           "start": 110.522,
@@ -1945,10 +2025,10 @@
       ]
     },
     {
-      "index": 22,
+      "index": 32,
       "start": 114.162,
-      "end": 120.223,
-      "text": "But that part of the decision, the main decision, the constitutional aspect of it, which means this closes off this issue.",
+      "end": 116.363,
+      "text": "But that part of the decision, the main decision,",
       "words": [
         {
           "word": "But",
@@ -1994,7 +2074,15 @@
           "word": "decision,",
           "start": 115.963,
           "end": 116.363
-        },
+        }
+      ]
+    },
+    {
+      "index": 33,
+      "start": 116.363,
+      "end": 120.223,
+      "text": "the constitutional aspect of it, which means this closes off this issue.",
+      "words": [
         {
           "word": "the",
           "start": 116.363,
@@ -2058,7 +2146,7 @@
       ]
     },
     {
-      "index": 23,
+      "index": 34,
       "start": 120.803,
       "end": 122.703,
       "text": "Congress can't come in and try to change it.",
@@ -2111,7 +2199,7 @@
       ]
     },
     {
-      "index": 24,
+      "index": 35,
       "start": 123.123,
       "end": 124.2,
       "text": "That was only 5 -4.",
@@ -2144,10 +2232,10 @@
       ]
     },
     {
-      "index": 25,
+      "index": 36,
       "start": 124.923,
-      "end": 135.843,
-      "text": "With the Chief Justice, the three liberal justices, and Trump appointee Amy Coney Barrett agreeing that the Constitution foreclosed this option for the president or Congress.",
+      "end": 127.223,
+      "text": "With the Chief Justice, the three liberal justices,",
       "words": [
         {
           "word": "With",
@@ -2188,7 +2276,15 @@
           "word": "justices,",
           "start": 126.643,
           "end": 127.223
-        },
+        }
+      ]
+    },
+    {
+      "index": 37,
+      "start": 127.283,
+      "end": 130.643,
+      "text": "and Trump appointee Amy Coney Barrett agreeing",
+      "words": [
         {
           "word": "and",
           "start": 127.283,
@@ -2223,7 +2319,15 @@
           "word": "agreeing",
           "start": 130.043,
           "end": 130.643
-        },
+        }
+      ]
+    },
+    {
+      "index": 38,
+      "start": 130.643,
+      "end": 135.843,
+      "text": "that the Constitution foreclosed this option for the president or Congress.",
+      "words": [
         {
           "word": "that",
           "start": 130.643,
@@ -2282,10 +2386,10 @@
       ]
     },
     {
-      "index": 26,
+      "index": 39,
       "start": 135.943,
-      "end": 148.203,
-      "text": "Now, Justice Kavanaugh has a dissenting opinion and he agrees that a separate federal law could apply here, but he is not going along with the Constitution, I mean with the court on the constitutional issue.",
+      "end": 142.983,
+      "text": "Now, Justice Kavanaugh has a dissenting opinion and he agrees that a separate federal law could apply here,",
       "words": [
         {
           "word": "Now,",
@@ -2376,7 +2480,15 @@
           "word": "here,",
           "start": 142.703,
           "end": 142.983
-        },
+        }
+      ]
+    },
+    {
+      "index": 40,
+      "start": 143.863,
+      "end": 148.203,
+      "text": "but he is not going along with the Constitution, I mean with the court on the constitutional issue.",
+      "words": [
         {
           "word": "but",
           "start": 143.863,
@@ -2470,7 +2582,7 @@
       ]
     },
     {
-      "index": 27,
+      "index": 41,
       "start": 148.763,
       "end": 152.883,
       "text": "The three more conservative justices are all in dissent.",
@@ -2523,7 +2635,7 @@
       ]
     },
     {
-      "index": 28,
+      "index": 42,
       "start": 153.663,
       "end": 157.54,
       "text": "So again, 5 -4 on the constitutional issue, 6 -3.",
@@ -2581,7 +2693,7 @@
       ]
     },
     {
-      "index": 29,
+      "index": 43,
       "start": 157.003,
       "end": 161.024,
       "text": "It looks like with the statute, and again, I'm trying to do the math.",
@@ -2659,10 +2771,10 @@
       ]
     },
     {
-      "index": 30,
+      "index": 44,
       "start": 161.424,
-      "end": 173.364,
-      "text": "We're gonna go back and read through some of these dissents right now, but the three conservatives, the most conservative justices, Thomas, Alito, and Justice Gorsuch, also in a sharp dissent, Tony.",
+      "end": 166.184,
+      "text": "We're gonna go back and read through some of these dissents right now, but the three conservatives,",
       "words": [
         {
           "word": "We're",
@@ -2748,7 +2860,15 @@
           "word": "conservatives,",
           "start": 165.424,
           "end": 166.184
-        },
+        }
+      ]
+    },
+    {
+      "index": 45,
+      "start": 166.224,
+      "end": 173.364,
+      "text": "the most conservative justices, Thomas, Alito, and Justice Gorsuch, also in a sharp dissent, Tony.",
+      "words": [
         {
           "word": "the",
           "start": 166.224,
@@ -2827,10 +2947,10 @@
       ]
     },
     {
-      "index": 31,
+      "index": 46,
       "start": 173.664,
-      "end": 180.524,
-      "text": "All right, Jan, I'll let you go back into the text, and meanwhile I'll bring in Jessica Levinson, our CBS News legal contributor, and loyal law professor Jessica.",
+      "end": 175.384,
+      "text": "All right, Jan, I'll let you go back into the text,",
       "words": [
         {
           "word": "All",
@@ -2886,7 +3006,15 @@
           "word": "text,",
           "start": 175.044,
           "end": 175.384
-        },
+        }
+      ]
+    },
+    {
+      "index": 47,
+      "start": 175.424,
+      "end": 180.524,
+      "text": "and meanwhile I'll bring in Jessica Levinson, our CBS News legal contributor, and loyal law professor Jessica.",
+      "words": [
         {
           "word": "and",
           "start": 175.424,
@@ -2975,7 +3103,7 @@
       ]
     },
     {
-      "index": 32,
+      "index": 48,
       "start": 180.564,
       "end": 181.704,
       "text": "Thank you for being back with us.",
@@ -3018,10 +3146,10 @@
       ]
     },
     {
-      "index": 33,
+      "index": 49,
       "start": 182.004,
-      "end": 191.624,
-      "text": "You know, when Jan and I were talking about what could be in this decision ahead of time, we talked about whether they would rule on the constitutionality, or they would go to statute federal law.",
+      "end": 186.304,
+      "text": "You know, when Jan and I were talking about what could be in this decision ahead of time,",
       "words": [
         {
           "word": "You",
@@ -3112,7 +3240,15 @@
           "word": "time,",
           "start": 185.904,
           "end": 186.304
-        },
+        }
+      ]
+    },
+    {
+      "index": 50,
+      "start": 186.544,
+      "end": 191.624,
+      "text": "we talked about whether they would rule on the constitutionality, or they would go to statute federal law.",
+      "words": [
         {
           "word": "we",
           "start": 186.544,
@@ -3206,7 +3342,7 @@
       ]
     },
     {
-      "index": 34,
+      "index": 51,
       "start": 192.164,
       "end": 194.764,
       "text": "It seems like they went further going to the constitutionality.",
@@ -3264,7 +3400,7 @@
       ]
     },
     {
-      "index": 35,
+      "index": 52,
       "start": 194.804,
       "end": 197.244,
       "text": "Is that a stronger rejection than anticipated?",
@@ -3307,10 +3443,10 @@
       ]
     },
     {
-      "index": 36,
+      "index": 53,
       "start": 198.784,
-      "end": 212.745,
-      "text": "Maybe not than anticipated, but it certainly is a stronger rejection because what a majority of the court is saying is that Congress cannot go along with what President Trump tried to do by executive order on his first day.",
+      "end": 200.284,
+      "text": "Maybe not than anticipated,",
       "words": [
         {
           "word": "Maybe",
@@ -3331,7 +3467,15 @@
           "word": "anticipated,",
           "start": 199.524,
           "end": 200.284
-        },
+        }
+      ]
+    },
+    {
+      "index": 54,
+      "start": 200.304,
+      "end": 205.764,
+      "text": "but it certainly is a stronger rejection because what a majority of the court is saying is",
+      "words": [
         {
           "word": "but",
           "start": 200.304,
@@ -3416,7 +3560,15 @@
           "word": "is",
           "start": 205.624,
           "end": 205.764
-        },
+        }
+      ]
+    },
+    {
+      "index": 55,
+      "start": 205.804,
+      "end": 212.745,
+      "text": "that Congress cannot go along with what President Trump tried to do by executive order on his first day.",
+      "words": [
         {
           "word": "that",
           "start": 205.804,
@@ -3515,7 +3667,7 @@
       ]
     },
     {
-      "index": 37,
+      "index": 56,
       "start": 213.205,
       "end": 218.765,
       "text": "So it's for closing the ability of Congress to try and redefine birthright citizenship.",
@@ -3593,7 +3745,7 @@
       ]
     },
     {
-      "index": 38,
+      "index": 57,
       "start": 219.225,
       "end": 225.905,
       "text": "A decision based on the constitution means there's really only two things that could change the court's current understanding.",
@@ -3696,7 +3848,7 @@
       ]
     },
     {
-      "index": 39,
+      "index": 58,
       "start": 225.965,
       "end": 227.385,
       "text": "And again, what's that understanding?",
@@ -3729,7 +3881,7 @@
       ]
     },
     {
-      "index": 40,
+      "index": 59,
       "start": 227.445,
       "end": 230.345,
       "text": "If you're born on US soil, you are a US citizen.",
@@ -3792,7 +3944,7 @@
       ]
     },
     {
-      "index": 41,
+      "index": 60,
       "start": 230.405,
       "end": 232.665,
       "text": "We don't look at the status of your parents.",
@@ -3845,7 +3997,7 @@
       ]
     },
     {
-      "index": 42,
+      "index": 61,
       "start": 232.665,
       "end": 235.365,
       "text": "We don't look if they're here legally or illegally.",
@@ -3898,7 +4050,7 @@
       ]
     },
     {
-      "index": 43,
+      "index": 62,
       "start": 235.425,
       "end": 238.225,
       "text": "We don't look to see if they're here temporarily or not.",
@@ -3961,7 +4113,7 @@
       ]
     },
     {
-      "index": 44,
+      "index": 63,
       "start": 238.645,
       "end": 241.145,
       "text": "So what does it mean to have a constitutional decision?",
@@ -4019,7 +4171,7 @@
       ]
     },
     {
-      "index": 45,
+      "index": 64,
       "start": 241.185,
       "end": 243.265,
       "text": "It means, again, there's two ways to change it.",
@@ -4072,7 +4224,7 @@
       ]
     },
     {
-      "index": 46,
+      "index": 65,
       "start": 243.685,
       "end": 249.645,
       "text": "The court can change its mind later, can overrule itself, or there can be a constitutional amendment.",
@@ -4165,7 +4317,7 @@
       ]
     },
     {
-      "index": 47,
+      "index": 66,
       "start": 249.865,
       "end": 254.146,
       "text": "But it forecloses the ability for Congress to say, you know, we think there's something in there.",
@@ -4258,7 +4410,7 @@
       ]
     },
     {
-      "index": 48,
+      "index": 67,
       "start": 254.186,
       "end": 256.566,
       "text": "We like what the president did by executive order.",
@@ -4311,7 +4463,7 @@
       ]
     },
     {
-      "index": 49,
+      "index": 68,
       "start": 256.746,
       "end": 258.046,
       "text": "Let's now adopt that.",
@@ -4339,7 +4491,7 @@
       ]
     },
     {
-      "index": 50,
+      "index": 69,
       "start": 259.466,
       "end": 260.526,
       "text": "Jessica, thank you very much.",
@@ -4372,10 +4524,10 @@
       ]
     },
     {
-      "index": 51,
+      "index": 70,
       "start": 260.506,
-      "end": 273.306,
-      "text": "You want to turn that to our chief Washington correspondent, Major Garrett, Major during oral arguments back in April, on this case, there was a notable exchange between John Roberts and the attorney representing Sauer, representing the United States.",
+      "end": 266.246,
+      "text": "You want to turn that to our chief Washington correspondent, Major Garrett, Major during oral arguments back in April,",
       "words": [
         {
           "word": "You",
@@ -4471,7 +4623,15 @@
           "word": "April,",
           "start": 265.866,
           "end": 266.246
-        },
+        }
+      ]
+    },
+    {
+      "index": 71,
+      "start": 266.386,
+      "end": 273.306,
+      "text": "on this case, there was a notable exchange between John Roberts and the attorney representing Sauer, representing the United States.",
+      "words": [
         {
           "word": "on",
           "start": 266.386,
@@ -4575,7 +4735,7 @@
       ]
     },
     {
-      "index": 52,
+      "index": 72,
       "start": 273.946,
       "end": 278.566,
       "text": "He said it's a whole new world, and John Roberts said, yeah, but it's the same old constitution.",
@@ -4673,7 +4833,7 @@
       ]
     },
     {
-      "index": 53,
+      "index": 73,
       "start": 279.626,
       "end": 280.226,
       "text": "Precisely.",
@@ -4686,10 +4846,10 @@
       ]
     },
     {
-      "index": 54,
+      "index": 74,
       "start": 280.626,
-      "end": 300.847,
-      "text": "And what President Trump has tried to do is take what was, many years ago, a fringy novel theory that what the 14th Amendment said did not apply to people who were in this country without documentation or temporarily, because they were not subject to the jurisdiction of our country and the way enslaved people were in 1868 when the 14th Amendment was ratified.",
+      "end": 284.826,
+      "text": "And what President Trump has tried to do is take what was, many years ago,",
       "words": [
         {
           "word": "And",
@@ -4765,7 +4925,15 @@
           "word": "ago,",
           "start": 284.646,
           "end": 284.826
-        },
+        }
+      ]
+    },
+    {
+      "index": 75,
+      "start": 285.366,
+      "end": 290.866,
+      "text": "a fringy novel theory that what the 14th Amendment said did not apply to people",
+      "words": [
         {
           "word": "a",
           "start": 285.366,
@@ -4840,7 +5008,15 @@
           "word": "people",
           "start": 290.606,
           "end": 290.866
-        },
+        }
+      ]
+    },
+    {
+      "index": 76,
+      "start": 290.886,
+      "end": 293.546,
+      "text": "who were in this country without documentation or temporarily,",
+      "words": [
         {
           "word": "who",
           "start": 290.886,
@@ -4885,7 +5061,15 @@
           "word": "temporarily,",
           "start": 292.906,
           "end": 293.546
-        },
+        }
+      ]
+    },
+    {
+      "index": 77,
+      "start": 293.566,
+      "end": 296.566,
+      "text": "because they were not subject to the jurisdiction of our country",
+      "words": [
         {
           "word": "because",
           "start": 293.566,
@@ -4940,7 +5124,15 @@
           "word": "country",
           "start": 296.266,
           "end": 296.566
-        },
+        }
+      ]
+    },
+    {
+      "index": 78,
+      "start": 296.586,
+      "end": 300.847,
+      "text": "and the way enslaved people were in 1868 when the 14th Amendment was ratified.",
+      "words": [
         {
           "word": "and",
           "start": 296.586,
@@ -5014,7 +5206,7 @@
       ]
     },
     {
-      "index": 55,
+      "index": 79,
       "start": 301.227,
       "end": 305.207,
       "text": "Or in 1940, when Congress put a legal statute around that general idea.",
@@ -5087,10 +5279,10 @@
       ]
     },
     {
-      "index": 56,
+      "index": 80,
       "start": 305.967,
-      "end": 314.167,
-      "text": "And when you become president of the United States, Tony, you can take what were, novel and fringe theories, and make them an issue before the Supreme Court.",
+      "end": 309.767,
+      "text": "And when you become president of the United States, Tony, you can take what were,",
       "words": [
         {
           "word": "And",
@@ -5166,7 +5358,15 @@
           "word": "were,",
           "start": 309.427,
           "end": 309.767
-        },
+        }
+      ]
+    },
+    {
+      "index": 81,
+      "start": 310.087,
+      "end": 314.167,
+      "text": "novel and fringe theories, and make them an issue before the Supreme Court.",
+      "words": [
         {
           "word": "novel",
           "start": 310.087,
@@ -5235,10 +5435,10 @@
       ]
     },
     {
-      "index": 57,
+      "index": 82,
       "start": 314.167,
-      "end": 324.907,
-      "text": "And President Trump has done precisely that under the broad umbrella of strong political support for his restrictive immigration policies, both at the border and internally.",
+      "end": 315.767,
+      "text": "And President Trump has done precisely",
       "words": [
         {
           "word": "And",
@@ -5269,7 +5469,15 @@
           "word": "precisely",
           "start": 315.207,
           "end": 315.767
-        },
+        }
+      ]
+    },
+    {
+      "index": 83,
+      "start": 315.807,
+      "end": 322.687,
+      "text": "that under the broad umbrella of strong political support for his restrictive immigration policies,",
+      "words": [
         {
           "word": "that",
           "start": 315.807,
@@ -5339,7 +5547,15 @@
           "word": "policies,",
           "start": 322.107,
           "end": 322.687
-        },
+        }
+      ]
+    },
+    {
+      "index": 84,
+      "start": 322.747,
+      "end": 324.907,
+      "text": "both at the border and internally.",
+      "words": [
         {
           "word": "both",
           "start": 322.747,
@@ -5373,10 +5589,10 @@
       ]
     },
     {
-      "index": 58,
+      "index": 85,
       "start": 325.147,
-      "end": 336.227,
-      "text": "This is a direct outgrowth of that entire philosophy that this country needs a stricter set of attitudes and legal application of its existing immigration law and where that law doesn't exist.",
+      "end": 330.667,
+      "text": "This is a direct outgrowth of that entire philosophy that this country needs a stricter set of attitudes",
       "words": [
         {
           "word": "This",
@@ -5467,7 +5683,15 @@
           "word": "attitudes",
           "start": 330.107,
           "end": 330.667
-        },
+        }
+      ]
+    },
+    {
+      "index": 86,
+      "start": 330.847,
+      "end": 336.227,
+      "text": "and legal application of its existing immigration law and where that law doesn't exist.",
+      "words": [
         {
           "word": "and",
           "start": 330.847,
@@ -5541,7 +5765,7 @@
       ]
     },
     {
-      "index": 59,
+      "index": 87,
       "start": 336.607,
       "end": 338.367,
       "text": "Perhaps it needs a redefinition of it.",
@@ -5584,7 +5808,7 @@
       ]
     },
     {
-      "index": 60,
+      "index": 88,
       "start": 338.687,
       "end": 345.308,
       "text": "And President Trump tried to redefine what the Constitution meant in 1868 and what a subsequent federal law meant.",
@@ -5687,10 +5911,10 @@
       ]
     },
     {
-      "index": 61,
+      "index": 89,
       "start": 345.648,
-      "end": 354.328,
-      "text": "He was unsuccessful in that, but it nevertheless goes to the underlying and long -running political potency for this president.",
+      "end": 347.228,
+      "text": "He was unsuccessful in that,",
       "words": [
         {
           "word": "He",
@@ -5716,7 +5940,15 @@
           "word": "that,",
           "start": 346.948,
           "end": 347.228
-        },
+        }
+      ]
+    },
+    {
+      "index": 90,
+      "start": 347.568,
+      "end": 354.328,
+      "text": "but it nevertheless goes to the underlying and long -running political potency for this president.",
+      "words": [
         {
           "word": "but",
           "start": 347.568,
@@ -5795,7 +6027,7 @@
       ]
     },
     {
-      "index": 62,
+      "index": 91,
       "start": 354.828,
       "end": 358.948,
       "text": "And before that, a candidate, Donald Trump, and the broad issue of immigration in this country.",
@@ -5883,7 +6115,7 @@
       ]
     },
     {
-      "index": 63,
+      "index": 92,
       "start": 359.908,
       "end": 363.528,
       "text": "Major, thank you, Lister, and the senior White House and political correspondent, Ed O 'Keefe.",
@@ -5966,7 +6198,7 @@
       ]
     },
     {
-      "index": 64,
+      "index": 93,
       "start": 363.768,
       "end": 368.988,
       "text": "Ed, you know, after the president lost his big tariff case, he went on quite a tear on social media.",
@@ -6074,7 +6306,7 @@
       ]
     },
     {
-      "index": 65,
+      "index": 94,
       "start": 369.028,
       "end": 371.388,
       "text": "This was another very important political matter to him.",
@@ -6127,7 +6359,7 @@
       ]
     },
     {
-      "index": 66,
+      "index": 95,
       "start": 371.968,
       "end": 373.408,
       "text": "Do we expect to hear from him today?",
@@ -6175,10 +6407,10 @@
       ]
     },
     {
-      "index": 67,
+      "index": 96,
       "start": 374.388,
-      "end": 380.408,
-      "text": "Well, we've already been hearing from him ever since that tariff ruling, in essence channeling his expectation that he would lose this case.",
+      "end": 376.908,
+      "text": "Well, we've already been hearing from him ever since that tariff ruling,",
       "words": [
         {
           "word": "Well,",
@@ -6239,7 +6471,15 @@
           "word": "ruling,",
           "start": 376.648,
           "end": 376.908
-        },
+        }
+      ]
+    },
+    {
+      "index": 97,
+      "start": 376.908,
+      "end": 380.408,
+      "text": "in essence channeling his expectation that he would lose this case.",
+      "words": [
         {
           "word": "in",
           "start": 376.908,
@@ -6298,10 +6538,10 @@
       ]
     },
     {
-      "index": 68,
+      "index": 98,
       "start": 380.448,
-      "end": 390.509,
-      "text": "And it contributed to his ongoing stride and criticism of justices who rule against the moves that he's tried to make, especially some of those that he helped put on the bench at all.",
+      "end": 384.428,
+      "text": "And it contributed to his ongoing stride and criticism of justices",
       "words": [
         {
           "word": "And",
@@ -6357,7 +6597,15 @@
           "word": "justices",
           "start": 383.888,
           "end": 384.428
-        },
+        }
+      ]
+    },
+    {
+      "index": 99,
+      "start": 384.448,
+      "end": 387.428,
+      "text": "who rule against the moves that he's tried to make,",
+      "words": [
         {
           "word": "who",
           "start": 384.448,
@@ -6407,7 +6655,15 @@
           "word": "make,",
           "start": 387.208,
           "end": 387.428
-        },
+        }
+      ]
+    },
+    {
+      "index": 100,
+      "start": 387.448,
+      "end": 390.509,
+      "text": "especially some of those that he helped put on the bench at all.",
+      "words": [
         {
           "word": "especially",
           "start": 387.448,
@@ -6476,7 +6732,7 @@
       ]
     },
     {
-      "index": 69,
+      "index": 101,
       "start": 390.569,
       "end": 393.109,
       "text": "We have not yet heard from the president on this.",
@@ -6534,7 +6790,7 @@
       ]
     },
     {
-      "index": 70,
+      "index": 102,
       "start": 393.129,
       "end": 395.549,
       "text": "We expect to at some point later today.",
@@ -6582,10 +6838,10 @@
       ]
     },
     {
-      "index": 71,
+      "index": 103,
       "start": 395.589,
-      "end": 404.169,
-      "text": "But we should point out, and this is to somewhat to Major's point, while seven in 10, more than seven in 10 Americans, support keeping birthright citizenship in place.",
+      "end": 398.229,
+      "text": "But we should point out, and this is to somewhat to Major's point,",
       "words": [
         {
           "word": "But",
@@ -6651,7 +6907,15 @@
           "word": "point,",
           "start": 397.949,
           "end": 398.229
-        },
+        }
+      ]
+    },
+    {
+      "index": 104,
+      "start": 398.629,
+      "end": 404.169,
+      "text": "while seven in 10, more than seven in 10 Americans, support keeping birthright citizenship in place.",
+      "words": [
         {
           "word": "while",
           "start": 398.629,
@@ -6735,10 +6999,10 @@
       ]
     },
     {
-      "index": 72,
+      "index": 105,
       "start": 404.189,
-      "end": 426.189,
-      "text": "What the president was acting on, in essence, is CBS News polling that finds it 51 % of Republicans at the time this poll was taken, wanted other requirements added to become United States citizen, in essence believing that birthright citizenship alone or that you were born in this country because your parents decided to make sure you were, should not be qualification enough.",
+      "end": 406.789,
+      "text": "What the president was acting on, in essence,",
       "words": [
         {
           "word": "What",
@@ -6779,7 +7043,15 @@
           "word": "essence,",
           "start": 406.349,
           "end": 406.789
-        },
+        }
+      ]
+    },
+    {
+      "index": 106,
+      "start": 406.769,
+      "end": 411.669,
+      "text": "is CBS News polling that finds it 51 % of Republicans at the time this poll was taken,",
+      "words": [
         {
           "word": "is",
           "start": 406.769,
@@ -6869,7 +7141,15 @@
           "word": "taken,",
           "start": 411.349,
           "end": 411.669
-        },
+        }
+      ]
+    },
+    {
+      "index": 107,
+      "start": 412.049,
+      "end": 416.289,
+      "text": "wanted other requirements added to become United States citizen,",
+      "words": [
         {
           "word": "wanted",
           "start": 412.049,
@@ -6914,7 +7194,15 @@
           "word": "citizen,",
           "start": 415.909,
           "end": 416.289
-        },
+        }
+      ]
+    },
+    {
+      "index": 108,
+      "start": 416.329,
+      "end": 421.429,
+      "text": "in essence believing that birthright citizenship alone or that you were born in this country",
+      "words": [
         {
           "word": "in",
           "start": 416.329,
@@ -6989,7 +7277,15 @@
           "word": "country",
           "start": 421.069,
           "end": 421.429
-        },
+        }
+      ]
+    },
+    {
+      "index": 109,
+      "start": 421.829,
+      "end": 423.949,
+      "text": "because your parents decided to make sure you were,",
+      "words": [
         {
           "word": "because",
           "start": 421.829,
@@ -7034,7 +7330,15 @@
           "word": "were,",
           "start": 423.649,
           "end": 423.949
-        },
+        }
+      ]
+    },
+    {
+      "index": 110,
+      "start": 424.629,
+      "end": 426.189,
+      "text": "should not be qualification enough.",
+      "words": [
         {
           "word": "should",
           "start": 424.629,
@@ -7063,7 +7367,7 @@
       ]
     },
     {
-      "index": 73,
+      "index": 111,
       "start": 426.249,
       "end": 429.929,
       "text": "So he did pick this fight on day one of his second term.",
@@ -7136,7 +7440,7 @@
       ]
     },
     {
-      "index": 74,
+      "index": 112,
       "start": 429.989,
       "end": 432.669,
       "text": "You'll recall that night he came back from the inaugural parade.",
@@ -7199,10 +7503,10 @@
       ]
     },
     {
-      "index": 75,
+      "index": 113,
       "start": 432.989,
-      "end": 440.96,
-      "text": "He went to the Oval Office, among other things, he pardoned thousands of people who had been charged or convicted in crimes related to January 6.",
+      "end": 434.729,
+      "text": "He went to the Oval Office, among other things,",
       "words": [
         {
           "word": "He",
@@ -7248,7 +7552,15 @@
           "word": "things,",
           "start": 434.529,
           "end": 434.729
-        },
+        }
+      ]
+    },
+    {
+      "index": 114,
+      "start": 434.729,
+      "end": 440.96,
+      "text": "he pardoned thousands of people who had been charged or convicted in crimes related to January 6.",
+      "words": [
         {
           "word": "he",
           "start": 434.729,
@@ -7337,10 +7649,10 @@
       ]
     },
     {
-      "index": 76,
+      "index": 115,
       "start": 441.15,
-      "end": 450.55,
-      "text": "He also signed this executive order, in essence picking the fight with the Supreme Court and starting the clock on a constitutional argument that he made that this was unconstitutional.",
+      "end": 442.71,
+      "text": "He also signed this executive order,",
       "words": [
         {
           "word": "He",
@@ -7371,7 +7683,15 @@
           "word": "order,",
           "start": 442.49,
           "end": 442.71
-        },
+        }
+      ]
+    },
+    {
+      "index": 116,
+      "start": 443.41,
+      "end": 445.39,
+      "text": "in essence picking the fight with the Supreme Court",
+      "words": [
         {
           "word": "in",
           "start": 443.41,
@@ -7416,7 +7736,15 @@
           "word": "Court",
           "start": 445.17,
           "end": 445.39
-        },
+        }
+      ]
+    },
+    {
+      "index": 117,
+      "start": 445.45,
+      "end": 450.55,
+      "text": "and starting the clock on a constitutional argument that he made that this was unconstitutional.",
+      "words": [
         {
           "word": "and",
           "start": 445.45,
@@ -7495,7 +7823,7 @@
       ]
     },
     {
-      "index": 77,
+      "index": 118,
       "start": 450.63,
       "end": 453.35,
       "text": "And of course, the justices today sound like rejecting that.",
@@ -7553,10 +7881,10 @@
       ]
     },
     {
-      "index": 78,
+      "index": 119,
       "start": 453.37,
-      "end": 471.43,
-      "text": "So this is the biggest symbolic and political defeat for him next to the tariff decision, this term, but given the other ways in which presidential power or Republican orthodoxy has been reinforced by this conservative court, ultimately the White House may try to spin this term, at least, as a bit of a victory.",
+      "end": 459.37,
+      "text": "So this is the biggest symbolic and political defeat for him next to the tariff decision, this term,",
       "words": [
         {
           "word": "So",
@@ -7647,7 +7975,15 @@
           "word": "term,",
           "start": 458.95,
           "end": 459.37
-        },
+        }
+      ]
+    },
+    {
+      "index": 120,
+      "start": 459.87,
+      "end": 466.73,
+      "text": "but given the other ways in which presidential power or Republican orthodoxy has been reinforced by this conservative court,",
+      "words": [
         {
           "word": "but",
           "start": 459.87,
@@ -7742,7 +8078,15 @@
           "word": "court,",
           "start": 466.37,
           "end": 466.73
-        },
+        }
+      ]
+    },
+    {
+      "index": 121,
+      "start": 467.15,
+      "end": 471.43,
+      "text": "ultimately the White House may try to spin this term, at least, as a bit of a victory.",
+      "words": [
         {
           "word": "ultimately",
           "start": 467.15,
@@ -7836,10 +8180,10 @@
       ]
     },
     {
-      "index": 79,
+      "index": 122,
       "start": 471.45,
-      "end": 480.67,
-      "text": "The Justice Department, just a little while ago, Tony has weighed in thanking the court for ruling in its favor in the transgender athletes case that was decided a little while ago, or announced just a little while ago.",
+      "end": 473.19,
+      "text": "The Justice Department, just a little while ago,",
       "words": [
         {
           "word": "The",
@@ -7880,7 +8224,15 @@
           "word": "ago,",
           "start": 473.07,
           "end": 473.19
-        },
+        }
+      ]
+    },
+    {
+      "index": 123,
+      "start": 473.25,
+      "end": 477.93,
+      "text": "Tony has weighed in thanking the court for ruling in its favor in the transgender athletes case",
+      "words": [
         {
           "word": "Tony",
           "start": 473.25,
@@ -7965,7 +8317,15 @@
           "word": "case",
           "start": 477.69,
           "end": 477.93
-        },
+        }
+      ]
+    },
+    {
+      "index": 124,
+      "start": 477.93,
+      "end": 479.37,
+      "text": "that was decided a little while ago,",
+      "words": [
         {
           "word": "that",
           "start": 477.93,
@@ -8000,7 +8360,15 @@
           "word": "ago,",
           "start": 479.23,
           "end": 479.37
-        },
+        }
+      ]
+    },
+    {
+      "index": 125,
+      "start": 479.43,
+      "end": 480.67,
+      "text": "or announced just a little while ago.",
+      "words": [
         {
           "word": "or",
           "start": 479.43,
@@ -8039,7 +8407,7 @@
       ]
     },
     {
-      "index": 80,
+      "index": 126,
       "start": 481.39,
       "end": 489.031,
       "text": "And of course, presidential powers were expanded yesterday by allowing a president to fire the heads of various independent regulatory agencies.",
@@ -8152,10 +8520,10 @@
       ]
     },
     {
-      "index": 81,
+      "index": 127,
       "start": 489.411,
-      "end": 496.371,
-      "text": "But on this one, the president has been anticipating a loss for months and a loss he indeed got, in this case, Tony.",
+      "end": 490.131,
+      "text": "But on this one,",
       "words": [
         {
           "word": "But",
@@ -8176,7 +8544,15 @@
           "word": "one,",
           "start": 489.991,
           "end": 490.131
-        },
+        }
+      ]
+    },
+    {
+      "index": 128,
+      "start": 490.131,
+      "end": 496.371,
+      "text": "the president has been anticipating a loss for months and a loss he indeed got, in this case, Tony.",
+      "words": [
         {
           "word": "the",
           "start": 490.131,
@@ -8275,7 +8651,7 @@
       ]
     },
     {
-      "index": 82,
+      "index": 129,
       "start": 496.931,
       "end": 497.971,
       "text": "All right, Ed, thank you very much.",
@@ -8318,7 +8694,7 @@
       ]
     },
     {
-      "index": 83,
+      "index": 130,
       "start": 497.971,
       "end": 501.211,
       "text": "Let's go back to our CBS News Chief Legal Correspond, Jan Crawford.",
@@ -8386,7 +8762,7 @@
       ]
     },
     {
-      "index": 84,
+      "index": 131,
       "start": 501.251,
       "end": 504.491,
       "text": "Jan, again, you had a few more minutes to process this, what stands out?",
@@ -8464,10 +8840,10 @@
       ]
     },
     {
-      "index": 85,
+      "index": 132,
       "start": 505.451,
-      "end": 516.191,
-      "text": "Well, I'm just looking at some of the language and the dissent, which to, at its point, we may hear the president pick up on today, Justice Alito, saying this is one of the most important decisions in the history of the court.",
+      "end": 508.951,
+      "text": "Well, I'm just looking at some of the language and the dissent, which to, at its point,",
       "words": [
         {
           "word": "Well,",
@@ -8553,7 +8929,15 @@
           "word": "point,",
           "start": 508.671,
           "end": 508.951
-        },
+        }
+      ]
+    },
+    {
+      "index": 133,
+      "start": 508.991,
+      "end": 512.571,
+      "text": "we may hear the president pick up on today, Justice Alito,",
+      "words": [
         {
           "word": "we",
           "start": 508.991,
@@ -8608,7 +8992,15 @@
           "word": "Alito,",
           "start": 512.251,
           "end": 512.571
-        },
+        }
+      ]
+    },
+    {
+      "index": 134,
+      "start": 512.711,
+      "end": 516.191,
+      "text": "saying this is one of the most important decisions in the history of the court.",
+      "words": [
         {
           "word": "saying",
           "start": 512.711,
@@ -8687,10 +9079,10 @@
       ]
     },
     {
-      "index": 86,
+      "index": 135,
       "start": 516.211,
-      "end": 535.512,
-      "text": "And in my judgment, the court has made a serious mistake, conferring citizenship, interpreting the 14th Amendment on virtually everyone who happens to be born in this country, including the children of birth tourists, Justice Alito, a sharp dissent to this majority decision.",
+      "end": 521.471,
+      "text": "And in my judgment, the court has made a serious mistake, conferring citizenship,",
       "words": [
         {
           "word": "And",
@@ -8756,7 +9148,15 @@
           "word": "citizenship,",
           "start": 520.791,
           "end": 521.471
-        },
+        }
+      ]
+    },
+    {
+      "index": 136,
+      "start": 521.491,
+      "end": 525.911,
+      "text": "interpreting the 14th Amendment on virtually everyone who happens to be born in this country,",
+      "words": [
         {
           "word": "interpreting",
           "start": 521.491,
@@ -8831,7 +9231,15 @@
           "word": "country,",
           "start": 525.591,
           "end": 525.911
-        },
+        }
+      ]
+    },
+    {
+      "index": 137,
+      "start": 525.951,
+      "end": 530.252,
+      "text": "including the children of birth tourists, Justice Alito,",
+      "words": [
         {
           "word": "including",
           "start": 525.951,
@@ -8871,7 +9279,15 @@
           "word": "Alito,",
           "start": 529.952,
           "end": 530.252
-        },
+        }
+      ]
+    },
+    {
+      "index": 138,
+      "start": 530.652,
+      "end": 535.512,
+      "text": "a sharp dissent to this majority decision.",
+      "words": [
         {
           "word": "a",
           "start": 530.652,
@@ -8910,10 +9326,10 @@
       ]
     },
     {
-      "index": 87,
+      "index": 139,
       "start": 536.192,
-      "end": 546.192,
-      "text": "You know, and when we think about the term that President Trump has had, this is the last day, and this is the last case of this term, it has been, as Ed said, a mixed bag for the president.",
+      "end": 540.792,
+      "text": "You know, and when we think about the term that President Trump has had, this is the last day,",
       "words": [
         {
           "word": "You",
@@ -9009,7 +9425,15 @@
           "word": "day,",
           "start": 540.612,
           "end": 540.792
-        },
+        }
+      ]
+    },
+    {
+      "index": 140,
+      "start": 540.812,
+      "end": 542.892,
+      "text": "and this is the last case of this term,",
+      "words": [
         {
           "word": "and",
           "start": 540.812,
@@ -9054,7 +9478,15 @@
           "word": "term,",
           "start": 542.552,
           "end": 542.892
-        },
+        }
+      ]
+    },
+    {
+      "index": 141,
+      "start": 543.552,
+      "end": 546.192,
+      "text": "it has been, as Ed said, a mixed bag for the president.",
+      "words": [
         {
           "word": "it",
           "start": 543.552,
@@ -9118,7 +9550,7 @@
       ]
     },
     {
-      "index": 88,
+      "index": 142,
       "start": 546.212,
       "end": 551.572,
       "text": "Of course, he got two wins last week on his immigration policy, but those were based on federal law.",
@@ -9221,7 +9653,7 @@
       ]
     },
     {
-      "index": 89,
+      "index": 143,
       "start": 552.092,
       "end": 553.772,
       "text": "Congress can change those laws.",
@@ -9254,7 +9686,7 @@
       ]
     },
     {
-      "index": 90,
+      "index": 144,
       "start": 553.812,
       "end": 556.552,
       "text": "Those aren't necessarily permanent victories for the president.",
@@ -9302,7 +9734,7 @@
       ]
     },
     {
-      "index": 91,
+      "index": 145,
       "start": 556.852,
       "end": 562.812,
       "text": "He got more power yesterday to replace members of executive agencies, like the Federal Trade Commission.",
@@ -9390,7 +9822,7 @@
       ]
     },
     {
-      "index": 92,
+      "index": 146,
       "start": 563.112,
       "end": 568.212,
       "text": "But that also gives a subsequent Democratic president the power to replace all of his people.",
@@ -9478,10 +9910,10 @@
       ]
     },
     {
-      "index": 93,
+      "index": 147,
       "start": 568.672,
-      "end": 579.773,
-      "text": "His two signature, potentially what he believed were his two signature policies on immigration and on the economy, birthright citizenship and tariffs.",
+      "end": 576.333,
+      "text": "His two signature, potentially what he believed were his two signature policies on immigration",
       "words": [
         {
           "word": "His",
@@ -9552,7 +9984,15 @@
           "word": "immigration",
           "start": 575.713,
           "end": 576.333
-        },
+        }
+      ]
+    },
+    {
+      "index": 148,
+      "start": 576.373,
+      "end": 577.393,
+      "text": "and on the economy,",
+      "words": [
         {
           "word": "and",
           "start": 576.373,
@@ -9572,7 +10012,15 @@
           "word": "economy,",
           "start": 576.873,
           "end": 577.393
-        },
+        }
+      ]
+    },
+    {
+      "index": 149,
+      "start": 577.673,
+      "end": 579.773,
+      "text": "birthright citizenship and tariffs.",
+      "words": [
         {
           "word": "birthright",
           "start": 577.673,
@@ -9596,7 +10044,7 @@
       ]
     },
     {
-      "index": 94,
+      "index": 150,
       "start": 579.993,
       "end": 585.913,
       "text": "He lost, and he lost because some of the members of the court that he appointed ruled against him.",
@@ -9699,10 +10147,10 @@
       ]
     },
     {
-      "index": 95,
+      "index": 151,
       "start": 586.333,
-      "end": 593.953,
-      "text": "And that's something I expect we're going to hear a lot of from the president today, who has complained that justices owe the president a duty of loyalty.",
+      "end": 589.853,
+      "text": "And that's something I expect we're going to hear a lot of from the president today,",
       "words": [
         {
           "word": "And",
@@ -9783,7 +10231,15 @@
           "word": "today,",
           "start": 589.473,
           "end": 589.853
-        },
+        }
+      ]
+    },
+    {
+      "index": 152,
+      "start": 590.393,
+      "end": 593.953,
+      "text": "who has complained that justices owe the president a duty of loyalty.",
+      "words": [
         {
           "word": "who",
           "start": 590.393,
@@ -9847,7 +10303,7 @@
       ]
     },
     {
-      "index": 96,
+      "index": 153,
       "start": 594.293,
       "end": 596.893,
       "text": "This court does not believe that, that is not proper.",
@@ -9905,7 +10361,7 @@
       ]
     },
     {
-      "index": 97,
+      "index": 154,
       "start": 596.913,
       "end": 598.753,
       "text": "This court interprets the law.",
@@ -9938,7 +10394,7 @@
       ]
     },
     {
-      "index": 98,
+      "index": 155,
       "start": 599.093,
       "end": 604.853,
       "text": "And as Justice Gorsuch told me in our interview last month, the duty of a justice is to the Constitution.",
@@ -10046,7 +10502,7 @@
       ]
     },
     {
-      "index": 99,
+      "index": 156,
       "start": 605.233,
       "end": 609.293,
       "text": "And I think that's what we're going to see a lot of the debate on today, Tony.",
@@ -10139,7 +10595,7 @@
       ]
     },
     {
-      "index": 100,
+      "index": 157,
       "start": 609.733,
       "end": 610.953,
       "text": "All right, Jan, thank you very much.",
@@ -10182,10 +10638,10 @@
       ]
     },
     {
-      "index": 101,
+      "index": 158,
       "start": 610.993,
-      "end": 617.613,
-      "text": "Again, for our viewers, if you're just joining us, the Supreme Court has struck down the president's executive order attempting to end birthright citizenship.",
+      "end": 612.693,
+      "text": "Again, for our viewers, if you're just joining us,",
       "words": [
         {
           "word": "Again,",
@@ -10231,7 +10687,15 @@
           "word": "us,",
           "start": 612.573,
           "end": 612.693
-        },
+        }
+      ]
+    },
+    {
+      "index": 159,
+      "start": 612.693,
+      "end": 617.613,
+      "text": "the Supreme Court has struck down the president's executive order attempting to end birthright citizenship.",
+      "words": [
         {
           "word": "the",
           "start": 612.693,
@@ -10310,10 +10774,10 @@
       ]
     },
     {
-      "index": 102,
+      "index": 160,
       "start": 617.673,
-      "end": 627.014,
-      "text": "Chief Justice John Roberts writing in part, citizenship then and now was the right to have rights to freely participate in our political community.",
+      "end": 620.394,
+      "text": "Chief Justice John Roberts writing in part,",
       "words": [
         {
           "word": "Chief",
@@ -10349,7 +10813,15 @@
           "word": "part,",
           "start": 620.034,
           "end": 620.394
-        },
+        }
+      ]
+    },
+    {
+      "index": 161,
+      "start": 620.634,
+      "end": 627.014,
+      "text": "citizenship then and now was the right to have rights to freely participate in our political community.",
+      "words": [
         {
           "word": "citizenship",
           "start": 620.634,
@@ -10438,7 +10910,7 @@
       ]
     },
     {
-      "index": 103,
+      "index": 162,
       "start": 627.534,
       "end": 633.434,
       "text": "The framers of the 14th Amendment extended that promise to quote every freeborn person in this land.",
@@ -10531,7 +11003,7 @@
       ]
     },
     {
-      "index": 104,
+      "index": 163,
       "start": 633.974,
       "end": 635.414,
       "text": "We keep that promise today.",

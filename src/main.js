@@ -231,6 +231,7 @@ const videoState = {
   rangeEnd: null,
   learnerBlob: null,
   learnerUrl: null,
+  learnerRid: null,   // server-side recording id (FR-8: exact WAV clip replay)
 };
 const shadowRec = createRecorder();
 const shadowTimer = makeTimer("shadow-timer");
@@ -418,6 +419,7 @@ $("shadow-record-btn").addEventListener("click", async () => {
       await shadowRec.start((blob) => {
         clientLog("recording stopped; blob size=" + blob.size);
         videoState.learnerBlob = blob;
+        videoState.learnerRid = null;
         if (videoState.learnerUrl) URL.revokeObjectURL(videoState.learnerUrl);
         videoState.learnerUrl = URL.createObjectURL(blob);
         const player = $("shadow-learner-player");
@@ -425,6 +427,7 @@ $("shadow-record-btn").addEventListener("click", async () => {
         player.hidden = false;
         $("shadow-analyze-btn").disabled = false;
         shadowStatus(blob.size > 0 ? "录制完成,可点击“分析我的发音”" : "录音为空,请重试");
+        uploadLearnerRecording(blob);
       });
       clientLog("getUserMedia succeeded; recording started");
       shadowStatus("跟读中…读完点“停止跟读”");
@@ -659,12 +662,24 @@ function playRefClip(absStart, absEnd) {
   a.play().catch((e) => clientLog("refClip play failed: " + (e && e.message)));
 }
 
-// play the learner's own recording for a sentence, seeking into the full blob
-// and stopping at the sentence end. In place — no scroll.
+// play the learner's own recording for a sentence/word.
+// Preferred path (FR-8): the backend cuts an exact WAV slice from the stored
+// recording — sample-accurate, no ~250 ms timeupdate truncation. Falls back to
+// seeking inside the local blob if the server-side recording isn't ready yet.
 function playMyClip(startT, endT) {
   stopAllClips();
   const a = $("my-clip-player");
-  if (!a || !a.src) { clientLog("playMyClip: no learner clip src"); return; }
+  if (!a) return;
+  if (videoState.learnerRid) {
+    const tok = BACKEND_TOKEN ? `&token=${encodeURIComponent(BACKEND_TOKEN)}` : "";
+    a.src =
+      `${BACKEND_URL}/recordings/${videoState.learnerRid}/clip` +
+      `?start=${startT.toFixed(3)}&end=${endT.toFixed(3)}${tok}`;
+    a.currentTime = 0;
+    a.play().catch((e) => clientLog("myClip play failed: " + (e && e.message)));
+    return;
+  }
+  if (!a.src) { clientLog("playMyClip: no learner clip src"); return; }
   const doPlay = () => {
     try { a.currentTime = startT; } catch (_) {}
     a.play().catch((e) => clientLog("myClip play failed: " + (e && e.message)));
@@ -678,6 +693,28 @@ function playMyClip(startT, endT) {
   };
   if (a.readyState >= 1) doPlay();
   else a.addEventListener("loadedmetadata", doPlay, { once: true });
+}
+
+// store the learner recording server-side so word/sentence replay can be cut
+// as exact WAV slices (same mechanism as the reference /clip endpoint).
+async function uploadLearnerRecording(blob) {
+  try {
+    const form = new FormData();
+    form.append("learner", blob, "learner.webm");
+    const res = await fetch(`${BACKEND_URL}/recordings`, {
+      method: "POST", body: form, headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const data = await res.json();
+    // only adopt if the user hasn't re-recorded in the meantime
+    if (videoState.learnerBlob === blob) {
+      videoState.learnerRid = data.recording_id;
+      clientLog("learner recording stored: " + data.recording_id);
+    }
+  } catch (err) {
+    clientLog("recording upload failed (clip replay will use blob seek): " +
+      (err && err.message));
+  }
 }
 
 // =====================================================================

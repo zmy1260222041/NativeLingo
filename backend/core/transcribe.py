@@ -29,6 +29,103 @@ _model = None
 # terminal punctuation that ends a sentence
 _SENTENCE_END = re.compile(r"[.!?]['\")\]]?$")
 
+# --- sub-sentence splitting (FR-M3) -------------------------------------------
+# News sentences are long (43% of CBS material >6s or >18 words) — too long to
+# shadow in one go. Long sentences get a conservative second-level split at
+# natural boundaries (clause punctuation first, then conjunctions), aiming for
+# chunks a learner can actually repeat.
+_SPLIT_DUR_S = 8.0        # sentences longer than this get split
+_SPLIT_WORDS = 20         # ... or with more words than this
+_MIN_CHUNK_WORDS = 4      # never emit fragments shorter than this
+_CLAUSE_END = re.compile(r"[,;:]['\")\]]?$")
+_CONJ = {
+    "and", "but", "so", "because", "which", "that", "when", "while", "if",
+    "who", "whom", "whose", "where", "although", "though", "as", "since",
+    "unless", "until", "after", "before",
+}
+
+
+def _needs_split(words: list[dict]) -> bool:
+    dur = words[-1]["end"] - words[0]["start"]
+    return dur > _SPLIT_DUR_S or len(words) > _SPLIT_WORDS
+
+
+def _best_split_point(words: list[dict]) -> int | None:
+    """Return the index to split ``words`` at (start of the right chunk).
+
+    Prefer clause punctuation, then conjunctions; pick the candidate closest
+    to the midpoint that leaves both chunks >= _MIN_CHUNK_WORDS.
+    """
+    n = len(words)
+    if n < 2 * _MIN_CHUNK_WORDS:
+        return None
+    mid = n / 2.0
+
+    def candidates():
+        for i in range(_MIN_CHUNK_WORDS, n - _MIN_CHUNK_WORDS + 1):
+            left_end = words[i - 1]["word"]
+            right_start = re.sub(r"^[^a-zA-Z]+", "", words[i]["word"]).lower()
+            if _CLAUSE_END.search(left_end):
+                yield i, 0  # punctuation boundary is best
+            elif right_start in _CONJ:
+                yield i, 1
+
+    best, best_key = None, None
+    for i, rank in candidates():
+        key = (rank, abs(i - mid))
+        if best_key is None or key < best_key:
+            best, best_key = i, key
+    return best
+
+
+def _split_long(words: list[dict]) -> list[list[dict]]:
+    """Recursively split a long word list into shadowable chunks."""
+    if not _needs_split(words):
+        return [words]
+    cut = _best_split_point(words)
+    if cut is None:
+        return [words]
+    return _split_long(words[:cut]) + _split_long(words[cut:])
+
+
+def _merge_words_into_sentences(words: list[dict]) -> list[dict]:
+    """Merge a flat ordered word list into sentences by terminal punctuation.
+
+    Each output sentence: ``{index, start, end, text, words}``. The word's
+    original text (with trailing punctuation) drives sentence-end detection;
+    the timestamps are whatever ``_aligned_words`` produced. Over-long
+    sentences are sub-split at clause boundaries (FR-M3).
+    """
+    sentences: list[dict] = []
+    cur: list[dict] = []
+
+    def emit(chunk: list[dict]):
+        text = re.sub(r"\s+", " ", " ".join(w["word"] for w in chunk)).strip()
+        if text:
+            sentences.append(
+                {
+                    "index": len(sentences),
+                    "start": round(chunk[0]["start"], 3),
+                    "end": round(chunk[-1]["end"], 3),
+                    "text": text,
+                    "words": [dict(w) for w in chunk],
+                }
+            )
+
+    def flush():
+        nonlocal cur
+        if cur:
+            for chunk in _split_long(cur):
+                emit(chunk)
+        cur = []
+
+    for w in words:
+        cur.append(w)
+        if _SENTENCE_END.search(w["word"]):
+            flush()
+    flush()
+    return sentences
+
 
 def _get_model():
     global _model
@@ -42,7 +139,8 @@ def _get_model():
 
 # bump when the cache schema changes so old caches are regenerated.
 # v3: word timestamps now come from MMS forced alignment (not whisper attention).
-CACHE_VERSION = 3
+# v4: over-long sentences sub-split at clause boundaries (FR-M3, news domain).
+CACHE_VERSION = 4
 
 
 def _cache_path(video_path: str) -> str:
@@ -134,40 +232,6 @@ def _aligned_words(segments, video_path: str) -> list[dict]:
         b["start"] = round(b["start"], 3)
         b["end"] = round(b["end"], 3)
     return base
-
-
-def _merge_words_into_sentences(words: list[dict]) -> list[dict]:
-    """Merge a flat ordered word list into sentences by terminal punctuation.
-
-    Each output sentence: ``{index, start, end, text, words}``. The word's
-    original text (with trailing punctuation) drives sentence-end detection;
-    the timestamps are whatever ``_aligned_words`` produced.
-    """
-    sentences: list[dict] = []
-    cur: list[dict] = []
-
-    def flush():
-        nonlocal cur
-        if cur:
-            text = re.sub(r"\s+", " ", " ".join(w["word"] for w in cur)).strip()
-            if text:
-                sentences.append(
-                    {
-                        "index": len(sentences),
-                        "start": round(cur[0]["start"], 3),
-                        "end": round(cur[-1]["end"], 3),
-                        "text": text,
-                        "words": [dict(w) for w in cur],
-                    }
-                )
-        cur = []
-
-    for w in words:
-        cur.append(w)
-        if _SENTENCE_END.search(w["word"]):
-            flush()
-    flush()
-    return sentences
 
 
 def transcribe_waveform(wav) -> list[dict]:

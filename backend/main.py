@@ -14,11 +14,17 @@ Exposes:
 * GET  /videos/{name}/stream  -> Range-capable video stream (muted playback)
 * POST /analyze_video       -> shadow a sentence range: clip reference audio
                                from the video and score the learner recording
+* POST /recordings          -> store the learner recording, returns an id
+* GET  /recordings/{id}/clip -> exact WAV slice of the learner recording
+                               (FR-8: sample-accurate "my" word/sentence replay)
 """
 from __future__ import annotations
 
 import io
 import os
+import re
+import tempfile
+import uuid
 
 import numpy as np
 import soundfile as sf
@@ -292,6 +298,65 @@ async def analyze_video(
     )
     payload["segment"] = {"start": seg_start, "end": seg_end}
     return payload
+
+
+# --------------------------------------------------------------------------- #
+# Learner recording store (FR-8: sample-accurate replay of "my" clips)
+# --------------------------------------------------------------------------- #
+# The frontend holds the learner recording as a blob; replaying a word/sentence
+# from it via HTML currentTime seek + timeupdate only gives ~250 ms granularity
+# and truncates word tails. Instead we keep the decoded recording server-side
+# and cut exact WAV slices — the same mechanism as reference /videos/{n}/clip.
+_RECORDINGS_DIR = tempfile.mkdtemp(prefix="nativelingo_recordings_")
+_RID_RE = re.compile(r"^[0-9a-f]{32}$")
+
+
+def _recording_path(rid: str) -> str:
+    if not _RID_RE.match(rid):
+        raise HTTPException(status_code=400, detail="invalid recording id")
+    path = os.path.join(_RECORDINGS_DIR, f"{rid}.wav")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="recording not found")
+    return path
+
+
+@app.post("/recordings")
+async def store_recording(
+    learner: UploadFile = File(...),
+    _=Depends(require_token),
+):
+    """Store a learner recording (decoded to 16 kHz mono WAV) for later
+    exact-slice replay. Returns {"recording_id": ...}."""
+    raw = await learner.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="empty audio upload")
+    try:
+        wav = _decode_upload(raw)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail=f"could not decode audio: {exc}")
+    if wav.size == 0:
+        raise HTTPException(status_code=400, detail="audio contained no speech")
+    rid = uuid.uuid4().hex
+    sf.write(os.path.join(_RECORDINGS_DIR, f"{rid}.wav"), wav, 16000,
+             format="WAV", subtype="PCM_16")
+    return {"recording_id": rid, "duration_s": round(wav.size / 16000.0, 3)}
+
+
+@app.get("/recordings/{rid}/clip")
+def recording_clip(rid: str, start: float, end: float, token: str | None = None):
+    """Return [start, end] seconds of a stored learner recording as a WAV.
+    Token via query param (an <audio> element can't set headers)."""
+    check_token_value(token)
+    if end <= start:
+        raise HTTPException(status_code=400, detail="end must be greater than start")
+    wav, sr = sf.read(_recording_path(rid), dtype="float32")
+    a = max(0, int(round(start * sr)))
+    b = min(wav.size, int(round(end * sr)))
+    if b <= a:
+        raise HTTPException(status_code=400, detail="clip range outside recording")
+    buf = io.BytesIO()
+    sf.write(buf, wav[a:b], sr, format="WAV", subtype="PCM_16")
+    return Response(content=buf.getvalue(), media_type="audio/wav")
 
 
 def main():
