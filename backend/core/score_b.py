@@ -2,15 +2,25 @@
 localized problem regions.
 
 Accuracy  <- per-frame cosine distance along the aligned path (content match).
-Fluency   <- how much the warping path deviates from a steady diagonal
-             (timing / rhythm / pauses), plus an overall speech-rate ratio.
+Fluency   <- warping-path geometry (timing / rhythm) + speech-rate and pause
+             features.
 
-Scores are mapped to a 0-100 scale via simple, tunable transforms. These
-thresholds are the obvious first-pass tuning target — they're isolated here so
-they can be calibrated against Track A and labelled samples later.
+Score mapping (v1.2): the hand-set linear thresholds were the weakest link of
+v1.x, so both mappings are now *calibrated* on speechocean762 (learner audio +
+human accuracy/fluency scores; references synthesised with macOS `say`):
+
+* accuracy: isotonic regression  mean path cost -> human accuracy (0-100)
+* fluency:  linear regression on [path deviation, |log rate ratio|,
+            pauses/sec, pause-time ratio] -> human fluency (0-100)
+
+The fitted parameters ship in ``calibration.json`` next to this file. If it is
+absent the code falls back to the v1.1 hand-set transforms (minus the
+rate/fluency double-count, which was removed per the roadmap).
 """
 from __future__ import annotations
 
+import json
+import os
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -18,14 +28,72 @@ import numpy as np
 from .align import DTWResult
 from .ssl_encoder import FRAME_RATE_HZ
 
-# --- tunable mapping constants -------------------------------------------------
+# --- fallback (uncalibrated) mapping constants --------------------------------
 # Cosine distance along the path is ~0 for identical speech and grows with
-# divergence. These map distance -> score; calibrate against labelled data.
+# divergence. Only used when calibration.json is missing.
 ACC_DIST_GOOD = 0.10   # <= this cosine distance counts as essentially perfect
 ACC_DIST_BAD = 0.55    # >= this counts as ~0 accuracy
-# Per-frame distance above this is flagged as a problem region.
+# Per-frame accuracy below this is flagged as a problem region.
+PROBLEM_FRAME_ACCURACY = 45.0
+# Uncalibrated fallback: raw per-frame cost above this flags a problem region.
 PROBLEM_DIST_THRESHOLD = 0.40
 MIN_PROBLEM_FRAMES = 5  # >= 100 ms, to avoid flagging single-frame blips
+
+_CALIB_PATH = os.path.join(os.path.dirname(__file__), "calibration.json")
+_calib: dict | None | bool = None  # False = tried and missing
+
+
+def load_calibration() -> dict | None:
+    """Lazy-load the fitted calibration table (None if not shipped/found)."""
+    global _calib
+    if _calib is None:
+        try:
+            with open(_CALIB_PATH) as f:
+                _calib = json.load(f)
+        except Exception:  # noqa: BLE001 - any failure => uncalibrated mode
+            _calib = False
+    return _calib or None
+
+
+def accuracy_from_cost(cost: float) -> float:
+    """Map a mean DTW cosine distance to a calibrated 0-100 accuracy score."""
+    calib = load_calibration()
+    if calib is not None:
+        iso = calib["accuracy_isotonic"]
+        return float(np.clip(np.interp(cost, iso["x"], iso["y"]), 0.0, 100.0))
+    return _lin_map(cost, ACC_DIST_GOOD, ACC_DIST_BAD)
+
+
+def fluency_from_features(
+    path_dev: float, rate_ratio: float, pause_per_s: float, pause_ratio: float
+) -> float:
+    """Calibrated 0-100 fluency from interpretable timing features.
+
+    v1.1 added a global speech-rate penalty on top of the path-deviation term;
+    both measure the same thing (the ideal diagonal already absorbs the global
+    rate), so the rate penalty double-counted. The calibrated mapping is a
+    monotone isotonic GAM over [path_dev, |log rate ratio|, pause_ratio]:
+    monotone in every feature by construction, so more deviation / rate
+    mismatch / pausing can never *raise* the score (plain OLS flipped signs
+    under multicollinearity). ``pause_per_s`` is accepted for API stability
+    but was not informative at utterance level and is unused by the GAM.
+    """
+    calib = load_calibration()
+    if calib is not None:
+        values = {
+            "path_dev": path_dev,
+            "lograte": abs(np.log(max(rate_ratio, 1e-3))),
+            "pause_ratio": pause_ratio,
+        }
+        score = 0.0
+        for comp in calib["fluency_gam"]["components"]:
+            v = values[comp["feature"]]
+            score += comp["weight"] * float(
+                np.clip(np.interp(v, comp["x"], comp["y"]), 0.0, 100.0)
+            )
+        return float(np.clip(score, 0.0, 100.0))
+    # fallback: path geometry only, no double-counted rate penalty
+    return max(0.0, 100.0 * (1.0 - path_dev / 0.15))
 
 
 @dataclass
@@ -55,16 +123,23 @@ def _lin_map(x: float, good: float, bad: float) -> float:
 
 
 def score_accuracy(dtw: DTWResult) -> float:
-    return _lin_map(dtw.normalized_cost, ACC_DIST_GOOD, ACC_DIST_BAD)
+    return accuracy_from_cost(dtw.normalized_cost)
 
 
-def score_fluency(dtw: DTWResult, ref_len: int, learner_len: int) -> tuple[float, float]:
-    """Fluency from warping-path geometry.
+def score_fluency(
+    dtw: DTWResult,
+    ref_len: int,
+    learner_len: int,
+    pause_per_s: float = 0.0,
+    pause_ratio: float = 0.0,
+) -> tuple[float, float]:
+    """Fluency from warping-path geometry + rate/pause features.
 
     A perfectly steady learner traces a straight line of slope learner_len/ref_len.
     We measure the mean absolute deviation of the actual path from that ideal
     line; more deviation = more local stretching/compressing/pausing = less
-    fluent. We also report the overall speech-rate ratio.
+    fluent. The overall speech-rate ratio is reported (and feeds the calibrated
+    fluency regression as a feature rather than a second penalty).
     """
     path = dtw.path
     if path.shape[0] == 0 or ref_len == 0 or learner_len == 0:
@@ -80,12 +155,7 @@ def score_fluency(dtw: DTWResult, ref_len: int, learner_len: int) -> tuple[float
     # normalise deviation by sequence length so it's scale-free
     norm_dev = float(deviation.mean() / max(learner_len, 1))
 
-    # map: 0 deviation -> 100, 0.15 (15% of length) -> ~0
-    fluency = max(0.0, 100.0 * (1.0 - norm_dev / 0.15))
-
-    # penalise extreme speech-rate mismatch (too fast / too slow vs reference)
-    rate_penalty = min(abs(np.log(speech_rate_ratio + 1e-8)) * 40.0, 40.0)
-    fluency = max(0.0, fluency - rate_penalty)
+    fluency = fluency_from_features(norm_dev, speech_rate_ratio, pause_per_s, pause_ratio)
     return float(fluency), float(speech_rate_ratio)
 
 
@@ -96,6 +166,13 @@ def find_problem_regions(dtw: DTWResult) -> list[ProblemRegion]:
     costs = dtw.path_costs
     if path.shape[0] == 0:
         return []
+
+    calibrated = load_calibration() is not None
+
+    def is_problem(c: float) -> bool:
+        if calibrated:
+            return accuracy_from_cost(c) < PROBLEM_FRAME_ACCURACY
+        return c >= PROBLEM_DIST_THRESHOLD
 
     regions: list[ProblemRegion] = []
     run_start = None
@@ -120,7 +197,7 @@ def find_problem_regions(dtw: DTWResult) -> list[ProblemRegion]:
         run_costs = []
 
     for k in range(path.shape[0]):
-        if costs[k] >= PROBLEM_DIST_THRESHOLD:
+        if is_problem(float(costs[k])):
             if run_start is None:
                 run_start = k
             run_costs.append(float(costs[k]))
@@ -130,9 +207,15 @@ def find_problem_regions(dtw: DTWResult) -> list[ProblemRegion]:
     return regions
 
 
-def score_track_b(dtw: DTWResult, ref_len: int, learner_len: int) -> TrackBResult:
+def score_track_b(
+    dtw: DTWResult,
+    ref_len: int,
+    learner_len: int,
+    pause_per_s: float = 0.0,
+    pause_ratio: float = 0.0,
+) -> TrackBResult:
     accuracy = score_accuracy(dtw)
-    fluency, rate = score_fluency(dtw, ref_len, learner_len)
+    fluency, rate = score_fluency(dtw, ref_len, learner_len, pause_per_s, pause_ratio)
     problems = find_problem_regions(dtw)
     return TrackBResult(
         accuracy=round(accuracy, 1),

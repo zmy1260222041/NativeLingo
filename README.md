@@ -2,7 +2,7 @@
 
 英语口语**跟读评估**桌面应用。学习者跟读一段参考英语音频,软件对比两段音频,指出**发音准确度**与**流畅度**上的缺陷并给出改进建议。
 
-> 当前版本 **v1.1**(2026-07-08):词边界改用 torchaudio MMS 强制对齐,原声词 / 学习者词回放不再被截断。版本演进与完整技术特点见 [CHANGELOG.md](CHANGELOG.md)。
+> 当前版本 **v1.2**(2026-07-19):SSL 编码器改用中层平均(6–9 层,说话人不变性 +13%、错文区分度 +38%),打分映射改为 speechocean762 真人评分上拟合的 isotonic 校准(留出验证 PCC:accuracy 0.46→0.60,fluency 0.11→0.43),并移除 fluency 重复计算。版本演进与完整技术特点见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 核心思路:从语音克隆原理"逆向"评估
 
@@ -63,21 +63,21 @@ npx tauri dev
 
 | 维度 | 当前实现 | 领域常见做法 | 评价 → 改进方向 |
 |---|---|---|---|
-| **编码器** | `wav2vec2-base-960h`,默认最后一层(`ssl_encoder.py`) | Kim 2022:大模型 + CTC 微调 + 加权多层;Richter/Pasad:中层最优 | ⚠️ 末层 + base 不是发音最优表征 → 改用中层(如第 13–16 层)或加权多层,几乎零成本提精度 |
+| **编码器** | `wav2vec2-base-960h`,**6–9 层平均**(v1.2,`ssl_encoder.py`) | Kim 2022:大模型 + CTC 微调 + 加权多层;Richter/Pasad:中层最优 | ✅ v1.2 实测选定(自验脚本 `scripts/layer_comparison.py`):不变性/区分度双优;可再对比 large / xls-r |
 | **去音色** | embedding 上 CMVN(`speaker_norm.py`) | Bartelds/Richter:长度归一化 DTW cost + 余弦;或微调压制 speaker | ✅ CMVN + 余弦合理且廉价,但不如相对 DTW 鲁棒 |
 | **对齐** | 带状 DTW(`band_frac=0.2`)+ 余弦(`align.py`) | 标准 DTW;Richter 用 length-normalized DTW | ✅ 选择稳健,与 SOTA 一致 |
-| **打分映射** | 路径平均余弦距离 → 手工线性映射(0.10→100, 0.55→0,`score_b.py`) | D 派直接用距离/阈值;C 派训回归头到人工分(PCC ~0.82) | 🔴 **最弱环节**,阈值是猜的、绝对分未校准 → 用 speechocean762 拟合 isotonic 回归替换 `_lin_map` |
-| **Fluency** | DTW 路径偏离对角线 + 语速惩罚(`score_b.py`) | SpeechRater 式特征:停顿次数/时长、语速、犹豫 | ⚠️ 路径几何做 fluency 较少见;语速惩罚与路径偏离**重复计算** → 去掉 `rate_penalty` 或改用停顿/语速特征 |
+| **打分映射** | **isotonic 校准**(v1.2):speechocean762 真人分拟合,`calibration.json` 随代码分发(`score_b.py`) | D 派直接用距离/阈值;C 派训回归头到人工分(PCC ~0.82) | ✅ v1.2 已解决"阈值靠猜":留出验证 PCC accuracy 0.60 / fluency 0.43(旧手工映射 0.46 / 0.11);下一步用真实原声(非 TTS)重拟合逼近 C 派 |
+| **Fluency** | **isotonic GAM**:路径偏离 + 速率 + 停顿单调融合(v1.2,`score_b.py`) | SpeechRater 式特征:停顿次数/时长、语速、犹豫 | ✅ v1.2 去掉 `rate_penalty` 重复计算;逐特征单调,停顿/偏速永不加分 |
 | **定位** | DTW 路径投影到转录网格(`detail.py`) | GOP/MDD 用强制对齐;Richter 同样用路径投影 | ✅ 技巧正确,与 Richter 一致 |
-| **反馈** | 逐词韵律 diff:重音/时长/音高/连读(`word_diff.py`) | MDD 给“音素替换诊断”;多数系统只给分数不给建议 | 🟢 **最强、最稀缺的差异化点,应放大** |
+| **反馈** | 逐词韵律 diff:重音/时长/音高/连读(`word_diff.py`) | MDD 给"音素替换诊断";多数系统只给分数不给建议 | 🟢 **最强、最稀缺的差异化点,应放大** |
 | **参考** | 单条参考(视频原声) | Richter:参考集(native + non-native);GOP 用音素声学模型 | ⚠️ 单参考会被该说话人口音/习惯主导 → 引入相对 DTW(双参考集) |
-| **音素级诊断** | 词边界已有(v1.1 MMS 对齐),无音素诊断 | MDD 家族:能说“/θ/ 发成了 /s/” | ⚠️ 仍缺音素替换诊断 → wav2vec2 + CTC 头做 MDD,定位到音素 |
-| **内容串扰** | DTW 距离混了“发音差”与“说错词” | MDD/GOP 能区分 | ⚠️ 现以 `cover_ratio<0.35 → missed` 部分缓解 |
+| **音素级诊断** | 词边界已有(v1.1 MMS 对齐),无音素诊断 | MDD 家族:能说"/θ/ 发成了 /s/" | ⚠️ 仍缺音素替换诊断 → wav2vec2 + CTC 头做 MDD,定位到音素 |
+| **内容串扰** | DTW 距离混了"发音差"与"说错词" | MDD/GOP 能区分 | ⚠️ 现以 `cover_ratio<0.35 → missed` 部分缓解 |
 
-据此排出行动项(v1.1 已落地第 4 项的词边界部分,见 [CHANGELOG.md](CHANGELOG.md)):
+据此排出行动项(v1.1 落地词边界;v1.2 落地第 1、3 项与 fluency 重构):
 
-1. **校准打分**(最高 ROI)—— speechocean762 上跑现有 pipeline,用 isotonic 回归拟合距离→人工分,替换 `score_b.py` 的手工 `_lin_map`。
+1. ~~**校准打分**(最高 ROI)~~ —— ✅ v1.2 已完成(speechocean762 + isotonic,PCC 0.46→0.60)。后续可用真实原声参考重拟合进一步提准。
 2. **相对 DTW** —— 预算一个小参考库(native + L2),取 Richter 差和比 `(Cost_other − Cost_std)/(Cost_other + Cost_std)`,提升 speaker-independence,仍零标注。
-3. **编码器选层/换模型** —— `ssl_encoder.py` 取中层或加权多层,对比 large / xls-r。
+3. ~~**编码器选层/换模型**~~ —— ✅ v1.2 已完成(末层 → 6–9 层平均,实测双优)。可选后续:对比 large / xls-r。
 4. **音素级诊断**(可选轨)—— 词边界已由 v1.1 MMS 强制对齐提供;仍缺音素替换诊断 → wav2vec2 + CTC 头做 MDD,定位到音素。
 5. **工程收尾** —— 把 `feedback.llm_hook` 接本地 Qwen2-Audio 生成更丰富的教学反馈;PyInstaller 冻结后端为独立 sidecar 二进制,实现真正可分发的 `.dmg`。

@@ -20,7 +20,7 @@ import numpy as np
 
 from .align import DTWResult
 from .ssl_encoder import FRAME_RATE_HZ
-from .score_b import _lin_map, ACC_DIST_GOOD, ACC_DIST_BAD
+from .score_b import accuracy_from_cost
 
 # A word whose aligned cosine distance exceeds this is flagged as a problem.
 WORD_PROBLEM_DIST = 0.42
@@ -96,7 +96,7 @@ def compute_word_details(dtw: DTWResult, words: list[dict]) -> list[WordDetail]:
             out.append(WordDetail(w["word"], w["start"], w["end"], 0.0, "missed"))
             continue
         mean_cost, ref_frames, learner_span, _lmin, _lmax = stats
-        accuracy = _lin_map(mean_cost, ACC_DIST_GOOD, ACC_DIST_BAD)
+        accuracy = accuracy_from_cost(mean_cost)
         cover_ratio = learner_span / max(ref_frames, 1)
         status = _word_status(accuracy, cover_ratio)
         out.append(
@@ -132,7 +132,7 @@ def compute_sentence_details(
             acc = fluency = 0.0
         else:
             mean_cost, ref_frames, learner_span, lmin, lmax = stats
-            acc = _lin_map(mean_cost, ACC_DIST_GOOD, ACC_DIST_BAD)
+            acc = accuracy_from_cost(mean_cost)
             # fluency: how close the learner's duration for this sentence is to
             # the reference's (1.0 == same pace)
             ratio = learner_span / max(ref_frames, 1)

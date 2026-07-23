@@ -46,6 +46,10 @@ videos/*.m4v
 # Learner recordings / rendered audio produced at runtime
 recordings/
 *.aiff
+# Calibration reference-TTS cache (rebuildable via scripts/build_calibration.py)
+data/ref_tts_cache/
+# LibriSpeech download used by scripts/quantify_ref_gap.py (re-downloadable)
+data/librispeech/
 
 # ── Secrets / env ──
 .env

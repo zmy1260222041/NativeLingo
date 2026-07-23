@@ -21,7 +21,7 @@ from .ssl_encoder import SSLEncoder
 from .speaker_norm import normalize_pair
 from .align import dtw_align
 from .score_b import score_track_b, TrackBResult
-from .prosody import compare_prosody
+from .prosody import compare_prosody, extract_prosody, ProsodyFeatures
 from .feedback import generate_feedback
 from .detail import compute_sentence_details
 from dataclasses import asdict as _asdict
@@ -37,6 +37,12 @@ def get_encoder() -> SSLEncoder:
     return _encoder
 
 
+def _pause_feats(p: ProsodyFeatures) -> tuple[float, float]:
+    """(pauses/sec, pause-time ratio) for the calibrated fluency regression."""
+    dur = max(p.duration_s, 1e-3)
+    return p.num_pauses / dur, p.total_pause_s / dur
+
+
 def analyze_arrays(ref_wav: np.ndarray, learner_wav: np.ndarray) -> TrackBResult:
     """Run Track B on two preloaded 16 kHz mono waveforms.
 
@@ -49,7 +55,10 @@ def analyze_arrays(ref_wav: np.ndarray, learner_wav: np.ndarray) -> TrackBResult
 
     ref_n, learner_n = normalize_pair(ref_emb, learner_emb)
     dtw = dtw_align(ref_n, learner_n)
-    return score_track_b(dtw, ref_emb.shape[0], learner_emb.shape[0])
+    pps, pr = _pause_feats(extract_prosody(learner_wav))
+    return score_track_b(
+        dtw, ref_emb.shape[0], learner_emb.shape[0], pause_per_s=pps, pause_ratio=pr
+    )
 
 
 def analyze_files(ref_path: str, learner_path: str) -> TrackBResult:
@@ -107,8 +116,11 @@ def analyze_detailed(
     ref_n, learner_n = normalize_pair(ref_emb, learner_emb)
     dtw = dtw_align(ref_n, learner_n)
 
-    track_b = score_track_b(dtw, ref_emb.shape[0], learner_emb.shape[0])
     prosody = compare_prosody(ref_wav, learner_trimmed)
+    pps, pr = _pause_feats(prosody.learner)
+    track_b = score_track_b(
+        dtw, ref_emb.shape[0], learner_emb.shape[0], pause_per_s=pps, pause_ratio=pr
+    )
     payload = generate_feedback(track_b, prosody)
 
     details = compute_sentence_details(dtw, ref_sentences, learner_offset=learner_offset)
