@@ -52,4 +52,27 @@ def synth(tmp_path_factory):
     return make
 
 
+@pytest.fixture(scope="session")
+def synth_untrimmed(tmp_path_factory):
+    """Like ``synth`` but returns the untrimmed waveform (real leading/trailing
+    silence kept) — the phoneme-CTC decoder needs that real-silence context."""
+    if SAY is None:
+        pytest.skip("macOS `say` not available")
+    d = tmp_path_factory.mktemp("audio_raw")
+    cache: dict[tuple, np.ndarray] = {}
+
+    def make(text: str, voice: str = "Samantha", rate: int = 170) -> np.ndarray:
+        key = (text, voice, rate)
+        if key in cache:
+            return cache[key]
+        fname = f"{abs(hash(key))}.aiff"
+        path = os.path.join(str(d), fname)
+        _synth(text, voice, rate, path)
+        wav = load_audio(path)
+        cache[key] = wav
+        return wav
+
+    return make
+
+
 SENTENCE = "The quick brown fox jumps over the lazy dog."

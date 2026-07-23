@@ -202,5 +202,31 @@ def analyze_detailed(
                     w.learner_start = wd.learner_start
                     w.learner_end = wd.learner_end
 
+    # --- phoneme-level substitution diagnosis (FR-11, MDD) ---
+    # For flagged words with a learner span, decode the REFERENCE span to a
+    # canonical IPA sequence, then score single-phoneme substitution/deletion
+    # hypotheses against the learner's CTC emissions (Viterbi). A gain past
+    # margin names the actual substitution ("/θ/ 读成了 /s/"); prepended to the
+    # prosody tip. See phoneme.py + docs/reviews/2026-07-23-mdd-phoneme-fit.md.
+    try:
+        from . import phoneme
+
+        if phoneme.is_available():
+            for d in details:
+                for w in d.words:
+                    if w.status not in ("weak", "bad"):
+                        continue
+                    if w.learner_end <= w.learner_start:
+                        continue
+                    ptip = phoneme.diagnose_word_span(
+                        ref_wav, w.start, w.end,
+                        orig_learner, w.learner_start, w.learner_end,
+                        w.word,
+                    )
+                    if ptip:
+                        w.tip = (ptip + " " + w.tip).strip()
+    except Exception:  # noqa: BLE001 - phoneme track must never break analysis
+        pass
+
     payload["sentences"] = [_asdict(d) for d in details]
     return payload
