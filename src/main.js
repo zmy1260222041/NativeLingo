@@ -723,7 +723,12 @@ async function uploadLearnerRecording(blob) {
 async function init() {
   let ready = await checkBackend();
   let attempts = 0;
-  while (!ready && attempts < 30) {
+  while (!ready && attempts < 120) {
+    // Frozen backend cold-starts in ~1-3 min every launch (torch/numba/transformers
+    // import + model load). Show an explicit "starting" state rather than the
+    // misleading "无法连接", and wait long enough to cover slower Macs.
+    $("backend-status").textContent = "后端启动中(约 1-3 分钟,正在加载模型)…";
+    $("backend-status").className = "status status-pending";
     await new Promise((r) => setTimeout(r, 2000));
     ready = await checkBackend();
     attempts += 1;

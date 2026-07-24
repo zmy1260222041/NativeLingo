@@ -71,17 +71,15 @@ npx tauri dev
 
 ## 打包(构建 .dmg)
 
-发布用 `.dmg` 由 `scripts/build_dmg.sh` 一键构建:PyInstaller 冻结后端(`backend/freeze.spec`,`--onedir`)→ 暂存进 Tauri 资源 → `tauri build --bundles app` → `strip` + ad-hoc 签名 → `hdiutil` 出 ULFO 压缩 dmg。
+发布用 `.dmg` 由 `scripts/build_dmg.sh` 一键构建:PyInstaller 冻结后端(`backend/freeze.spec`,`--onedir`)→ 暂存进 Tauri 资源 → `tauri build --bundles app` → 逐文件 ad-hoc 签名 → `hdiutil` 出 ULFO 压缩 dmg。**视频/音频解码走 PyAV(`av`,随 faster-whisper 已在冻结包内),不依赖 ffmpeg CLI**——干净 Mac 零额外依赖。
 
 ```bash
-# 前置:静态 arm64 ffmpeg/ffprobe 放入 src-tauri/resources/bin/(干净 Mac 需要;
-#   本机已有 homebrew ffmpeg 时可跳过——经继承的 PATH 被找到)
 scripts/build_dmg.sh
 ```
 
-产物:`src-tauri/target/release/bundle/dmg/NativeLingo_<版本>_aarch64.dmg`(~380MB)。
+产物:`src-tauri/target/release/bundle/dmg/NativeLingo_<版本>_aarch64.dmg`(~400MB)。
 
-**体积优化(已固化进脚本)**:干净 `.venv-freeze` 冻结(排除 datasets/pyarrow/onnxruntime 等脚本依赖,−260M)、`strip -x` 删调试符号(−97M)、ULFO 压缩、从**仅 `.app` 的干净 staging** 成像(避免 Tauri 失败残留的 `rw.*.dmg` 污染源目录致 3x 虚胖)、strip 后**逐文件 ad-hoc 重签**(`codesign --deep` 会漏签 PyInstaller 深层 `.so`/`.dylib`,arm64 加载即杀、无日志崩溃)。
+**体积优化(已固化进脚本)**:干净 `.venv-freeze` 冻结(排除 datasets/pyarrow/onnxruntime 等脚本依赖,−260M)、ULFO(LZMA)压缩、从**仅 `.app` 的干净 staging** 成像(避免 Tauri 残留的 `rw.*.dmg` 污染源目录致 3x 虚胖)、**逐文件 ad-hoc 重签**(`codesign --deep` 漏签 PyInstaller 深层 `.so`/`.dylib` 会致无日志崩溃)。曾用 `strip -x` 省体积,但它破坏部分 `.dylib` 签名("Invalid Page")、干净 Mac 启动即崩,已移除。
 
 **可选:公证**(让用户免右键绕过):设 `DEVELOPER_ID_APPLICATION` 与 `NOTARY_KEYCHAIN_PROFILE` 环境变量后重跑脚本,即自动走签名 + `notarytool` 公证 + `stapler` 装订。
 

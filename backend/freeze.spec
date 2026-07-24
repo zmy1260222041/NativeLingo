@@ -32,6 +32,8 @@ for pkg in [
     "torch", "torchaudio", "transformers", "faster_whisper", "ctranslate2",
     "parselmouth", "soundfile", "librosa", "huggingface_hub", "tokenizers",
     "uvicorn", "anyio", "h11",
+    # video.py decodes via PyAV directly (replaces the ffmpeg CLI subprocess):
+    "av",
     # librosa transitively needs these at runtime (audio decode path):
     "sklearn", "numba", "llvmlite",
 ]:

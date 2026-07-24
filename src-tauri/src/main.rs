@@ -37,25 +37,14 @@ fn spawn_backend(
     let resources = resource_dir.join("resources");
     let bundled_exe = resources.join("nativeLingoBackend").join("nativeLingoBackend");
     if bundled_exe.exists() {
-        // The child shells out to ffmpeg/ffprobe via PATH (backend/core/video.py);
-        // a bundled app ships them under Resources/resources/bin, so prepend it.
-        let bin_dir = resources.join("bin");
-        let path = {
-            let mut s = std::ffi::OsString::from(&bin_dir);
-            s.push(":");
-            if let Some(p) = std::env::var_os("PATH") {
-                s.push(p);
-            }
-            s
-        };
         // A bundled app has no parent terminal; capture backend stdout/stderr to
         // a log file so "backend won't start" is diagnosable on user machines.
+        // (Video/audio decode uses PyAV in-process — no PATH/ffmpeg setup needed.)
         let mut cmd = Command::new(&bundled_exe);
         cmd.env("NATIVELINGO_TOKEN", token)
             .env("NATIVELINGO_PORT", port.to_string())
             .env("NATIVELINGO_HOST", "127.0.0.1")
-            .env("NATIVELINGO_DATA_DIR", data_dir)
-            .env("PATH", &path);
+            .env("NATIVELINGO_DATA_DIR", data_dir);
         if let Ok(f) = OpenOptions::new().create(true).append(true).open(log_path) {
             cmd.stdout(Stdio::from(f));
         }

@@ -1,47 +1,40 @@
-"""Video handling via ffmpeg (we shell out to the ffmpeg/ffprobe CLIs).
+"""Video handling via PyAV (``av``), the Python binding to FFmpeg's libraries.
 
 Responsibilities:
 * list available videos under the videos/ directory
 * probe duration
-* extract audio (optionally a [start, end] time range) to a 16 kHz mono wav,
-  which is exactly the format the analysis pipeline expects
+* extract audio (optionally a [start, end] time range) to a 16 kHz mono float32
+  array, which is exactly the format the analysis pipeline expects
 
-We deliberately drive ffmpeg as a subprocess rather than a python binding: it's
-the most robust way to handle arbitrary container/codec combinations, and it's
-what the goal asked for ("write code ourselves to operate the tool").
+We decode in-process via PyAV rather than shelling out to the ffmpeg/ffprobe
+CLIs. PyAV is already pulled in as a faster-whisper dependency (its wheels ship
+the libav* libs, LGPL), so this needs **no separate ffmpeg binary** — a bundled
+app runs on a clean machine with zero extra download, and the distributable
+stays small. Decoding/resampling goes through the same libavcodec/libswresample
+the CLI uses, so output matches.
 """
 from __future__ import annotations
 
+import io
 import os
-import shutil
-import subprocess
-import tempfile
 
+import av
 import numpy as np
-
-from .audio_io import load_audio
-
-FFMPEG = shutil.which("ffmpeg")
-FFPROBE = shutil.which("ffprobe")
-
-VIDEO_EXTS = {".mp4", ".mov", ".mkv", ".m4v", ".webm", ".avi"}
 
 
 class FFmpegError(RuntimeError):
     pass
 
 
-def _require_ffmpeg():
-    if FFMPEG is None or FFPROBE is None:
-        raise FFmpegError("ffmpeg/ffprobe not found on PATH")
+VIDEO_EXTS = {".mp4", ".mov", ".mkv", ".m4v", ".webm", ".avi"}
 
 
 def videos_dir(root: str | None = None) -> str:
     """Absolute path to the videos/ directory (created if missing).
 
     In a bundled app the Tauri shell sets ``NATIVELINGO_DATA_DIR`` to a user
-    data dir (~/Library/Application Support/NativeLingo); fall back to the
-    source-tree-relative path for dev (two levels up from backend/core/)."""
+    data dir (~/Library/Application Support/com.nativelingo.app); fall back to
+    the source-tree-relative path for dev (two levels up from backend/core/)."""
     if root is None:
         root = os.environ.get("NATIVELINGO_DATA_DIR")
     if root is None:
@@ -81,46 +74,54 @@ def resolve_video(name: str, root: str | None = None) -> str:
     return path
 
 
-def probe_duration(video_path: str) -> float:
-    _require_ffmpeg()
-    res = subprocess.run(
-        [
-            FFPROBE, "-v", "error",
-            "-show_entries", "format=duration",
-            "-of", "default=noprint_wrappers=1:nokey=1",
-            video_path,
-        ],
-        capture_output=True, text=True,
-    )
+def _decode_audio(
+    container: "av.container.InputContainer",
+    target_sr: int,
+    start: float | None,
+    end: float | None,
+) -> np.ndarray:
+    """Decode (a [start, end]s slice of) a container's first audio stream to a
+    target-SR mono float32 numpy array via libswresample."""
+    stream = next((s for s in container.streams if s.type == "audio"), None)
+    if stream is None:
+        raise FFmpegError("no audio stream in container")
+    if start:
+        # seek to nearest keyframe at/before `start` (time_base units)
+        container.seek(int(start / stream.time_base), stream=stream)
+    resampler = av.AudioResampler(format="flt", layout="mono", rate=target_sr)
+    chunks: list[np.ndarray] = []
     try:
-        return float(res.stdout.strip())
-    except ValueError:
-        raise FFmpegError(f"could not probe duration: {res.stderr}")
+        for frame in container.decode(stream):
+            if end is not None and frame.time is not None and frame.time > end:
+                break
+            for rf in resampler.resample(frame):
+                chunks.append(np.asarray(rf.to_ndarray()).reshape(-1))
+        for rf in resampler.resample(None):  # flush trailing samples
+            chunks.append(np.asarray(rf.to_ndarray()).reshape(-1))
+    except av.AVError as e:  # noqa: PERF203
+        raise FFmpegError(f"audio decode failed: {e}") from e
+    return np.concatenate(chunks) if chunks else np.zeros(0, dtype=np.float32)
+
+
+def probe_duration(video_path: str) -> float:
+    """Container duration in seconds."""
+    try:
+        with av.open(video_path) as container:
+            if container.duration is None:
+                raise FFmpegError("container has no duration metadata")
+            return container.duration / 1_000_000.0  # AV_TIME_BASE = microseconds
+    except av.AVError as e:
+        raise FFmpegError(f"could not probe duration: {e}") from e
 
 
 def decode_audio_bytes(raw: bytes, target_sr: int = 16000) -> np.ndarray:
     """Decode arbitrary encoded audio bytes (e.g. browser webm/opus) into a
-    16 kHz mono float32 array via ffmpeg. Robust for any container ffmpeg can
-    read, and avoids librosa's deprecated audioread fallback."""
-    _require_ffmpeg()
-    with tempfile.NamedTemporaryFile(suffix=".in", delete=False) as tin:
-        tin.write(raw)
-        in_path = tin.name
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tout:
-        out_path = tout.name
+    target-SR mono float32 array. Robust for any container PyAV/ffmpeg reads."""
     try:
-        cmd = [
-            FFMPEG, "-y", "-v", "error", "-i", in_path,
-            "-vn", "-ac", "1", "-ar", str(target_sr), "-f", "wav", out_path,
-        ]
-        res = subprocess.run(cmd, capture_output=True, text=True)
-        if res.returncode != 0:
-            raise FFmpegError(f"ffmpeg decode failed: {res.stderr}")
-        return load_audio(out_path, target_sr=target_sr)
-    finally:
-        for p in (in_path, out_path):
-            if os.path.exists(p):
-                os.remove(p)
+        with av.open(io.BytesIO(raw)) as container:
+            return _decode_audio(container, target_sr, None, None)
+    except av.AVError as e:
+        raise FFmpegError(f"audio decode failed: {e}") from e
 
 
 def extract_audio(
@@ -129,30 +130,11 @@ def extract_audio(
     end: float | None = None,
     target_sr: int = 16000,
 ) -> np.ndarray:
-    """Extract audio (optionally a [start, end]s slice) as a 16 kHz mono float32
-    numpy array. Uses accurate seeking (-ss after -i is slower but frame-exact,
-    which matters for short sentence clips)."""
-    _require_ffmpeg()
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-        out_path = tmp.name
+    """Extract audio (optionally a [start, end]s slice) as a target-SR mono
+    float32 numpy array. Seeking lands on the keyframe at/before `start`; any
+    pre-start samples decoded are kept (sentence clips pad either way)."""
     try:
-        cmd = [FFMPEG, "-y", "-v", "error", "-i", video_path]
-        if start is not None:
-            cmd += ["-ss", f"{start:.3f}"]
-        if end is not None:
-            dur = max(0.05, (end - (start or 0.0)))
-            cmd += ["-t", f"{dur:.3f}"]
-        cmd += [
-            "-vn",                     # drop video
-            "-ac", "1",                # mono
-            "-ar", str(target_sr),     # sample rate
-            "-f", "wav",
-            out_path,
-        ]
-        res = subprocess.run(cmd, capture_output=True, text=True)
-        if res.returncode != 0:
-            raise FFmpegError(f"ffmpeg audio extraction failed: {res.stderr}")
-        return load_audio(out_path, target_sr=target_sr)
-    finally:
-        if os.path.exists(out_path):
-            os.remove(out_path)
+        with av.open(video_path) as container:
+            return _decode_audio(container, target_sr, start, end)
+    except av.AVError as e:
+        raise FFmpegError(f"audio extraction failed: {e}") from e

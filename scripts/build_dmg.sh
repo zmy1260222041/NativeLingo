@@ -3,7 +3,7 @@
 #
 # Phases (each aborts on error):
 #   A  freeze the Python backend (PyInstaller --onedir) in a clean .venv-freeze
-#   B  stage the onedir + bundled ffmpeg into src-tauri/resources/
+#   B  stage the onedir into src-tauri/resources/
 #   C  npx tauri build --bundles app   ->  .app  (unsigned)
 #   D  codesign the .app (Developer ID Application)   (only if $DEVELOPER_ID_APPLICATION)
 #   E  create the .dmg via hdiutil (Tauri's own dmg step times out on the
@@ -14,8 +14,8 @@
 # signed app into a dmg, then notarize the dmg.
 #
 # Prerequisites the script CANNOT set up for you (it checks and bails clearly):
-#   * static arm64 ffmpeg + ffprobe in src-tauri/resources/bin/  (for /videos/process)
-#       e.g. from https://evermeet.cx/ffmpeg/  (LGPL/GPL — confirm distribution license)
+#   * NONE for an unsigned GitHub build — video/audio decode uses PyAV (av),
+#     whose wheels bundle the libav* libs (LGPL); no external ffmpeg needed.
 #   * for D/F: Apple Developer ID Application cert in Keychain
 #              ($DEVELOPER_ID_APPLICATION="Developer ID Application: Name (TEAMID)")
 #              + `xcrun notarytool store-credentials AC_PROFILE ...` run once
@@ -35,13 +35,6 @@ DMG_DIR="$ROOT/src-tauri/target/release/bundle/dmg"
 log() { printf "\n\033[1m=== %s ===\033[0m\n" "$*"; }
 die() { printf "\033[31m[build_dmg] %s\033[0m\n" "$*" >&2; exit 1; }
 
-# ── prerequisite: bundled ffmpeg ──────────────────────────────────────────
-if [[ ! -x "$RES_DIR/bin/ffmpeg" || ! -x "$RES_DIR/bin/ffprobe" ]]; then
-    die "missing src-tauri/resources/bin/ffmpeg or ffprobe. Download static arm64
-binaries (e.g. https://evermeet.cx/ffmpeg/) and place them there before building.
-(/analyze + /analyze_video work without it; /videos/process needs it.)"
-fi
-
 # ── Phase A: freeze the backend ───────────────────────────────────────────
 log "A: freeze backend (PyInstaller --onedir) in .venv-freeze"
 if [[ ! -x "$FREEZE_VENV/bin/python" ]]; then
@@ -54,14 +47,14 @@ fi
 [[ -x "$PYI_DIST/nativeLingoBackend/nativeLingoBackend" ]] \
     || die "freeze produced no binary"
 
-# ── Phase B: stage sidecar + ffmpeg into Tauri resources ──────────────────
-log "B: stage onedir + ffmpeg into src-tauri/resources/"
+# ── Phase B: stage sidecar into Tauri resources ───────────────────────────
+log "B: stage onedir into src-tauri/resources/"
 rm -rf "$RES_DIR/nativeLingoBackend"
 cp -R "$PYI_DIST/nativeLingoBackend" "$RES_DIR/nativeLingoBackend"
-# strip local symbols from native libs (~100MB off; must precede codesign).
-# strip -x only removes the local symbol table — code is untouched, safe.
-find "$RES_DIR/nativeLingoBackend" -type f \( -name "*.dylib" -o -name "*.so" \) \
-    -exec strip -x {} \; 2>/dev/null || true
+# NOTE: do NOT strip the libs. strip -x leaves "Invalid Page" code signatures
+# on some .dylib; on a clean Mac (no system copy to dlopen by name) the bundled
+# lib is loaded and dyld rejects it → silent CODESIGNING crash at startup. The
+# ~100MB saving isn't worth a broken-on-clean-Mac build.
 
 # ── Phase C: Tauri build (.app only) ──────────────────────────────────────
 log "C: npx tauri build --bundles app"
@@ -81,13 +74,12 @@ if [[ -n "${DEVELOPER_ID_APPLICATION:-}" ]]; then
     codesign --verify --deep --strict "$APP_BUNDLE" || die "codesign verify failed"
 else
     # No Developer ID: ad-hoc sign so the .app has a consistent signature.
-    # strip (phase B) invalidated the PyInstaller libs' signatures, and
-    # `codesign --deep` alone misses many nested .so/.dylib in the onedir
-    # tree (→ arm64 kills the process on load). Re-sign every native file
-    # first, then the outer app. arm64 refuses totally-unsigned binaries;
-    # this ad-hoc sig lets downloaders run after the one-time Gatekeeper
-    # bypass (right-click → Open). Notarization ($99/yr) is only for
-    # zero-friction double-click — optional, later.
+    # Re-sign every native file first (some .so/.dylib carry a PyInstaller sig
+    # that --deep doesn't refresh; per-file --force ensures all are valid), then
+    # the outer app. arm64 refuses to load totally-unsigned/invalid-sig libs;
+    # this lets downloaders run after the one-time Gatekeeper bypass
+    # (right-click → Open). Notarization ($99/yr) is only for zero-friction
+    # double-click — optional, later.
     log "D: ad-hoc sign (no Developer ID — GitHub-release ready)"
     find "$RES_DIR/nativeLingoBackend" -type f \
         \( -name "*.so" -o -name "*.dylib" -o -name "nativeLingoBackend" \) \
