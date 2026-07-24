@@ -51,6 +51,13 @@ data/ref_tts_cache/
 # LibriSpeech download used by scripts/quantify_ref_gap.py (re-downloadable)
 data/librispeech/
 
+# ── Build / distribution artifacts ─────────────
+# Dedicated freeze venv (rebuilt by scripts/build_dmg.sh)
+.venv-freeze/
+# Staged PyInstaller sidecar + bundled ffmpeg (produced by build_dmg.sh, not source)
+src-tauri/resources/nativeLingoBackend/
+src-tauri/resources/bin/
+
 # ── Secrets / env ──
 .env
 .env.*

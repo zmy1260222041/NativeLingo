@@ -37,7 +37,13 @@ def _require_ffmpeg():
 
 
 def videos_dir(root: str | None = None) -> str:
-    """Absolute path to the videos/ directory (created if missing)."""
+    """Absolute path to the videos/ directory (created if missing).
+
+    In a bundled app the Tauri shell sets ``NATIVELINGO_DATA_DIR`` to a user
+    data dir (~/Library/Application Support/NativeLingo); fall back to the
+    source-tree-relative path for dev (two levels up from backend/core/)."""
+    if root is None:
+        root = os.environ.get("NATIVELINGO_DATA_DIR")
     if root is None:
         # backend/core/video.py -> project root is two levels up from backend/
         here = os.path.dirname(os.path.abspath(__file__))

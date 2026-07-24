@@ -2,6 +2,38 @@
 
 NativeLingo 版本演进与技术特点。
 
+## [v1.5] — 2026-07-25 — 首个可分发版(macOS .dmg)
+
+把后端从"开发态 venv"固化为**可分发 `.dmg`**:PyInstaller `--onedir` 冻结 Python 后端(torch/torchaudio/transformers/faster-whisper 全栈)→ 作为 Tauri 资源打包 → ad-hoc 签名 → ULFO 压缩 dmg(**383MB**)。收尾 NFR-2「后端冻结为 sidecar 二进制」工程债。
+
+### 方案
+- **`backend/freeze.spec`**:`--onedir`(torch dylib 需目录形态);`collect_all` 覆盖 torch/torchaudio/transformers/faster_whisper/ctranslate2/sklearn/numba/llvmlite;排除 datasets/pyarrow/onnxruntime(脚本依赖,冻结泄漏会虚胖 ~260M);`calibration.json` 显式入 `datas`。
+- **`requirements-runtime.txt`**:运行时依赖子集(与含校准脚本的 `requirements.txt` 分离),配合干净 `.venv-freeze` 冻结。
+- **`src-tauri/src/main.rs`**:`spawn_backend` 加 bundled 分支——启动 `Resources/resources/nativeLingoBackend/nativeLingoBackend`,注入 `PATH`(给随包 ffmpeg)、`NATIVELINGO_DATA_DIR`(用户数据目录)、stdout/stderr 重定向到日志文件。dev 分支不变。
+- **`backend/core/video.py`**:`videos_dir` 支持 `NATIVELINGO_DATA_DIR` env(冻结后 `__file__` 失效;dev 向后兼容)。
+- **`scripts/build_dmg.sh`**:A 冻结 → B 暂存 + strip → C `tauri build --bundles app` → D ad-hoc(或 Developer ID)签名 → E hdiutil ULFO dmg → F 可选公证装订。
+
+### spike 发现并修复的冻结缺口
+1. librosa 依赖 sklearn(误排除 → 音频解码全挂)。
+2. `calibration.json` 源码相对加载,PyInstaller 不收 `.json`(→ 静默回退手工映射);已加 `datas`。
+3. videos/ 目录冻结后 `__file__` 失效(→ `/videos` 空);加 `NATIVELINGO_DATA_DIR` env。
+4. Tauri 保留 glob 的 `resources/` 前缀 → 后端实际在 `Resources/resources/nativeLingoBackend/`(对齐 main.rs 路径)。
+
+### 打包要点(固化进 build_dmg.sh)
+- **体积**:干净 venv(砍泄漏)+ `strip -x`(−97M)+ ULFO 压缩 + **仅 `.app` 的干净 staging 成像**(Tauri 失败残留的 `rw.*.dmg` 会让源目录虚胖 3x)→ **383MB**。
+- **签名**:`strip` 使库签名失效,`codesign --deep` 漏签 PyInstaller 深层 `.so`/`.dylib` → arm64 无日志崩溃;**strip 后必须逐文件 ad-hoc 重签**。
+
+### 验证
+启动 `.app` → 壳拉起冻结后端 → `/health` ok、`/analyze` accuracy 95.0(试金石跨嗓音同文)。`pytest` 12/12 不变(纯打包,未改评分逻辑)。
+
+### 已知限制
+- **冷启动 ~100s**:numba/torch 冻结态导入慢;前端轮询 `/health`,后续可惰性加载优化。
+- **arm64-only**:Intel Mac 需另冻结 + 通用二进制(未做)。
+- **模型首运下载**(~1.7GB,之后离线);未预打包(NFR-1)。
+- **未公证**:GitHub 发布足以(用户首次右键绕过 Gatekeeper);公证($99/yr Developer ID)为可选项。
+
+---
+
 ## [v1.4] — 2026-07-23 — 音素级替换诊断(FR-11,MDD 轨)
 
 反馈从"这个词的重音/时长不对"下探到"这个**音**读错了":对 weak/bad 词给出"/θ/ 读成了 /s/"式替换诊断。

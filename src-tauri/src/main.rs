@@ -5,7 +5,8 @@
 // are injected into the webview so the frontend can authenticate. The backend
 // is killed when the app exits.
 
-use std::process::{Child, Command};
+use std::fs::OpenOptions;
+use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use tauri::{Manager, RunEvent};
 
@@ -22,9 +23,50 @@ fn generate_token() -> String {
     format!("{:x}{:x}", nanos, std::process::id())
 }
 
-fn spawn_backend(token: &str, port: u16, resource_dir: &std::path::Path) -> Option<Child> {
-    // In dev we run the venv python against the backend module. In a bundled
-    // app this would point at a PyInstaller-frozen sidecar binary instead.
+fn spawn_backend(
+    token: &str,
+    port: u16,
+    resource_dir: &std::path::Path,
+    data_dir: &std::path::Path,
+    log_path: &std::path::Path,
+) -> Option<Child> {
+    // Bundled mode: the PyInstaller-frozen backend onedir lives under
+    // Resources/resources/nativeLingoBackend/ (Tauri preserves the glob's
+    // `resources/` prefix). In dev (no frozen binary present) we fall through
+    // to running the venv python against the backend module.
+    let resources = resource_dir.join("resources");
+    let bundled_exe = resources.join("nativeLingoBackend").join("nativeLingoBackend");
+    if bundled_exe.exists() {
+        // The child shells out to ffmpeg/ffprobe via PATH (backend/core/video.py);
+        // a bundled app ships them under Resources/resources/bin, so prepend it.
+        let bin_dir = resources.join("bin");
+        let path = {
+            let mut s = std::ffi::OsString::from(&bin_dir);
+            s.push(":");
+            if let Some(p) = std::env::var_os("PATH") {
+                s.push(p);
+            }
+            s
+        };
+        // A bundled app has no parent terminal; capture backend stdout/stderr to
+        // a log file so "backend won't start" is diagnosable on user machines.
+        let mut cmd = Command::new(&bundled_exe);
+        cmd.env("NATIVELINGO_TOKEN", token)
+            .env("NATIVELINGO_PORT", port.to_string())
+            .env("NATIVELINGO_HOST", "127.0.0.1")
+            .env("NATIVELINGO_DATA_DIR", data_dir)
+            .env("PATH", &path);
+        if let Ok(f) = OpenOptions::new().create(true).append(true).open(log_path) {
+            cmd.stdout(Stdio::from(f));
+        }
+        if let Ok(f) = OpenOptions::new().create(true).append(true).open(log_path) {
+            cmd.stderr(Stdio::from(f));
+        }
+        return cmd.spawn().ok();
+    }
+
+    // Dev mode: run the venv python against the backend module. Walk ancestors
+    // for the project root (the dir holding backend/main.py).
     let project_root = resource_dir
         .ancestors()
         .find(|p| p.join("backend").join("main.py").exists())
@@ -68,7 +110,21 @@ fn main() {
                 .path()
                 .resource_dir()
                 .unwrap_or_else(|_| std::path::PathBuf::from("."));
-            let child = spawn_backend(&token_for_setup, port, &resource_dir);
+            // Per-app data dir (videos/ + user data) and log dir. Only the
+            // bundled branch uses them, but computing them is harmless in dev.
+            let data_dir = app
+                .path()
+                .app_data_dir()
+                .unwrap_or_else(|_| std::path::PathBuf::from("."));
+            let log_dir = app
+                .path()
+                .app_log_dir()
+                .unwrap_or_else(|_| std::path::PathBuf::from("."));
+            let _ = std::fs::create_dir_all(&data_dir);
+            let _ = std::fs::create_dir_all(&log_dir);
+            let log_path = log_dir.join("backend.log");
+            let child =
+                spawn_backend(&token_for_setup, port, &resource_dir, &data_dir, &log_path);
             *app.state::<BackendProcess>().0.lock().unwrap() = child;
 
             // inject backend url + token into the webview

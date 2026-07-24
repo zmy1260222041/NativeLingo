@@ -2,12 +2,27 @@
 
 英语口语**跟读评估**桌面应用。学习者跟读一段参考英语音频,软件对比两段音频,指出**发音准确度**与**流畅度**上的缺陷并给出改进建议。
 
-> 当前版本 **v1.4**(2026-07-23)。近期演进:
-> - **v1.2**:SSL 编码器改用中层平均(6–9 层,说话人不变性 +13%、错文区分度 +38%);打分映射改为 speechocean762 拟合的 isotonic 校准(留出验证 PCC:accuracy 0.46→0.60、fluency 0.11→0.43);移除 fluency 重复计算。
-> - **v1.3**:真实新闻播报域全链路验证(whisper base.en 够用、MMS 对齐鲁棒、端到端零误报 → FR-M2 解锁);长句在从句边界自动二级切分(105→164 句);学习者词回放改走后端精确切 WAV(采样级精确)。
+> 当前版本 **v1.5**(2026-07-25)——**首个可分发版**(.dmg)。近期演进:
+> - **v1.5**:可分发 macOS `.dmg`(PyInstaller 冻结后端 + Tauri 打包 + ad-hoc 签名,~380MB);普通用户见下方[下载与安装](#下载与安装)。
 > - **v1.4**:音素级替换诊断(FR-11,MDD)——对 weak/bad 词给出"/θ/ 读成了 /s/"式诊断,三重门控保证「宁缺毋滥」。
+> - **v1.3**:真实新闻播报域全链路验证 + 长句在从句边界二级切分 + 学习者词采样级回放。
+> - **v1.2**:中层 SSL 编码器(6–9 层)+ speechocean762 拟合的 isotonic 校准。
 >
 > 完整版本演进与技术特点见 [CHANGELOG.md](CHANGELOG.md)。
+
+## 下载与安装
+
+> 面向**普通用户**。开发者从源码运行见下方[运行](#运行);从源码构建 .dmg 见[打包](#打包构建-dmg)。
+
+1. **下载**:到本仓库的 **Releases** 页下载 `NativeLingo_<版本>_aarch64.dmg`(约 380MB)。
+2. **安装**:打开 `.dmg`,把 NativeLingo 拖入「应用程序」。
+3. **首次打开**(应用未公证,Gatekeeper 会提示一次,二选一,仅一次):
+   - 访达里**右键 NativeLingo → 打开 → 确认**(最简单);或
+   - 终端:`xattr -dr com.apple.quarantine /Applications/NativeLingo.app`
+4. **首次跟读**会按需下载模型(wav2vec2 / faster-whisper / MMS 强制对齐 / 音素 CTC,共约 1.7GB),之后**完全离线**。应用启动后端冷加载约 1 分钟,属正常。
+5. **素材**:把你的英语视频(新闻播报、演讲、访谈等)放入 `~/Library/Application Support/com.nativelingo.app/videos/`,应用内即可选片跟读。
+
+**系统要求**:macOS 13+(Apple Silicon;Intel Mac 暂不支持)。麦克风权限在首次录音时授权。
 
 ## 核心思路:从语音克隆原理"逆向"评估
 
@@ -53,6 +68,22 @@ npx tauri dev
 # 测试
 .venv/bin/python -m pytest backend/tests/ -v
 ```
+
+## 打包(构建 .dmg)
+
+发布用 `.dmg` 由 `scripts/build_dmg.sh` 一键构建:PyInstaller 冻结后端(`backend/freeze.spec`,`--onedir`)→ 暂存进 Tauri 资源 → `tauri build --bundles app` → `strip` + ad-hoc 签名 → `hdiutil` 出 ULFO 压缩 dmg。
+
+```bash
+# 前置:静态 arm64 ffmpeg/ffprobe 放入 src-tauri/resources/bin/(干净 Mac 需要;
+#   本机已有 homebrew ffmpeg 时可跳过——经继承的 PATH 被找到)
+scripts/build_dmg.sh
+```
+
+产物:`src-tauri/target/release/bundle/dmg/NativeLingo_<版本>_aarch64.dmg`(~380MB)。
+
+**体积优化(已固化进脚本)**:干净 `.venv-freeze` 冻结(排除 datasets/pyarrow/onnxruntime 等脚本依赖,−260M)、`strip -x` 删调试符号(−97M)、ULFO 压缩、从**仅 `.app` 的干净 staging** 成像(避免 Tauri 失败残留的 `rw.*.dmg` 污染源目录致 3x 虚胖)、strip 后**逐文件 ad-hoc 重签**(`codesign --deep` 会漏签 PyInstaller 深层 `.so`/`.dylib`,arm64 加载即杀、无日志崩溃)。
+
+**可选:公证**(让用户免右键绕过):设 `DEVELOPER_ID_APPLICATION` 与 `NOTARY_KEYCHAIN_PROFILE` 环境变量后重跑脚本,即自动走签名 + `notarytool` 公证 + `stapler` 装订。
 
 ## 验证设计
 
