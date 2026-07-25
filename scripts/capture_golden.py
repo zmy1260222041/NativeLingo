@@ -29,8 +29,10 @@ standard source; this script is its dumper.
 from __future__ import annotations
 
 import argparse
+import glob
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -502,6 +504,255 @@ def dump_audio_io(corpus, out_dir):
     return True
 
 
+def dump_segmentation(out_dir):
+    """FR-2 / FR-M3 golden: whisper words -> sentences (transcribe.py).
+
+    Two entry points with deliberately different behaviour, both captured:
+
+    * the *reference* path (`_merge_words_into_sentences`) merges by terminal
+      punctuation and then sub-splits over-long sentences at clause boundaries;
+    * the *learner* path (`_merge_into_sentences`, via `transcribe_waveform`)
+      merges by punctuation only — no sub-split, because the learner's chunks
+      have to line up with the reference sentence they chose to shadow.
+
+    The main fixture is the real cached transcript (``videos/*.sentences.json``):
+    1944 whisper words -> 164 sentences, and because `emit` copies its words
+    through unchanged, concatenating the cached sentences' words recovers the
+    exact input the merge saw. That is worth far more than synthetic text here —
+    it carries the messy tokens whisper actually produces ("long -considered",
+    leading-dash words, quoted clause ends) and it exercises 62 sub-splits,
+    47 punctuation cuts, 12 conjunction cuts, 4 midpoint ties and 3 give-ups.
+
+    Synthetic cases cover the branches the corpus happens to miss (trailing
+    words with no terminal punctuation, learner-path no-split, rounding). Every
+    expectation is produced by calling the real functions, so the fixture states
+    macOS's behaviour rather than my belief about it.
+    """
+    from backend.core import transcribe as T
+
+    cache = cache_path = None
+    for cand in glob.glob(os.path.join("videos", "*.sentences.json")):
+        with open(cand, "r", encoding="utf-8") as f:
+            d = json.load(f)
+        if d.get("version") == T.CACHE_VERSION and d.get("sentences"):
+            cache, cache_path = d, cand
+            break
+
+    s_dir = os.path.join(out_dir, "seg")
+    os.makedirs(s_dir, exist_ok=True)
+
+    def strip(w):
+        return {"word": w["word"], "start": w["start"], "end": w["end"]}
+
+    ref_meta = None
+    if cache is not None:
+        words = [strip(w) for s in cache["sentences"] for w in s["words"]]
+        sents = T._merge_words_into_sentences([dict(w) for w in words])
+        # the cache was written by this same function, so this must hold; assert
+        # it rather than trust it, because a silent mismatch would mean the
+        # fixture encodes a stale schema instead of today's behaviour.
+        assert sents == cache["sentences"], "re-merge does not reproduce the cache"
+        with open(os.path.join(s_dir, "reference_words.json"), "w") as f:
+            json.dump(words, f, ensure_ascii=False)
+        with open(os.path.join(s_dir, "reference_sentences.json"), "w") as f:
+            json.dump(sents, f, ensure_ascii=False)
+        ref_meta = {
+            "source": os.path.basename(cache_path),
+            "cache_version": T.CACHE_VERSION,
+            "n_words": len(words),
+            "n_sentences": len(sents),
+        }
+        print(f"  segmentation: {len(words)} words -> {len(sents)} sentences "
+              f"({ref_meta['source']})")
+
+    # --- synthetic cases -----------------------------------------------------
+    def W(spec):
+        """"word@start:end" -> word dict (times in seconds)."""
+        out, t = [], 0.0
+        for tok in spec:
+            if isinstance(tok, tuple):
+                out.append({"word": tok[0], "start": tok[1], "end": tok[2]})
+            else:
+                out.append({"word": tok, "start": round(t, 3), "end": round(t + 0.4, 3)})
+                t += 0.5
+        return out
+
+    class _FakeWord:
+        def __init__(self, d):
+            self.word, self.start, self.end = d["word"], d["start"], d["end"]
+
+    class _FakeSeg:
+        """One whisper segment. `words=None` reaches the pseudo-word fallback."""
+        def __init__(self, words, text=None, start=0.0, end=0.0):
+            self.words = [_FakeWord(w) for w in words] if words is not None else None
+            self.text = text or " ".join(w["word"] for w in (words or []))
+            self.start, self.end = start, end
+
+    def learner(words):
+        return T._merge_into_sentences([_FakeSeg(words)])
+
+    long_words = ["word%d" % i for i in range(24)]
+    cases = [
+        ("trailing_no_punct", True,
+         "the final flush: a stream that never ends in .!? still emits a sentence",
+         W(["Hello", "there", "friend"])),
+        ("two_sentences", True, "flush fires on the terminal-punctuation word",
+         W(["One", "two.", "Three", "four!"])),
+        ("quoted_terminal", True, "terminal punctuation followed by a closing quote",
+         W(["He", 'said', '"go."', "Then", "left)."])),
+        ("whitespace_collapse", True, "emit() collapses runs of whitespace in the text",
+         W([" spaced ", "out\ttoken", "end."])),
+        # Python's \s and str.strip() are Unicode-aware and include NBSP; Java's
+        # \s is ASCII-only and Character.isWhitespace() excludes NBSP by design.
+        # Whisper is unlikely to emit these, but the divergence is silent.
+        ("whitespace_unicode", True, "NBSP / line-separator count as whitespace in Python",
+         W(["\xa0nbsp\xa0", "line\u2028sep", "\u3000wide", "tail\x85."])),
+        ("clause_split_punct", True, "a >20-word sentence cut at a comma near the middle",
+         W(["a", "b", "c", "d", "e", "f,", "g", "h", "i", "j", "k", "l",
+            "m", "n", "o", "p", "q", "r", "s", "t", "u", "v."])),
+        ("conj_split_capitalised", True,
+         "conjunction match strips leading non-letters and lowercases: '-And'",
+         W(["a", "b", "c", "d", "e", "f", "g", "h", "-And", "j", "k", "l",
+            "m", "n", "o", "p", "q", "r", "s", "t", "u", "v."])),
+        ("no_candidate_stays_long", True,
+         "over-long with no clause punctuation and no conjunction -> left whole",
+         W(long_words[:-1] + ["last."])),
+        ("too_short_to_split", True,
+         "long in seconds but under 2*_MIN_CHUNK_WORDS -> never split",
+         W([("aaa", 0.0, 3.0), ("bbb", 3.0, 6.0), ("ccc", 6.0, 9.0), ("ddd", 9.0, 12.5)])),
+        ("duration_trigger", True,
+         "under 20 words but over 8s -> the duration branch of _needs_split",
+         W([(w, i * 0.9, i * 0.9 + 0.8) for i, w in enumerate(
+             ["a", "b", "c", "d,", "e", "f", "g", "h", "i", "j", "k."])])),
+        # 48 words at 0.5s each: the first cut leaves two 24-word halves, each
+        # still over both limits, so _split_long has to recurse into them. A
+        # single-level implementation returns 2 sentences here instead of 4.
+        ("recursive_split", True, "each half is re-tested, so one call cuts more than once",
+         W(["w%d%s" % (i, "," if i % 6 == 5 else "") for i in range(47)] + ["end."])),
+        ("empty", True, "no words -> no sentences", []),
+        ("single_word", True, "one word, no punctuation", W(["Hi"])),
+    ]
+
+    def round_words(words):
+        """`_aligned_words`' closing loop: the reference path always hands the
+        merge 3-dp times, so a case built with raw floats would pin behaviour the
+        pipeline can't reach (and would demand that Kotlin keep 1.7000000000000002
+        verbatim). The learner cases below stay raw on purpose — that path does
+        its own rounding, which is the thing worth testing."""
+        return [{"word": w["word"], "start": round(w["start"], 3),
+                 "end": round(w["end"], 3)} for w in words]
+
+    dumped = []
+    for name, subsplit, note, words in cases:
+        words = round_words(words)
+        expect = T._merge_words_into_sentences([dict(w) for w in words])
+        dumped.append({"name": name, "subsplit": subsplit, "note": note,
+                       "words": words, "expect": expect})
+
+    # learner path: the SAME over-long input must come back as one sentence
+    for name, note, words in [
+        ("learner_long_not_split", "no sub-split on the learner path (FR-M3 is reference-only)",
+         W(["a", "b", "c", "d,", "e", "f", "g", "h", "i", "j", "k", "l",
+            "m", "n", "o", "p", "q", "r", "s", "t", "u", "v."])),
+        ("learner_raw_times_rounded",
+         "raw model times are rounded to 3dp on the way in — Python round() is "
+         "round-half-EVEN on the exact binary value, so 0.0625 -> 0.062",
+         W([("Raw", 0.0625, 0.1875), ("times.", 0.5625, 1.0625)])),
+    ]:
+        dumped.append({"name": name, "subsplit": False, "note": note,
+                       "words": words, "expect": learner(words)})
+
+    # the pseudo-word fallback: a segment with no word timestamps keeps its text
+    seg_fallback = [
+        {"words": None, "text": "  A whole segment.  ", "start": 1.2345, "end": 3.5},
+        {"words": [{"word": "then", "start": 3.6, "end": 3.9},
+                   {"word": "more.", "start": 3.9, "end": 4.4}], "text": None},
+    ]
+    fallback_expect = T._merge_into_sentences([
+        _FakeSeg(s["words"], s["text"], s.get("start", 0.0), s.get("end", 0.0))
+        for s in seg_fallback
+    ])
+
+    # Python round(x, 3) on values chosen to be exact binary ties — the two
+    # obvious Kotlin idioms (`round`, "%.3f") are half-UP and get these wrong.
+    round3 = [{"in": x, "out": round(x, 3)} for x in
+              [0.0625, 0.1875, 1.0625, 3.0625, 0.5625, 2.1875, 0.0005, 1.0005,
+               2.6755, 8.8345, 0.1235, 636.1335, 0.0, -0.0625]]
+
+    # The two regexes, probed directly. `$` differs between the languages: Python
+    # allows only a trailing "\n" before it, Java also allows \r, \x85, \u2028
+    # and \u2029 -- so "done.\u2028" is a sentence end in Java but not in Python.
+    probes = ["ok.", "ok!", "ok?", "ok", "ok.'", 'ok."', "ok.)", "ok.]", "ok.}",
+              "ok..", "o.k.", "ok. ", "ok.\n", "ok.\u2028", "ok.\r", "ok.\x85",
+              "U.S.", "3.5", "", ".", "?", "'", "ok,", "ok;", "ok:", "ok,'",
+              'ok,"', "ok, ", "ok,\n", "ok,\u2028", "-and", "And", "AND",
+              "—but", "b.ut", "and", "andy", "-", "12and"]
+    regexes = [{"token": t,
+                "sentence_end": bool(T._SENTENCE_END.search(t)),
+                "clause_end": bool(T._CLAUSE_END.search(t)),
+                "conj_key": re.sub(r"^[^a-zA-Z]+", "", t).lower(),
+                "is_conj": re.sub(r"^[^a-zA-Z]+", "", t).lower() in T._CONJ,
+                "py_strip": t.strip()}
+               for t in probes]
+
+    # _best_split_point probed directly, so a tie-break or off-by-one in the
+    # candidate range is reported as itself instead of as a wrong sentence count.
+    def sp(*toks):
+        return [{"word": t, "start": i * 0.5, "end": i * 0.5 + 0.4}
+                for i, t in enumerate(toks)]
+
+    split_points = []
+    for name, toks in [
+        # two comma candidates equidistant from the midpoint (i=4 and i=6, mid=5)
+        ("tie_prefers_lower_index", ["a", "b", "c", "d,", "e", "f,", "g", "h", "i", "j"]),
+        # a conjunction sits exactly at the midpoint, a comma sits far from it:
+        # rank beats distance, so the comma wins
+        ("punctuation_outranks_a_nearer_conjunction",
+         ["a", "b", "c", "d,", "e", "f", "g", "and", "i", "j", "k", "l", "m", "n"]),
+        # candidate at the very first legal index (i == _MIN_CHUNK_WORDS)
+        ("first_legal_index", ["a", "b", "c", "d,", "e", "f", "g", "h"]),
+        # candidate at the very last legal index (i == n - _MIN_CHUNK_WORDS, so
+        # the comma is on word n-MIN-1 and the right chunk is exactly MIN long)
+        ("last_legal_index", ["a", "b", "c", "d", "e", "f,", "g", "h", "i", "j"]),
+        # ...and one word further on is out of range: the right chunk would be
+        # 3 words, so the comma is ignored and the sentence stays whole
+        ("beyond_last_legal_index", ["a", "b", "c", "d", "e", "f", "g,", "h", "i", "j"]),
+        # a comma inside the forbidden margin must be ignored
+        ("margin_is_excluded", ["a", "b,", "c", "d", "e", "f", "g", "h,", "i", "j", "k", "l"]),
+        ("no_candidate", ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]),
+        ("too_few_words", ["a", "b", "c,", "d", "e", "f", "g"]),
+    ]:
+        words = sp(*toks)
+        split_points.append({"name": name, "words": words,
+                             "expect": T._best_split_point(words)})
+
+    # Every code point Python calls whitespace. `str.strip()` and `\s` use this
+    # set; Java's Character.isWhitespace() deliberately excludes the no-break
+    # spaces (\xa0, \u2007, \u202f) and knows nothing about \x85, so the Kotlin
+    # predicate has to be assembled from isWhitespace + isSpaceChar + \x85.
+    pyspace = [i for i in range(0x10000) if chr(i).isspace()]
+
+    with open(os.path.join(s_dir, "segmentation.json"), "w") as f:
+        json.dump({
+            "split_dur_s": T._SPLIT_DUR_S,
+            "split_words": T._SPLIT_WORDS,
+            "min_chunk_words": T._MIN_CHUNK_WORDS,
+            "conjunctions": sorted(T._CONJ),
+            "reference": ref_meta,
+            "cases": dumped,
+            "segment_fallback": {"segments": seg_fallback, "expect": fallback_expect},
+            "round3": round3,
+            "regexes": regexes,
+            "split_points": split_points,
+            "pyspace": pyspace,
+        }, f, indent=2, ensure_ascii=False)
+
+    n_split = sum(1 for c in dumped if len(c["expect"]) > 1)
+    print(f"  segmentation: {len(dumped)} synthetic cases ({n_split} multi-sentence), "
+          f"{len(round3)} rounding probes")
+    return True
+
+
 def dump_mms(corpus, out_dir):
     """Layer 2 (Gate B): MMS CTC emission + torchaudio aligner word spans."""
     try:
@@ -630,6 +881,9 @@ def main():
         print("-- audio_io: trim / normalise / PCM_16 clip (FR-3 / FR-8) --")
         audio_ok = dump_audio_io(corpus, out_dir)
 
+        print("-- sentence segmentation (FR-2 / FR-M3) --")
+        seg_ok = dump_segmentation(out_dir)
+
         print("-- MMS forced alignment (Layer 2 / Gate B) --")
         mms_ok = dump_mms(corpus, out_dir)
 
@@ -645,7 +899,7 @@ def main():
         "tolerances": TOL,
         "sections": {
             "emb": True, "pair": True, "worddiff": wd_ok,
-            "audio": audio_ok, "mms": mms_ok, "espeak": espeak_ok,
+            "audio": audio_ok, "seg": seg_ok, "mms": mms_ok, "espeak": espeak_ok,
         },
         "notes": [
             "Embeddings are wav2vec2-base-960h transformer layers 6-9 mean "
@@ -669,6 +923,13 @@ def main():
             "-100dB and agrees under any dB chain, so it proves nothing about "
             "amin/ref. audio/clip_pcm16.wav is soundfile's PCM_16 output, "
             "byte-comparable against the Kotlin WAV writer.",
+            "seg/reference_{words,sentences}.json is the real cached transcript "
+            "(videos/*.sentences.json) taken apart and re-merged: 1944 whisper "
+            "words -> 164 sentences, exercising 62 FR-M3 sub-splits including "
+            "midpoint ties. seg/segmentation.json adds the branches the corpus "
+            "misses and pins that the LEARNER path does not sub-split. round3 "
+            "holds exact binary ties (0.0625 -> 0.062): Python round() is "
+            "half-EVEN, so Kotlin's round / \"%.3f\" are both wrong there.",
             "pair/<name>_problems.json is score_track_b's full result (FR-4 "
             "regions are exact-comparable); pair/<name>_feedback.json is the "
             "FR-9 rule engine's tip list keyed off those metrics + the Track-A "

@@ -162,7 +162,7 @@ best_sub_gain(em, ids, chars, vocab, pad):
 | `word_diff.py` | `.../worddiff/{WordDiff,Pitch}.kt` | Kotlin + TarsosDSP | 中(F0 算法差异需容差) |
 | `feedback.py` | `.../feedback/Feedback.kt` | 纯 Kotlin(`llm_hook` no-op,NFR-1) | 低 |
 | `audio_io.py` | `:core-scoring/.../audio/AudioPreproc.kt` + `.../io/WavIo.kt`(纯 Kotlin,已落地);解码留在 `:core-audio` | Kotlin + FFmpeg JNI | 中 |
-| `transcribe.py` | `:core-asr/.../WhisperTranscriber.kt` | sherpa-onnx | 中(输出格式对齐) |
+| `transcribe.py` | 句/词切分 → `:core-scoring/.../segment/SentenceSegmenter.kt`(纯 Kotlin,已落地);识别本体 → `:core-asr/.../WhisperTranscriber.kt` | Kotlin + sherpa-onnx | 中(输出格式对齐) |
 | `ssl_encoder.py` | `:core-embed/.../Wav2Vec2Encoder.kt` | ONNX Mobile(4 输出图) | 中–高(发现④ 图编辑) |
 | **`forced_align.py`** | `:core-align/.../ForcedAligner.kt` + `CtcViterbi.kt` | ONNX Mobile + 手写 Viterbi | **高**(最难单点) |
 | **`phoneme.py`** | `:core-mdd/.../PhonemeMdd.kt`(复用 `CtcViterbi`) | ONNX Mobile(int8 318MB,惰性) | **高**(最重模型) |
@@ -188,11 +188,11 @@ best_sub_gain(em, ids, chars, vocab, pad):
 ```
 NativeLingoAndroid/
 ├── app/                    :app — Compose UI / ViewModel / DI / AudioRecord / Media3 / Warmup / Repo
-├── core-scoring/           :core-scoring — 纯 JVM(DTW/CMVN/Score/Detail/WordDiff/Feedback/CtcViterbi)+ 金标准测试
+├── core-scoring/           :core-scoring — 纯 JVM(DTW/CMVN/Score/Detail/WordDiff/Feedback/CtcViterbi/AudioPreproc/SentenceSegmenter)+ 金标准测试
 ├── core-embed/             :core-embed — ONNX wav2vec2-base(4 输出图)
 ├── core-align/             :core-align — ONNX MMS CTC + ForcedAligner(用 core-scoring 的 CtcViterbi)
 ├── core-mdd/               :core-mdd — ONNX espeak-cv-ft int8 + PhonemeMdd
-├── core-asr/               :core-asr — sherpa-onnx Whisper + Silero VAD
+├── core-asr/               :core-asr — sherpa-onnx Whisper + Silero VAD(句切分已归 :core-scoring,见 §12)
 ├── core-audio/             :core-audio — FFmpeg JNI 解码桥(裁剪/归一化/WAV I/O 已归 :core-scoring,见 §12)
 ├── core-models/            :core-models — ModelRegistry(whisper 打包进 APK;余下首启下载)
 └── buildSrc/               NDK FFmpeg 构建 + 约定插件
@@ -270,5 +270,10 @@ NativeLingoAndroid/
   - **金标准是特意造的,不是捡的**:macOS `say` 几乎不带前导静音(裁掉 ~10 采样),所以除 5 条真实语料外补了 3 个合成用例 —— 零填充(真实场景:录音键延迟)、以及**故意卡在 -30dB 阈值两侧 ±4dB** 的音调填充。零填充在任何 dB 实现下都是 -100dB,单靠它无法证明 `amin`/`ref` 正确;`pad_above`(start=0,整段保留)与 `pad_below`(start=4096)一起才真正锁死阈值链。另有一条测试**守护 fixture 本身**:若这两个用例哪天裁剪结果相同,阈值就等于没测。
   - **两个反直觉行为已核实而非推断**:① **全静音不被裁剪**(librosa 返回 `[0, 8000]`)—— dB 相对最响帧,静音对静音时全部并列 0dB 算作信号;死录音因此按原长进编码器并得低分,与 macOS 一致。② 真正会返回 `[0,0]` 的是 **NaN 路径**(与 NaN 的比较恒假),坏解码可达,此时回退到未裁剪原信号(空波形会让下游编码器崩,而不是给出一个差分)。两条均在 Python 侧实测确认后才写进断言 —— 初版断言按"应该是 -100dB / 全静音应裁空"写,**测试红了两次,错的是断言不是移植**。
   - **`WavIo` 与 soundfile 逐字节相同**(整文件 32044 字节,含头)。float→int16 的转换是 **`floor(x * 32768)`**,不是凭记忆会写的那个:在金标准 clip 的 16000 个采样上,`floor` 失配 **0**,`rint(x*32768)` 失配 7983,`trunc` 失配 9165(全在负样本),`rint(x*32767)` 失配 8184。所有错法都只差 1 个 LSB —— 听不出来,所以永远不会有人报 bug,只会让 Android 的回放切片悄悄不再是 macOS 的切片。libsndfile 内部机制未查证,fixture 即契约。
+- [x] **`transcribe.py` 句/词切分移植(2026-07-26)** —— `:core-scoring` **42/42 全绿**(新增 9 项 `SegmentationParityTest`)。FR-2 的句边界 + FR-M3 的长句二级切分落在 `segment/SentenceSegmenter.kt`;`:core-asr` 只剩 sherpa-onnx 识别本体。
+  - **同 `audio_io` 的定位理由**:句边界决定哪一段参考音被裁出来送进 DTW、也决定 FR-8 回放的区间,属"影响校准分数"的代码 → 必须免设备可测。`normalizeToken` 一并导出给 `:core-asr` 复用,避免两侧各写一份 token 清洗。
+  - **金标准不是合成的,是真的**:`videos/7.1.sentences.json` 里那份缓存转写(**1944 词 → 164 句**)被反向拆回词序列作为输入 —— 因为 `emit` 原样透传词,把缓存里各句的词拼起来恰好就是当初喂给 merge 的输入,capture 脚本内部断言"重跑 merge 能逐字节复现缓存"来证明这一点。它一次性覆盖 62 次切分(47 标点 / 12 连词 / **4 次中点并列** / 3 次放弃),以及 whisper 真实吐出的脏 token(`long -considered`、前导连字符、引号收尾)。合成用例(15 条)是在**先给 Python 函数打桩量过分支覆盖**之后补的,只补语料没覆盖到的分支,不重复。
+  - **三个新的 Python↔Kotlin 陷阱(全部与直觉相反,已测试锁死)**:① `round(x, 3)` 是对**二进制精确值**四舍六入五成双 → 忠实写法是 `BigDecimal(x).setScale(3, HALF_EVEN)`;两个顺手会写的形式(`Math.round(x*1000)/1000.0`、`"%.3f"`)都是五入,对 0.0625 给 0.063 而 Python 给 0.062。**40 万随机值找不出一处分歧** —— 只有二进制精确的并列值才能区分,所以随机测试在这里等于没测。② Java 的 `$` 在结尾的 `\r`/`\u0085`/`\u2028`/`\u2029` 前也匹配,Python 只在 `\n` 前 → 两个正则加内联 `(?d)`(UNIX_LINES),否则 `".`\u2028`"` 结尾的 token 在 Android 断句、在 macOS 不断。③ Python `str.isspace()` 认 **29 个 BMP 码点**,Java 三种说法没有一种吻合:`isWhitespace()` 特意排除不换行空格(`\xa0`/`\u2007`/`\u202f`),`isSpaceChar()` 排除制表/换行,NEL(`\u0085`)两者都不认 → 谓词取 `isWhitespace() || isSpaceChar() || =='`\u0085`'`,并**在全 65536 码点上双向比对** Python 实测集合,而不是相信这个并集。
+  - **两条路径的不对称是刻意的,且被双向断言**:参考路径切,学习者路径(`_merge_into_sentences`)不切 —— 学习者录的就是他选的那一句,按*他自己*的从句结构再切会破坏与参考块的 1:1 对应。测试对同一超长词表同时断言"学习者=1 句"和"参考>1 句",这样将来任何"统一两条路径"的重构会在此处红掉,而不是悄悄改变评分单元。
 - [ ] R-5/R-6/R-7 设备侧复测(arm64 int8 kernel 可能异于桌面)+ Gate D(RAM)+ Gate E(Opus)+ Tier 2 SDK;Phase 2 余项 `:core-asr`(sherpa-onnx Whisper)/ `:core-audio`(FFmpeg NDK 解码,含 Gate E)。
 - **模型包体(NFR-4②,再次修正)**:whisper ~70MB(打包 APK)+ wav2vec2 95.8MB(int8 transformer-only)+ espeak 302.9MB(int8 全量)+ MMS **338.6MB**(int8 transformer-only,实测)= **首启下载 ~737MB**(整包 ~807MB)。MMS 比上一条估的 ~300MB 略大;仍可后台预下载,但**已接近可接受上限** —— 若 Gate D 或用户反馈要求压缩,MMS 是下一个该动的对象。

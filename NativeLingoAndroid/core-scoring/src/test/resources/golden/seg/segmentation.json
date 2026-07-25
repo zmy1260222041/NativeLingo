@@ -1,0 +1,3011 @@
+{
+  "split_dur_s": 8.0,
+  "split_words": 20,
+  "min_chunk_words": 4,
+  "conjunctions": [
+    "after",
+    "although",
+    "and",
+    "as",
+    "because",
+    "before",
+    "but",
+    "if",
+    "since",
+    "so",
+    "that",
+    "though",
+    "unless",
+    "until",
+    "when",
+    "where",
+    "which",
+    "while",
+    "who",
+    "whom",
+    "whose"
+  ],
+  "reference": {
+    "source": "7.1.sentences.json",
+    "cache_version": 4,
+    "n_words": 1944,
+    "n_sentences": 164
+  },
+  "cases": [
+    {
+      "name": "trailing_no_punct",
+      "subsplit": true,
+      "note": "the final flush: a stream that never ends in .!? still emits a sentence",
+      "words": [
+        {
+          "word": "Hello",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "there",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "friend",
+          "start": 1.0,
+          "end": 1.4
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 1.4,
+          "text": "Hello there friend",
+          "words": [
+            {
+              "word": "Hello",
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "word": "there",
+              "start": 0.5,
+              "end": 0.9
+            },
+            {
+              "word": "friend",
+              "start": 1.0,
+              "end": 1.4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "two_sentences",
+      "subsplit": true,
+      "note": "flush fires on the terminal-punctuation word",
+      "words": [
+        {
+          "word": "One",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "two.",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "Three",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "four!",
+          "start": 1.5,
+          "end": 1.9
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 0.9,
+          "text": "One two.",
+          "words": [
+            {
+              "word": "One",
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "word": "two.",
+              "start": 0.5,
+              "end": 0.9
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "start": 1.0,
+          "end": 1.9,
+          "text": "Three four!",
+          "words": [
+            {
+              "word": "Three",
+              "start": 1.0,
+              "end": 1.4
+            },
+            {
+              "word": "four!",
+              "start": 1.5,
+              "end": 1.9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quoted_terminal",
+      "subsplit": true,
+      "note": "terminal punctuation followed by a closing quote",
+      "words": [
+        {
+          "word": "He",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "said",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "\"go.\"",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "Then",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "left).",
+          "start": 2.0,
+          "end": 2.4
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 1.4,
+          "text": "He said \"go.\"",
+          "words": [
+            {
+              "word": "He",
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "word": "said",
+              "start": 0.5,
+              "end": 0.9
+            },
+            {
+              "word": "\"go.\"",
+              "start": 1.0,
+              "end": 1.4
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "start": 1.5,
+          "end": 2.4,
+          "text": "Then left).",
+          "words": [
+            {
+              "word": "Then",
+              "start": 1.5,
+              "end": 1.9
+            },
+            {
+              "word": "left).",
+              "start": 2.0,
+              "end": 2.4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "whitespace_collapse",
+      "subsplit": true,
+      "note": "emit() collapses runs of whitespace in the text",
+      "words": [
+        {
+          "word": " spaced ",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "out\ttoken",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "end.",
+          "start": 1.0,
+          "end": 1.4
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 1.4,
+          "text": "spaced out token end.",
+          "words": [
+            {
+              "word": " spaced ",
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "word": "out\ttoken",
+              "start": 0.5,
+              "end": 0.9
+            },
+            {
+              "word": "end.",
+              "start": 1.0,
+              "end": 1.4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "whitespace_unicode",
+      "subsplit": true,
+      "note": "NBSP / line-separator count as whitespace in Python",
+      "words": [
+        {
+          "word": " nbsp ",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "line sep",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "　wide",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "tail.",
+          "start": 1.5,
+          "end": 1.9
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 1.9,
+          "text": "nbsp line sep wide tail .",
+          "words": [
+            {
+              "word": " nbsp ",
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "word": "line sep",
+              "start": 0.5,
+              "end": 0.9
+            },
+            {
+              "word": "　wide",
+              "start": 1.0,
+              "end": 1.4
+            },
+            {
+              "word": "tail.",
+              "start": 1.5,
+              "end": 1.9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "clause_split_punct",
+      "subsplit": true,
+      "note": "a >20-word sentence cut at a comma near the middle",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "b",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "c",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "d",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "e",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "f,",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "g",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "h",
+          "start": 3.5,
+          "end": 3.9
+        },
+        {
+          "word": "i",
+          "start": 4.0,
+          "end": 4.4
+        },
+        {
+          "word": "j",
+          "start": 4.5,
+          "end": 4.9
+        },
+        {
+          "word": "k",
+          "start": 5.0,
+          "end": 5.4
+        },
+        {
+          "word": "l",
+          "start": 5.5,
+          "end": 5.9
+        },
+        {
+          "word": "m",
+          "start": 6.0,
+          "end": 6.4
+        },
+        {
+          "word": "n",
+          "start": 6.5,
+          "end": 6.9
+        },
+        {
+          "word": "o",
+          "start": 7.0,
+          "end": 7.4
+        },
+        {
+          "word": "p",
+          "start": 7.5,
+          "end": 7.9
+        },
+        {
+          "word": "q",
+          "start": 8.0,
+          "end": 8.4
+        },
+        {
+          "word": "r",
+          "start": 8.5,
+          "end": 8.9
+        },
+        {
+          "word": "s",
+          "start": 9.0,
+          "end": 9.4
+        },
+        {
+          "word": "t",
+          "start": 9.5,
+          "end": 9.9
+        },
+        {
+          "word": "u",
+          "start": 10.0,
+          "end": 10.4
+        },
+        {
+          "word": "v.",
+          "start": 10.5,
+          "end": 10.9
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 2.9,
+          "text": "a b c d e f,",
+          "words": [
+            {
+              "word": "a",
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "word": "b",
+              "start": 0.5,
+              "end": 0.9
+            },
+            {
+              "word": "c",
+              "start": 1.0,
+              "end": 1.4
+            },
+            {
+              "word": "d",
+              "start": 1.5,
+              "end": 1.9
+            },
+            {
+              "word": "e",
+              "start": 2.0,
+              "end": 2.4
+            },
+            {
+              "word": "f,",
+              "start": 2.5,
+              "end": 2.9
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "start": 3.0,
+          "end": 10.9,
+          "text": "g h i j k l m n o p q r s t u v.",
+          "words": [
+            {
+              "word": "g",
+              "start": 3.0,
+              "end": 3.4
+            },
+            {
+              "word": "h",
+              "start": 3.5,
+              "end": 3.9
+            },
+            {
+              "word": "i",
+              "start": 4.0,
+              "end": 4.4
+            },
+            {
+              "word": "j",
+              "start": 4.5,
+              "end": 4.9
+            },
+            {
+              "word": "k",
+              "start": 5.0,
+              "end": 5.4
+            },
+            {
+              "word": "l",
+              "start": 5.5,
+              "end": 5.9
+            },
+            {
+              "word": "m",
+              "start": 6.0,
+              "end": 6.4
+            },
+            {
+              "word": "n",
+              "start": 6.5,
+              "end": 6.9
+            },
+            {
+              "word": "o",
+              "start": 7.0,
+              "end": 7.4
+            },
+            {
+              "word": "p",
+              "start": 7.5,
+              "end": 7.9
+            },
+            {
+              "word": "q",
+              "start": 8.0,
+              "end": 8.4
+            },
+            {
+              "word": "r",
+              "start": 8.5,
+              "end": 8.9
+            },
+            {
+              "word": "s",
+              "start": 9.0,
+              "end": 9.4
+            },
+            {
+              "word": "t",
+              "start": 9.5,
+              "end": 9.9
+            },
+            {
+              "word": "u",
+              "start": 10.0,
+              "end": 10.4
+            },
+            {
+              "word": "v.",
+              "start": 10.5,
+              "end": 10.9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "conj_split_capitalised",
+      "subsplit": true,
+      "note": "conjunction match strips leading non-letters and lowercases: '-And'",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "b",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "c",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "d",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "e",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "f",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "g",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "h",
+          "start": 3.5,
+          "end": 3.9
+        },
+        {
+          "word": "-And",
+          "start": 4.0,
+          "end": 4.4
+        },
+        {
+          "word": "j",
+          "start": 4.5,
+          "end": 4.9
+        },
+        {
+          "word": "k",
+          "start": 5.0,
+          "end": 5.4
+        },
+        {
+          "word": "l",
+          "start": 5.5,
+          "end": 5.9
+        },
+        {
+          "word": "m",
+          "start": 6.0,
+          "end": 6.4
+        },
+        {
+          "word": "n",
+          "start": 6.5,
+          "end": 6.9
+        },
+        {
+          "word": "o",
+          "start": 7.0,
+          "end": 7.4
+        },
+        {
+          "word": "p",
+          "start": 7.5,
+          "end": 7.9
+        },
+        {
+          "word": "q",
+          "start": 8.0,
+          "end": 8.4
+        },
+        {
+          "word": "r",
+          "start": 8.5,
+          "end": 8.9
+        },
+        {
+          "word": "s",
+          "start": 9.0,
+          "end": 9.4
+        },
+        {
+          "word": "t",
+          "start": 9.5,
+          "end": 9.9
+        },
+        {
+          "word": "u",
+          "start": 10.0,
+          "end": 10.4
+        },
+        {
+          "word": "v.",
+          "start": 10.5,
+          "end": 10.9
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 3.9,
+          "text": "a b c d e f g h",
+          "words": [
+            {
+              "word": "a",
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "word": "b",
+              "start": 0.5,
+              "end": 0.9
+            },
+            {
+              "word": "c",
+              "start": 1.0,
+              "end": 1.4
+            },
+            {
+              "word": "d",
+              "start": 1.5,
+              "end": 1.9
+            },
+            {
+              "word": "e",
+              "start": 2.0,
+              "end": 2.4
+            },
+            {
+              "word": "f",
+              "start": 2.5,
+              "end": 2.9
+            },
+            {
+              "word": "g",
+              "start": 3.0,
+              "end": 3.4
+            },
+            {
+              "word": "h",
+              "start": 3.5,
+              "end": 3.9
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "start": 4.0,
+          "end": 10.9,
+          "text": "-And j k l m n o p q r s t u v.",
+          "words": [
+            {
+              "word": "-And",
+              "start": 4.0,
+              "end": 4.4
+            },
+            {
+              "word": "j",
+              "start": 4.5,
+              "end": 4.9
+            },
+            {
+              "word": "k",
+              "start": 5.0,
+              "end": 5.4
+            },
+            {
+              "word": "l",
+              "start": 5.5,
+              "end": 5.9
+            },
+            {
+              "word": "m",
+              "start": 6.0,
+              "end": 6.4
+            },
+            {
+              "word": "n",
+              "start": 6.5,
+              "end": 6.9
+            },
+            {
+              "word": "o",
+              "start": 7.0,
+              "end": 7.4
+            },
+            {
+              "word": "p",
+              "start": 7.5,
+              "end": 7.9
+            },
+            {
+              "word": "q",
+              "start": 8.0,
+              "end": 8.4
+            },
+            {
+              "word": "r",
+              "start": 8.5,
+              "end": 8.9
+            },
+            {
+              "word": "s",
+              "start": 9.0,
+              "end": 9.4
+            },
+            {
+              "word": "t",
+              "start": 9.5,
+              "end": 9.9
+            },
+            {
+              "word": "u",
+              "start": 10.0,
+              "end": 10.4
+            },
+            {
+              "word": "v.",
+              "start": 10.5,
+              "end": 10.9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "no_candidate_stays_long",
+      "subsplit": true,
+      "note": "over-long with no clause punctuation and no conjunction -> left whole",
+      "words": [
+        {
+          "word": "word0",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "word1",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "word2",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "word3",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "word4",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "word5",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "word6",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "word7",
+          "start": 3.5,
+          "end": 3.9
+        },
+        {
+          "word": "word8",
+          "start": 4.0,
+          "end": 4.4
+        },
+        {
+          "word": "word9",
+          "start": 4.5,
+          "end": 4.9
+        },
+        {
+          "word": "word10",
+          "start": 5.0,
+          "end": 5.4
+        },
+        {
+          "word": "word11",
+          "start": 5.5,
+          "end": 5.9
+        },
+        {
+          "word": "word12",
+          "start": 6.0,
+          "end": 6.4
+        },
+        {
+          "word": "word13",
+          "start": 6.5,
+          "end": 6.9
+        },
+        {
+          "word": "word14",
+          "start": 7.0,
+          "end": 7.4
+        },
+        {
+          "word": "word15",
+          "start": 7.5,
+          "end": 7.9
+        },
+        {
+          "word": "word16",
+          "start": 8.0,
+          "end": 8.4
+        },
+        {
+          "word": "word17",
+          "start": 8.5,
+          "end": 8.9
+        },
+        {
+          "word": "word18",
+          "start": 9.0,
+          "end": 9.4
+        },
+        {
+          "word": "word19",
+          "start": 9.5,
+          "end": 9.9
+        },
+        {
+          "word": "word20",
+          "start": 10.0,
+          "end": 10.4
+        },
+        {
+          "word": "word21",
+          "start": 10.5,
+          "end": 10.9
+        },
+        {
+          "word": "word22",
+          "start": 11.0,
+          "end": 11.4
+        },
+        {
+          "word": "last.",
+          "start": 11.5,
+          "end": 11.9
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 11.9,
+          "text": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 last.",
+          "words": [
+            {
+              "word": "word0",
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "word": "word1",
+              "start": 0.5,
+              "end": 0.9
+            },
+            {
+              "word": "word2",
+              "start": 1.0,
+              "end": 1.4
+            },
+            {
+              "word": "word3",
+              "start": 1.5,
+              "end": 1.9
+            },
+            {
+              "word": "word4",
+              "start": 2.0,
+              "end": 2.4
+            },
+            {
+              "word": "word5",
+              "start": 2.5,
+              "end": 2.9
+            },
+            {
+              "word": "word6",
+              "start": 3.0,
+              "end": 3.4
+            },
+            {
+              "word": "word7",
+              "start": 3.5,
+              "end": 3.9
+            },
+            {
+              "word": "word8",
+              "start": 4.0,
+              "end": 4.4
+            },
+            {
+              "word": "word9",
+              "start": 4.5,
+              "end": 4.9
+            },
+            {
+              "word": "word10",
+              "start": 5.0,
+              "end": 5.4
+            },
+            {
+              "word": "word11",
+              "start": 5.5,
+              "end": 5.9
+            },
+            {
+              "word": "word12",
+              "start": 6.0,
+              "end": 6.4
+            },
+            {
+              "word": "word13",
+              "start": 6.5,
+              "end": 6.9
+            },
+            {
+              "word": "word14",
+              "start": 7.0,
+              "end": 7.4
+            },
+            {
+              "word": "word15",
+              "start": 7.5,
+              "end": 7.9
+            },
+            {
+              "word": "word16",
+              "start": 8.0,
+              "end": 8.4
+            },
+            {
+              "word": "word17",
+              "start": 8.5,
+              "end": 8.9
+            },
+            {
+              "word": "word18",
+              "start": 9.0,
+              "end": 9.4
+            },
+            {
+              "word": "word19",
+              "start": 9.5,
+              "end": 9.9
+            },
+            {
+              "word": "word20",
+              "start": 10.0,
+              "end": 10.4
+            },
+            {
+              "word": "word21",
+              "start": 10.5,
+              "end": 10.9
+            },
+            {
+              "word": "word22",
+              "start": 11.0,
+              "end": 11.4
+            },
+            {
+              "word": "last.",
+              "start": 11.5,
+              "end": 11.9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "too_short_to_split",
+      "subsplit": true,
+      "note": "long in seconds but under 2*_MIN_CHUNK_WORDS -> never split",
+      "words": [
+        {
+          "word": "aaa",
+          "start": 0.0,
+          "end": 3.0
+        },
+        {
+          "word": "bbb",
+          "start": 3.0,
+          "end": 6.0
+        },
+        {
+          "word": "ccc",
+          "start": 6.0,
+          "end": 9.0
+        },
+        {
+          "word": "ddd",
+          "start": 9.0,
+          "end": 12.5
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.5,
+          "text": "aaa bbb ccc ddd",
+          "words": [
+            {
+              "word": "aaa",
+              "start": 0.0,
+              "end": 3.0
+            },
+            {
+              "word": "bbb",
+              "start": 3.0,
+              "end": 6.0
+            },
+            {
+              "word": "ccc",
+              "start": 6.0,
+              "end": 9.0
+            },
+            {
+              "word": "ddd",
+              "start": 9.0,
+              "end": 12.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "duration_trigger",
+      "subsplit": true,
+      "note": "under 20 words but over 8s -> the duration branch of _needs_split",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.8
+        },
+        {
+          "word": "b",
+          "start": 0.9,
+          "end": 1.7
+        },
+        {
+          "word": "c",
+          "start": 1.8,
+          "end": 2.6
+        },
+        {
+          "word": "d,",
+          "start": 2.7,
+          "end": 3.5
+        },
+        {
+          "word": "e",
+          "start": 3.6,
+          "end": 4.4
+        },
+        {
+          "word": "f",
+          "start": 4.5,
+          "end": 5.3
+        },
+        {
+          "word": "g",
+          "start": 5.4,
+          "end": 6.2
+        },
+        {
+          "word": "h",
+          "start": 6.3,
+          "end": 7.1
+        },
+        {
+          "word": "i",
+          "start": 7.2,
+          "end": 8.0
+        },
+        {
+          "word": "j",
+          "start": 8.1,
+          "end": 8.9
+        },
+        {
+          "word": "k.",
+          "start": 9.0,
+          "end": 9.8
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 3.5,
+          "text": "a b c d,",
+          "words": [
+            {
+              "word": "a",
+              "start": 0.0,
+              "end": 0.8
+            },
+            {
+              "word": "b",
+              "start": 0.9,
+              "end": 1.7
+            },
+            {
+              "word": "c",
+              "start": 1.8,
+              "end": 2.6
+            },
+            {
+              "word": "d,",
+              "start": 2.7,
+              "end": 3.5
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "start": 3.6,
+          "end": 9.8,
+          "text": "e f g h i j k.",
+          "words": [
+            {
+              "word": "e",
+              "start": 3.6,
+              "end": 4.4
+            },
+            {
+              "word": "f",
+              "start": 4.5,
+              "end": 5.3
+            },
+            {
+              "word": "g",
+              "start": 5.4,
+              "end": 6.2
+            },
+            {
+              "word": "h",
+              "start": 6.3,
+              "end": 7.1
+            },
+            {
+              "word": "i",
+              "start": 7.2,
+              "end": 8.0
+            },
+            {
+              "word": "j",
+              "start": 8.1,
+              "end": 8.9
+            },
+            {
+              "word": "k.",
+              "start": 9.0,
+              "end": 9.8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "recursive_split",
+      "subsplit": true,
+      "note": "each half is re-tested, so one call cuts more than once",
+      "words": [
+        {
+          "word": "w0",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "w1",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "w2",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "w3",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "w4",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "w5,",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "w6",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "w7",
+          "start": 3.5,
+          "end": 3.9
+        },
+        {
+          "word": "w8",
+          "start": 4.0,
+          "end": 4.4
+        },
+        {
+          "word": "w9",
+          "start": 4.5,
+          "end": 4.9
+        },
+        {
+          "word": "w10",
+          "start": 5.0,
+          "end": 5.4
+        },
+        {
+          "word": "w11,",
+          "start": 5.5,
+          "end": 5.9
+        },
+        {
+          "word": "w12",
+          "start": 6.0,
+          "end": 6.4
+        },
+        {
+          "word": "w13",
+          "start": 6.5,
+          "end": 6.9
+        },
+        {
+          "word": "w14",
+          "start": 7.0,
+          "end": 7.4
+        },
+        {
+          "word": "w15",
+          "start": 7.5,
+          "end": 7.9
+        },
+        {
+          "word": "w16",
+          "start": 8.0,
+          "end": 8.4
+        },
+        {
+          "word": "w17,",
+          "start": 8.5,
+          "end": 8.9
+        },
+        {
+          "word": "w18",
+          "start": 9.0,
+          "end": 9.4
+        },
+        {
+          "word": "w19",
+          "start": 9.5,
+          "end": 9.9
+        },
+        {
+          "word": "w20",
+          "start": 10.0,
+          "end": 10.4
+        },
+        {
+          "word": "w21",
+          "start": 10.5,
+          "end": 10.9
+        },
+        {
+          "word": "w22",
+          "start": 11.0,
+          "end": 11.4
+        },
+        {
+          "word": "w23,",
+          "start": 11.5,
+          "end": 11.9
+        },
+        {
+          "word": "w24",
+          "start": 12.0,
+          "end": 12.4
+        },
+        {
+          "word": "w25",
+          "start": 12.5,
+          "end": 12.9
+        },
+        {
+          "word": "w26",
+          "start": 13.0,
+          "end": 13.4
+        },
+        {
+          "word": "w27",
+          "start": 13.5,
+          "end": 13.9
+        },
+        {
+          "word": "w28",
+          "start": 14.0,
+          "end": 14.4
+        },
+        {
+          "word": "w29,",
+          "start": 14.5,
+          "end": 14.9
+        },
+        {
+          "word": "w30",
+          "start": 15.0,
+          "end": 15.4
+        },
+        {
+          "word": "w31",
+          "start": 15.5,
+          "end": 15.9
+        },
+        {
+          "word": "w32",
+          "start": 16.0,
+          "end": 16.4
+        },
+        {
+          "word": "w33",
+          "start": 16.5,
+          "end": 16.9
+        },
+        {
+          "word": "w34",
+          "start": 17.0,
+          "end": 17.4
+        },
+        {
+          "word": "w35,",
+          "start": 17.5,
+          "end": 17.9
+        },
+        {
+          "word": "w36",
+          "start": 18.0,
+          "end": 18.4
+        },
+        {
+          "word": "w37",
+          "start": 18.5,
+          "end": 18.9
+        },
+        {
+          "word": "w38",
+          "start": 19.0,
+          "end": 19.4
+        },
+        {
+          "word": "w39",
+          "start": 19.5,
+          "end": 19.9
+        },
+        {
+          "word": "w40",
+          "start": 20.0,
+          "end": 20.4
+        },
+        {
+          "word": "w41,",
+          "start": 20.5,
+          "end": 20.9
+        },
+        {
+          "word": "w42",
+          "start": 21.0,
+          "end": 21.4
+        },
+        {
+          "word": "w43",
+          "start": 21.5,
+          "end": 21.9
+        },
+        {
+          "word": "w44",
+          "start": 22.0,
+          "end": 22.4
+        },
+        {
+          "word": "w45",
+          "start": 22.5,
+          "end": 22.9
+        },
+        {
+          "word": "w46",
+          "start": 23.0,
+          "end": 23.4
+        },
+        {
+          "word": "end.",
+          "start": 23.5,
+          "end": 23.9
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 5.9,
+          "text": "w0 w1 w2 w3 w4 w5, w6 w7 w8 w9 w10 w11,",
+          "words": [
+            {
+              "word": "w0",
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "word": "w1",
+              "start": 0.5,
+              "end": 0.9
+            },
+            {
+              "word": "w2",
+              "start": 1.0,
+              "end": 1.4
+            },
+            {
+              "word": "w3",
+              "start": 1.5,
+              "end": 1.9
+            },
+            {
+              "word": "w4",
+              "start": 2.0,
+              "end": 2.4
+            },
+            {
+              "word": "w5,",
+              "start": 2.5,
+              "end": 2.9
+            },
+            {
+              "word": "w6",
+              "start": 3.0,
+              "end": 3.4
+            },
+            {
+              "word": "w7",
+              "start": 3.5,
+              "end": 3.9
+            },
+            {
+              "word": "w8",
+              "start": 4.0,
+              "end": 4.4
+            },
+            {
+              "word": "w9",
+              "start": 4.5,
+              "end": 4.9
+            },
+            {
+              "word": "w10",
+              "start": 5.0,
+              "end": 5.4
+            },
+            {
+              "word": "w11,",
+              "start": 5.5,
+              "end": 5.9
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "start": 6.0,
+          "end": 11.9,
+          "text": "w12 w13 w14 w15 w16 w17, w18 w19 w20 w21 w22 w23,",
+          "words": [
+            {
+              "word": "w12",
+              "start": 6.0,
+              "end": 6.4
+            },
+            {
+              "word": "w13",
+              "start": 6.5,
+              "end": 6.9
+            },
+            {
+              "word": "w14",
+              "start": 7.0,
+              "end": 7.4
+            },
+            {
+              "word": "w15",
+              "start": 7.5,
+              "end": 7.9
+            },
+            {
+              "word": "w16",
+              "start": 8.0,
+              "end": 8.4
+            },
+            {
+              "word": "w17,",
+              "start": 8.5,
+              "end": 8.9
+            },
+            {
+              "word": "w18",
+              "start": 9.0,
+              "end": 9.4
+            },
+            {
+              "word": "w19",
+              "start": 9.5,
+              "end": 9.9
+            },
+            {
+              "word": "w20",
+              "start": 10.0,
+              "end": 10.4
+            },
+            {
+              "word": "w21",
+              "start": 10.5,
+              "end": 10.9
+            },
+            {
+              "word": "w22",
+              "start": 11.0,
+              "end": 11.4
+            },
+            {
+              "word": "w23,",
+              "start": 11.5,
+              "end": 11.9
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "start": 12.0,
+          "end": 17.9,
+          "text": "w24 w25 w26 w27 w28 w29, w30 w31 w32 w33 w34 w35,",
+          "words": [
+            {
+              "word": "w24",
+              "start": 12.0,
+              "end": 12.4
+            },
+            {
+              "word": "w25",
+              "start": 12.5,
+              "end": 12.9
+            },
+            {
+              "word": "w26",
+              "start": 13.0,
+              "end": 13.4
+            },
+            {
+              "word": "w27",
+              "start": 13.5,
+              "end": 13.9
+            },
+            {
+              "word": "w28",
+              "start": 14.0,
+              "end": 14.4
+            },
+            {
+              "word": "w29,",
+              "start": 14.5,
+              "end": 14.9
+            },
+            {
+              "word": "w30",
+              "start": 15.0,
+              "end": 15.4
+            },
+            {
+              "word": "w31",
+              "start": 15.5,
+              "end": 15.9
+            },
+            {
+              "word": "w32",
+              "start": 16.0,
+              "end": 16.4
+            },
+            {
+              "word": "w33",
+              "start": 16.5,
+              "end": 16.9
+            },
+            {
+              "word": "w34",
+              "start": 17.0,
+              "end": 17.4
+            },
+            {
+              "word": "w35,",
+              "start": 17.5,
+              "end": 17.9
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "start": 18.0,
+          "end": 23.9,
+          "text": "w36 w37 w38 w39 w40 w41, w42 w43 w44 w45 w46 end.",
+          "words": [
+            {
+              "word": "w36",
+              "start": 18.0,
+              "end": 18.4
+            },
+            {
+              "word": "w37",
+              "start": 18.5,
+              "end": 18.9
+            },
+            {
+              "word": "w38",
+              "start": 19.0,
+              "end": 19.4
+            },
+            {
+              "word": "w39",
+              "start": 19.5,
+              "end": 19.9
+            },
+            {
+              "word": "w40",
+              "start": 20.0,
+              "end": 20.4
+            },
+            {
+              "word": "w41,",
+              "start": 20.5,
+              "end": 20.9
+            },
+            {
+              "word": "w42",
+              "start": 21.0,
+              "end": 21.4
+            },
+            {
+              "word": "w43",
+              "start": 21.5,
+              "end": 21.9
+            },
+            {
+              "word": "w44",
+              "start": 22.0,
+              "end": 22.4
+            },
+            {
+              "word": "w45",
+              "start": 22.5,
+              "end": 22.9
+            },
+            {
+              "word": "w46",
+              "start": 23.0,
+              "end": 23.4
+            },
+            {
+              "word": "end.",
+              "start": 23.5,
+              "end": 23.9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "subsplit": true,
+      "note": "no words -> no sentences",
+      "words": [],
+      "expect": []
+    },
+    {
+      "name": "single_word",
+      "subsplit": true,
+      "note": "one word, no punctuation",
+      "words": [
+        {
+          "word": "Hi",
+          "start": 0.0,
+          "end": 0.4
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 0.4,
+          "text": "Hi",
+          "words": [
+            {
+              "word": "Hi",
+              "start": 0.0,
+              "end": 0.4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "learner_long_not_split",
+      "subsplit": false,
+      "note": "no sub-split on the learner path (FR-M3 is reference-only)",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "b",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "c",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "d,",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "e",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "f",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "g",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "h",
+          "start": 3.5,
+          "end": 3.9
+        },
+        {
+          "word": "i",
+          "start": 4.0,
+          "end": 4.4
+        },
+        {
+          "word": "j",
+          "start": 4.5,
+          "end": 4.9
+        },
+        {
+          "word": "k",
+          "start": 5.0,
+          "end": 5.4
+        },
+        {
+          "word": "l",
+          "start": 5.5,
+          "end": 5.9
+        },
+        {
+          "word": "m",
+          "start": 6.0,
+          "end": 6.4
+        },
+        {
+          "word": "n",
+          "start": 6.5,
+          "end": 6.9
+        },
+        {
+          "word": "o",
+          "start": 7.0,
+          "end": 7.4
+        },
+        {
+          "word": "p",
+          "start": 7.5,
+          "end": 7.9
+        },
+        {
+          "word": "q",
+          "start": 8.0,
+          "end": 8.4
+        },
+        {
+          "word": "r",
+          "start": 8.5,
+          "end": 8.9
+        },
+        {
+          "word": "s",
+          "start": 9.0,
+          "end": 9.4
+        },
+        {
+          "word": "t",
+          "start": 9.5,
+          "end": 9.9
+        },
+        {
+          "word": "u",
+          "start": 10.0,
+          "end": 10.4
+        },
+        {
+          "word": "v.",
+          "start": 10.5,
+          "end": 10.9
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 10.9,
+          "text": "a b c d, e f g h i j k l m n o p q r s t u v.",
+          "words": [
+            {
+              "word": "a",
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "word": "b",
+              "start": 0.5,
+              "end": 0.9
+            },
+            {
+              "word": "c",
+              "start": 1.0,
+              "end": 1.4
+            },
+            {
+              "word": "d,",
+              "start": 1.5,
+              "end": 1.9
+            },
+            {
+              "word": "e",
+              "start": 2.0,
+              "end": 2.4
+            },
+            {
+              "word": "f",
+              "start": 2.5,
+              "end": 2.9
+            },
+            {
+              "word": "g",
+              "start": 3.0,
+              "end": 3.4
+            },
+            {
+              "word": "h",
+              "start": 3.5,
+              "end": 3.9
+            },
+            {
+              "word": "i",
+              "start": 4.0,
+              "end": 4.4
+            },
+            {
+              "word": "j",
+              "start": 4.5,
+              "end": 4.9
+            },
+            {
+              "word": "k",
+              "start": 5.0,
+              "end": 5.4
+            },
+            {
+              "word": "l",
+              "start": 5.5,
+              "end": 5.9
+            },
+            {
+              "word": "m",
+              "start": 6.0,
+              "end": 6.4
+            },
+            {
+              "word": "n",
+              "start": 6.5,
+              "end": 6.9
+            },
+            {
+              "word": "o",
+              "start": 7.0,
+              "end": 7.4
+            },
+            {
+              "word": "p",
+              "start": 7.5,
+              "end": 7.9
+            },
+            {
+              "word": "q",
+              "start": 8.0,
+              "end": 8.4
+            },
+            {
+              "word": "r",
+              "start": 8.5,
+              "end": 8.9
+            },
+            {
+              "word": "s",
+              "start": 9.0,
+              "end": 9.4
+            },
+            {
+              "word": "t",
+              "start": 9.5,
+              "end": 9.9
+            },
+            {
+              "word": "u",
+              "start": 10.0,
+              "end": 10.4
+            },
+            {
+              "word": "v.",
+              "start": 10.5,
+              "end": 10.9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "learner_raw_times_rounded",
+      "subsplit": false,
+      "note": "raw model times are rounded to 3dp on the way in — Python round() is round-half-EVEN on the exact binary value, so 0.0625 -> 0.062",
+      "words": [
+        {
+          "word": "Raw",
+          "start": 0.0625,
+          "end": 0.1875
+        },
+        {
+          "word": "times.",
+          "start": 0.5625,
+          "end": 1.0625
+        }
+      ],
+      "expect": [
+        {
+          "index": 0,
+          "start": 0.062,
+          "end": 1.062,
+          "text": "Raw times.",
+          "words": [
+            {
+              "word": "Raw",
+              "start": 0.062,
+              "end": 0.188
+            },
+            {
+              "word": "times.",
+              "start": 0.562,
+              "end": 1.062
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "segment_fallback": {
+    "segments": [
+      {
+        "words": null,
+        "text": "  A whole segment.  ",
+        "start": 1.2345,
+        "end": 3.5
+      },
+      {
+        "words": [
+          {
+            "word": "then",
+            "start": 3.6,
+            "end": 3.9
+          },
+          {
+            "word": "more.",
+            "start": 3.9,
+            "end": 4.4
+          }
+        ],
+        "text": null
+      }
+    ],
+    "expect": [
+      {
+        "index": 0,
+        "start": 1.234,
+        "end": 3.5,
+        "text": "A whole segment.",
+        "words": [
+          {
+            "word": "A whole segment.",
+            "start": 1.234,
+            "end": 3.5
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "start": 3.6,
+        "end": 4.4,
+        "text": "then more.",
+        "words": [
+          {
+            "word": "then",
+            "start": 3.6,
+            "end": 3.9
+          },
+          {
+            "word": "more.",
+            "start": 3.9,
+            "end": 4.4
+          }
+        ]
+      }
+    ]
+  },
+  "round3": [
+    {
+      "in": 0.0625,
+      "out": 0.062
+    },
+    {
+      "in": 0.1875,
+      "out": 0.188
+    },
+    {
+      "in": 1.0625,
+      "out": 1.062
+    },
+    {
+      "in": 3.0625,
+      "out": 3.062
+    },
+    {
+      "in": 0.5625,
+      "out": 0.562
+    },
+    {
+      "in": 2.1875,
+      "out": 2.188
+    },
+    {
+      "in": 0.0005,
+      "out": 0.001
+    },
+    {
+      "in": 1.0005,
+      "out": 1.0
+    },
+    {
+      "in": 2.6755,
+      "out": 2.675
+    },
+    {
+      "in": 8.8345,
+      "out": 8.835
+    },
+    {
+      "in": 0.1235,
+      "out": 0.123
+    },
+    {
+      "in": 636.1335,
+      "out": 636.134
+    },
+    {
+      "in": 0.0,
+      "out": 0.0
+    },
+    {
+      "in": -0.0625,
+      "out": -0.062
+    }
+  ],
+  "regexes": [
+    {
+      "token": "ok.",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "ok.",
+      "is_conj": false,
+      "py_strip": "ok."
+    },
+    {
+      "token": "ok!",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "ok!",
+      "is_conj": false,
+      "py_strip": "ok!"
+    },
+    {
+      "token": "ok?",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "ok?",
+      "is_conj": false,
+      "py_strip": "ok?"
+    },
+    {
+      "token": "ok",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "ok",
+      "is_conj": false,
+      "py_strip": "ok"
+    },
+    {
+      "token": "ok.'",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "ok.'",
+      "is_conj": false,
+      "py_strip": "ok.'"
+    },
+    {
+      "token": "ok.\"",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "ok.\"",
+      "is_conj": false,
+      "py_strip": "ok.\""
+    },
+    {
+      "token": "ok.)",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "ok.)",
+      "is_conj": false,
+      "py_strip": "ok.)"
+    },
+    {
+      "token": "ok.]",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "ok.]",
+      "is_conj": false,
+      "py_strip": "ok.]"
+    },
+    {
+      "token": "ok.}",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "ok.}",
+      "is_conj": false,
+      "py_strip": "ok.}"
+    },
+    {
+      "token": "ok..",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "ok..",
+      "is_conj": false,
+      "py_strip": "ok.."
+    },
+    {
+      "token": "o.k.",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "o.k.",
+      "is_conj": false,
+      "py_strip": "o.k."
+    },
+    {
+      "token": "ok. ",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "ok. ",
+      "is_conj": false,
+      "py_strip": "ok."
+    },
+    {
+      "token": "ok.\n",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "ok.\n",
+      "is_conj": false,
+      "py_strip": "ok."
+    },
+    {
+      "token": "ok. ",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "ok. ",
+      "is_conj": false,
+      "py_strip": "ok."
+    },
+    {
+      "token": "ok.\r",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "ok.\r",
+      "is_conj": false,
+      "py_strip": "ok."
+    },
+    {
+      "token": "ok.",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "ok.",
+      "is_conj": false,
+      "py_strip": "ok."
+    },
+    {
+      "token": "U.S.",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "u.s.",
+      "is_conj": false,
+      "py_strip": "U.S."
+    },
+    {
+      "token": "3.5",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "",
+      "is_conj": false,
+      "py_strip": "3.5"
+    },
+    {
+      "token": "",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "",
+      "is_conj": false,
+      "py_strip": ""
+    },
+    {
+      "token": ".",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "",
+      "is_conj": false,
+      "py_strip": "."
+    },
+    {
+      "token": "?",
+      "sentence_end": true,
+      "clause_end": false,
+      "conj_key": "",
+      "is_conj": false,
+      "py_strip": "?"
+    },
+    {
+      "token": "'",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "",
+      "is_conj": false,
+      "py_strip": "'"
+    },
+    {
+      "token": "ok,",
+      "sentence_end": false,
+      "clause_end": true,
+      "conj_key": "ok,",
+      "is_conj": false,
+      "py_strip": "ok,"
+    },
+    {
+      "token": "ok;",
+      "sentence_end": false,
+      "clause_end": true,
+      "conj_key": "ok;",
+      "is_conj": false,
+      "py_strip": "ok;"
+    },
+    {
+      "token": "ok:",
+      "sentence_end": false,
+      "clause_end": true,
+      "conj_key": "ok:",
+      "is_conj": false,
+      "py_strip": "ok:"
+    },
+    {
+      "token": "ok,'",
+      "sentence_end": false,
+      "clause_end": true,
+      "conj_key": "ok,'",
+      "is_conj": false,
+      "py_strip": "ok,'"
+    },
+    {
+      "token": "ok,\"",
+      "sentence_end": false,
+      "clause_end": true,
+      "conj_key": "ok,\"",
+      "is_conj": false,
+      "py_strip": "ok,\""
+    },
+    {
+      "token": "ok, ",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "ok, ",
+      "is_conj": false,
+      "py_strip": "ok,"
+    },
+    {
+      "token": "ok,\n",
+      "sentence_end": false,
+      "clause_end": true,
+      "conj_key": "ok,\n",
+      "is_conj": false,
+      "py_strip": "ok,"
+    },
+    {
+      "token": "ok, ",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "ok, ",
+      "is_conj": false,
+      "py_strip": "ok,"
+    },
+    {
+      "token": "-and",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "and",
+      "is_conj": true,
+      "py_strip": "-and"
+    },
+    {
+      "token": "And",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "and",
+      "is_conj": true,
+      "py_strip": "And"
+    },
+    {
+      "token": "AND",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "and",
+      "is_conj": true,
+      "py_strip": "AND"
+    },
+    {
+      "token": "—but",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "but",
+      "is_conj": true,
+      "py_strip": "—but"
+    },
+    {
+      "token": "b.ut",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "b.ut",
+      "is_conj": false,
+      "py_strip": "b.ut"
+    },
+    {
+      "token": "and",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "and",
+      "is_conj": true,
+      "py_strip": "and"
+    },
+    {
+      "token": "andy",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "andy",
+      "is_conj": false,
+      "py_strip": "andy"
+    },
+    {
+      "token": "-",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "",
+      "is_conj": false,
+      "py_strip": "-"
+    },
+    {
+      "token": "12and",
+      "sentence_end": false,
+      "clause_end": false,
+      "conj_key": "and",
+      "is_conj": true,
+      "py_strip": "12and"
+    }
+  ],
+  "split_points": [
+    {
+      "name": "tie_prefers_lower_index",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "b",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "c",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "d,",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "e",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "f,",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "g",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "h",
+          "start": 3.5,
+          "end": 3.9
+        },
+        {
+          "word": "i",
+          "start": 4.0,
+          "end": 4.4
+        },
+        {
+          "word": "j",
+          "start": 4.5,
+          "end": 4.9
+        }
+      ],
+      "expect": 4
+    },
+    {
+      "name": "punctuation_outranks_a_nearer_conjunction",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "b",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "c",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "d,",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "e",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "f",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "g",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "and",
+          "start": 3.5,
+          "end": 3.9
+        },
+        {
+          "word": "i",
+          "start": 4.0,
+          "end": 4.4
+        },
+        {
+          "word": "j",
+          "start": 4.5,
+          "end": 4.9
+        },
+        {
+          "word": "k",
+          "start": 5.0,
+          "end": 5.4
+        },
+        {
+          "word": "l",
+          "start": 5.5,
+          "end": 5.9
+        },
+        {
+          "word": "m",
+          "start": 6.0,
+          "end": 6.4
+        },
+        {
+          "word": "n",
+          "start": 6.5,
+          "end": 6.9
+        }
+      ],
+      "expect": 4
+    },
+    {
+      "name": "first_legal_index",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "b",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "c",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "d,",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "e",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "f",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "g",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "h",
+          "start": 3.5,
+          "end": 3.9
+        }
+      ],
+      "expect": 4
+    },
+    {
+      "name": "last_legal_index",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "b",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "c",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "d",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "e",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "f,",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "g",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "h",
+          "start": 3.5,
+          "end": 3.9
+        },
+        {
+          "word": "i",
+          "start": 4.0,
+          "end": 4.4
+        },
+        {
+          "word": "j",
+          "start": 4.5,
+          "end": 4.9
+        }
+      ],
+      "expect": 6
+    },
+    {
+      "name": "beyond_last_legal_index",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "b",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "c",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "d",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "e",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "f",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "g,",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "h",
+          "start": 3.5,
+          "end": 3.9
+        },
+        {
+          "word": "i",
+          "start": 4.0,
+          "end": 4.4
+        },
+        {
+          "word": "j",
+          "start": 4.5,
+          "end": 4.9
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "margin_is_excluded",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "b,",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "c",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "d",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "e",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "f",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "g",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "h,",
+          "start": 3.5,
+          "end": 3.9
+        },
+        {
+          "word": "i",
+          "start": 4.0,
+          "end": 4.4
+        },
+        {
+          "word": "j",
+          "start": 4.5,
+          "end": 4.9
+        },
+        {
+          "word": "k",
+          "start": 5.0,
+          "end": 5.4
+        },
+        {
+          "word": "l",
+          "start": 5.5,
+          "end": 5.9
+        }
+      ],
+      "expect": 8
+    },
+    {
+      "name": "no_candidate",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "b",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "c",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "d",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "e",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "f",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "g",
+          "start": 3.0,
+          "end": 3.4
+        },
+        {
+          "word": "h",
+          "start": 3.5,
+          "end": 3.9
+        },
+        {
+          "word": "i",
+          "start": 4.0,
+          "end": 4.4
+        },
+        {
+          "word": "j",
+          "start": 4.5,
+          "end": 4.9
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "too_few_words",
+      "words": [
+        {
+          "word": "a",
+          "start": 0.0,
+          "end": 0.4
+        },
+        {
+          "word": "b",
+          "start": 0.5,
+          "end": 0.9
+        },
+        {
+          "word": "c,",
+          "start": 1.0,
+          "end": 1.4
+        },
+        {
+          "word": "d",
+          "start": 1.5,
+          "end": 1.9
+        },
+        {
+          "word": "e",
+          "start": 2.0,
+          "end": 2.4
+        },
+        {
+          "word": "f",
+          "start": 2.5,
+          "end": 2.9
+        },
+        {
+          "word": "g",
+          "start": 3.0,
+          "end": 3.4
+        }
+      ],
+      "expect": null
+    }
+  ],
+  "pyspace": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    28,
+    29,
+    30,
+    31,
+    32,
+    133,
+    160,
+    5760,
+    8192,
+    8193,
+    8194,
+    8195,
+    8196,
+    8197,
+    8198,
+    8199,
+    8200,
+    8201,
+    8202,
+    8232,
+    8233,
+    8239,
+    8287,
+    12288
+  ]
+}
