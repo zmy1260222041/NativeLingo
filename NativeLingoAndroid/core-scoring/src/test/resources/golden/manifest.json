@@ -1,0 +1,67 @@
+{
+  "producer": "scripts/capture_golden.py (macOS gold-standard source)",
+  "doc": "docs/android-migration.md",
+  "provenance": {
+    "git_head": "b6d06ddf518b92182add4b330d730f71fecbb037",
+    "sentence": "The quick brown fox jumps over the lazy dog."
+  },
+  "corpus": [
+    {
+      "name": "ref_samantha",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "voice": "Samantha",
+      "rate": 175,
+      "trimmed": true
+    },
+    {
+      "name": "crossvoice_daniel",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "voice": "Daniel",
+      "rate": 175,
+      "trimmed": true
+    },
+    {
+      "name": "wrongtext_samantha",
+      "text": "The slow purple cat sleeps under the busy table.",
+      "voice": "Samantha",
+      "rate": 175,
+      "trimmed": true
+    },
+    {
+      "name": "slow_samantha",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "voice": "Samantha",
+      "rate": 80,
+      "trimmed": true
+    },
+    {
+      "name": "ref_samantha_raw",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "voice": "Samantha",
+      "rate": 175,
+      "trimmed": false
+    }
+  ],
+  "tolerances": {
+    "dtw_cost": 0.02,
+    "accuracy": 2.0,
+    "fluency": 3.0,
+    "word_status_exact": true,
+    "align_frame": 1,
+    "emb_min_cosine": 0.995,
+    "mms_min_cosine": 0.995,
+    "espeak_decode_exact": true
+  },
+  "sections": {
+    "emb": true,
+    "pair": true,
+    "mms": true,
+    "espeak": true
+  },
+  "notes": [
+    "Embeddings are wav2vec2-base-960h transformer layers 6-9 mean (ssl_encoder.DEFAULT_LAYERS), pre-CMVN. Apply CMVN in-test before comparing cosine >= emb_min_cosine.",
+    "DTW path/costs are the raw banded-DTW output (align.dtw_align, band_frac=0.2) on CMVN-normalised embeddings.",
+    "MMS spans come from torchaudio's get_aligner(); the Android CtcViterbi.kt port must reproduce them within align_frame.",
+    "espeak decode is CTC greedy on the raw reference span; int8 must match the greedy string exactly on clean references."
+  ]
+}

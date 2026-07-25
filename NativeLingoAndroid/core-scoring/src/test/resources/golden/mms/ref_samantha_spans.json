@@ -1,0 +1,51 @@
+{
+  "spf": 0.020129032258064516,
+  "nframes": 124,
+  "spans": [
+    {
+      "word": "The",
+      "start": 0.0201,
+      "end": 0.1006
+    },
+    {
+      "word": "quick",
+      "start": 0.1208,
+      "end": 0.3623
+    },
+    {
+      "word": "brown",
+      "start": 0.3825,
+      "end": 0.6643
+    },
+    {
+      "word": "fox",
+      "start": 0.7246,
+      "end": 0.9863
+    },
+    {
+      "word": "jumps",
+      "start": 1.087,
+      "end": 1.3889
+    },
+    {
+      "word": "over",
+      "start": 1.4292,
+      "end": 1.6506
+    },
+    {
+      "word": "the",
+      "start": 1.6707,
+      "end": 1.7714
+    },
+    {
+      "word": "lazy",
+      "start": 1.7915,
+      "end": 2.0934
+    },
+    {
+      "word": "dog",
+      "start": 2.1538,
+      "end": 2.4557
+    }
+  ]
+}

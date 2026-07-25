@@ -1,0 +1,20 @@
+{
+  "accuracy": 74.5,
+  "fluency": 88.8,
+  "speech_rate_ratio": 1.048,
+  "raw_path_cost": 0.6568,
+  "problems": [
+    {
+      "ref_start_s": 0.44,
+      "ref_end_s": 0.6,
+      "severity": 0.912,
+      "kind": "accuracy"
+    },
+    {
+      "ref_start_s": 2.22,
+      "ref_end_s": 2.36,
+      "severity": 0.906,
+      "kind": "accuracy"
+    }
+  ]
+}
