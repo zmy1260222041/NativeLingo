@@ -1,6 +1,8 @@
 package com.nativelingo.scoring.detail
 
 import com.nativelingo.scoring.score.Calibration
+import kotlin.math.abs
+import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.round
 
@@ -77,4 +79,73 @@ fun computeWordDetails(
     return out
 }
 
+/** Port of detail.SentenceDetail. `tip` / learner spans on words are filled in
+ *  downstream by word_diff + forced alignment, as on macOS. */
+data class SentenceDetail(
+    val index: Int,
+    val text: String,
+    val start: Float,
+    val end: Float,
+    val accuracy: Float,
+    val fluency: Float,
+    val learnerStart: Float,
+    val learnerEnd: Float,
+    val words: List<WordDetail>,
+)
+
+data class SentenceSpan(
+    val text: String, val start: Float, val end: Float, val words: List<WordSpan>,
+)
+
+/**
+ * Port of detail.compute_sentence_details.
+ *
+ * `learnerOffset` is the leading silence trimmed off the learner recording
+ * before alignment; the returned learner spans are shifted by it so they index
+ * into the ORIGINAL (untrimmed) recording the UI replays.
+ */
+fun computeSentenceDetails(
+    path: Array<IntArray>,
+    pathCosts: FloatArray,
+    sentences: List<SentenceSpan>,
+    calibration: Calibration,
+    learnerOffset: Float = 0f,
+): List<SentenceDetail> {
+    val out = ArrayList<SentenceDetail>(sentences.size)
+    for ((si, sent) in sentences.withIndex()) {
+        val f0 = secToFrame(sent.start)
+        val f1 = max(secToFrame(sent.end), f0 + 1)
+        val s = pathSliceStats(path, pathCosts, f0, f1)
+        var acc = 0f
+        var fluency = 0f
+        var learnerStart = 0f
+        var learnerEnd = 0f
+        if (s != null) {
+            acc = calibration.accuracyFromCost(s.meanCost)
+            // sentence fluency: how close the learner's duration is to the
+            // reference's for this sentence (1.0 == same pace). Double
+            // arithmetic to match numpy's float64 log.
+            val ratio = s.learnerSpan.toDouble() / max(s.refFrames, 1).toDouble()
+            fluency = max(0.0, 100.0 * (1.0 - minOf(abs(ln(ratio + 1e-8)), 1.0))).toFloat()
+            learnerStart = s.learnerMin / DETAIL_FRAME_RATE_HZ + learnerOffset
+            learnerEnd = (s.learnerMax + 1) / DETAIL_FRAME_RATE_HZ + learnerOffset
+        }
+        out.add(
+            SentenceDetail(
+                index = si,
+                text = sent.text,
+                start = round2(sent.start),
+                end = round2(sent.end),
+                accuracy = round1(acc),
+                fluency = round1(fluency),
+                learnerStart = round2(learnerStart),
+                learnerEnd = round2(learnerEnd),
+                words = computeWordDetails(path, pathCosts, sent.words, calibration),
+            )
+        )
+    }
+    return out
+}
+
 private fun round1(x: Float): Float = round(x * 10f) / 10f
+private fun round2(x: Float): Float = round(x * 100f) / 100f

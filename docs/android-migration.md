@@ -245,9 +245,17 @@ NativeLingoAndroid/
   - Gate A · 成本对齐:`DtwAlign.kt` + `Cmvn.kt` —— 复现 macOS 成本(samevoice 0.0 / 说话人不变性 0.1714 / wrongtext 0.6568,±0.02)。
   - Gate B · CTC 对齐:`CtcViterbi.kt` —— 手写 CTC 强制对齐复现 torchaudio 每字符帧边界(±1 帧)。
   - `:core-scoring` 测试 8/8 全绿。
-- [ ] Phase 1 余项:校准映射(cost→accuracy/fluency,对齐 95.0/74.5)、detail 投影、word_diff、feedback。
+- [x] Phase 1 余项:校准映射(cost→accuracy/fluency,对齐 95.0/74.5)、detail 投影、word_diff、feedback。
 - [x] **R-5 / Gate A(Python 侧)PASS** —— `scripts/onnx_export_spike.py` 证:int8 仅 transformer(CNN 留 fp32,95MB)守住说话人不变性(cost 0.1773 ≤ 0.18,acc 95.0);全量 int8 失效(cost 0.2789)。SSL 编码器定为此策略,fp16(139MB)兜底。详见 `docs/reviews/2026-07-25-android-gate-a-onnx-int8.md`。
 - [x] **R-7 / Gate C(espeak)PASS** —— int8 全量 303MB,CTC 贪解串精确,余弦 0.9946(`scripts/onnx_gate_bc_spike.py`,`docs/reviews/2026-07-25-android-gate-bc-onnx.md`)。
 - [x] **R-6 / Gate B 算法 PASS**(CtcViterbi JVM 复现 torchaudio ±1 帧);emission int8 导出受阻于 torchaudio `List[int]` 图怪癖,Phase 2 `:core-align` 用 HF 侧 `Wav2Vec2Model` 载重解(CTC 鲁棒,espeak 已证 int8 可过)。
-- [ ] Phase 1 余项(word_diff/feedback)+ R-5/R-6/R-7 设备侧复测 + Gate D(RAM)+ Gate E(Opus)+ Tier 2 SDK。
+- [x] **Phase 1 收尾:评分层全部移植完毕(2026-07-25)** —— `:core-scoring` **21/21 全绿**,`:core-embed` 3/3 全绿,macOS 后端 `pytest backend/tests/` 12/12 不受影响(`backend/` 未改动,金标准源保持权威)。
+  - 开工前对照 Python 逐函数核查后发现,**实际缺口比上一条勾选项记录的更宽**:除 word_diff / feedback 外,`find_problem_regions`、`score_track_b`、`compute_sentence_details` 也未移植。四项一并补齐:
+    - **FR-4 问题区间**:`ScoreB.kt` 新增 `findProblemRegions` + `scoreTrackB`(`ProblemRegion` / `TrackBResult`)。macOS 的"无校准兜底分支"**刻意不移植** —— `calibration.json` 恒随包,兜底分支在 Android 不可达,移植它等于引入无法被金标准覆盖的死代码(源码内已注明)。
+    - **FR-6 句级**:`Detail.kt` 新增 `computeSentenceDetails`(句 accuracy/fluency + 学习者回放区间)。金标准**特意以非零 `learner_offset`(0.137s)抓取**,否则"偏移未施加"这类 bug 会被零偏移的 fixture 掩盖。
+    - **FR-7 词级改进方向**:新增 `worddiff/WordDiff.kt`(~340 行),含 difflib `SequenceMatcher.get_matching_blocks()` 的忠实重写。
+    - **FR-9 反馈**:新增 `feedback/Feedback.kt` 规则引擎;`llm_hook` 在 Android 恒为 no-op(NFR-1:任何内容不出设备,只有本地模型才可能填这个槽)。
+  - **移植中确认的 4 个 Python↔Kotlin 数值陷阱**(均已在测试中锁死):① `np.convolve(..., mode="same")` 的**零填充边界衰减**会压低首尾帧,朴素滑动平均会选中不同的重音峰;② Python `f"{x:.0%}"`/`:.1f`/`:.2f` 是**四舍六入五成双**,须用 `Math.rint`,Kotlin `round` 是五入;③ numpy `mean` 即便对 float32 数组也按 float64 累加;④ difflib 是**最左最长递归而非 LCS**,配对结果可能少于 LCS,近似实现会与 macOS 分歧。
+  - **FR-7 音高项的诚实边界**:Praat 自相关跟踪器在 JVM 无逐位等价实现(Android 走 TarsosDSP YIN,见 §4)。故音高源做成可注入的 `PitchEstimator`,金标准同时抓 `_tips`(含 Praat)与 `_tips_nopitch` 两份,JVM 测试对**可精确复现的子集**(重音/时长/连读,占诊断主体)逐字断言中文提示串,而不是把整体断言放宽成容差。音高提示的等价性留待 Tier 3 设备侧与 TarsosDSP 一并验证。
+- [ ] R-5/R-6/R-7 设备侧复测 + Gate D(RAM)+ Gate E(Opus)+ Tier 2 SDK;Phase 2 `:core-align`(MMS HF 载重导出)/ `:core-asr` / `:core-audio`。
 - **模型包体(NFR-4②,修正)**:whisper 70MB(打包)+ wav2vec2 95MB(int8 transformer-only)+ espeak 303MB(int8)+ MMS **~300MB**(实测 ~300M 参数,int8;走 HF 载重导出)= **首启下载 ~700MB**。MMS 比早先估的大(~45MB → ~300MB),但仍属可接受的首启量级。

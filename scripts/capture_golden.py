@@ -149,11 +149,14 @@ def dump_pairs(encoder, corpus, out_dir):
 
 def dump_paths(encoder, corpus, out_dir):
     """Dump the raw DTW path + per-step costs (Gate A truth), the fluency inputs,
-    and the per-word detail projection (FR-6) for each pair."""
+    the per-word/per-sentence detail projection (FR-6), the Track-B problem
+    regions (FR-4) and the rule-engine feedback payload (FR-9) for each pair."""
     from backend.core.speaker_norm import normalize_pair
     from backend.core.align import dtw_align
-    from backend.core.prosody import extract_prosody
-    from backend.core.detail import compute_word_details
+    from backend.core.prosody import extract_prosody, compare_prosody
+    from backend.core.detail import compute_word_details, compute_sentence_details
+    from backend.core.score_b import score_track_b
+    from backend.core.feedback import generate_feedback
     from backend.core import forced_align as fa
 
     pair_dir = os.path.join(out_dir, "pair")
@@ -207,6 +210,171 @@ def dump_paths(encoder, corpus, out_dir):
                     ],
                 }, f, indent=2)
             print(f"  detail {pname}: {len(details)} words")
+
+            # sentence-level detail (FR-6): one sentence spanning all words, with
+            # the learner span shifted by a non-zero offset so the Kotlin port's
+            # offset handling is actually exercised (macOS passes the trim offset).
+            sentence = {
+                "index": 0, "text": SENTENCE,
+                "start": ref_words[0]["start"], "end": ref_words[-1]["end"],
+                "words": ref_words,
+            }
+            LEARNER_OFFSET = 0.137
+            sdetails = compute_sentence_details(dtw, [sentence],
+                                                learner_offset=LEARNER_OFFSET)
+            with open(os.path.join(pair_dir, f"{pname}_sentence.json"), "w") as f:
+                json.dump({
+                    "learner_offset": LEARNER_OFFSET,
+                    "sentences": [
+                        {"index": s.index, "text": s.text, "start": s.start,
+                         "end": s.end, "accuracy": s.accuracy, "fluency": s.fluency,
+                         "learner_start": s.learner_start, "learner_end": s.learner_end}
+                        for s in sdetails
+                    ],
+                }, f, indent=2)
+
+        # Track-B result + problem regions (FR-4) and the feedback payload (FR-9).
+        # Both are deterministic functions of the DTW result + prosody, so the
+        # Kotlin ports can be asserted exactly (regions) / by tip-set (feedback).
+        pps = prosody.num_pauses / dur
+        pr = prosody.total_pause_s / dur
+        tb = score_track_b(dtw, int(ref_emb.shape[0]), int(lrn_emb.shape[0]),
+                           pause_per_s=pps, pause_ratio=pr)
+        with open(os.path.join(pair_dir, f"{pname}_problems.json"), "w") as f:
+            json.dump({
+                "accuracy": tb.accuracy, "fluency": tb.fluency,
+                "speech_rate_ratio": tb.speech_rate_ratio,
+                "raw_path_cost": tb.raw_path_cost,
+                "problems": [
+                    {"ref_start_s": p.ref_start_s, "ref_end_s": p.ref_end_s,
+                     "severity": p.severity, "kind": p.kind}
+                    for p in tb.problems
+                ],
+            }, f, indent=2)
+
+        # FR-9 feedback: the rule engine's tips are what the learner reads, so
+        # the Kotlin port must emit the same tip list for the same metrics.
+        pcmp = compare_prosody(corpus[ref_k], corpus[lrn_k])
+        payload = generate_feedback(tb, pcmp)
+        with open(os.path.join(pair_dir, f"{pname}_feedback.json"), "w") as f:
+            json.dump({
+                "overall_score": payload["overall_score"],
+                "overall_band": payload["overall_band"],
+                "tips": payload["tips"],
+                # the prosody NOTES are the Kotlin port's input (Track A stays
+                # Python/Praat on macOS; on Android the notes come from the
+                # Kotlin prosody module) — dump them so the feedback port can be
+                # tested independently of the pitch extractor.
+                "prosody_notes": pcmp.notes,
+            }, f, indent=2, ensure_ascii=False)
+        print(f"  problems/feedback {pname}: {len(tb.problems)} regions, "
+              f"{len(payload['tips'])} tips")
+
+
+def dump_word_diff(corpus, out_dir):
+    """FR-7 golden: per-word improvement directions (读法改进方向).
+
+    ``diagnose_words`` compares each FLAGGED reference word to its matched
+    learner word acoustically — stress location (RMS envelope peak), duration
+    ratio, pitch slope (Praat) — plus inter-word linking. The Kotlin port must
+    reproduce the same tags and tips.
+
+    Pitch is the one piece that cannot be ported bit-exactly (Praat's autocorr
+    pitch tracker vs TarsosDSP YIN), so we dump BOTH:
+      * the full macOS tips/tags (reference behaviour, includes pitch), and
+      * a `no_pitch` variant with the pitch estimator disabled — the exactly
+        reproducible subset the JVM test asserts on.
+    The RMS envelope / stress position / duration logic IS bit-portable and is
+    the bulk of the diagnosis; dumping the envelopes lets the port be checked
+    element-wise rather than only through the verbaliser.
+    """
+    from backend.core import word_diff as wd
+    from backend.core import forced_align as fa
+
+    if not fa.is_available():
+        print("  word_diff: SKIP (forced alignment unavailable)")
+        return False
+
+    wdir = os.path.join(out_dir, "worddiff")
+    os.makedirs(wdir, exist_ok=True)
+    names = SENTENCE.rstrip(".").split()
+
+    # (case, ref_key, learner_key) — slow_samantha drags every word (duration
+    # tags); crossvoice_daniel is a different speaker with its own stress/timing.
+    cases = [("slow", "ref_samantha", "slow_samantha"),
+             ("crossvoice", "ref_samantha", "crossvoice_daniel")]
+
+    dumped = []
+    for case, ref_k, lrn_k in cases:
+        ref_wav, lrn_wav = corpus[ref_k], corpus[lrn_k]
+        ref_spans = fa.align_words(names, ref_wav)
+        lrn_spans = fa.align_words(names, lrn_wav)
+        if not ref_spans or not lrn_spans:
+            print(f"  word_diff {case}: SKIP (alignment returned nothing)")
+            continue
+
+        # Flag every word so the diagnosis runs on all of them (the real
+        # pipeline gates on status; here we want maximum port coverage).
+        ref_flat = [{"si": 0, "wi": i, "word": w, "start": sp[0], "end": sp[1],
+                     "status": "weak"}
+                    for i, (w, sp) in enumerate(zip(names, ref_spans)) if sp]
+        learner_flat = [{"word": w, "start": sp[0], "end": sp[1]}
+                        for w, sp in zip(names, lrn_spans) if sp]
+
+        # the per-word acoustic primitives (bit-portable): RMS envelope +
+        # stress position for both sides, so the Kotlin port is checked
+        # element-wise, not just through the Chinese verbaliser.
+        prims = []
+        for r in ref_flat:
+            li = next((i for i, l in enumerate(learner_flat)
+                       if wd._norm(l["word"]) == wd._norm(r["word"])), None)
+            if li is None:
+                continue
+            rs = wd._slice(ref_wav, r["start"], r["end"])
+            ls = wd._slice(lrn_wav, learner_flat[li]["start"], learner_flat[li]["end"])
+            renv, lenv = wd._rms_envelope(rs), wd._rms_envelope(ls)
+            prims.append({
+                "word": r["word"], "wi": r["wi"],
+                "ref_start": r["start"], "ref_end": r["end"],
+                "learner_start": learner_flat[li]["start"],
+                "learner_end": learner_flat[li]["end"],
+                "ref_stress_pos": wd._stress_pos(rs),
+                "learner_stress_pos": wd._stress_pos(ls),
+                "ref_env_len": 0 if renv is None else int(renv.size),
+                "learner_env_len": 0 if lenv is None else int(lenv.size),
+                "syllables": wd._syllables(r["word"]),
+            })
+
+        def _dump(tag, diffs):
+            with open(os.path.join(wdir, f"{case}_{tag}.json"), "w") as f:
+                json.dump({
+                    "diffs": [
+                        {"si": k[0], "wi": k[1], "word": v.word, "tip": v.tip,
+                         "tags": v.tags,
+                         "learner_start": v.learner_start, "learner_end": v.learner_end}
+                        for k, v in sorted(diffs.items())
+                    ],
+                }, f, indent=2, ensure_ascii=False)
+
+        _dump("tips", wd.diagnose_words(ref_wav, lrn_wav, ref_flat, learner_flat))
+
+        # pitch-free variant: the exactly-reproducible subset (Praat's tracker
+        # has no bit-exact JVM equivalent — see docs/android-migration.md §4).
+        saved = wd._HAS_PRAAT
+        wd._HAS_PRAAT = False
+        try:
+            _dump("tips_nopitch",
+                  wd.diagnose_words(ref_wav, lrn_wav, ref_flat, learner_flat))
+        finally:
+            wd._HAS_PRAAT = saved
+
+        with open(os.path.join(wdir, f"{case}_inputs.json"), "w") as f:
+            json.dump({"ref": ref_flat, "learner": learner_flat,
+                       "primitives": prims}, f, indent=2)
+        dumped.append(case)
+        print(f"  word_diff {case}: {len(ref_flat)} ref words, {len(prims)} primitives")
+
+    return bool(dumped)
 
 
 def dump_mms(corpus, out_dir):
@@ -331,6 +499,9 @@ def main():
         dump_pairs(encoder, corpus, out_dir)
         dump_paths(encoder, corpus, out_dir)
 
+        print("-- word diff (FR-7) --")
+        wd_ok = dump_word_diff(corpus, out_dir)
+
         print("-- MMS forced alignment (Layer 2 / Gate B) --")
         mms_ok = dump_mms(corpus, out_dir)
 
@@ -345,7 +516,8 @@ def main():
                    for (n, t, v, r, tr) in CORPUS],
         "tolerances": TOL,
         "sections": {
-            "emb": True, "pair": True, "mms": mms_ok, "espeak": espeak_ok,
+            "emb": True, "pair": True, "worddiff": wd_ok,
+            "mms": mms_ok, "espeak": espeak_ok,
         },
         "notes": [
             "Embeddings are wav2vec2-base-960h transformer layers 6-9 mean "
@@ -357,6 +529,15 @@ def main():
             "CtcViterbi.kt port must reproduce them within align_frame.",
             "espeak decode is CTC greedy on the raw reference span; int8 must "
             "match the greedy string exactly on clean references.",
+            "worddiff/<case>_tips.json is the full macOS diagnosis (includes "
+            "Praat pitch); _tips_nopitch.json is the pitch-free subset the JVM "
+            "test asserts exactly, since Praat's tracker has no bit-exact JVM "
+            "equivalent (TarsosDSP YIN differs). _inputs.json carries the word "
+            "spans + the RMS/stress primitives for element-wise port checking.",
+            "pair/<name>_problems.json is score_track_b's full result (FR-4 "
+            "regions are exact-comparable); pair/<name>_feedback.json is the "
+            "FR-9 rule engine's tip list keyed off those metrics + the Track-A "
+            "prosody notes (dumped so the port is testable without Praat).",
         ],
     }
     with open(os.path.join(out_dir, "manifest.json"), "w") as f:

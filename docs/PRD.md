@@ -72,6 +72,8 @@
 | 单参考依赖 | 当前每条素材仅其视频原声一条参考 | ⚠️ Richter 式相对 DTW 与 FR-M1 冲突 → 见 §7 R-2 |
 
 > **Android 平台映射**:同一张表的需求在 Android 上由对应 Kotlin Gradle 模块满足 —— FR-4/5 → `:core-scoring`,FR-2 → `:core-asr` + `:core-align`,FR-11 → `:core-mdd`,FR-8 → `:app` RecordingsRepository + Media3,FR-12 → `:app` Room。完整需求→模块矩阵见 `docs/android-migration.md`。
+>
+> **Android 侧实现状态(2026-07-25)**:**FR-4 / FR-5 / FR-6 / FR-7 / FR-9 的评分层已在 `:core-scoring` 移植完毕**,以 macOS 抓取的金标准 fixture 在 JVM 断言(21/21 绿):分数走 NFR-4⑤ 容差(accuracy ±2.0 / fluency ±3.0 / cost ±0.02),而问题区间边界、词级标签与中文提示串**逐字精确断言** —— 学习者是照着提示念的,"差不多"在这里不构成验收。唯一保留的等价性缺口是 FR-7 的音高提示(Praat vs TarsosDSP YIN 无逐位等价),已隔离为可注入的 `PitchEstimator`,留待设备侧验证。FR-2 / FR-8 / FR-10 / FR-11 / FR-12 待 Phase 2–4。
 
 ## 7. 技术符合性评审记录
 

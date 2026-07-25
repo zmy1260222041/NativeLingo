@@ -2,7 +2,7 @@
   "producer": "scripts/capture_golden.py (macOS gold-standard source)",
   "doc": "docs/android-migration.md",
   "provenance": {
-    "git_head": "93970a860fa155409ee360d9a6672a7af52fe35a",
+    "git_head": "6c9f7c28060bf43532a35575efae78443adc8497",
     "sentence": "The quick brown fox jumps over the lazy dog."
   },
   "corpus": [
@@ -55,6 +55,7 @@
   "sections": {
     "emb": true,
     "pair": true,
+    "worddiff": true,
     "mms": true,
     "espeak": true
   },
@@ -62,6 +63,8 @@
     "Embeddings are wav2vec2-base-960h transformer layers 6-9 mean (ssl_encoder.DEFAULT_LAYERS), pre-CMVN. Apply CMVN in-test before comparing cosine >= emb_min_cosine.",
     "DTW path/costs are the raw banded-DTW output (align.dtw_align, band_frac=0.2) on CMVN-normalised embeddings.",
     "MMS spans come from torchaudio's get_aligner(); the Android CtcViterbi.kt port must reproduce them within align_frame.",
-    "espeak decode is CTC greedy on the raw reference span; int8 must match the greedy string exactly on clean references."
+    "espeak decode is CTC greedy on the raw reference span; int8 must match the greedy string exactly on clean references.",
+    "worddiff/<case>_tips.json is the full macOS diagnosis (includes Praat pitch); _tips_nopitch.json is the pitch-free subset the JVM test asserts exactly, since Praat's tracker has no bit-exact JVM equivalent (TarsosDSP YIN differs). _inputs.json carries the word spans + the RMS/stress primitives for element-wise port checking.",
+    "pair/<name>_problems.json is score_track_b's full result (FR-4 regions are exact-comparable); pair/<name>_feedback.json is the FR-9 rule engine's tip list keyed off those metrics + the Track-A prosody notes (dumped so the port is testable without Praat)."
   ]
 }

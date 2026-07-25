@@ -1,0 +1,48 @@
+{
+  "diffs": [
+    {
+      "si": 0,
+      "wi": 0,
+      "word": "The",
+      "tip": "用力点不同：原声把这个词的重音放在前半部，你放在了前半部。",
+      "tags": [
+        "stress_half"
+      ],
+      "learner_start": 0.02,
+      "learner_end": 0.121
+    },
+    {
+      "si": 0,
+      "wi": 2,
+      "word": "brown",
+      "tip": "用力点不同：原声把这个词的重音放在后半部，你放在了前半部。",
+      "tags": [
+        "stress_half"
+      ],
+      "learner_start": 0.463,
+      "learner_end": 0.785
+    },
+    {
+      "si": 0,
+      "wi": 5,
+      "word": "over",
+      "tip": "重音位置不同：原声重读第 2 个音节（o-VER），你却重读了第 1 个音节（O-ver）。试着弱读其它音节、只把 “ver” 读得更重更长。",
+      "tags": [
+        "stress_shift"
+      ],
+      "learner_start": 1.63,
+      "learner_end": 1.831
+    },
+    {
+      "si": 0,
+      "wi": 7,
+      "word": "lazy",
+      "tip": "重音位置不同：原声重读第 2 个音节（la-ZY），你却重读了第 1 个音节（LA-zy）。试着弱读其它音节、只把 “zy” 读得更重更长。",
+      "tags": [
+        "stress_shift"
+      ],
+      "learner_start": 1.972,
+      "learner_end": 2.274
+    }
+  ]
+}

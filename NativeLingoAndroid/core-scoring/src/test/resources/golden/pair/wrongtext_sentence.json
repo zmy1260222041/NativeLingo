@@ -1,0 +1,15 @@
+{
+  "learner_offset": 0.137,
+  "sentences": [
+    {
+      "index": 0,
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "start": 0.02,
+      "end": 2.46,
+      "accuracy": 74.5,
+      "fluency": 95.2,
+      "learner_start": 0.16,
+      "learner_end": 2.72
+    }
+  ]
+}

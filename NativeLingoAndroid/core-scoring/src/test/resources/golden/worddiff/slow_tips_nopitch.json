@@ -1,0 +1,15 @@
+{
+  "diffs": [
+    {
+      "si": 0,
+      "wi": 4,
+      "word": "jumps",
+      "tip": "用力点不同：原声把这个词的重音放在前半部，你放在了后半部。",
+      "tags": [
+        "stress_half"
+      ],
+      "learner_start": 1.307,
+      "learner_end": 1.649
+    }
+  ]
+}

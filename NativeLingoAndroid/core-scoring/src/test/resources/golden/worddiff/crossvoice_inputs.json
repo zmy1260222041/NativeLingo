@@ -1,0 +1,262 @@
+{
+  "ref": [
+    {
+      "si": 0,
+      "wi": 0,
+      "word": "The",
+      "start": 0.02,
+      "end": 0.101,
+      "status": "weak"
+    },
+    {
+      "si": 0,
+      "wi": 1,
+      "word": "quick",
+      "start": 0.121,
+      "end": 0.362,
+      "status": "weak"
+    },
+    {
+      "si": 0,
+      "wi": 2,
+      "word": "brown",
+      "start": 0.382,
+      "end": 0.664,
+      "status": "weak"
+    },
+    {
+      "si": 0,
+      "wi": 3,
+      "word": "fox",
+      "start": 0.725,
+      "end": 0.986,
+      "status": "weak"
+    },
+    {
+      "si": 0,
+      "wi": 4,
+      "word": "jumps",
+      "start": 1.087,
+      "end": 1.389,
+      "status": "weak"
+    },
+    {
+      "si": 0,
+      "wi": 5,
+      "word": "over",
+      "start": 1.429,
+      "end": 1.651,
+      "status": "weak"
+    },
+    {
+      "si": 0,
+      "wi": 6,
+      "word": "the",
+      "start": 1.671,
+      "end": 1.771,
+      "status": "weak"
+    },
+    {
+      "si": 0,
+      "wi": 7,
+      "word": "lazy",
+      "start": 1.791,
+      "end": 2.093,
+      "status": "weak"
+    },
+    {
+      "si": 0,
+      "wi": 8,
+      "word": "dog",
+      "start": 2.154,
+      "end": 2.456,
+      "status": "weak"
+    }
+  ],
+  "learner": [
+    {
+      "word": "The",
+      "start": 0.02,
+      "end": 0.121
+    },
+    {
+      "word": "quick",
+      "start": 0.161,
+      "end": 0.382
+    },
+    {
+      "word": "brown",
+      "start": 0.463,
+      "end": 0.785
+    },
+    {
+      "word": "fox",
+      "start": 0.865,
+      "end": 1.127
+    },
+    {
+      "word": "jumps",
+      "start": 1.248,
+      "end": 1.59
+    },
+    {
+      "word": "over",
+      "start": 1.63,
+      "end": 1.831
+    },
+    {
+      "word": "the",
+      "start": 1.831,
+      "end": 1.932
+    },
+    {
+      "word": "lazy",
+      "start": 1.972,
+      "end": 2.274
+    },
+    {
+      "word": "dog",
+      "start": 2.334,
+      "end": 2.616
+    }
+  ],
+  "primitives": [
+    {
+      "word": "The",
+      "wi": 0,
+      "ref_start": 0.02,
+      "ref_end": 0.101,
+      "learner_start": 0.02,
+      "learner_end": 0.121,
+      "ref_stress_pos": 0.18181818181818182,
+      "learner_stress_pos": 0.4666666666666667,
+      "ref_env_len": 12,
+      "learner_env_len": 16,
+      "syllables": [
+        "The"
+      ]
+    },
+    {
+      "word": "quick",
+      "wi": 1,
+      "ref_start": 0.121,
+      "ref_end": 0.362,
+      "learner_start": 0.161,
+      "learner_end": 0.382,
+      "ref_stress_pos": 0.5348837209302325,
+      "learner_stress_pos": 0.48717948717948717,
+      "ref_env_len": 44,
+      "learner_env_len": 40,
+      "syllables": [
+        "quick"
+      ]
+    },
+    {
+      "word": "brown",
+      "wi": 2,
+      "ref_start": 0.382,
+      "ref_end": 0.664,
+      "learner_start": 0.463,
+      "learner_end": 0.785,
+      "ref_stress_pos": 0.9411764705882353,
+      "learner_stress_pos": 0.2033898305084746,
+      "ref_env_len": 52,
+      "learner_env_len": 60,
+      "syllables": [
+        "brown"
+      ]
+    },
+    {
+      "word": "fox",
+      "wi": 3,
+      "ref_start": 0.725,
+      "ref_end": 0.986,
+      "learner_start": 0.865,
+      "learner_end": 1.127,
+      "ref_stress_pos": 0.425531914893617,
+      "learner_stress_pos": 0.3404255319148936,
+      "ref_env_len": 48,
+      "learner_env_len": 48,
+      "syllables": [
+        "fox"
+      ]
+    },
+    {
+      "word": "jumps",
+      "wi": 4,
+      "ref_start": 1.087,
+      "ref_end": 1.389,
+      "learner_start": 1.248,
+      "learner_end": 1.59,
+      "ref_stress_pos": 0.23636363636363636,
+      "learner_stress_pos": 0.14285714285714285,
+      "ref_env_len": 56,
+      "learner_env_len": 64,
+      "syllables": [
+        "jumps"
+      ]
+    },
+    {
+      "word": "over",
+      "wi": 5,
+      "ref_start": 1.429,
+      "ref_end": 1.651,
+      "learner_start": 1.63,
+      "learner_end": 1.831,
+      "ref_stress_pos": 0.8461538461538461,
+      "learner_stress_pos": 0.05714285714285714,
+      "ref_env_len": 40,
+      "learner_env_len": 36,
+      "syllables": [
+        "o",
+        "ver"
+      ]
+    },
+    {
+      "word": "the",
+      "wi": 6,
+      "ref_start": 1.671,
+      "ref_end": 1.771,
+      "learner_start": 0.02,
+      "learner_end": 0.121,
+      "ref_stress_pos": 0.4666666666666667,
+      "learner_stress_pos": 0.4666666666666667,
+      "ref_env_len": 16,
+      "learner_env_len": 16,
+      "syllables": [
+        "the"
+      ]
+    },
+    {
+      "word": "lazy",
+      "wi": 7,
+      "ref_start": 1.791,
+      "ref_end": 2.093,
+      "learner_start": 1.972,
+      "learner_end": 2.274,
+      "ref_stress_pos": 0.8727272727272727,
+      "learner_stress_pos": 0.10909090909090909,
+      "ref_env_len": 56,
+      "learner_env_len": 56,
+      "syllables": [
+        "la",
+        "zy"
+      ]
+    },
+    {
+      "word": "dog",
+      "wi": 8,
+      "ref_start": 2.154,
+      "ref_end": 2.456,
+      "learner_start": 2.334,
+      "learner_end": 2.616,
+      "ref_stress_pos": 0.05454545454545454,
+      "learner_stress_pos": 0.13725490196078433,
+      "ref_env_len": 56,
+      "learner_env_len": 52,
+      "syllables": [
+        "dog"
+      ]
+    }
+  ]
+}
