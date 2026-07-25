@@ -248,7 +248,7 @@ NativeLingoAndroid/
 - [x] Phase 1 余项:校准映射(cost→accuracy/fluency,对齐 95.0/74.5)、detail 投影、word_diff、feedback。
 - [x] **R-5 / Gate A(Python 侧)PASS** —— `scripts/onnx_export_spike.py` 证:int8 仅 transformer(CNN 留 fp32,95MB)守住说话人不变性(cost 0.1773 ≤ 0.18,acc 95.0);全量 int8 失效(cost 0.2789)。SSL 编码器定为此策略,fp16(139MB)兜底。详见 `docs/reviews/2026-07-25-android-gate-a-onnx-int8.md`。
 - [x] **R-7 / Gate C(espeak)PASS** —— int8 全量 303MB,CTC 贪解串精确,余弦 0.9946(`scripts/onnx_gate_bc_spike.py`,`docs/reviews/2026-07-25-android-gate-bc-onnx.md`)。
-- [x] **R-6 / Gate B 算法 PASS**(CtcViterbi JVM 复现 torchaudio ±1 帧);emission int8 导出受阻于 torchaudio `List[int]` 图怪癖,Phase 2 `:core-align` 用 HF 侧 `Wav2Vec2Model` 载重解(CTC 鲁棒,espeak 已证 int8 可过)。
+- [x] **R-6 / Gate B 算法 PASS**(CtcViterbi JVM 复现 torchaudio ±1 帧);emission int8 导出当时受阻于 torchaudio `List[int]` 图怪癖 —— **已在 Phase 2 解掉,见下**。
 - [x] **Phase 1 收尾:评分层全部移植完毕(2026-07-25)** —— `:core-scoring` **21/21 全绿**,`:core-embed` 3/3 全绿,macOS 后端 `pytest backend/tests/` 12/12 不受影响(`backend/` 未改动,金标准源保持权威)。
   - 开工前对照 Python 逐函数核查后发现,**实际缺口比上一条勾选项记录的更宽**:除 word_diff / feedback 外,`find_problem_regions`、`score_track_b`、`compute_sentence_details` 也未移植。四项一并补齐:
     - **FR-4 问题区间**:`ScoreB.kt` 新增 `findProblemRegions` + `scoreTrackB`(`ProblemRegion` / `TrackBResult`)。macOS 的"无校准兜底分支"**刻意不移植** —— `calibration.json` 恒随包,兜底分支在 Android 不可达,移植它等于引入无法被金标准覆盖的死代码(源码内已注明)。
@@ -257,5 +257,12 @@ NativeLingoAndroid/
     - **FR-9 反馈**:新增 `feedback/Feedback.kt` 规则引擎;`llm_hook` 在 Android 恒为 no-op(NFR-1:任何内容不出设备,只有本地模型才可能填这个槽)。
   - **移植中确认的 4 个 Python↔Kotlin 数值陷阱**(均已在测试中锁死):① `np.convolve(..., mode="same")` 的**零填充边界衰减**会压低首尾帧,朴素滑动平均会选中不同的重音峰;② Python `f"{x:.0%}"`/`:.1f`/`:.2f` 是**四舍六入五成双**,须用 `Math.rint`,Kotlin `round` 是五入;③ numpy `mean` 即便对 float32 数组也按 float64 累加;④ difflib 是**最左最长递归而非 LCS**,配对结果可能少于 LCS,近似实现会与 macOS 分歧。
   - **FR-7 音高项的诚实边界**:Praat 自相关跟踪器在 JVM 无逐位等价实现(Android 走 TarsosDSP YIN,见 §4)。故音高源做成可注入的 `PitchEstimator`,金标准同时抓 `_tips`(含 Praat)与 `_tips_nopitch` 两份,JVM 测试对**可精确复现的子集**(重音/时长/连读,占诊断主体)逐字断言中文提示串,而不是把整体断言放宽成容差。音高提示的等价性留待 Tier 3 设备侧与 TarsosDSP 一并验证。
-- [ ] R-5/R-6/R-7 设备侧复测 + Gate D(RAM)+ Gate E(Opus)+ Tier 2 SDK;Phase 2 `:core-align`(MMS HF 载重导出)/ `:core-asr` / `:core-audio`。
-- **模型包体(NFR-4②,修正)**:whisper 70MB(打包)+ wav2vec2 95MB(int8 transformer-only)+ espeak 303MB(int8)+ MMS **~300MB**(实测 ~300M 参数,int8;走 HF 载重导出)= **首启下载 ~700MB**。MMS 比早先估的大(~45MB → ~300MB),但仍属可接受的首启量级。
+- [x] **R-6 / Gate B 补完 + Phase 2 `:core-align` 落地(2026-07-25)** —— emission 导出 **PASS**,`:core-align` **8/8 全绿**(`:core-scoring` 21/21、`:core-embed` 3/3 不受影响)。详见 `docs/reviews/2026-07-25-android-gate-b-mms-rehost.md`。
+  - **解法:state-dict 载重。** `scripts/onnx_export_mms.py` 把 MMS_FA 的 **423 个张量**全部搬到 HF `Wav2Vec2ForCTC`(无缺失、无多余),再走 Gate A/C 已验证的导出+量化路径:**fp32 1203MB → int8 仅 transformer 338.6MB**。真正的阻塞点不是 `List[int]`(可绕),而是绕过后 `quantize_dynamic` 对 torchaudio 图**体积零变化**(1204MB→1204MB,linear op 不匹配量化 pattern),1.2GB 首启下载不可发布。
+  - **一个会静默出错的坑**:bundle 声明 `encoder_layer_norm_first=True`,但 torchaudio 把**取反值**传给 `Transformer` 包装层(读到 `False`)。真实拓扑是 pre-norm + 尾部 layer_norm = HF `do_stable_layer_norm=True`。若照包装层的 flag 设成 `False`,**权重会无报错全部载入**、模型正常跑、对齐结果是垃圾 —— 无异常可依赖,故 `verify_parity` 前置于任何导出动作。
+  - **判据本身改过一次**:初版 `max|Δ| < 1e-3` 对**正确**映射报 FAIL(1.03e-3),诊断发现最大偏差落在 log p = **−13.75**(p≈1e-6)的深负尾部(fp32 累积 + HF sdpa vs torchaudio 手写 matmul),而余弦 1.000000、逐帧 argmax 100% 一致。绝对上界被强制对齐根本不消费的尾部主导 → 改判**余弦 + 逐帧 argmax**;错误映射会把余弦打到远低于 1,新判据更严不更松。
+  - **实测**:fp32 余弦 1.00000 / 字符帧误差 **0**;int8 余弦 **0.99896** / 字符帧误差 **1**(Gate B 判据 ≤1)。legacy exporter 对 sdpa `is_causal` 的 TracerWarning 未靠"应该恒为 False"打发 —— 加了 `verify_generalizes`,3 段非 dummy 长度(130/132/148 帧)余弦 1.000000。
+  - **三个动态 shape 算子外置到 Kotlin**(`MmsEmitter.kt`):整段波形 `layer_norm`(**eps 1e-5、无 affine**,与 `:core-embed` 特征提取的 **1e-7** 不同 —— 看着可互换,实则各对齐各自上游)、star 通配列(全零第 29 列,log 域 0 即 p=1)、以及保留在图内的 `log_softmax`。
+  - **帧→秒约定逐字复刻**:torchaudio `TokenSpan.end` 是开区间,macOS `align_words` 再 `+1` 帧;这一帧**原样保留**,因为金标准词边界就是这么产生的且 FR-8 回放 seek 到它们,"更正确"只会与 macOS 失同步。`:core-scoring` 升为 `java-test-fixtures` 以共享金标准 JSON 读取器(每模块各写一份解析器正是漂移的起点)。
+- [ ] R-5/R-6/R-7 设备侧复测(arm64 int8 kernel 可能异于桌面)+ Gate D(RAM)+ Gate E(Opus)+ Tier 2 SDK;Phase 2 余项 `:core-asr` / `:core-audio`。
+- **模型包体(NFR-4②,再次修正)**:whisper ~70MB(打包 APK)+ wav2vec2 95.8MB(int8 transformer-only)+ espeak 302.9MB(int8 全量)+ MMS **338.6MB**(int8 transformer-only,实测)= **首启下载 ~737MB**(整包 ~807MB)。MMS 比上一条估的 ~300MB 略大;仍可后台预下载,但**已接近可接受上限** —— 若 Gate D 或用户反馈要求压缩,MMS 是下一个该动的对象。

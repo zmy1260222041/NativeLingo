@@ -11,6 +11,10 @@
 // Viterbi (CtcViterbi.kt) used by both forced alignment and phoneme MDD.
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    // Publishes src/testFixtures (the golden-fixture JSON reader) to the other
+    // modules' tests — :core-align/:core-mdd parse the same golden files, and
+    // duplicating a parser per module is how they drift apart.
+    `java-test-fixtures`
 }
 
 java {
