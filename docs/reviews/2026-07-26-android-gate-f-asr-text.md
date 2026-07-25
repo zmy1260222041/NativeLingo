@@ -128,7 +128,10 @@ sherpa-onnx 的 `from_whisper` 没有 prompt/prefix 参数,**没有办法开**�
 
 ## 决定(需要用户拍板的用 ❓标出)
 
-1. **参考路径改用 Whisper 长音频循环,不用 VAD 分段。** 本门直接结论,免费拿一半差距。§4 选型表要改。
+> ⚠️ **决定 1 在当天晚些时候被推翻,替换方案见文末「补记」。** 其余决定不变。
+
+1. ~~**参考路径改用 Whisper 长音频循环,不用 VAD 分段。**~~ **不可实现** —— v1.13.4 的 Android AAR
+   不暴露 segment 时间戳。改为 **VAD 段合并成 29s 窗**(`vadwin`),见「补记」。
 2. **转写文本不作为平台间的对等目标 —— 不设文本相等的门。** 三个理由:两个解码器的分歧不可消除
    (fp32 也只买 0.11pp);金标准自己在分词上更差;而分歧**不改变分数**——分数是学习者音频与
    *同一段* 参考音频的比较,参考切分不同只是给出**另一个同样有效的练习单元**,不是错的分数。
@@ -151,3 +154,61 @@ sherpa-onnx 的 `from_whisper` 没有 prompt/prefix 参数,**没有办法开**�
 - **只有一段语料**(636s / 1944 词 / 单一新闻域)。单一素材足以证明"分歧是局部替换而非系统性错误",
   不足以给出 WER 的置信区间。语料扩充与 Tier 3 设备复测一并做。
 - **`condition_on_previous_text` 的贡献量不明**(见上)。
+
+---
+
+## 补记(同日,写 `:core-asr` 之前)——**决定 1 落不了地,换第四种策略**
+
+上面的三种策略都是在 **PyPI 的 `sherpa-onnx`** 上量的。开始写 Kotlin 适配层时先去核对 AAR 的 API,
+结果长音频循环**在 Android 上根本写不出来**:
+
+- `javap` 反编译 v1.13.4 AAR 里的 `OfflineRecognizerResult`,字段只有
+  `text / tokens / timestamps / durations / lang / emotion / event` —— **没有 `segmentTimestamps`**,
+  尽管 `OfflineRecognizerConfig` 里那个 `enableSegmentTimestamps` 开关是有的。**Kotlin binding 落后于
+  Python binding**,开关开了也读不回来。
+- 两条退路都是死的:**v1.13.4 已经是最新 release**(不是我们用了旧版);**token 级时间戳恒为空** ——
+  现成的 base.en 模型没有导出 cross-attention 输出,`timestamps` 返回空数组,没法拿它近似 segment 边界。
+- 从源码构建 sherpa-onnx 能解决,但那是把 `:core-asr` 从"贴一个 AAR"变成第二个 NDK 构建工程
+  (`:core-audio` 的 FFmpeg 已经有一个),为 0.9pp WER 不值。**等 `:core-audio` 的 NDK 工具链搭好之后
+  再回来重估。**
+
+**所以约束是:Android 侧只拿得到 `r.text`。** 在这个约束下重新找策略,量了第四种:
+**用 VAD 找语音段,再把相邻段贪心合并成 ≤29s 的连续窗**(不是拼接,窗内含段内静音)。
+
+| 切块策略 | 词数 | 归一化 WER | 标点分歧 | 练习单元(金标准 159) | Android 可行 |
+|---|---|---|---|---|---|
+| Silero VAD 分段(§4 原选型) | 1937 | 5.56% | 3.17% | 172 | ✅ |
+| 固定 29s 窗 | 1879 | 5.56% | 1.25% | 162 | ✅ |
+| Whisper 长音频循环 | 1926 | **3.14%** | **1.01%** | 162 | ❌ **AAR 没有 segment 时间戳** |
+| **VAD 段合并成 29s 窗**(`vadwin`) | 1939 | **4.01%** | **1.65%** | **158** | ✅ |
+
+**`vadwin` 过本门的全部三条判据**(4.01% ≤5%、1.65% ≤2%、158 vs 159 = −0.6%),而且**练习单元数是四种
+里最接近金标准的一种** —— 比长音频循环还近(158 vs 162)。这是巧合,不是它更好:两者都在 ±5% 带内,
+差别在噪声里。**别把 158 当成"比 3.14% 那条更优"的理由** —— WER 上它确实差 0.87pp。
+
+它为什么比另外两种 text-only 策略好,机制上是清楚的:**切口既少又落在静音里**。77 个 VAD 段合并成
+27 个窗,切口数比 VAD 分段少 2.8 倍;而每个切口都在 VAD 判定的静音处,不像固定窗那样切在词中间
+(固定窗丢了 65 个词)。**Gate F 结论(PASS)不变,变的是实现路径。**
+
+**顺带发现:`max_speech_duration = 25.0` 是个建议值,不是约束。** 77 个 VAD 段里有两个超过 29s
+(29.91s / 30.17s),其中一个超过 30s,被 sherpa 静默截断 —— 636s 里丢了 **0.166s**(0.03%),
+上面的 4.01% 已经包含这点损失。合并**不会**造出超长窗(边界是相对窗首判的),所以超长窗只可能是
+单个超长 VAD 段直通。`AsrWindowPlanner.overlong()` 把这种窗报出来给 `:core-asr` 记日志 ——
+**C++ 那句警告在 Android 上没人看得见。**
+
+### 这件事对模块划分的影响(是好事)
+
+切口位置决定练习单元切分,所以**切块逻辑属于 `:core-scoring`**,不属于 `:core-asr` ——
+落为 `segment/AsrWindowPlanner.kt`(纯 Kotlin,零 Android 依赖),金标准
+`golden/asr/vadwin_trace.json`(实测那次运行的 77 个 VAD 段 → 27 个窗),
+`AsrWindowPlannerParityTest` 6 项断言逐窗精确比对,`:core-scoring:test` **48/48 绿**。
+
+这么划之后 **`:core-asr` 里没有值得测的东西了** —— 它只剩"喂 VAD、按给定边界调 recognizer、收 text"。
+本来担心的"`:core-asr` 没有 JVM 对齐故事"因此不成立:**需要对齐的部分不在 `:core-asr` 里。**
+
+### 待办(不阻塞 Phase 2)
+
+- **`:core-audio` 的 NDK 工具链就绪后**,重估从源码构建 sherpa-onnx(拿回 segment 时间戳 → 长音频
+  循环 → 4.01% 回到 3.14%)。或上游 Kotlin binding 补上这些字段后直接升版本。
+- **`max_speech_duration` 为何不生效**没有深究(0.03% 的损失不值得)。若日后语料里出现更长的连续
+  语音,先看 `overlong()` 的日志。

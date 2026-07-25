@@ -1,0 +1,617 @@
+{
+ "strategy": "vadwin",
+ "win_s": 29.0,
+ "sample_rate": 16000,
+ "precision": "int8",
+ "segments": [
+  {
+   "start": 0.326,
+   "end": 30.492,
+   "text": "- This is the CBS News Special Report. I'm Tony de Colpel. The Supreme Court has just handed down a second major decision this morning. This one on birthright citizenship, long considered a right in this country. Put simply, it means that if you were born here in the United States, you are a citizen of the United States. President Trump had tried to change that via executive order, arguing that children of people here illegally or temporarily are not automatic citizens. And the case had been so important to the president that he actually watched the arguments in person, the first sitting president."
+  },
+  {
+   "start": 30.95,
+   "end": 39.942,
+   "text": "And now we have a ruling. So let's go back to our CBS News Chief Legal correspondent, Jan Crawford, who's reading through the ruling, hot off the presses. Jan, good morning. Out of the court to side."
+  },
+  {
+   "start": 40.486,
+   "end": 68.668,
+   "text": "In factically, rejecting the president's attempt with an executive order to redefine what it means to be a citizen in this country, the idea, the long-held belief, that if you're born here on U.S. soil, you're a U.S. citizen. The opinion by Chief Justice John Roberts says at the Constitution, the 14th Amendment, the citizenship clause, makes very clear that if you're born here, that long-held understanding that you're a U.S. citizen, the president has argued that Congress"
+  },
+  {
+   "start": 68.742,
+   "end": 72.326,
+   "text": "and the country had ratified that provision."
+  },
+  {
+   "start": 72.582,
+   "end": 102.492,
+   "text": "because it was concerned about giving citizenship to former enslaved people and their descendants, and not to the some, you know, million, 250,000, I think, babies born here every year, to people who are here illegally or temporarily. He wanted to carve that out and end that, say that citizenship would only apply to people who are here unlawfully, who are domiciled here. The justices today rejecting those efforts by the president with the stroke of a pen to redefine what it means to be a citizen."
+  },
+  {
+   "start": 102.566,
+   "end": 124.358,
+   "text": "This was a surprisingly narrowly divided decision, Tony. After the argument, I think a lot of us thought that it might be 7-2, that there might be more consensus around this argument. But that part of the decision, the main decision, the constitutional aspect of it, which means this closes off this issue. Congress can't come in and try to change it. That was only 5-4."
+  },
+  {
+   "start": 124.87,
+   "end": 153.062,
+   "text": "with the chief justice, the three liberal justices, and Trump appointee Amy Coney Barrett agreeing that the Constitution foreclosed this option for the president or Congress. Now, Justice Kavanaugh has a dissenting opinion, and he agrees that a separate federal law could apply here, but he is not going along with the Constitution -- I mean, with the court on the constitutional issue. The three more conservative justices are all in dissent."
+  },
+  {
+   "start": 153.286,
+   "end": 171.558,
+   "text": "So again, 5-4 on the constitutional issue, 6-3. It looks like with the statute. And again, I'm trying to do the math. We're going to go back and read through some of these dissents right now. But the three conservatives, the most conservative justices, Thomas, Alito, and Justice Gorsuch, also-- [AUDIO OUT]"
+  },
+  {
+   "start": 172.07,
+   "end": 197.286,
+   "text": "in a sharp descent, Tony. - All right, Jan, I'll let you go back into the text. And meanwhile, I'll bring in Jessica Levinson, our CBS News legal contributor and loyal law professor. Jessica, thank you for being back with us. You know, when Jan and I were talking about what could be in this decision ahead of time, we talked about whether they would rule on the constitutionality or they would go to statute federal law. It seems like they went further going to the constitutionality. Is that a stronger rejection than anticipated? (buzzer buzzes)"
+  },
+  {
+   "start": 198.662,
+   "end": 224.348,
+   "text": "Maybe not then anticipated, but it certainly is a stronger rejection because what a majority of the court is saying is that Congress cannot go along with what President Trump tried to do by executive order on his first day. So it's for closing the ability of Congress to try and redefine birthright citizenship. A decision based on the Constitution means there's really only two things that could change the courts."
+  },
+  {
+   "start": 224.71,
+   "end": 247.302,
+   "text": "current understanding and again what's that understanding if you're born on US soil, you are a US citizen. We don't look at the status of your parents. We don't look if they're here legally or illegally. We don't look to see if they're here temporarily or not. So what does it mean to have a constitutional decision? It means again, there's two ways to change it. The court can change its mind later can overrule itself."
+  },
+  {
+   "start": 247.526,
+   "end": 273.414,
+   "text": "or there can be a constitutional amendment. But it forecloses the ability for Congress to say, you know, we think there's something in there. We like what the president did by executive order. Let's now adopt that. - Jessica, thank you very much. I want to turn that to our chief Washington correspondent, Major Garrett. Major, during oral arguments back in April on this case, there was a notable exchange between John Roberts and the attorney representing Sauer, representing the United States."
+  },
+  {
+   "start": 273.702,
+   "end": 300.806,
+   "text": "He said it's a whole new world, and John Roberts said, \"Yeah, but it's the same old Constitution.\" - Precisely. And what President Trump has tried to do is take what was, many years ago, a fringy novel theory that what the 14th Amendment said did not apply to people who were in this country without documentation or temporarily, because they were not subject to the jurisdiction of our country in the way enslaved people were in 1868 when the 14th Amendment was ratified."
+  },
+  {
+   "start": 301.158,
+   "end": 316.07,
+   "text": "or in 1940 when Congress put a legal statute around that general idea. And when you become President of the United States, Tony, you can take what were novel and fringe theories and make them an issue before the Supreme Court. And President Trump has done precisely that."
+  },
+  {
+   "start": 316.454,
+   "end": 345.382,
+   "text": "under the broad umbrella of strong political support for his restrictive immigration policies, both at the border and internally. This is a direct outgrowth of that entire philosophy that this country needs a stricter set of attitudes and legal application of its existing immigration law and where that law doesn't exist. Perhaps it needs a redefinition of it. And President Trump tried to redefine what the Constitution meant in 1868 and what a subsequent federal law meant."
+  },
+  {
+   "start": 345.638,
+   "end": 373.574,
+   "text": "He was unsuccessful in that, but it nevertheless goes to the underlying and long-running political potency for this president. And before that, a candidate, Donald Trump and the broad issue of immigration in this country. Major, thank you. Let's turn to senior White House and political correspondent Ed O'Keefe. Ed, you know, after the president lost his big tariff case, he went on quite a tear on social media. This was another very important political matter to him. So we expect to hear from him today."
+  },
+  {
+   "start": 374.342,
+   "end": 398.31,
+   "text": "Well, we've already been hearing from him ever since that tariff ruling, in essence, channeling his expectation that he would lose this case, and it contributed to his ongoing strident criticism of justices who rule against the moves that he's tried to make, especially some of those that he helped put on the bench at all. We have not yet heard from the president on this. We expect to, at some point later today. But we should point out, and this is to somewhat to Major's point."
+  },
+  {
+   "start": 398.598,
+   "end": 424.134,
+   "text": "while seven in ten more than seven in ten americans support keeping birthright citizenship in place with the president was acting on in essence is c_b_s_ news polling that finds it fifty one percent of republicans at the time this poll was taken wanted other requirements added to become united states citizen in essence believing that birthright citizenship alone or that you were born in this country because your parents decided to make sure you were"
+  },
+  {
+   "start": 424.39,
+   "end": 446.438,
+   "text": "should not be qualification enough. So he did pick this fight on day one of his second term. You'll recall that night he came back from the inaugural parade. He went to the Oval Office. Among other things he pardoned thousands of people who had been charged or convicted and crimes related to January 6. He also signed this executive order in essence, picking the fight with the Supreme Court and starting the clock."
+  },
+  {
+   "start": 446.726,
+   "end": 474.246,
+   "text": "on a constitutional argument that he made, that this was unconstitutional, and of course the justices today, sound like rejecting that. So this is the biggest symbolic and political defeat for him next to the tariff decision this term, but given the other ways in which presidential power or Republican orthodoxy has been reinforced by this conservative court, ultimately the White House may try to spin this term at least as a bit of a victory. The Justice Department, just a little while ago, Tony has weighed in."
+  },
+  {
+   "start": 474.598,
+   "end": 496.486,
+   "text": "thanking the court for ruling in its favor in the transgender athletes case that was decided a little while ago or now it's just a little while ago. And of course, presidential powers were expanded yesterday by allowing a president to fire the heads of various independent regulatory agencies. But on this one, the president has been anticipating a loss for months and a loss he indeed got in this case, Tony."
+  },
+  {
+   "start": 496.902,
+   "end": 519.206,
+   "text": "All right, Ed, thank you very much. Let's go back to our CBS News Chief Legal correspondent, Jan Crawford. Jan, again, you had a few more minutes to process this. What stands out? Well, I'm just looking at some of the language and the dissent, which to Ed's point, we may hear the president pick up on today. Justice Alito is saying this is one of the most important decisions in the history of the court. And in my judgment, the court has made a serious mistake."
+  },
+  {
+   "start": 520.038,
+   "end": 535.782,
+   "text": "inferring citizenship, interpreting the 14th Amendment, on virtually everyone who happens to be born in this country, including the children of birth tourists, Justice Alito, a sharp dissent to this majority decision."
+  },
+  {
+   "start": 536.134,
+   "end": 551.622,
+   "text": "And when we think about the term that President Trump has had, this is the last day, and this is the last case of this term, it has been, as Ed said, a mixed bag for the president. Of course, he got two wins last week on his immigration policy. But those were based on federal law."
+  },
+  {
+   "start": 552.038,
+   "end": 580.87,
+   "text": "Congress can change those laws. Those aren't necessarily permanent victories for the president. He got more power yesterday to replace members of executive agencies, like the Federal Trade Commission. But that also gives a subsequent Democratic president the power to replace all of his people. His two signature, potentially, what he believed were his two signature policies on immigration and on the economy, birthright citizenship and tariffs. He lost."
+  },
+  {
+   "start": 581.35,
+   "end": 609.414,
+   "text": "And he lost, because some of the members of the court that he appointed ruled against him. And that's something I expect we're going to hear a lot of from the president today, who has complained that justices owe the president a duty of loyalty. This court does not believe that. That is not proper. This court interprets the law. And as Justice Gorsuch told me in our interview last month, the duty of justice is to the Constitution. And I think that's what we're going to see a lot of the debate on today, Tony."
+  },
+  {
+   "start": 609.702,
+   "end": 635.494,
+   "text": "- All right, Jan, thank you very much again for our viewers. If you're just joining us, the Supreme Court has struck down the president's executive order attempting to end birthright citizenship, Chief Justice John Roberts writing in part citizenship, then and now was the right to have rights to freely participate in our political community. The framers of the 14th Amendment extended that promise to quote every freeborn person in this land. We keep that promise today."
+  }
+ ],
+ "vad_spans": [
+  [
+   5216,
+   482656
+  ],
+  [
+   495200,
+   143872
+  ],
+  [
+   647776,
+   450912
+  ],
+  [
+   1099872,
+   45568
+  ],
+  [
+   1151584,
+   5632
+  ],
+  [
+   1161312,
+   478560
+  ],
+  [
+   1641056,
+   348672
+  ],
+  [
+   1997920,
+   264704
+  ],
+  [
+   2275936,
+   15360
+  ],
+  [
+   2301536,
+   126976
+  ],
+  [
+   2434144,
+   14848
+  ],
+  [
+   2452576,
+   176128
+  ],
+  [
+   2639968,
+   81408
+  ],
+  [
+   2737760,
+   7168
+  ],
+  [
+   2753120,
+   314880
+  ],
+  [
+   3073632,
+   82944
+  ],
+  [
+   3178592,
+   410976
+  ],
+  [
+   3595360,
+   215040
+  ],
+  [
+   3818592,
+   75776
+  ],
+  [
+   3898464,
+   58368
+  ],
+  [
+   3960416,
+   167424
+  ],
+  [
+   4145760,
+   228864
+  ],
+  [
+   4379232,
+   78336
+  ],
+  [
+   4474464,
+   10752
+  ],
+  [
+   4488800,
+   324096
+  ],
+  [
+   4818528,
+   68608
+  ],
+  [
+   4894816,
+   47104
+  ],
+  [
+   4946528,
+   110592
+  ],
+  [
+   5063264,
+   238080
+  ],
+  [
+   5305952,
+   75264
+  ],
+  [
+   5385824,
+   27648
+  ],
+  [
+   5418592,
+   13312
+  ],
+  [
+   5436512,
+   89600
+  ],
+  [
+   5530208,
+   26624
+  ],
+  [
+   5560928,
+   52224
+  ],
+  [
+   5617248,
+   52736
+  ],
+  [
+   5676640,
+   67584
+  ],
+  [
+   5758048,
+   107008
+  ],
+  [
+   5868640,
+   77312
+  ],
+  [
+   5951584,
+   25600
+  ],
+  [
+   5989472,
+   320000
+  ],
+  [
+   6314592,
+   58368
+  ],
+  [
+   6377568,
+   102400
+  ],
+  [
+   6486112,
+   138240
+  ],
+  [
+   6631008,
+   48128
+  ],
+  [
+   6683744,
+   31744
+  ],
+  [
+   6719584,
+   66560
+  ],
+  [
+   6790240,
+   68096
+  ],
+  [
+   6862432,
+   159232
+  ],
+  [
+   7026272,
+   58880
+  ],
+  [
+   7090272,
+   52736
+  ],
+  [
+   7147616,
+   126464
+  ],
+  [
+   7279712,
+   53248
+  ],
+  [
+   7338592,
+   13824
+  ],
+  [
+   7361632,
+   81408
+  ],
+  [
+   7447648,
+   20992
+  ],
+  [
+   7473760,
+   30208
+  ],
+  [
+   7507552,
+   80384
+  ],
+  [
+   7593568,
+   101376
+  ],
+  [
+   7699552,
+   28672
+  ],
+  [
+   7731808,
+   143360
+  ],
+  [
+   7879776,
+   12288
+  ],
+  [
+   7896672,
+   22528
+  ],
+  [
+   7924832,
+   18944
+  ],
+  [
+   7950432,
+   121344
+  ],
+  [
+   8090720,
+   216576
+  ],
+  [
+   8320608,
+   131072
+  ],
+  [
+   8472160,
+   52736
+  ],
+  [
+   8528480,
+   44032
+  ],
+  [
+   8578144,
+   247808
+  ],
+  [
+   8832608,
+   301056
+  ],
+  [
+   9146464,
+   147456
+  ],
+  [
+   9301600,
+   404320
+  ],
+  [
+   9707104,
+   43520
+  ],
+  [
+   9755232,
+   279552
+  ],
+  [
+   10040416,
+   98304
+  ],
+  [
+   10142816,
+   25088
+  ]
+ ],
+ "windows": [
+  {
+   "first_span": 0,
+   "last_span": 0,
+   "start": 5216,
+   "end": 487872
+  },
+  {
+   "first_span": 1,
+   "last_span": 1,
+   "start": 495200,
+   "end": 639072
+  },
+  {
+   "first_span": 2,
+   "last_span": 2,
+   "start": 647776,
+   "end": 1098688
+  },
+  {
+   "first_span": 3,
+   "last_span": 4,
+   "start": 1099872,
+   "end": 1157216
+  },
+  {
+   "first_span": 5,
+   "last_span": 5,
+   "start": 1161312,
+   "end": 1639872
+  },
+  {
+   "first_span": 6,
+   "last_span": 6,
+   "start": 1641056,
+   "end": 1989728
+  },
+  {
+   "first_span": 7,
+   "last_span": 10,
+   "start": 1997920,
+   "end": 2448992
+  },
+  {
+   "first_span": 11,
+   "last_span": 13,
+   "start": 2452576,
+   "end": 2744928
+  },
+  {
+   "first_span": 14,
+   "last_span": 15,
+   "start": 2753120,
+   "end": 3156576
+  },
+  {
+   "first_span": 16,
+   "last_span": 16,
+   "start": 3178592,
+   "end": 3589568
+  },
+  {
+   "first_span": 17,
+   "last_span": 19,
+   "start": 3595360,
+   "end": 3956832
+  },
+  {
+   "first_span": 20,
+   "last_span": 21,
+   "start": 3960416,
+   "end": 4374624
+  },
+  {
+   "first_span": 22,
+   "last_span": 24,
+   "start": 4379232,
+   "end": 4812896
+  },
+  {
+   "first_span": 25,
+   "last_span": 27,
+   "start": 4818528,
+   "end": 5057120
+  },
+  {
+   "first_span": 28,
+   "last_span": 32,
+   "start": 5063264,
+   "end": 5526112
+  },
+  {
+   "first_span": 33,
+   "last_span": 39,
+   "start": 5530208,
+   "end": 5977184
+  },
+  {
+   "first_span": 40,
+   "last_span": 41,
+   "start": 5989472,
+   "end": 6372960
+  },
+  {
+   "first_span": 42,
+   "last_span": 46,
+   "start": 6377568,
+   "end": 6786144
+  },
+  {
+   "first_span": 47,
+   "last_span": 50,
+   "start": 6790240,
+   "end": 7143008
+  },
+  {
+   "first_span": 51,
+   "last_span": 57,
+   "start": 7147616,
+   "end": 7587936
+  },
+  {
+   "first_span": 58,
+   "last_span": 63,
+   "start": 7593568,
+   "end": 7943776
+  },
+  {
+   "first_span": 64,
+   "last_span": 65,
+   "start": 7950432,
+   "end": 8307296
+  },
+  {
+   "first_span": 66,
+   "last_span": 68,
+   "start": 8320608,
+   "end": 8572512
+  },
+  {
+   "first_span": 69,
+   "last_span": 69,
+   "start": 8578144,
+   "end": 8825952
+  },
+  {
+   "first_span": 70,
+   "last_span": 71,
+   "start": 8832608,
+   "end": 9293920
+  },
+  {
+   "first_span": 72,
+   "last_span": 73,
+   "start": 9301600,
+   "end": 9750624
+  },
+  {
+   "first_span": 74,
+   "last_span": 76,
+   "start": 9755232,
+   "end": 10167904
+  }
+ ]
+}

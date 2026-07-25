@@ -83,7 +83,7 @@ def _decode(rec, samples):
     return st.result
 
 
-def strategy_longform(samples, precision, verbose):
+def strategy_longform(samples, precision, verbose, trace=None):
     """Whisper 自己的长音频循环 —— **参考路径该用的那个**(R-10 结论)。
 
     解一个 29s 窗 → **丢掉最后一个 segment**(它是被窗口切断的那个)→ 把游标推进到
@@ -103,12 +103,20 @@ def strategy_longform(samples, precision, verbose):
             break
         r = _decode(rec, chunk)
         base = p / SR
-        segs = list(zip(r.segment_timestamps, r.segment_durations, r.segment_texts))
+        raw = [[t, d, txt] for t, d, txt in
+               zip(r.segment_timestamps, r.segment_durations, r.segment_texts)]
+        segs = list(raw)
         advance = len(chunk)
         if len(segs) > 1 and len(chunk) == win:
             segs = segs[:-1]
             # 从下一窗的开头重新解码被切断的那一段,那里它是完整的
             advance = max(int(round((segs[-1][0] + segs[-1][1]) * SR)), SR)
+        if trace is not None:
+            # 游标逻辑本身是纯算法且影响练习单元切分,所以它移植到 :core-scoring,
+            # 用这份 trace 做金标准:记下每个窗**模型返回了什么**以及**据此决定了什么**,
+            # Kotlin 侧重放同样的输入,必须给出同样的 keep/advance。
+            trace.append({"base_samples": p, "chunk_samples": len(chunk),
+                          "raw": raw, "kept": len(segs), "advance": advance})
         for t, d, txt in segs:
             out.append({"start": round(base + t, 3), "end": round(base + t + d, 3),
                         "text": txt})
@@ -159,6 +167,72 @@ def strategy_vad(samples, precision, verbose):
     return out
 
 
+def _vad_spans(samples, verbose=False):
+    """Silero VAD → [(start_sample, samples)] 语音段。"""
+    import sherpa_onnx
+    cfg = sherpa_onnx.VadModelConfig()
+    cfg.silero_vad.model = os.path.join(MODELS_DIR, "silero_vad.onnx")
+    cfg.silero_vad.threshold = 0.5
+    cfg.silero_vad.min_silence_duration = 0.25
+    cfg.silero_vad.min_speech_duration = 0.25
+    cfg.silero_vad.max_speech_duration = 25.0
+    cfg.sample_rate = SR
+    vad = sherpa_onnx.VoiceActivityDetector(cfg, buffer_size_in_seconds=100)
+    spans, window = [], cfg.silero_vad.window_size
+    for i in range(0, len(samples), window):
+        vad.accept_waveform(samples[i:i + window])
+        while not vad.empty():
+            spans.append((vad.front.start, len(vad.front.samples)))
+            vad.pop()
+    vad.flush()
+    while not vad.empty():
+        spans.append((vad.front.start, len(vad.front.samples)))
+        vad.pop()
+    return spans
+
+
+def strategy_vadwin(samples, precision, verbose, trace=None):
+    """**Android 上真正能用的那个**:VAD 找语音,再把相邻语音段**合并**成 ~29s 的窗。
+
+    为什么需要它:长音频循环要读回 segment 级时间戳,而 **v1.13.4 的 Android AAR
+    根本没暴露这些字段** —— `OfflineRecognizerResult` 只有
+    `text/tokens/timestamps/durations/lang/emotion/event`,没有 `segmentTimestamps`;
+    Python binding 有,Kotlin binding 落后于它。token 时间戳这条退路也是死的:
+    现成的 base.en 模型没有导出 attention 输出,`timestamps` 恒为空。
+
+    所以 Android 侧**只拿得到 `text`**,策略必须在这个约束下选。合并窗的好处是两头都占:
+    切口数量从 VAD 的 77 个降到 ~22 个(窗大),而且每个切口都落在 **VAD 判定的静音处**
+    而非句中(VAD 分段)或词中(固定窗)。解码的是**连续音频跨度**(含段内静音),
+    不是拼接 —— 拼接会造出真实语流里不存在的衔接。
+    """
+    rec = _recognizer(precision, segment_timestamps=False)
+    spans = _vad_spans(samples, verbose)
+    if trace is not None:
+        trace.append({"vad_spans": spans})
+    win = int(WIN_S * SR)
+    out = []
+    i = 0
+    while i < len(spans):
+        first = spans[i][0]
+        j = i
+        while j + 1 < len(spans) and (spans[j + 1][0] + spans[j + 1][1]) - first <= win:
+            j += 1
+        start, end = first, spans[j][0] + spans[j][1]
+        r = _decode(rec, samples[start:end])
+        out.append({"start": round(start / SR, 3), "end": round(end / SR, 3),
+                    "text": r.text})
+        if trace is not None:
+            # 合并规则是纯算法且决定切口位置(→ 练习单元),所以它移植到 :core-scoring,
+            # 用这份 trace 做金标准:输入是 VAD 段列表,输出是窗口边界。
+            trace.append({"first_span": i, "last_span": j,
+                          "start": start, "end": end})
+        if verbose:
+            print(f"[{out[-1]['start']:7.2f}-{out[-1]['end']:7.2f}] "
+                  f"{j - i + 1:2d} vad segs  {r.text[:60]}", flush=True)
+        i = j + 1
+    return out
+
+
 def strategy_window(samples, precision, verbose):
     """固定 29s 窗 —— 切在**词中间**,丢词(1879 vs 1944),WER 靠删除撑着。对照用。"""
     rec = _recognizer(precision, segment_timestamps=False)
@@ -177,15 +251,31 @@ def strategy_window(samples, precision, verbose):
 
 
 STRATEGIES = {"longform": strategy_longform, "vad": strategy_vad,
-              "window": strategy_window}
+              "vadwin": strategy_vadwin, "window": strategy_window}
 
 
 def cmd_transcribe(args):
     samples = _read_wav(args.wav)
-    segs = STRATEGIES[args.strategy](samples, args.precision, not args.quiet)
+    traceable = {"longform": strategy_longform, "vadwin": strategy_vadwin}
+    trace = [] if (args.trace and args.strategy in traceable) else None
+    if trace is not None:
+        segs = traceable[args.strategy](samples, args.precision, not args.quiet, trace)
+    else:
+        segs = STRATEGIES[args.strategy](samples, args.precision, not args.quiet)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump({"strategy": args.strategy, "precision": args.precision,
                    "segments": segs}, f, ensure_ascii=False, indent=1)
+    if trace is not None:
+        doc = {"strategy": args.strategy, "win_s": WIN_S, "sample_rate": SR,
+               "precision": args.precision, "segments": segs}
+        if args.strategy == "vadwin":
+            doc["vad_spans"] = trace[0]["vad_spans"]
+            doc["windows"] = trace[1:]
+        else:
+            doc["windows"] = trace
+        with open(args.trace, "w", encoding="utf-8") as f:
+            json.dump(doc, f, ensure_ascii=False, indent=1)
+        print(f"trace: {len(doc['windows'])} windows -> {args.trace}")
     tokens = sum(len(s["text"].split()) for s in segs)
     print(f"\n{args.strategy}/{args.precision}: {len(segs)} segments, "
           f"{tokens} whitespace tokens -> {args.out}")
@@ -275,6 +365,8 @@ def main():
     t.add_argument("--strategy", choices=sorted(STRATEGIES), default="longform")
     t.add_argument("--precision", choices=("int8", "fp32"), default="int8")
     t.add_argument("--quiet", action="store_true")
+    t.add_argument("--trace", help="dump the per-window cursor trace here "
+                                   "(longform only; golden input for :core-scoring)")
     t.set_defaults(func=cmd_transcribe)
 
     c = sub.add_parser("compare", help="compare against the macOS gold (project venv)")
