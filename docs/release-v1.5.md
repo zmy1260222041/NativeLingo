@@ -4,14 +4,14 @@
 
 ## 下载
 
-`NativeLingo_1.5.0_aarch64.dmg`(约 410MB)
+`NativeLingo_1.5.0_aarch64.dmg`(约 560MB)
 
 ## 安装
 
 1. 打开 `.dmg`,把 NativeLingo 拖入「应用程序」。
 2. **首次打开**:访达里**右键 NativeLingo → 打开 → 确认**(应用未公证,Gatekeeper 提示仅一次)。
    或终端:`xattr -dr com.apple.quarantine /Applications/NativeLingo.app`
-3. **首次跟读**会按需下载模型(wav2vec2 / faster-whisper / MMS 强制对齐 / 音素 CTC,共约 1.7GB),之后**完全离线**。应用**每次启动**需约 1-3 分钟加载本地引擎(torch/模型,界面显示"后端启动中"),属正常。
+3. **转写模型(whisper base.en)已预装**——选视频转写无需联网。**首次「分析发音」**会按需下载对齐/音素模型(MMS 强制对齐 ~1.2GB;若词被判弱/错再加音素 CTC ~2.4GB),之后**完全离线**。应用**每次启动**需约 1-3 分钟加载本地引擎(界面显示"后端启动中"),属正常。
 
 ## 系统要求
 

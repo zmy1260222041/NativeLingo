@@ -35,6 +35,18 @@ DMG_DIR="$ROOT/src-tauri/target/release/bundle/dmg"
 log() { printf "\n\033[1m=== %s ===\033[0m\n" "$*"; }
 die() { printf "\033[31m[build_dmg] %s\033[0m\n" "$*" >&2; exit 1; }
 
+# ── ensure Whisper base.en is staged for offline bundling ─────────────────
+# transcribe.py loads ../../models/whisper-base.en if present (offline, no
+# 141MB first-run download). Copy it from the HF cache if not already staged.
+if [[ ! -d "$ROOT/models/whisper-base.en" ]]; then
+    SNAP=$(ls -d "$HOME/.cache/huggingface/hub/models--Systran--faster-whisper-base.en/snapshots/"*/ 2>/dev/null | head -1)
+    if [[ -z "$SNAP" ]]; then
+        die "models/whisper-base.en missing and not in HF cache. Run the dev app once to download base.en, then rebuild."
+    fi
+    mkdir -p "$ROOT/models"
+    cp -RL "$SNAP" "$ROOT/models/whisper-base.en"
+fi
+
 # ── Phase A: freeze the backend ───────────────────────────────────────────
 log "A: freeze backend (PyInstaller --onedir) in .venv-freeze"
 if [[ ! -x "$FREEZE_VENV/bin/python" ]]; then

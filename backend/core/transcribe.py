@@ -24,6 +24,19 @@ from . import forced_align
 # English timestamps. Upgrade to "small"/"medium" for accuracy if needed.
 DEFAULT_MODEL_SIZE = "base.en"
 
+# Prefer a pre-bundled model so the frozen app transcribes offline (no 141MB
+# first-run download). The freeze ships it at ../../models/whisper-base.en
+# (relative to this file = backend/core/); in dev the dir is absent and we
+# fall back to the model-size name (HuggingFace download, cached after first use).
+_BUNDLED_MODEL = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "..", "models", "whisper-base.en"
+)
+
+
+def _model_path():
+    return _BUNDLED_MODEL if os.path.isdir(_BUNDLED_MODEL) else DEFAULT_MODEL_SIZE
+
+
 _model = None
 
 # terminal punctuation that ends a sentence
@@ -133,7 +146,7 @@ def _get_model():
         from faster_whisper import WhisperModel
 
         # int8 on CPU is fast and low-memory; works on Apple silicon too.
-        _model = WhisperModel(DEFAULT_MODEL_SIZE, device="cpu", compute_type="int8")
+        _model = WhisperModel(_model_path(), device="cpu", compute_type="int8")
     return _model
 
 

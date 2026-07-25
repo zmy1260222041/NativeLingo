@@ -20,7 +20,7 @@ NativeLingo 版本演进与技术特点。
 4. Tauri 保留 glob 的 `resources/` 前缀 → 后端实际在 `Resources/resources/nativeLingoBackend/`(对齐 main.rs 路径)。
 
 ### 打包要点(固化进 build_dmg.sh)
-- **体积**:干净 venv(砍 datasets/pyarrow 泄漏)+ ULFO(LZMA)压缩 + **仅 `.app` 的干净 staging 成像**(Tauri 残留的 `rw.*.dmg` 会让源目录虚胖 3x)→ **413MB**(onnxruntime 63M 必留:faster-whisper VAD 依赖)。
+- **体积**:干净 venv(砍 datasets/pyarrow 泄漏)+ ULFO(LZMA)压缩 + **仅 `.app` 的干净 staging 成像**(Tauri 残留的 `rw.*.dmg` 会让源目录虚胖 3x)+ **预装 whisper base.en(141M,免首运转写下载)** → **560MB**。onnxruntime 63M 必留(faster-whisper VAD 依赖)。analyze 的 MMS(1.2G)/音素(2.4G)因过大不预装,首运按需下载。
 - **不用 strip**:曾用 `strip -x` 省 ~13M,但它破坏部分 `.dylib` 签名("Invalid Page"),干净 Mac(无系统副本可 dlopen 回退)启动即崩——已移除。
 - **签名**:逐文件 ad-hoc 重签(`codesign --deep` 漏签 PyInstaller 深层 `.so`/`.dylib` → arm64 无日志崩溃)。
 - **PyAV 取代 ffmpeg**:`video.py` 用已捆绑的 `av` 解码,无需额外 ffmpeg 二进制。

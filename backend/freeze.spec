@@ -51,6 +51,13 @@ hiddenimports += ["ctranslate2", "ctranslate2.convertors", "tokenizers"]
 datas += [(os.path.join(PROJROOT, "backend", "core", "calibration.json"),
            os.path.join("backend", "core"))]
 
+# Pre-bundle the Whisper base.en model (141MB) so transcription runs offline —
+# no first-run download. transcribe.py resolves it via a __file__-relative path.
+# Conditional: if the model wasn't staged (clean dev), skip and fall back to HF.
+_whisper_model = os.path.join(PROJROOT, "models", "whisper-base.en")
+if os.path.isdir(_whisper_model):
+    datas += [(_whisper_model, "models/whisper-base.en")]
+
 a = Analysis(
     [os.path.join(SPECPATH, "main.py")],
     pathex=[PROJROOT],          # so `from backend.core...` resolves at freeze time

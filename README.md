@@ -19,7 +19,7 @@
 3. **首次打开**(应用未公证,Gatekeeper 会提示一次,二选一,仅一次):
    - 访达里**右键 NativeLingo → 打开 → 确认**(最简单);或
    - 终端:`xattr -dr com.apple.quarantine /Applications/NativeLingo.app`
-4. **首次跟读**会按需下载模型(wav2vec2 / faster-whisper / MMS 强制对齐 / 音素 CTC,共约 1.7GB),之后**完全离线**。应用启动后端冷加载约 1 分钟,属正常。
+4. **转写模型(whisper base.en)已预装**——选视频转写无需联网。**首次「分析发音」**会按需下载对齐/音素模型(MMS 强制对齐 ~1.2GB;若词被判弱/错再加音素 CTC ~2.4GB),之后**完全离线**。应用**每次启动**需约 1-3 分钟加载本地引擎,属正常。
 5. **素材**:把你的英语视频(新闻播报、演讲、访谈等)放入 `~/Library/Application Support/com.nativelingo.app/videos/`,应用内即可选片跟读。
 
 **系统要求**:macOS 13+(Apple Silicon;Intel Mac 暂不支持)。麦克风权限在首次录音时授权。
@@ -77,7 +77,7 @@ npx tauri dev
 scripts/build_dmg.sh
 ```
 
-产物:`src-tauri/target/release/bundle/dmg/NativeLingo_<版本>_aarch64.dmg`(~400MB)。
+产物:`src-tauri/target/release/bundle/dmg/NativeLingo_<版本>_aarch64.dmg`(~560MB,含预装的 whisper base.en)。
 
 **体积优化(已固化进脚本)**:干净 `.venv-freeze` 冻结(排除 datasets/pyarrow 等脚本依赖;**onnxruntime 必留**——faster-whisper VAD 要用)、ULFO(LZMA)压缩、从**仅 `.app` 的干净 staging** 成像(避免 Tauri 残留的 `rw.*.dmg` 污染源目录致 3x 虚胖)、**逐文件 ad-hoc 重签**(`codesign --deep` 漏签 PyInstaller 深层 `.so`/`.dylib` 会致无日志崩溃)。曾用 `strip -x` 省体积,但它破坏部分 `.dylib` 签名("Invalid Page")、干净 Mac 启动即崩,已移除。
 
