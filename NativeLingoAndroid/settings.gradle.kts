@@ -39,10 +39,12 @@ include(":core-align")
 // Phase 2: sherpa-onnx Whisper transcription + Silero VAD (FR-2 reference text).
 include(":core-asr")
 
+// Phase 2: MediaExtractor/MediaCodec audio decode + :core-scoring resampling.
+include(":core-audio")
+
 // Phase 4: application shell (Compose UI, repos, audio, warmup). Stub for now.
 include(":app")
 
 // Phased modules — added when their phase begins (docs/android-migration.md §8/§9):
-//   Phase 2: :core-audio
 //   Phase 3: :core-mdd
 //   Phase 4: :core-models

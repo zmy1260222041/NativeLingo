@@ -33,7 +33,7 @@ NativeLingo 当前是 macOS Tauri v2 + Python FastAPI sidecar(v0.5 已发布)。
 | DTW/CMVN/score/detail(numpy) | numpy | **1:1 移植** → Kotlin FloatArray |
 | `calibration.json`/`vocab.json`/音素表 | 随包 | **原样复用** → Android asset |
 | 录音(MediaRecorder) | WebView | **AudioRecord** 16kHz 单声,`UNPROCESSED` |
-| 视频解码(PyAV) | ffmpeg lib | **FFmpeg NDK 源码构建** |
+| 视频解码(PyAV) | ffmpeg lib | **`MediaExtractor` + `MediaCodec`**(R-9 改判,原为 FFmpeg NDK 源码构建) |
 | 打包(.dmg/codesign/notarytool) | macOS | **APK/AAB + Play 签名** |
 
 ## 3. 需求追溯矩阵(确保满足产品需求)
@@ -54,7 +54,7 @@ NativeLingo 当前是 macOS Tauri v2 + Python FastAPI sidecar(v0.5 已发布)。
 | FR-10 反复练习 | Compose 重练流程 | `:app` |
 | **FR-11 音素诊断** | espeak int8 假设打分式 MDD + 三重门控 | core-mdd(Gate C/R-7) |
 | **FR-12 学习记录/进度** | Room 本地存储,历史成绩/进步曲线(macOS 亦补) | `:app` data |
-| FR-M1 真实视频素材 | FFmpeg 解码,不用合成参考音 | core-audio |
+| FR-M1 真实视频素材 | MediaCodec 解码,不用合成参考音 | core-audio |
 | FR-M2 素材获取 | videos 目录 + 用户导入(Android 走 SAF/content URI) | `:app` |
 | FR-M3 难度适配 | whisper 句切分 + >8s / >20 词从句边界二级切分 | core-asr |
 | **NFR-1 本地/离线/隐私** | 全端侧推理,录音不出设备,RECORD_AUDIO;无任何云调用 | Gate A/R-5 保证 |
@@ -71,9 +71,9 @@ NativeLingo 当前是 macOS Tauri v2 + Python FastAPI sidecar(v0.5 已发布)。
 | 强制对齐(MMS CTC) | **ONNX Mobile + 手写 Kotlin CTC Viterbi** | **发现①**:sherpa-onnx **不提供**强制对齐(Issue #3536 仍 open,无 PR)。torchaudio 的 `get_aligner()` 是教科书级 CTC Viterbi(~100 行),算法已逐行捕获(见 §5) |
 | SSL 编码器(wav2vec2-base-960h, 6–9 层) | **ONNX Mobile,自定义导出 4 个 hidden-state 输出节点** | **发现④**:`output_hidden_states=True` 不会让 Optimum 默认导出中间层 → 必须 Optimum 导出后用 `onnx` 库把第 6–9 个 transformer block 的残差 `Add` 输出节点标为 graph output 再导出 |
 | 音素 MDD(espeak-cv-ft) | **ONNX Mobile,动态 int8(318MB),惰性加载** | **发现③**:PyTorch ckpt ~2.4GB,但 `onnx-community/wav2vec2-lv-60-espeak-cv-ft-ONNX` 动态 int8 = **318MB**(fp32 1.26GB)。可载入 6GB 手机但 RAM 紧张 → 按词批惰性加载、句间释放 session |
-| 视频/WebM/Opus 解码 | **FFmpeg NDK 源码构建 + 薄 JNI**;视频帧仍走 MediaCodec 硬解 | **发现②**:**ffmpeg-kit 已退役**(2025-01-06,二进制下架,不兼容 Android 16KB 页大小)。MediaCodec 对 WebM/Opus 覆盖不全 |
+| 视频音轨解码 | ~~FFmpeg NDK 源码构建 + 薄 JNI~~ → **`MediaExtractor` + `MediaCodec` + `:core-scoring` 里的纯 Kotlin 多相重采样器** | ~~**发现②**:**ffmpeg-kit 已退役**(2025-01-06,二进制下架,不兼容 Android 16KB 页大小)。MediaCodec 对 WebM/Opus 覆盖不全~~ ⚠️ **R-9 推翻本行后半句**:①**学习者路径根本不产生编码音频**(AudioRecord 直采 16kHz PCM),webm/opus 是 WebView `MediaRecorder` 的产物,随 WebView 一起消失,只剩视频音轨要解;②对照官方 *Supported media formats*,**Opus 解码自 API 21 起是平台强制项**(容器 Ogg/MP4/Matroska),远低于 minSdk 28 —— "覆盖不全"不成立,唯一缺口是 `.avi`(FR-M2 导入面,非正确性)。ffmpeg-kit 退役属实,但不再相关。详见 `docs/reviews/2026-07-26-android-gate-e-audio-decode.md` |
 | F0/音高/能量 | **TarsosDSP(st-h fork 2.4.1)** 纯 Java YIN | 仅用于 word_diff 音高斜率提示(低风险);强度/停顿用自写 RMS |
-| 重采样 | **AudioRecord 原生 16kHz 采集(免重采样)**;视频音轨走 FFmpeg `aresample` | 录音路径直接 16kHz,无需 librosa/soxr |
+| 重采样 | **AudioRecord 原生 16kHz 采集(免重采样)**;视频音轨走 `:core-scoring/.../resample/PolyphaseResampler.kt`(纯 Kotlin windowed-sinc) | 录音路径直接 16kHz,无需 librosa/soxr。**R-9 实测**:重采样核的选择在分数域上是零 —— 多相 sinc / soxr_hq / int16-PCM 输入,相对 libswresample 的样本 SNR 只有 30–43dB(≈数百 LSB,原 Gate E 的 ≤1 LSB 由构造不可达),但 CMVN 后逐帧嵌入余弦 0.9983–0.9998、固定学习者只换参考解码路径的 **DTW cost 差 ≤0.0011、accuracy 差 0.00**(Gate A 容差 ±0.02/±2.0,余量 18×)。脚本 `scripts/resampler_parity.py` |
 | WAV I/O | **手写 44 字节头读写**(~30 行) | soundfile 唯一用途是 clip WAV 切片 |
 | numpy/scipy | **Kotlin FloatArray** | scipy 运行时根本没 import → 弃 |
 
@@ -161,13 +161,13 @@ best_sub_gain(em, ids, chars, vocab, pad):
 | `detail.py` | `.../detail/Detail.kt` | 纯 Kotlin | 低 |
 | `word_diff.py` | `.../worddiff/{WordDiff,Pitch}.kt` | Kotlin + TarsosDSP | 中(F0 算法差异需容差) |
 | `feedback.py` | `.../feedback/Feedback.kt` | 纯 Kotlin(`llm_hook` no-op,NFR-1) | 低 |
-| `audio_io.py` | `:core-scoring/.../audio/AudioPreproc.kt` + `.../io/WavIo.kt`(纯 Kotlin,已落地);解码留在 `:core-audio` | Kotlin + FFmpeg JNI | 中 |
+| `audio_io.py` | `:core-scoring/.../audio/AudioPreproc.kt` + `.../io/WavIo.kt`(纯 Kotlin,已落地);重采样 → `.../resample/PolyphaseResampler.kt`(同样纯 Kotlin,理由同下);解码留在 `:core-audio` | Kotlin + MediaCodec | 低–中(**R-9 后降级**:无 JNI;重采样器可 JVM 金标准测) |
 | `transcribe.py` | 句/词切分 → `:core-scoring/.../segment/SentenceSegmenter.kt`、长音频切窗 → `.../segment/AsrWindowPlanner.kt`(均纯 Kotlin,已落地);识别本体 → `:core-asr/.../WhisperTranscriber.kt`(薄适配层) | Kotlin + sherpa-onnx | 中(**R-10 实测:风险在切窗策略,不在输出格式** —— 已移出 `:core-asr` 并锁金标准) |
 | `ssl_encoder.py` | `:core-embed/.../Wav2Vec2Encoder.kt` | ONNX Mobile(4 输出图) | 中–高(发现④ 图编辑) |
 | **`forced_align.py`** | `:core-align/.../ForcedAligner.kt` + `CtcViterbi.kt` | ONNX Mobile + 手写 Viterbi | **高**(最难单点) |
 | **`phoneme.py`** | `:core-mdd/.../PhonemeMdd.kt`(复用 `CtcViterbi`) | ONNX Mobile(int8 318MB,惰性) | **高**(最重模型) |
 | `pipeline.py` | `:app/.../AnalyzePipeline.kt` | Kotlin 协程编排 | 低 |
-| `video.py`/`warmup.py`/`main.py` | `:app/.../repo/{Video,Recordings}Repository.kt`,`Warmup.kt`,无 server | Kotlin + Media3 + FFmpeg | 中 |
+| `video.py`/`warmup.py`/`main.py` | `:app/.../repo/{Video,Recordings}Repository.kt`,`Warmup.kt`,无 server;音轨抽取 → `:core-audio/.../MediaAudioDecoder.kt`,**切片语义(seek 到前一关键帧、保留 pre-start 样本,`video.py:88`)归 `:core-scoring`** | Kotlin + Media3 + MediaCodec | 中 |
 
 ## 7. Phase 0 — 风险 spike 门(go/no-go,先过完才动其他)
 
@@ -177,7 +177,7 @@ best_sub_gain(em, ids, chars, vocab, pad):
 - **R-6 / Gate B —— Viterbi 正确性:** 手写 `CtcViterbi.kt`,同一 MMS emission 走 torchaudio 与 Kotlin,每词 `[start,end]` 误差 ≤1 帧(20ms)。
 - **R-7 / Gate C —— 音素 MDD 自拟合门控 int8 下仍成立:** espeak int8(318MB)重跑 think/sink 套件,canonical 自拟合 ≤0.04、垃圾 ≥0.09;若 int8 压缩增益域致误过门 → 设备上重调 `0.05`/`0.15`(数据在 `backend/tests/`)或退 fp16(635MB)。
 - **R-8 / Gate D —— 6GB 设备 RAM 预算:** Pixel 4a 级设备全流程 `analyze` 30s 片段,峰值 RSS <3.5GB、20 连续无 OOM。兜底:espeak 按词批惰性 `OrtSession.close()`;仍紧 → MDD 按 `ActivityManager.MemoryInfo` 在低内存设备降级。
-- **R-9 / Gate E —— Opus 解码对齐:** WebM/Opus blob 经 FFmpeg-NDK 解码 vs macOS `ffmpeg -ar 16000 -ac 1 -f f32le`,样本误差 ≤1 LSB。
+- **R-9 / Gate E —— 音频解码/重采样对齐(判据已改写,桌面侧 PASS):** ~~WebM/Opus blob 经 FFmpeg-NDK 解码 vs macOS `ffmpeg -ar 16000 -ac 1 -f f32le`,样本误差 ≤1 LSB~~ —— **原判据只有在"已经选了 FFmpeg"的前提下才可能通过**(换重采样核就必然换样本值),它不是在检验路线而是在假设路线。改为分数域判据:①同一片段 Android 解码+重采样 vs macOS `extract_audio()`,CMVN 后逐帧嵌入余弦均值 **≥0.995**;②固定学习者、只换参考解码路径,**DTW cost 差 ≤0.005、accuracy 差 ≤0.5**(Gate A 容差的 1/4);③目标格式集在设备上 `findDecoderForFormat` 全部命中。**桌面侧实测 PASS**(0.9983–0.9998 / ≤0.0011 / 0.00),据此改走 `MediaExtractor`+`MediaCodec` 路线,**Phase 2 不再需要 NDK**。设备侧留一项:多机解码一致性(系统解码器是各家 OEM 实现,不像 FFmpeg 处处同一份)。详见 `docs/reviews/2026-07-26-android-gate-e-audio-decode.md`。
 
 - **R-10 / Gate F —— 转写文本分歧(实施中新增,原计划漏掉):** 原计划把 ASR 当"输出格式对齐"的中风险机械活(§6),漏了一条:**FR-2/FR-M3 按 `[.!?]` 切句,少一个句号就把两个练习单元合成一个,即使每个词都对** —— 标准 ASR 评测剥掉标点,给不出这个数。判据(实测后定,如实标注):归一化 WER ≤5%、**仅在两侧词相同处**统计的终止标点分歧 ≤2%、练习单元数 ±5%。**实测 PASS**:最好的策略 3.14% / 1.01% / 162 vs 159;但那条(Whisper 长音频循环)Android AAR 实现不了,**实际采用的 VAD 合并窗 4.01% / 1.65% / 158,同样过三条判据**。**判据不是文本相等** —— 两个 int8 base.en 解码器的分歧不可消除(fp32 只买回 0.11pp),但它不改变分数(分数是学习者与*同一段*参考音频的比较)。详见 `docs/reviews/2026-07-26-android-gate-f-asr-text.md`。
 
@@ -195,9 +195,9 @@ NativeLingoAndroid/
 ├── core-align/             :core-align — ONNX MMS CTC + ForcedAligner(用 core-scoring 的 CtcViterbi)
 ├── core-mdd/               :core-mdd — ONNX espeak-cv-ft int8 + PhonemeMdd
 ├── core-asr/               :core-asr — sherpa-onnx Whisper + Silero VAD(句切分已归 :core-scoring,见 §12)
-├── core-audio/             :core-audio — FFmpeg JNI 解码桥(裁剪/归一化/WAV I/O 已归 :core-scoring,见 §12)
+├── core-audio/             :core-audio — MediaExtractor/MediaCodec 解码(裁剪/归一化/WAV I/O/重采样均归 :core-scoring,见 §12)
 ├── core-models/            :core-models — ModelRegistry(whisper 打包进 APK;余下首启下载)
-└── buildSrc/               NDK FFmpeg 构建 + 约定插件
+└── buildSrc/               约定插件(R-9 之后不再有 NDK FFmpeg 构建)
 ```
 
 模块不变量:`:core-scoring` 只依赖 Kotlin stdlib;`:core-embed/align/mdd/asr` 依赖 `:core-scoring`(共用 `CtcViterbi`)+ `onnxruntime-android`;`:app` 依赖全部。
@@ -208,7 +208,7 @@ NativeLingoAndroid/
 |---|---|---|
 | **0** | spike 门 A–E(R-5..R-9),逐项 go/no-go | 3–4 周(**未过不进下阶段**) |
 | **1** | `:core-scoring` + 金标准测试框架(JVM,过 Layer1+2) | 3–4 周 |
-| **2** | `:core-embed/asr/audio/align` 接 ONNX/sherpa/FFmpeg,设备端跑通 | 4–5 周 |
+| **2** | `:core-embed/asr/audio/align` 接 ONNX/sherpa/MediaCodec,设备端跑通 | 4–5 周(R-9 免掉 NDK 工具链后偏下限) |
 | **3** | `:core-mdd` + RAM 收紧 | 2–3 周(Gate C/D 失败可跳) |
 | **4** | Compose UI / ExoPlayer 跟读 / A/B 回放 / 录音 Repo / 首启下载 / FR-12 Room | 4–5 周 |
 | **5** | 仪器化诊断 / beta / OEM 调音 | 2–3 周 |
@@ -224,7 +224,7 @@ NativeLingoAndroid/
 
 ## 11. 诚实评估 & 降级候选
 
-**机械的(大部分 LOC):** `align/speaker_norm/score/detail/feedback` 直移(~30% 工);`audio_io/pipeline/UI/HTTP→进程内`(~30%,中风险在 FFmpeg JNI 与 AudioRecord OEM 怪癖)。
+**机械的(大部分 LOC):** `align/speaker_norm/score/detail/feedback` 直移(~30% 工);`audio_io/pipeline/UI/HTTP→进程内`(~30%,中风险在 AudioRecord 与 MediaCodec 的 OEM 怪癖 —— R-9 之后不再有 FFmpeg JNI)。
 
 **真难的:** ① CTC Viterbi(~100 行,forced_align 与 MDD 共用,一个 off-by-one 全毁,Gate B/R-6 捕);② wav2vec2 hidden-state 自定义图导出(R-5/Gate A,1–3 天 Python+验证);③ **int8 评分保真(项目存在性证明,R-5/Gate A,1–2 周)**;④ 318MB espeak 在 6GB 手机(R-8/Gate D,~1 周);⑤ AudioRecord OEM 一致性(用 `UNPROCESSED`,API≥25,3–5 设备调音,~3 天)。
 
@@ -292,5 +292,17 @@ NativeLingoAndroid/
   - **依赖走"GitHub releases 当 ivy 仓库"**:k2-fsa **没有 Maven Central 制品**(`repo1` 上不存在 `com.k2-fsa` 组;搜到的 `sherpa-onnx` 都是第三方转包)。直接 `implementation(files("*.aar"))` 也不行 —— **AGP 拒绝为带本地 .aar 依赖的 library 模块产出 AAR**。settings 里声明一个 pattern 为 `v[revision]/[artifact]-[revision].[ext]` 的 ivy 仓库正好命中 release URL,于是它变成真正的模块依赖。字节由 `verifySherpaAar` 的 sha256 钉死(该 ivy 仓库没有签名),**并断言恰好解析到 1 个制品** —— 空解析下的校验循环比没有校验更糟。
   - **选 static-link 变体(37.6MB)而非默认 AAR(48.8MB)**:默认 AAR 自带 `libonnxruntime.so`,与 `onnxruntime-android`(`:core-embed`/`:core-align`/`:core-mdd`)带的那个**同名冲突**。两边今天都是 1.27.0,`pickFirst` 会"无害"解决 —— **这正是问题**:哪天任一侧升版本,胜出的那个 .so 会静默地同时服务两边,故障形态是线上崩溃而不是构建报错。静态链接把这个共享符号彻底消掉,代价是每 ABI 多约 19MB 的 ORT 副本。(顺带核过:`libsherpa-onnx-jni.so` 的 LOAD 段 `p_align = 0x4000`,**满足 Android 16KB 页要求** —— ffmpeg-kit 正是栽在这条上。)
   - ❓**只发 arm64-v8a**:首先是正确性而非体积 —— Gate D 的 ~3.5GB 峰值预算(espeak 单模型 302.9MB + ORT arena)**32 位进程根本寻址不下**,能跑这个应用的设备都是 arm64;顺带把上面那 19MB 的重复代价减半。**这是设备支持范围的改变,要落 PRD。**
-- [ ] R-5/R-6/R-7 设备侧复测(arm64 int8 kernel 可能异于桌面)+ Gate D(RAM)+ Gate E(Opus)+ Tier 3 设备/模拟器;Phase 2 余项 `:core-audio`(FFmpeg NDK 解码,含 Gate E)。**`:core-asr` 的端侧首跑与 R-10 复测一并做** —— 目前它只验证到"能编译、API 用法正确",AAR 里的 JNI 一次都还没在设备上调起来过。
+- [x] **R-9 / Gate E 桌面侧结论(2026-07-26)—— `:core-audio` 改走 MediaCodec,Phase 2 不再需要 NDK**(`docs/reviews/2026-07-26-android-gate-e-audio-decode.md`,脚本 `scripts/resampler_parity.py`)。
+  - **原判据(样本误差 ≤1 LSB)自身失效**:它只有在已经选了 FFmpeg 时才可能通过,换重采样核就必然换样本值 —— 不是在检验路线,而是在假设路线。真正要问的是「参考音频用哪个重采样器,会不会改变学习者看到的分数」,判据必须落在分数域。
+  - **发现②的前提在 Android 上不存在**:学习者路径是 `AudioRecord` 直采 16kHz PCM,**根本不产生编码音频** —— webm/opus 是浏览器 `MediaRecorder` 的产物,随 WebView 一起消失。只剩视频音轨要解。而 Opus 解码**自 API 21 起是平台强制项**(容器 Ogg/MP4/Matroska),minSdk 28 稳过;`.mp4/.m4v/.mov/.mkv/.webm` 全在平台强制表里,**唯一缺口是 `.avi`**(官方文档全文未列),那是 FR-M2 的导入面 → 建议 Android 导入白名单去掉 `.avi`(要落 PRD),需要时再接 Media3 实验性 `AviExtractor`。
+  - **重采样核的选择在分数域上是零(决定性)**:相对 libswresample,多相 sinc / soxr_hq / int16-PCM 输入的样本 SNR 只有 **30.5–43.0dB**(maxΔ ≈ 数百 LSB),但 CMVN 后逐帧嵌入余弦 **0.9983–0.9998**(全 ≥0.995;掉到 0.99 以下的 1–6/1250 帧全部落在低能量帧,是 CMVN 放大静音噪声)。更贴近真实用法的一测 —— **固定学习者、只换参考的重采样器**(Android 上学习者永远不重采样)—— 在 cost 0.30–0.39 的真实档位上 **Δcost ≤0.0011、Δaccuracy 0.00**,Gate A 容差 ±0.02/±2.0,**余量 18×**。**MediaCodec 默认的 int16 PCM 输出是免费的**(与 float 输入在四位小数上一致)。
+  - **顺带一个自洽性发现**:macOS 自己就用了两个重采样器 —— `audio_io.py` 走 soxr、`video.py` 走 swresample。「必须与 macOS 逐样本一致」这个诉求本来就无对象。
+  - **代价写清楚**:失去「所有设备样本一致」的保证(系统解码器是各家 OEM 实现,不像 FFmpeg 处处同一份)—— **这是路线 B 唯一真实的风险,且只能在设备上测**,已进设备清单。先验上安全(换重采样核这么大的扰动才值 0.0011,合规解码器之间应远小于此),但那是推断不是测量。
+  - **顺带消掉**:buildSrc 的 NDK FFmpeg 构建(本机也确实没装 NDK)、LGPL 重链接义务、16KB 页对齐约束(无自带 .so)、+2–4MB/ABI 包体。
+  - **`video.py:88` 的 seek 语义必须照抄**:seek 到 `start` 之前最近的关键帧且**不丢弃 pre-start 样本**。这决定句子片段的起点 → 按 R-10 立下的规矩(决定音频在哪里被切的代码必须能在 JVM 上验),切片策略进 `:core-scoring`,`MediaExtractor` 只提供关键帧时间。
+- [x] **`PolyphaseResampler` + `:core-audio` 落地(2026-07-26)—— Phase 2 模块齐了**。
+  - `:core-scoring/.../resample/PolyphaseResampler.kt` 是 **`scipy.signal.resample_poly`(默认 Kaiser 5.0)的 1:1 移植**,逐样本 |Δ| < 1e-12 对 4 例 float64 金标准(`golden/resample/`)。**钉 scipy 而不是"写个够好的"**,是因为 R-9 那组分数域测量就是用它做的 —— 不钉住,测量转移不过来。`:core-scoring` **53/53 全绿**(新增 5 项)。
+  - `:core-audio/.../MediaAudioDecoder.kt`:`MediaExtractor`+`MediaCodec` → 下混 → 重采样,`findDecoderForFormat` 前置探测,采样率取**输出格式**而非轨道格式。`assembleDebug` 通过 —— 与 `:core-asr` 同样,**框架调用一次都还没在设备上跑过**。
+  - `DecodedAudio.startS` 返回首个解出样本的真实时间戳(seek 到前一同步样本、保留 pre-start 样本,与 `video.py` 同),FR-8 回放区间需要它。
+- [ ] R-5/R-6/R-7 设备侧复测(arm64 int8 kernel 可能异于桌面)+ Gate D(RAM)+ Gate E 设备侧(多机解码一致性)+ Tier 3 设备/模拟器。**Phase 2 的四个模块(`:core-embed`/`:core-align`/`:core-asr`/`:core-audio`)都已能构建,但除 `:core-embed` 外都没在设备上跑过** —— 端侧首跑是一件事,一起做。**`:core-asr` 的端侧首跑与 R-10 复测一并做** —— 目前它只验证到"能编译、API 用法正确",AAR 里的 JNI 一次都还没在设备上调起来过。
 - **模型包体(NFR-4②,第三次修正,现在全部为实测)**:whisper base.en **159.8MB**(int8;R-10 实测,前两版记的 ~70MB 错了 2.3 倍)+ wav2vec2 95.8MB(int8 transformer-only)+ espeak 302.9MB(int8 全量)+ MMS 338.6MB(int8 transformer-only)= **~897MB,其中首启下载 ~827MB 起**(whisper 不再"打包 APK":160MB 越过 Play base APK 的 150MB 压缩上限,改首启下载或 install-time asset pack)。**已越过上一版所说的"接近可接受上限"。** 压缩顺序:MMS(338.6MB)最大,其次 espeak(302.9MB,惰性加载已减轻 RAM 但不减下载),whisper 换 `tiny.en` 档位是第三条 —— 且 R-10 已证明**换档是唯一能同时减体积与加速的杠杆**(量化不省时间)。

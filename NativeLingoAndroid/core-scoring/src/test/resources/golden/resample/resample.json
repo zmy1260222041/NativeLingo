@@ -1,0 +1,57 @@
+{
+  "producer": "scipy.signal.resample_poly, window=('kaiser', 5.0) (default)",
+  "dtype": "float64",
+  "design": {
+    "cutoff_rel_nyquist": "1 / max(up, down)",
+    "half_len": "10 * max(up, down)",
+    "kaiser_beta": 5.0,
+    "gain": "sum(h) normalised to 1, then scaled by `up`"
+  },
+  "gate": "R-9 / Gate E",
+  "cases": [
+    {
+      "name": "tone_44k1",
+      "sr_in": 44100,
+      "sr_out": 16000,
+      "up": 160,
+      "down": 441,
+      "n_in": 11025,
+      "n_out": 4000,
+      "half_len": 4410,
+      "numtaps": 8821
+    },
+    {
+      "name": "tone_48k",
+      "sr_in": 48000,
+      "sr_out": 16000,
+      "up": 1,
+      "down": 3,
+      "n_in": 12000,
+      "n_out": 4000,
+      "half_len": 30,
+      "numtaps": 61
+    },
+    {
+      "name": "speech_44k1",
+      "sr_in": 44100,
+      "sr_out": 16000,
+      "up": 160,
+      "down": 441,
+      "n_in": 22050,
+      "n_out": 8000,
+      "half_len": 4410,
+      "numtaps": 8821
+    },
+    {
+      "name": "speech_48k",
+      "sr_in": 48000,
+      "sr_out": 16000,
+      "up": 1,
+      "down": 3,
+      "n_in": 24000,
+      "n_out": 8000,
+      "half_len": 30,
+      "numtaps": 61
+    }
+  ]
+}

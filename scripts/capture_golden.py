@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import glob
 import json
+import math
 import os
 import re
 import shutil
@@ -504,6 +505,84 @@ def dump_audio_io(corpus, out_dir):
     return True
 
 
+def dump_resample(corpus, out_dir):
+    """R-9 / Gate E golden: polyphase resampling to 16 kHz.
+
+    On Android the reference audio comes out of MediaCodec at the container's
+    native rate and has to be resampled in-process; the learner's never is
+    (AudioRecord captures at 16 kHz). R-9 measured that *which* resampler is
+    used does not move a score — see
+    ``docs/reviews/2026-07-26-android-gate-e-audio-decode.md`` and
+    ``scripts/resampler_parity.py``. What is captured here is the narrower and
+    much stricter claim that the Kotlin port reproduces the exact resampler
+    that measurement was made with, `scipy.signal.resample_poly` with its
+    default Kaiser(5.0) design.
+
+    Deliberately float64 on both sides. The production path is float32, but a
+    float32 golden would confound two different things — an algorithmic bug and
+    accumulation order — and only the first is worth a test. The float32 path
+    is checked separately, against this one, with an SNR bound.
+
+    Speech cases are built by *upsampling* the 16 kHz corpus rather than by
+    reading a video, so the fixture reproduces from `say` alone.
+    """
+    import librosa
+    from scipy.signal import resample_poly
+
+    r_dir = os.path.join(out_dir, "resample")
+    os.makedirs(r_dir, exist_ok=True)
+
+    def tone(sr: int, dur: float) -> np.ndarray:
+        n = np.arange(int(sr * dur))
+        # The 11 kHz partial is above the 8 kHz output Nyquist on purpose: it is
+        # what a missing or wrong anti-alias filter folds back audibly.
+        return (
+            0.50 * np.sin(2 * np.pi * 440.0 * n / sr)
+            + 0.30 * np.sin(2 * np.pi * 3000.0 * n / sr)
+            + 0.10 * np.sin(2 * np.pi * 7500.0 * n / sr)
+            + 0.05 * np.sin(2 * np.pi * 11000.0 * n / sr)
+        )
+
+    speech16 = corpus["ref_samantha"].astype("float64")[: 16000 // 2]  # 0.5 s
+    cases = []
+    for name, sr_in, x in (
+        ("tone_44k1", 44100, tone(44100, 0.25)),
+        ("tone_48k", 48000, tone(48000, 0.25)),
+        ("speech_44k1", 44100,
+         librosa.resample(speech16, orig_sr=16000, target_sr=44100, res_type="soxr_hq")),
+        ("speech_48k", 48000,
+         librosa.resample(speech16, orig_sr=16000, target_sr=48000, res_type="soxr_hq")),
+    ):
+        g = math.gcd(sr_in, TARGET_SR)
+        up, down = TARGET_SR // g, sr_in // g
+        y = resample_poly(x, up, down)
+        np.save(os.path.join(r_dir, f"{name}_in.npy"), x)
+        np.save(os.path.join(r_dir, f"{name}_out.npy"), y)
+        cases.append({
+            "name": name, "sr_in": sr_in, "sr_out": TARGET_SR,
+            "up": up, "down": down, "n_in": int(x.size), "n_out": int(y.size),
+            "half_len": 10 * max(up, down), "numtaps": 2 * (10 * max(up, down)) + 1,
+        })
+        print(f"  resample: {name} {sr_in}->{TARGET_SR} (up={up} down={down}) "
+              f"{x.size} -> {y.size} samples")
+
+    meta = {
+        "producer": "scipy.signal.resample_poly, window=('kaiser', 5.0) (default)",
+        "dtype": "float64",
+        "design": {
+            "cutoff_rel_nyquist": "1 / max(up, down)",
+            "half_len": "10 * max(up, down)",
+            "kaiser_beta": 5.0,
+            "gain": "sum(h) normalised to 1, then scaled by `up`",
+        },
+        "gate": "R-9 / Gate E",
+        "cases": cases,
+    }
+    with open(os.path.join(r_dir, "resample.json"), "w") as f:
+        json.dump(meta, f, indent=2)
+    return True
+
+
 def dump_segmentation(out_dir):
     """FR-2 / FR-M3 golden: whisper words -> sentences (transcribe.py).
 
@@ -881,6 +960,9 @@ def main():
         print("-- audio_io: trim / normalise / PCM_16 clip (FR-3 / FR-8) --")
         audio_ok = dump_audio_io(corpus, out_dir)
 
+        print("-- polyphase resampling (R-9 / Gate E) --")
+        resample_ok = dump_resample(corpus, out_dir)
+
         print("-- sentence segmentation (FR-2 / FR-M3) --")
         seg_ok = dump_segmentation(out_dir)
 
@@ -899,7 +981,7 @@ def main():
         "tolerances": TOL,
         "sections": {
             "emb": True, "pair": True, "worddiff": wd_ok,
-            "audio": audio_ok, "seg": seg_ok, "mms": mms_ok, "espeak": espeak_ok,
+            "audio": audio_ok, "resample": resample_ok, "seg": seg_ok, "mms": mms_ok, "espeak": espeak_ok,
         },
         "notes": [
             "Embeddings are wav2vec2-base-960h transformer layers 6-9 mean "
