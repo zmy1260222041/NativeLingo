@@ -1,10 +1,10 @@
-# NativeLingo v1.5.0 — 首个可分发版
+# NativeLingo v0.5.0 — 首个可分发版
 
 英语跟读发音评估,**全本地推理**(macOS Apple Silicon)。录音不出设备。
 
 ## 下载
 
-`NativeLingo_1.5.0_aarch64.dmg`(约 560MB)
+`NativeLingo_0.5.0_aarch64.dmg`(约 545MB)
 
 ## 安装
 
@@ -27,7 +27,7 @@ macOS 13+ · Apple Silicon(Intel Mac 暂不支持)· 麦克风权限(首次录�
 
 ## 本版亮点
 
-- **可分发 .dmg**:PyInstaller 冻结全栈后端(torch/torchaudio/transformers/faster-whisper),开箱即用,~380MB。
+- **可分发 .dmg**:PyInstaller 冻结全栈后端(torch/torchaudio/transformers/faster-whisper),开箱即用,~545MB(含预装 whisper base.en)。
 - 音素级诊断:对读错的词给出"/θ/ 读成了 /s/"式替换诊断 + 发音部位指导(v1.4)。
 - 真实新闻播报域验证 + 长句自动二级切分(v1.3)。
 - 中层 SSL 编码(6–9 层)+ speechocean762 真人评分校准(v1.2)。
@@ -36,7 +36,7 @@ macOS 13+ · Apple Silicon(Intel Mac 暂不支持)· 麦克风权限(首次录�
 
 - 每次启动约 1-3 分钟加载本地引擎(冻结的 torch/模型);界面显示"后端启动中",功能正常,请稍候。
 - 仅 Apple Silicon;暂无 Intel Mac 构建。
-- 模型首次使用时联网下载(~1.7GB),之后离线。
+- 转写模型(whisper base.en)已预装;分析模型(MMS ~1.2GB + 音素 ~2.4GB)在首启后台预下载,之后离线。
 - 未公证:首次打开需右键绕过(见上)。
 
-技术细节见 [CHANGELOG.md](../CHANGELOG.md) 的 v1.5 条目。
+技术细节见 [CHANGELOG.md](../CHANGELOG.md) 的 v1.5 条目(内部里程碑;对应本公开 v0.5.0)。

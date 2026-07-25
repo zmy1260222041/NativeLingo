@@ -2,6 +2,8 @@
 
 NativeLingo 版本演进与技术特点。
 
+> **公开发行版从 v0.5.0 起**(见 GitHub Releases);下文的 v1.x 是公开发行前的内部开发里程碑记录,对应同一份代码。
+
 ## [v1.5] — 2026-07-25 — 首个可分发版(macOS .dmg)
 
 把后端从"开发态 venv"固化为**可分发 `.dmg`**:PyInstaller `--onedir` 冻结 Python 后端(torch/torchaudio/transformers/faster-whisper 全栈)→ 作为 Tauri 资源打包 → ad-hoc 签名 → ULFO 压缩 dmg(**383MB**)。收尾 NFR-2「后端冻结为 sidecar 二进制」工程债。
