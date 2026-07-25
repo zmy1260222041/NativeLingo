@@ -5,8 +5,8 @@ Accuracy  <- per-frame cosine distance along the aligned path (content match).
 Fluency   <- warping-path geometry (timing / rhythm) + speech-rate and pause
              features.
 
-Score mapping (v1.2): the hand-set linear thresholds were the weakest link of
-v1.x, so both mappings are now *calibrated* on speechocean762 (learner audio +
+Score mapping (v0.2): the hand-set linear thresholds were the weakest link of
+v0.x, so both mappings are now *calibrated* on speechocean762 (learner audio +
 human accuracy/fluency scores; references synthesised with macOS `say`):
 
 * accuracy: isotonic regression  mean path cost -> human accuracy (0-100)
@@ -14,7 +14,7 @@ human accuracy/fluency scores; references synthesised with macOS `say`):
             pauses/sec, pause-time ratio] -> human fluency (0-100)
 
 The fitted parameters ship in ``calibration.json`` next to this file. If it is
-absent the code falls back to the v1.1 hand-set transforms (minus the
+absent the code falls back to the v0.1 hand-set transforms (minus the
 rate/fluency double-count, which was removed per the roadmap).
 """
 from __future__ import annotations
@@ -69,7 +69,7 @@ def fluency_from_features(
 ) -> float:
     """Calibrated 0-100 fluency from interpretable timing features.
 
-    v1.1 added a global speech-rate penalty on top of the path-deviation term;
+    v0.1 added a global speech-rate penalty on top of the path-deviation term;
     both measure the same thing (the ideal diagonal already absorbs the global
     rate), so the rate penalty double-counted. The calibrated mapping is a
     monotone isotonic GAM over [path_dev, |log rate ratio|, pause_ratio]:

@@ -1,6 +1,6 @@
 """Quantify the real-voice vs TTS reference gap (PRD NFR-Q1, review R-1 step 1).
 
-v1.2's score calibration was fitted with `say`-synthesised references, but the
+v0.2's score calibration was fitted with `say`-synthesised references, but the
 product's references are real human voices from web videos (news broadcasts —
 FR-M1). This script measures how big that domain shift actually is, in the
 units the calibrator consumes:

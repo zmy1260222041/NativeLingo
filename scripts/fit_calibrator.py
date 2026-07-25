@@ -1,4 +1,4 @@
-"""Fit the score calibrator from the speechocean762 feature set (v1.2).
+"""Fit the score calibrator from the speechocean762 feature set (v0.2).
 
 Two mappings are fitted and written to ``backend/core/calibration.json``:
 

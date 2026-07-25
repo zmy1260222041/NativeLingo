@@ -1,4 +1,4 @@
-"""Build the calibration feature set from speechocean762 (v1.2).
+"""Build the calibration feature set from speechocean762 (v0.2).
 
 speechocean762 gives (learner_audio, text, human accuracy/fluency 0-10) but no
 native reference audio — so we synthesise one per text with macOS `say`

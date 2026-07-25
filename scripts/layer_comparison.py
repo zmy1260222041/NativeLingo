@@ -1,4 +1,4 @@
-"""Empirical layer-selection experiment for the SSL encoder (v1.2).
+"""Empirical layer-selection experiment for the SSL encoder (v0.2).
 
 For each candidate layer configuration we measure, over synthetic `say` audio:
 
@@ -44,7 +44,7 @@ WRONG_TEXTS = [
 VOICES = ["Samantha", "Daniel", "Karen", "Moira"]
 
 CONFIGS: dict[str, tuple[int, ...] | None] = {
-    "last (v1.1 default)": None,
+    "last (v0.1 default)": None,
     "layer 5": (5,),
     "mean 4-8": (4, 5, 6, 7, 8),
     "mean 3-10": (3, 4, 5, 6, 7, 8, 9, 10),

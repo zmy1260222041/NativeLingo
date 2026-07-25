@@ -10,7 +10,7 @@ accuracy and fluency.
 We use wav2vec2 (CTC-pretrained) by default: its hidden states carry strong
 phonetic/content information, which is exactly what we want for accuracy.
 
-Layer choice (v1.2): the default was the final transformer layer, but layer-wise
+Layer choice (v0.2): the default was the final transformer layer, but layer-wise
 analyses of wav2vec2 (Pasad et al. 2021; ABX phonetic-discrimination probes on
 wav2vec2-base-960h) show *middle* layers carry the most phonetically
 discriminative content, while the last layers specialise toward the CTC/char
@@ -42,7 +42,7 @@ FRAME_RATE_HZ = 50.0  # wav2vec2 produces one frame per 20 ms
 # layer L == hidden_states[L]). Layers 6–9: chosen empirically (see module
 # docstring) — best speaker invariance + wrong-text separability; consistent
 # with the literature's "middle layers carry phonetics" finding. A single int
-# also works; None restores the final layer (v1.0/v1.1 behaviour).
+# also works; None restores the final layer (v0.0/v0.1 behaviour).
 DEFAULT_LAYERS: tuple[int, ...] = (6, 7, 8, 9)
 
 
@@ -76,7 +76,7 @@ class SSLEncoder:
     ):
         self.model_name = model_name
         self.device = device or _select_device()
-        if layers is None:  # explicit opt-out: final layer (v1.0/v1.1 behaviour)
+        if layers is None:  # explicit opt-out: final layer (v0.0/v0.1 behaviour)
             self.layers: tuple[int, ...] | None = None
         elif isinstance(layers, int):
             self.layers = (layers,)

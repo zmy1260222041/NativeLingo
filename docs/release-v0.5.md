@@ -28,9 +28,9 @@ macOS 13+ · Apple Silicon(Intel Mac 暂不支持)· 麦克风权限(首次录�
 ## 本版亮点
 
 - **可分发 .dmg**:PyInstaller 冻结全栈后端(torch/torchaudio/transformers/faster-whisper),开箱即用,~545MB(含预装 whisper base.en)。
-- 音素级诊断:对读错的词给出"/θ/ 读成了 /s/"式替换诊断 + 发音部位指导(v1.4)。
-- 真实新闻播报域验证 + 长句自动二级切分(v1.3)。
-- 中层 SSL 编码(6–9 层)+ speechocean762 真人评分校准(v1.2)。
+- 音素级诊断:对读错的词给出"/θ/ 读成了 /s/"式替换诊断 + 发音部位指导(v0.4)。
+- 真实新闻播报域验证 + 长句自动二级切分(v0.3)。
+- 中层 SSL 编码(6–9 层)+ speechocean762 真人评分校准(v0.2)。
 
 ## 已知限制
 
@@ -39,4 +39,4 @@ macOS 13+ · Apple Silicon(Intel Mac 暂不支持)· 麦克风权限(首次录�
 - 转写模型(whisper base.en)已预装;分析模型(MMS ~1.2GB + 音素 ~2.4GB)在首启后台预下载,之后离线。
 - 未公证:首次打开需右键绕过(见上)。
 
-技术细节见 [CHANGELOG.md](../CHANGELOG.md) 的 v1.5 条目(内部里程碑;对应本公开 v0.5.0)。
+技术细节见 [CHANGELOG.md](../CHANGELOG.md) 的 v0.5 条目(内部里程碑;对应本公开 v0.5.0)。

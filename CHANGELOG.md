@@ -2,9 +2,7 @@
 
 NativeLingo 版本演进与技术特点。
 
-> **公开发行版从 v0.5.0 起**(见 GitHub Releases);下文的 v1.x 是公开发行前的内部开发里程碑记录,对应同一份代码。
-
-## [v1.5] — 2026-07-25 — 首个可分发版(macOS .dmg)
+## [v0.5] — 2026-07-25 — 首个可分发版(macOS .dmg)
 
 把后端从"开发态 venv"固化为**可分发 `.dmg`**:PyInstaller `--onedir` 冻结 Python 后端(torch/torchaudio/transformers/faster-whisper 全栈)→ 作为 Tauri 资源打包 → ad-hoc 签名 → ULFO 压缩 dmg(**383MB**)。收尾 NFR-2「后端冻结为 sidecar 二进制」工程债。
 
@@ -42,7 +40,7 @@ NativeLingo 版本演进与技术特点。
 
 ---
 
-## [v1.4] — 2026-07-23 — 音素级替换诊断(FR-11,MDD 轨)
+## [v0.4] — 2026-07-23 — 音素级替换诊断(FR-11,MDD 轨)
 
 反馈从"这个词的重音/时长不对"下探到"这个**音**读错了":对 weak/bad 词给出"/θ/ 读成了 /s/"式替换诊断。
 
@@ -63,7 +61,7 @@ NativeLingo 版本演进与技术特点。
 
 ---
 
-## [v1.3] — 2026-07-23 — 新闻域验证 + 长句二级切分 + 采样级"我的"回放
+## [v0.3] — 2026-07-23 — 新闻域验证 + 长句二级切分 + 采样级"我的"回放
 
 按 `docs/PRD.md` 推进的三件事:新闻域技术链全面验证(FR-M2 解锁)、长句二级切分(FR-M3)、学习者回放采样级精确(FR-8 收尾)。
 
@@ -85,9 +83,9 @@ NativeLingo 版本演进与技术特点。
 
 ---
 
-## [v1.2] — 2026-07-19 — 中层编码 + 数据驱动打分校准
+## [v0.2] — 2026-07-19 — 中层编码 + 数据驱动打分校准
 
-在 v1.1 基线上完成路线图最高优先级的两项:**编码器选层**与**打分校准**,并顺手修掉 fluency 重复计算。打分从"手设阈值"变为"在 speechocean762 真人评分上拟合的映射"。
+在 v0.1 基线上完成路线图最高优先级的两项:**编码器选层**与**打分校准**,并顺手修掉 fluency 重复计算。打分从"手设阈值"变为"在 speechocean762 真人评分上拟合的映射"。
 
 ### 变更 1:SSL 编码器末层 → 中层平均(6–9 层)
 
@@ -95,7 +93,7 @@ NativeLingo 版本演进与技术特点。
 
 | 配置 | 跨声同文 cost↓ | 不变性 gap↓ | 错文区分度↑ |
 |---|---|---|---|
-| 末层(v1.1) | 0.182 | 0.182 | 0.472 |
+| 末层(v0.1) | 0.182 | 0.182 | 0.472 |
 | 第 5 层(文献 ABX 最优) | 0.313 | 0.313 | 0.539 |
 | mean 4–8 / 3–10 | 0.202 / 0.186 | 0.202 / 0.186 | 0.625 / 0.619 |
 | **mean 6–9(采用)** | **0.159** | **0.159** | **0.653** |
@@ -104,12 +102,12 @@ NativeLingo 版本演进与技术特点。
 
 ### 变更 2:打分映射校准(speechocean762 + isotonic)
 
-v1.x 的 `_lin_map`(0.10→100 / 0.55→0)是手猜的,为 README 自评"最弱环节"。v1.2 用 **speechocean762**(Apache-2.0,5000 条真实 L2 朗读 + 人工 accuracy/fluency 分)拟合:
+v0.x 的 `_lin_map`(0.10→100 / 0.55→0)是手猜的,为 README 自评"最弱环节"。v0.2 用 **speechocean762**(Apache-2.0,5000 条真实 L2 朗读 + 人工 accuracy/fluency 分)拟合:
 
 - 参考音频:数据集无原声,用 macOS `say`(Samantha)按文本合成并缓存(`scripts/build_calibration.py`,1500 条,特征落盘 `data/calibration_features.jsonl`);
 - **accuracy**:DTW 平均 cost → 人工 accuracy(0–100)的 **isotonic 回归**;
 - **fluency**:[路径偏离, |log 速率比|, 停顿占比] 三个**单调 isotonic 分量**按 PCC² 加权融合(isotonic GAM)。弃用 OLS:多重共线性下系数符号翻转,外推危险(犹豫朗读者反而加分);GAM 逐特征单调,停顿/偏速永不加分;
-- 拟合参数随代码分发(`backend/core/calibration.json`,8KB);缺失时回退 v1.1 手工映射(但已去掉 rate 双罚)。
+- 拟合参数随代码分发(`backend/core/calibration.json`,8KB);缺失时回退 v0.1 手工映射(但已去掉 rate 双罚)。
 
 **留出验证集(300 条)对比**:
 
@@ -122,7 +120,7 @@ v1.x 的 `_lin_map`(0.10→100 / 0.55→0)是手猜的,为 README 自评"最弱�
 
 ### 变更 3:fluency 去除重复计算
 
-删掉 v1.1 的 `rate_penalty`(路径偏离的理想对角线已吸收全局语速,再罚一次属重复计算),语速与停顿改以特征形式进入 GAM 校准映射。
+删掉 v0.1 的 `rate_penalty`(路径偏离的理想对角线已吸收全局语速,再罚一次属重复计算),语速与停顿改以特征形式进入 GAM 校准映射。
 
 ### 当前版本技术特点(完整栈)
 - **轨道 B(核心打分)**:`ssl_encoder`(wav2vec2-base-960h,**6–9 层平均**,50Hz)→ `speaker_norm`(CMVN)→ `align`(带状 DTW + 余弦)→ `score_b`(**isotonic 校准** accuracy;**isotonic GAM** fluency:路径偏离/速率/停顿)。
@@ -134,7 +132,7 @@ v1.x 的 `_lin_map`(0.10→100 / 0.55→0)是手猜的,为 README 自评"最弱�
 ### 已知限制与未解决问题
 - ⚠️ **校准参考为 TTS 合成声**:校准分布 = 真人学习者 vs 合成参考;产品参考为真人原声,分布略有偏移(同族映射,单调性不受影响)。后续可用真实原声重拟合。
 - ⚠️ **fluency 校准以语速特征为主导**(GAM 权重 0.65):数据集为单句短朗读,句内停顿信号弱;长句/多句场景停顿分量作用会增强。
-- ⚠️ **学习者词回放仍非采样级精确**(前端 timeupdate ~250ms 粒度,见 v1.1)。
+- ⚠️ **学习者词回放仍非采样级精确**(前端 timeupdate ~250ms 粒度,见 v0.1)。
 - ⚠️ **单参考**:未引入相对 DTW(双参考集)。
 - ⚠️ **无音素级诊断**(MDD)。
 - 📈 **下一步优先级**:相对 DTW(双参考集)→ 真实原声重校准 → 音素级 MDD。
@@ -144,9 +142,9 @@ v1.x 的 `_lin_map`(0.10→100 / 0.55→0)是手猜的,为 README 自评"最弱�
 
 ---
 
-## [v1.1] — 2026-07-08 — MMS 强制对齐(词边界)
+## [v0.1] — 2026-07-08 — MMS 强制对齐(词边界)
 
-在 v1.0 基线上,把"词边界"从 faster-whisper 的注意力时间戳换成 torchaudio MMS 强制对齐,修好原声词 / 学习者词回放被截断的问题。
+在 v0.0 基线上,把"词边界"从 faster-whisper 的注意力时间戳换成 torchaudio MMS 强制对齐,修好原声词 / 学习者词回放被截断的问题。
 
 ### 新增 / 变更
 - **`backend/core/forced_align.py`(新)** — torchaudio `MMS_FA`(`ctc_alignment_mling_uroman`,~1.18GB,首次下载到 `~/.cache/torch/hub`)强制对齐封装。`align_words(words, wav) -> [(start,end)|None]`:`model(wav)` 出 emission → `aligner(emission[0], tokenizer(词列表))` → 每词一组 `TokenSpan(token,start,end,score)`,词边界 = 首 `.start` ~ 末 `.end` 帧,秒 = 帧 × ~0.02(~50Hz)。English 无需 uroman。CPU 单例;失败返回 `None` 供调用方回退。
@@ -174,6 +172,6 @@ v1.x 的 `_lin_map`(0.10→100 / 0.55→0)是手猜的,为 README 自评"最弱�
 
 ---
 
-## [v1.0] — 2026-07-04 — 基线
+## [v0.0] — 2026-07-04 — 基线
 
 初始版本。三轨道架构(SSL+DTW 核心 + 韵律 + 规则反馈)、Tauri v2 桌面壳、视频跟读 UX、faster-whisper 句 / 词分割(注意力时间戳)。`test_speaker_invariance`(两个不同嗓音读同一句正确文本必须仍得高分)作为逆向思路(音色被成功剔除)的试金石。
