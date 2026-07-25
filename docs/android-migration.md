@@ -250,4 +250,4 @@ NativeLingoAndroid/
 - [x] **R-7 / Gate C(espeak)PASS** —— int8 全量 303MB,CTC 贪解串精确,余弦 0.9946(`scripts/onnx_gate_bc_spike.py`,`docs/reviews/2026-07-25-android-gate-bc-onnx.md`)。
 - [x] **R-6 / Gate B 算法 PASS**(CtcViterbi JVM 复现 torchaudio ±1 帧);emission int8 导出受阻于 torchaudio `List[int]` 图怪癖,Phase 2 `:core-align` 用 HF 侧 `Wav2Vec2Model` 载重解(CTC 鲁棒,espeak 已证 int8 可过)。
 - [ ] Phase 1 余项(word_diff/feedback)+ R-5/R-6/R-7 设备侧复测 + Gate D(RAM)+ Gate E(Opus)+ Tier 2 SDK。
-- **模型包体落定**:whisper 70MB(int8,打包)+ wav2vec2 95MB(int8 transformer-only)+ espeak 303MB(int8)+ MMS ~45MB(估)= **首启下载 ~440MB**。
+- **模型包体(NFR-4②,修正)**:whisper 70MB(打包)+ wav2vec2 95MB(int8 transformer-only)+ espeak 303MB(int8)+ MMS **~300MB**(实测 ~300M 参数,int8;走 HF 载重导出)= **首启下载 ~700MB**。MMS 比早先估的大(~45MB → ~300MB),但仍属可接受的首启量级。

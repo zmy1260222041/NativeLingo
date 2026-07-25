@@ -39,14 +39,29 @@ GOLDEN = os.path.join(_REPO, "NativeLingoAndroid/core-scoring/src/test/resources
 # ---- MMS (Gate B) ------------------------------------------------------------
 
 class MmsEmission(torch.nn.Module):
-    """Raw-waveform → CTC log-prob emission (1, T, V). MMS does its own
-    feature extraction + normalization internally (forced_align.py feeds raw wav)."""
+    """Inner-submodule export of MMS — bypasses the _Wav2Vec2Model length
+    bookkeeper (prim::ListConstruct → List[int]). Exports cleanly, BUT:
+
+      TODO (Phase 2): the torchaudio _Wav2Vec2Model.forward also does
+      (a) normalize_waveform = F.layer_norm(wav, wav.shape)  [dynamic shape → List[int]]
+      (b) append_star = torch.cat(zeros((1, T, 1)))          [dynamic shape → List[int]]
+      both of which the legacy exporter refuses. They must be externalised to
+      Kotlin (pre-normalize the waveform; append the zero star column after
+      inference). AND int8 on the torchaudio graph doesn't shrink (1204MB → 1204MB)
+      because its ops don't match quantize_dynamic. → The clean path is to load
+      MMS weights into an HF Wav2Vec2Model (same arch as the cleanly-exported +
+      quantizable wav2vec2-base) and re-export; fairseq→HF key mapping is the task.
+      See docs/reviews/2026-07-25-android-gate-bc-onnx.md (Gate B status)."""
     def __init__(self):
         super().__init__()
-        self.model = fa._BUNDLE.get_model().eval()
+        m = fa._BUNDLE.get_model().eval().model
+        self.fe = m.feature_extractor
+        self.enc = m.encoder
+        self.aux = m.aux
     def forward(self, wav):
-        emission, _ = self.model(wav)
-        return emission
+        length = torch.tensor([wav.shape[-1]], dtype=torch.int32)
+        feats, _ = self.fe(wav, length)
+        return self.aux(self.enc(feats))  # V=28, pre-log_softmax/pre-star
 
 
 def export_mms(out_dir):
@@ -59,12 +74,13 @@ def export_mms(out_dir):
                           input_names=["wav"], output_names=["emission"],
                           dynamic_axes={"wav": {0: "batch", 1: "samples"},
                                         "emission": {0: "batch", 1: "time"}})
-    int8 = os.path.join(out_dir, "mms_fa_int8.onnx")
-    quantize_dynamic(fp32, int8, weight_type=QuantType.QInt8)
+    # int8 transformer-only (MatMul/Gemm) — full int8 chokes on the Conv-bias
+    # initializer AND the CNN must stay fp32 anyway (Gate A: feature extractor
+    # is the drift-sensitive part).
     int8_tf = os.path.join(out_dir, "mms_fa_int8_transformer.onnx")
     quantize_dynamic(fp32, int8_tf, weight_type=QuantType.QInt8,
                      op_types_to_quantize=["MatMul", "Gemm"])
-    return fp32, int8, int8_tf
+    return fp32, int8_tf
 
 
 def _word_spans_from_emission(em, words):
@@ -206,11 +222,10 @@ def main():
 
     if "mms" not in args.skip:
         print("== export MMS ==")
-        fp32, int8, int8_tf = export_mms(args.out)
+        fp32, int8_tf = export_mms(args.out)
         print(f"  fp32 {os.path.getsize(fp32)//1024//1024}MB, "
-              f"int8 {os.path.getsize(int8)//1024//1024}MB, "
-              f"int8-tf {os.path.getsize(int8_tf)//1024//1024}MB")
-        eval_mms([("fp32", fp32), ("int8 full", int8), ("int8 transformer-only", int8_tf)], ref_wav)
+              f"int8 transformer-only {os.path.getsize(int8_tf)//1024//1024}MB")
+        eval_mms([("fp32", fp32), ("int8 transformer-only", int8_tf)], ref_wav)
 
     if "espeak" not in args.skip:
         print("\n== export espeak ==")

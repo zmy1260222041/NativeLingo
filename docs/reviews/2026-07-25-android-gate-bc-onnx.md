@@ -16,26 +16,30 @@ espeak-cv-ft(Wav2Vec2ForCTC,HF)导出 ONNX + int8,在 macOS 金标准 `ref_saman
 
 > MDD 完整替换诊断(think→sink)需真实误读音频(`say` 合成不出误读),留 Phase 3 用真机/真实语料复测;此处验的是**模型保真**(canonical 解码 + emission),已过。
 
-## Gate B(MMS,R-6)—— 算法已验,导出待 Phase 2
+## Gate B(MMS,R-6)—— 算法已验,导出有解但需 HF 载重(Phase 2)
 
-- **算法侧已过(JVM)**:`CtcViterbi.kt` 在 `:core-scoring` 复现 torchaudio `get_aligner()` 每字符帧边界 ±1 帧(`CtcViterbiParityTest` 1/1 绿)。即:给定相同 emission,Kotlin Viterbi 与 torchaudio 对齐完全一致。
-- **emission int8 保真:导出受阻,风险低、待 Phase 2**。torchaudio 的 MMS_FA 模型图含 `prim::ListConstruct → List[int]`,legacy ONNX exporter 拒绝(`do_constant_folding=False`、改 opset 均无效);新 Dynamo exporter 会把权重常量折叠(R-5 已证不可用)。
-  - **解法(Phase 2 `:core-align`)**:把 MMS 权重载入 HF `Wav2Vec2Model`(与 facebook/wav2vec2-base-960h 同架构,后者已干净导出),或用 `torch.export` 新路径。属工程实现,非研究风险。
-  - **风险评估**:MMS 是 CTC 强制对齐,对量化漂移鲁棒(余弦小抖动 → Viterbi 路径不变);同族 CTC 的 espeak int8 已 decode-exact 过。预期 MMS int8 ~45MB 同样可过,设备侧 R-6 复测收尾。
+- **算法侧已过(JVM)**:`CtcViterbi.kt` 复现 torchaudio `get_aligner()` 每字符帧边界 ±1 帧。
+- **emission 导出深挖(2026-07-25 补)**:`scripts/onnx_gate_bc_spike.py` 的 `MmsEmission` 走内层子模块(`feature_extractor → encoder → aux`)能干净导出(绕过 `_Wav2Vec2Model` 的 lengths `List[int]`)。但 torchaudio 的 forward 还有两处 dynamic-shape `List[int]`:
+  - `normalize_waveform = F.layer_norm(wav, wav.shape)`(波形 layer_norm,eps 1e-5)。
+  - `append_star = torch.cat(zeros((1, T, 1)))`(补零列,V 28→29)。
+  - 两者都需 **外置到 Kotlin**(预归一化波形 + 推理后补零列),不进 ONNX 图。
+- **关键发现 —— torchaudio 图 int8 不缩体**:对导出的 torchaudio 图跑 `quantize_dynamic(op_types_to_quantize=["MatMul","Gemm"])`,体积 **1204MB → 1204MB 零变化**(其线性层 op 不匹配量化器);全量 int8 又在 Conv-bias 处崩。→ **必须走 HF 载重路径**:把 MMS 权重(fairseq/torchaudio 命名)映射载入 HF `Wav2Vec2Model`(与已干净导出 + 可量化的 wav2vec2-base 同架构),再导出 + int8。键名映射是 Phase 2 `:core-align` 的实打实任务。
+- **包体修正**:MMS_FA 实测 **~300M 参数(fp32 1.2GB)**,非早先估的 ~95M → int8 预期 **~300MB**(非 ~45MB)。
+- **风险评估不变**:MMS 是 CTC 对齐,对漂移鲁棒;espeak int8 decode-exact 已证。emission int8 保真风险低,设备侧 R-6 复测收尾。
 
-## 模型包体预算落定(NFR-4②)
+## 模型包体预算(NFR-4②,修正)
 
 | 模型 | 方案 | 体积 | Gate |
 |---|---|---|---|
-| whisper base.en | int8(随 macOS 包已验) | ~70MB | — |
-| wav2vec2-base-960h(6–9 层) | **int8 仅 transformer**(CNN fp32) | **95MB** | R-5 ✅ |
-| espeak-cv-ft | **int8 全量** | **303MB** | R-7 ✅ |
-| MMS FA | int8(Phase 2 验) | ~45MB(估) | R-6 算法✅/emission 待 |
+| whisper base.en | int8(打包 APK) | ~70MB | — |
+| wav2vec2-base-960h(6–9 层) | int8 仅 transformer | 95MB | R-5 ✅ |
+| espeak-cv-ft | int8 全量 | 303MB | R-7 ✅ |
+| MMS FA | int8(走 HF 载重,Phase 2) | **~300MB**(实测参数量) | R-6 算法✅/emission 待 |
 
-**首启下载总量 ~440MB**(wav2vec2 + espeak + MMS;whisper 打包进 APK ~70MB)。**总包体 ~510MB**,优于初估的 ~530MB,且其中 espeak 可惰性加载、按词批释放(Gate D/R-8 RAM 收尾)。
+**首启下载 ~700MB**(wav2vec2 + espeak + MMS;whisper 打包 ~70MB)。比早先 ~440MB 估高(MMS 比预想大),仍属可接受的首启下载量级(可后台预下载,流程同 macOS `/warmup`);espeak 可惰性加载。
 
 ## 影响
 
-1. 三大模型量化策略落定:SSL= int8 transformer-only、espeak = int8 全量、MMS = int8(待导出解法)。
-2. R-5/R-7 PASS,R-6 算法 PASS + emission 导出列入 Phase 2 任务。
-3. 下一步:Phase 1 收尾(word_diff/feedback)、Tier 2 SDK、Tier 3 模拟器(设备侧 R-5/R-6/R-7 复测 + Gate D RAM + Gate E Opus)。
+1. R-5/R-7 PASS;R-6 算法 PASS,emission 导出方案明确(HF 载重 + normalize/star 外置)。
+2. MMS 包体修正至 ~300MB,首启总量 ~700MB。
+3. 下一步:Phase 1 收尾(word_diff/feedback)、core-align 的 HF 载重实现、Tier 3 模拟器(设备侧复测 + Gate D/E)。
