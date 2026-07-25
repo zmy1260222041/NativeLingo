@@ -2,7 +2,7 @@
   "producer": "scripts/capture_golden.py (macOS gold-standard source)",
   "doc": "docs/android-migration.md",
   "provenance": {
-    "git_head": "b6d06ddf518b92182add4b330d730f71fecbb037",
+    "git_head": "e4fa38b2925bc2bed3f682105e3dfbaf5b44c8e0",
     "sentence": "The quick brown fox jumps over the lazy dog."
   },
   "corpus": [

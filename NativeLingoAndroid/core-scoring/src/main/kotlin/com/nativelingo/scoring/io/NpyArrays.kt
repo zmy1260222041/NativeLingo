@@ -19,3 +19,20 @@ fun NpyArray.frames2d(): Array<FloatArray> {
     }
     return out
 }
+
+/**
+ * 2-D `.npy` payload as a Double frame matrix — for CTC Viterbi (Gate B/C),
+ * which accumulates in float64 to match `phoneme._viterbi_align`.
+ */
+fun NpyArray.frames2dDouble(): Array<DoubleArray> {
+    require(rank() == 2) { "expected a 2-D array, got shape ${shape.toList()}" }
+    val rows = shape[0]
+    val cols = shape[1]
+    val out = Array(rows) { DoubleArray(cols) }
+    var idx = 0
+    for (r in 0 until rows) {
+        val row = out[r]
+        for (c in 0 until cols) row[c] = data[idx++]
+    }
+    return out
+}

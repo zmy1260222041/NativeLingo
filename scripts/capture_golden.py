@@ -194,20 +194,34 @@ def dump_mms(corpus, out_dir):
     spans = aligner(emission[0], tokenizer([cleaned[i] for i in keep_idx]))
     np.save(os.path.join(mms_dir, f"{name}_emission.npy"), em)
     word_spans = []
+    # flat per-char ground truth so the Android CtcViterbi port can be checked
+    # frame-accurately against torchaudio's aligner (Gate B / R-6).
+    char_tokens = []
     for k, gi in enumerate(keep_idx):
         cs = spans[k] if k < len(spans) else None
         if not cs:
             word_spans.append({"word": words[gi], "start": None, "end": None})
             continue
+        cleaned_word = cleaned[gi]
         f0, f1 = int(cs[0].start), int(cs[-1].end)
         word_spans.append({
             "word": words[gi],
             "start": round(f0 * spf, 4),
             "end": round((f1 + 1) * spf, 4),
         })
+        # spans[k] is one TokenSpan per character of the cleaned word, in order
+        for ci, ts in enumerate(cs):
+            char_tokens.append({
+                "word": words[gi],
+                "char": cleaned_word[ci] if ci < len(cleaned_word) else "?",
+                "token_id": int(ts.token),
+                "start_frame": int(ts.start),
+                "end_frame": int(ts.end),
+            })
     with open(os.path.join(mms_dir, f"{name}_spans.json"), "w") as f:
-        json.dump({"spf": spf, "nframes": nframes, "spans": word_spans}, f, indent=2)
-    print(f"  mms {name}: emission {em.shape}, {len(word_spans)} word spans")
+        json.dump({"spf": spf, "nframes": nframes, "blank": 0,
+                   "spans": word_spans, "char_tokens": char_tokens}, f, indent=2)
+    print(f"  mms {name}: emission {em.shape}, {len(word_spans)} words, {len(char_tokens)} chars")
     return True
 
 

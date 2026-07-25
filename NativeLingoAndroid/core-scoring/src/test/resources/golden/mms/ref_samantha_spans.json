@@ -1,6 +1,7 @@
 {
   "spf": 0.020129032258064516,
   "nframes": 124,
+  "blank": 0,
   "spans": [
     {
       "word": "The",
@@ -46,6 +47,253 @@
       "word": "dog",
       "start": 2.1538,
       "end": 2.4557
+    }
+  ],
+  "char_tokens": [
+    {
+      "word": "The",
+      "char": "t",
+      "token_id": 7,
+      "start_frame": 1,
+      "end_frame": 2
+    },
+    {
+      "word": "The",
+      "char": "h",
+      "token_id": 15,
+      "start_frame": 2,
+      "end_frame": 3
+    },
+    {
+      "word": "The",
+      "char": "e",
+      "token_id": 3,
+      "start_frame": 3,
+      "end_frame": 4
+    },
+    {
+      "word": "quick",
+      "char": "q",
+      "token_id": 26,
+      "start_frame": 6,
+      "end_frame": 7
+    },
+    {
+      "word": "quick",
+      "char": "u",
+      "token_id": 6,
+      "start_frame": 9,
+      "end_frame": 10
+    },
+    {
+      "word": "quick",
+      "char": "i",
+      "token_id": 2,
+      "start_frame": 12,
+      "end_frame": 13
+    },
+    {
+      "word": "quick",
+      "char": "c",
+      "token_id": 20,
+      "start_frame": 14,
+      "end_frame": 15
+    },
+    {
+      "word": "quick",
+      "char": "k",
+      "token_id": 11,
+      "start_frame": 16,
+      "end_frame": 17
+    },
+    {
+      "word": "brown",
+      "char": "b",
+      "token_id": 17,
+      "start_frame": 19,
+      "end_frame": 20
+    },
+    {
+      "word": "brown",
+      "char": "r",
+      "token_id": 9,
+      "start_frame": 21,
+      "end_frame": 22
+    },
+    {
+      "word": "brown",
+      "char": "o",
+      "token_id": 5,
+      "start_frame": 24,
+      "end_frame": 25
+    },
+    {
+      "word": "brown",
+      "char": "w",
+      "token_id": 19,
+      "start_frame": 28,
+      "end_frame": 29
+    },
+    {
+      "word": "brown",
+      "char": "n",
+      "token_id": 4,
+      "start_frame": 31,
+      "end_frame": 32
+    },
+    {
+      "word": "fox",
+      "char": "f",
+      "token_id": 24,
+      "start_frame": 36,
+      "end_frame": 37
+    },
+    {
+      "word": "fox",
+      "char": "o",
+      "token_id": 5,
+      "start_frame": 41,
+      "end_frame": 42
+    },
+    {
+      "word": "fox",
+      "char": "x",
+      "token_id": 27,
+      "start_frame": 47,
+      "end_frame": 48
+    },
+    {
+      "word": "jumps",
+      "char": "j",
+      "token_id": 22,
+      "start_frame": 54,
+      "end_frame": 55
+    },
+    {
+      "word": "jumps",
+      "char": "u",
+      "token_id": 6,
+      "start_frame": 58,
+      "end_frame": 59
+    },
+    {
+      "word": "jumps",
+      "char": "m",
+      "token_id": 10,
+      "start_frame": 61,
+      "end_frame": 62
+    },
+    {
+      "word": "jumps",
+      "char": "p",
+      "token_id": 18,
+      "start_frame": 64,
+      "end_frame": 65
+    },
+    {
+      "word": "jumps",
+      "char": "s",
+      "token_id": 8,
+      "start_frame": 67,
+      "end_frame": 68
+    },
+    {
+      "word": "over",
+      "char": "o",
+      "token_id": 5,
+      "start_frame": 71,
+      "end_frame": 72
+    },
+    {
+      "word": "over",
+      "char": "v",
+      "token_id": 21,
+      "start_frame": 76,
+      "end_frame": 77
+    },
+    {
+      "word": "over",
+      "char": "e",
+      "token_id": 3,
+      "start_frame": 78,
+      "end_frame": 79
+    },
+    {
+      "word": "over",
+      "char": "r",
+      "token_id": 9,
+      "start_frame": 79,
+      "end_frame": 81
+    },
+    {
+      "word": "the",
+      "char": "t",
+      "token_id": 7,
+      "start_frame": 83,
+      "end_frame": 84
+    },
+    {
+      "word": "the",
+      "char": "h",
+      "token_id": 15,
+      "start_frame": 84,
+      "end_frame": 85
+    },
+    {
+      "word": "the",
+      "char": "e",
+      "token_id": 3,
+      "start_frame": 86,
+      "end_frame": 87
+    },
+    {
+      "word": "lazy",
+      "char": "l",
+      "token_id": 12,
+      "start_frame": 89,
+      "end_frame": 90
+    },
+    {
+      "word": "lazy",
+      "char": "a",
+      "token_id": 1,
+      "start_frame": 93,
+      "end_frame": 94
+    },
+    {
+      "word": "lazy",
+      "char": "z",
+      "token_id": 23,
+      "start_frame": 98,
+      "end_frame": 99
+    },
+    {
+      "word": "lazy",
+      "char": "y",
+      "token_id": 16,
+      "start_frame": 102,
+      "end_frame": 103
+    },
+    {
+      "word": "dog",
+      "char": "d",
+      "token_id": 13,
+      "start_frame": 107,
+      "end_frame": 108
+    },
+    {
+      "word": "dog",
+      "char": "o",
+      "token_id": 5,
+      "start_frame": 111,
+      "end_frame": 112
+    },
+    {
+      "word": "dog",
+      "char": "g",
+      "token_id": 14,
+      "start_frame": 120,
+      "end_frame": 121
     }
   ]
 }
