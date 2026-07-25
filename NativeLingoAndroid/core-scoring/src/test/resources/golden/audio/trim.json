@@ -1,0 +1,101 @@
+{
+  "top_db": 30.0,
+  "frame_length": 2048,
+  "hop_length": 512,
+  "sr": 16000,
+  "cases": [
+    {
+      "name": "ref_samantha",
+      "n_in": 39936,
+      "start": 0,
+      "end": 39936,
+      "n_out": 39936,
+      "offset_s": 0.0
+    },
+    {
+      "name": "crossvoice_daniel",
+      "n_in": 42500,
+      "start": 0,
+      "end": 42500,
+      "n_out": 42500,
+      "offset_s": 0.0
+    },
+    {
+      "name": "wrongtext_samantha",
+      "n_in": 41984,
+      "start": 0,
+      "end": 41984,
+      "n_out": 41984,
+      "offset_s": 0.0
+    },
+    {
+      "name": "slow_samantha",
+      "n_in": 47616,
+      "start": 0,
+      "end": 47616,
+      "n_out": 47616,
+      "offset_s": 0.0
+    },
+    {
+      "name": "ref_samantha_raw",
+      "n_in": 39946,
+      "start": 0,
+      "end": 39936,
+      "n_out": 39936,
+      "offset_s": 0.0
+    },
+    {
+      "name": "pad_zero",
+      "n_in": 47466,
+      "start": 4096,
+      "end": 44544,
+      "n_out": 40448,
+      "offset_s": 0.256,
+      "lead_samples": 4800
+    },
+    {
+      "name": "pad_below",
+      "n_in": 47466,
+      "start": 4096,
+      "end": 44544,
+      "n_out": 40448,
+      "offset_s": 0.256,
+      "lead_samples": 4800
+    },
+    {
+      "name": "pad_above",
+      "n_in": 47466,
+      "start": 0,
+      "end": 47466,
+      "n_out": 47466,
+      "offset_s": 0.0,
+      "lead_samples": 4800
+    }
+  ],
+  "normalize": [
+    {
+      "label": "loud",
+      "peak_in": 3.0,
+      "peak_out": 1.0,
+      "scaled": true
+    },
+    {
+      "label": "quiet",
+      "peak_in": 0.009999999776482582,
+      "peak_out": 1.0,
+      "scaled": true
+    },
+    {
+      "label": "near_silent",
+      "peak_in": 4.999999987376214e-07,
+      "peak_out": 4.999999987376214e-07,
+      "scaled": false
+    },
+    {
+      "label": "all_zero",
+      "peak_in": 0.0,
+      "peak_out": 0.0,
+      "scaled": false
+    }
+  ]
+}

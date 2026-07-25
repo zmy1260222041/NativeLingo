@@ -2,7 +2,7 @@
   "producer": "scripts/capture_golden.py (macOS gold-standard source)",
   "doc": "docs/android-migration.md",
   "provenance": {
-    "git_head": "6c9f7c28060bf43532a35575efae78443adc8497",
+    "git_head": "c32b7a00a7410459c4cc22544fad57ac81df7603",
     "sentence": "The quick brown fox jumps over the lazy dog."
   },
   "corpus": [
@@ -56,6 +56,7 @@
     "emb": true,
     "pair": true,
     "worddiff": true,
+    "audio": true,
     "mms": true,
     "espeak": true
   },
@@ -65,6 +66,7 @@
     "MMS spans come from torchaudio's get_aligner(); the Android CtcViterbi.kt port must reproduce them within align_frame.",
     "espeak decode is CTC greedy on the raw reference span; int8 must match the greedy string exactly on clean references.",
     "worddiff/<case>_tips.json is the full macOS diagnosis (includes Praat pitch); _tips_nopitch.json is the pitch-free subset the JVM test asserts exactly, since Praat's tracker has no bit-exact JVM equivalent (TarsosDSP YIN differs). _inputs.json carries the word spans + the RMS/stress primitives for element-wise port checking.",
+    "audio/trim.json pins librosa.effects.trim's [start, end] sample indices per case; the Kotlin port must match them EXACTLY (they set both the DTW input and FR-8's learner_offset). pad_above / pad_below straddle the -30dB threshold on purpose — a zero pad is -100dB and agrees under any dB chain, so it proves nothing about amin/ref. audio/clip_pcm16.wav is soundfile's PCM_16 output, byte-comparable against the Kotlin WAV writer.",
     "pair/<name>_problems.json is score_track_b's full result (FR-4 regions are exact-comparable); pair/<name>_feedback.json is the FR-9 rule engine's tip list keyed off those metrics + the Track-A prosody notes (dumped so the port is testable without Praat)."
   ]
 }

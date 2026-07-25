@@ -377,6 +377,131 @@ def dump_word_diff(corpus, out_dir):
     return bool(dumped)
 
 
+def dump_audio_io(corpus, out_dir):
+    """audio_io.py: peak normalise, `librosa.effects.trim`, PCM_16 clip writing.
+
+    Trim is load-bearing rather than cosmetic: it decides what enters the DTW
+    *and* produces `learner_offset`, which FR-8 replay adds back. A boundary
+    bug here shifts every score and every replay span, so the decision is
+    captured explicitly instead of being inferred by diffing the trimmed and
+    untrimmed corpus entries (those are two independent `say` runs — near
+    identical here, but that is luck, not a contract).
+
+    macOS `say` output carries almost no leading silence (trim removes ~10
+    samples), so three synthetic cases are added on top of the real corpus:
+    a zero pad (the real case — record-button latency), and two tone pads
+    placed deliberately either side of the -30 dB threshold. The tone cases are
+    what catch a wrong `amin`/`ref` in the dB chain: with a zero pad every
+    plausible implementation agrees, because silence is -100 dB either way.
+    """
+    import soundfile as sf
+    from librosa.effects import trim as lb_trim
+    from librosa.feature import rms as lb_rms
+    from librosa import amplitude_to_db
+
+    TOP_DB = 30.0            # audio_io.trim_silence default
+    FRAME, HOP = 2048, 512   # librosa.feature.rms defaults, via _signal_to_frame_nonsilent
+
+    a_dir = os.path.join(out_dir, "audio")
+    os.makedirs(a_dir, exist_ok=True)
+
+    def frame_db(wav):
+        r = lb_rms(y=wav, frame_length=FRAME, hop_length=HOP)[..., 0, :]
+        return r, amplitude_to_db(r, ref=np.max, top_db=None)
+
+    def record(name, wav):
+        trimmed, idx = lb_trim(wav, top_db=TOP_DB)
+        np.save(os.path.join(a_dir, f"{name}_in.npy"), wav.astype("float32"))
+        return {
+            "name": name,
+            "n_in": int(wav.size),
+            "start": int(idx[0]),
+            "end": int(idx[1]),
+            "n_out": int(trimmed.size),
+            # trim_silence_with_offset's return value — FR-8 replay adds this back
+            "offset_s": round(float(idx[0]) / TARGET_SR, 6),
+        }
+
+    cases = []
+    for name in [c[0] for c in CORPUS]:
+        cases.append(record(name, corpus[name]))
+
+    # --- synthetic pads on the reference (already peak-normalised, pre-trim) ---
+    speech = corpus["ref_samantha_raw"]
+    max_rms = float(np.max(frame_db(speech)[0]))
+    lead, tail = int(0.30 * TARGET_SR), int(0.17 * TARGET_SR)
+
+    def tone(n, amp, f=200.0):
+        t = np.arange(n, dtype="float64") / TARGET_SR
+        return (amp * np.sin(2 * np.pi * f * t)).astype("float32")
+
+    def at_db(db):
+        """Constant tone whose frame RMS sits `db` below the speech's loudest frame."""
+        return float(max_rms * (10.0 ** (db / 20.0)) * np.sqrt(2.0))
+
+    pads = {
+        # the real-world case: dead-silent lead-in from record-button latency
+        "pad_zero": (np.zeros(lead, "float32"), np.zeros(tail, "float32")),
+        # 4 dB below the threshold -> must be trimmed away
+        "pad_below": (tone(lead, at_db(-TOP_DB - 4.0)), tone(tail, at_db(-TOP_DB - 4.0))),
+        # 4 dB above the threshold -> counts as signal, must be KEPT (start == 0)
+        "pad_above": (tone(lead, at_db(-TOP_DB + 4.0)), tone(tail, at_db(-TOP_DB + 4.0))),
+    }
+    for name, (pre, post) in pads.items():
+        padded = np.concatenate([pre, speech, post]).astype("float32")
+        c = record(name, padded)
+        c["lead_samples"] = int(pre.size)
+        cases.append(c)
+
+    # frame-level intermediates for ONE case, so a failure says which stage broke
+    # (RMS framing vs the dB conversion vs the threshold vs frame->sample).
+    probe = np.concatenate([pads["pad_zero"][0], speech, pads["pad_zero"][1]]).astype("float32")
+    r, db = frame_db(probe)
+    np.save(os.path.join(a_dir, "pad_zero_rms.npy"), r.astype("float32"))
+    np.save(os.path.join(a_dir, "pad_zero_db.npy"), db.astype("float32"))
+
+    # --- peak normalisation (audio_io._normalize) ---
+    from backend.core.audio_io import _normalize
+    norm_cases = []
+    for label, raw in [
+        ("loud", (speech * 3.0).astype("float32")),
+        ("quiet", (speech * 0.01).astype("float32")),
+        # peak <= 1e-6 is left alone rather than amplified — otherwise a silent
+        # take would be blown up to full scale and scored as speech.
+        ("near_silent", np.full(1024, 5e-7, "float32")),
+        ("all_zero", np.zeros(512, "float32")),
+    ]:
+        out = _normalize(raw.copy())
+        np.save(os.path.join(a_dir, f"norm_{label}_in.npy"), raw)
+        np.save(os.path.join(a_dir, f"norm_{label}_out.npy"), out)
+        norm_cases.append({
+            "label": label,
+            "peak_in": float(np.max(np.abs(raw))) if raw.size else 0.0,
+            "peak_out": float(np.max(np.abs(out))) if out.size else 0.0,
+            "scaled": bool(not np.array_equal(raw, out)),
+        })
+
+    with open(os.path.join(a_dir, "trim.json"), "w") as f:
+        json.dump({"top_db": TOP_DB, "frame_length": FRAME, "hop_length": HOP,
+                   "sr": TARGET_SR, "cases": cases, "normalize": norm_cases},
+                  f, indent=2)
+
+    # --- PCM_16 clip writing (FR-8: main.py /clip + /recordings/{id}/clip) ---
+    clip = corpus["ref_samantha"][8000:24000]
+    np.save(os.path.join(a_dir, "clip_in.npy"), clip.astype("float32"))
+    sf.write(os.path.join(a_dir, "clip_pcm16.wav"), clip, TARGET_SR,
+             format="WAV", subtype="PCM_16")
+    # what soundfile reads back — pins the *reader* too (int16 -> float scaling)
+    back, sr_back = sf.read(os.path.join(a_dir, "clip_pcm16.wav"), dtype="float32")
+    assert sr_back == TARGET_SR
+    np.save(os.path.join(a_dir, "clip_roundtrip.npy"), back.astype("float32"))
+
+    print(f"  audio_io: {len(cases)} trim cases, {len(norm_cases)} normalise cases, "
+          f"clip {clip.size} samples -> "
+          f"{os.path.getsize(os.path.join(a_dir, 'clip_pcm16.wav'))} bytes")
+    return True
+
+
 def dump_mms(corpus, out_dir):
     """Layer 2 (Gate B): MMS CTC emission + torchaudio aligner word spans."""
     try:
@@ -502,6 +627,9 @@ def main():
         print("-- word diff (FR-7) --")
         wd_ok = dump_word_diff(corpus, out_dir)
 
+        print("-- audio_io: trim / normalise / PCM_16 clip (FR-3 / FR-8) --")
+        audio_ok = dump_audio_io(corpus, out_dir)
+
         print("-- MMS forced alignment (Layer 2 / Gate B) --")
         mms_ok = dump_mms(corpus, out_dir)
 
@@ -517,7 +645,7 @@ def main():
         "tolerances": TOL,
         "sections": {
             "emb": True, "pair": True, "worddiff": wd_ok,
-            "mms": mms_ok, "espeak": espeak_ok,
+            "audio": audio_ok, "mms": mms_ok, "espeak": espeak_ok,
         },
         "notes": [
             "Embeddings are wav2vec2-base-960h transformer layers 6-9 mean "
@@ -534,6 +662,13 @@ def main():
             "test asserts exactly, since Praat's tracker has no bit-exact JVM "
             "equivalent (TarsosDSP YIN differs). _inputs.json carries the word "
             "spans + the RMS/stress primitives for element-wise port checking.",
+            "audio/trim.json pins librosa.effects.trim's [start, end] sample "
+            "indices per case; the Kotlin port must match them EXACTLY (they "
+            "set both the DTW input and FR-8's learner_offset). pad_above / "
+            "pad_below straddle the -30dB threshold on purpose — a zero pad is "
+            "-100dB and agrees under any dB chain, so it proves nothing about "
+            "amin/ref. audio/clip_pcm16.wav is soundfile's PCM_16 output, "
+            "byte-comparable against the Kotlin WAV writer.",
             "pair/<name>_problems.json is score_track_b's full result (FR-4 "
             "regions are exact-comparable); pair/<name>_feedback.json is the "
             "FR-9 rule engine's tip list keyed off those metrics + the Track-A "
