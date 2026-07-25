@@ -65,7 +65,7 @@ object NpyReader {
                 else -> error("unsupported float dtype f$dtypeBytes")
             }
             'i', 'u' -> when (dtypeBytes) {
-                1 -> repeat(n) { out[it] = payload.get().toInt() and 0xFF.toDouble() }
+                1 -> repeat(n) { out[it] = (payload.get().toInt() and 0xFF).toDouble() }
                 2 -> repeat(n) { out[it] = payload.short.toDouble() }
                 4 -> repeat(n) { out[it] = payload.int.toLong().toDouble() }
                 8 -> repeat(n) { out[it] = payload.long.toDouble() }

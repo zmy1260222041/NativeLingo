@@ -26,7 +26,7 @@ class GoldenBaselineTest {
     @Test
     fun manifest_is_present_and_describes_corpus() {
         val manifest = golden("manifest.json").bufferedReader().use { it.readText() }
-        assertTrue(manifest.contains("speakervariance"), "manifest must list the speaker-invariance pair")
+        assertTrue(manifest.contains("crossvoice_daniel"), "manifest must list the cross-voice (speaker-invariance) corpus entry")
         assertTrue(manifest.contains("tolerances"), "manifest must declare parity tolerances")
     }
 
