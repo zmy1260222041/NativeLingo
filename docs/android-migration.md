@@ -239,5 +239,11 @@ NativeLingoAndroid/
 - [x] PRD 修订至 v0.1(NFR-2 双平台 / NFR-4 移动端 / FR-12 in-scope / §6 Android 映射 / §7 R-5..R-9 计划)。
 - [x] 本迁移文档落地(`docs/android-migration.md`)。
 - [x] macOS 金标准抓取脚本 `scripts/capture_golden.py` —— 已产出 baseline 并提交(说话人不变性 cost **0.1714** ≤0.18,acc 95.0;Gate A/B/C fixture 齐备)。
-- [x] `NativeLingoAndroid/` Gradle 多模块骨架 + `:core-scoring`(NpyReader + golden smoke 测试;算法端口留 Phase 1,在有编译器的环境对齐金标准再写)。
-- [ ] **R-5 / Gate A spike**(下一步:Optimum 导出 wav2vec2-base 6–9 层 + int8 → 设备跑说话人不变性)。
+- [x] `NativeLingoAndroid/` Gradle 多模块骨架 + `:core-scoring`。
+- [x] **本地工具链打通**:JDK 17(openjdk@17)+ Gradle wrapper(8.9);`:core-scoring:test` 在 JVM 跑通。
+- [x] **Phase 1 评分核心移植(JVM 数值对齐验证)**:
+  - Gate A · 成本对齐:`DtwAlign.kt` + `Cmvn.kt` —— 复现 macOS 成本(samevoice 0.0 / 说话人不变性 0.1714 / wrongtext 0.6568,±0.02)。
+  - Gate B · CTC 对齐:`CtcViterbi.kt` —— 手写 CTC 强制对齐复现 torchaudio 每字符帧边界(±1 帧)。
+  - `:core-scoring` 测试 8/8 全绿。
+- [ ] Phase 1 余项:校准映射(cost→accuracy/fluency,对齐 95.0/74.5)、detail 投影、word_diff、feedback。
+- [ ] **R-5 / Gate A on-device spike**(需 Android SDK + Optimum 导出 wav2vec2-base 6–9 层 int8 → 设备跑说话人不变性;JVM 已证算法可移植,此步验 int8 保真)。
