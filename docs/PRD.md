@@ -1,7 +1,9 @@
 # NativeLingo 产品需求文档(PRD)
 
-> 版本:v0.0(2026-07-22)
+> 版本:v0.1(2026-07-25)
 > 状态:已生效。此后所有技术迭代必须能追溯到本文档的需求条目(见 §6 追踪矩阵);新需求先落本文档,再排技术方案。
+>
+> **v0.1 变更(2026-07-25)**:平台扩为 macOS + Android(NFR-2 重写);新增 NFR-4(Android 移动端约束);FR-12 学习记录转 in-scope 并写验收。Android 迁移方案见 `docs/android-migration.md`,Phase-0 符合性评审计划 R-5..R-9 见 §7。
 
 ## 1. 背景与愿景
 
@@ -44,12 +46,13 @@
 | FR-9 | P1 | 教学反馈总结 | 整体档位 + 针对性练习建议;LLM 仅措辞不打分 | ✅ 规则版已实现;LLM hook 预留 |
 | FR-10 | P1 | 反复练习闭环 | 同一素材可重复跟读、重看结果 | ✅ 已实现 |
 | FR-11 | P2 | 音素级诊断 | 能指出"/θ/ 发成了 /s/"级别的替换诊断;宁缺毋滥(不确定时静默) | ✅ 已实现(假设打分式 MDD + 自验证门控,见 CHANGELOG v0.4) |
-| FR-12 | P2 | 学习记录/进度 | 历史成绩、进步曲线 | ⬜ 未实现 |
+| FR-12 | P2 | 学习记录/进度 | 本地存储历史成绩(按素材/句),可看进步曲线;纯端侧,无云 | 🚧 待实现(Android 版起 in-scope,见 `docs/android-migration.md`) |
 
 ## 5. 非功能性需求与约束
 
 - **NFR-1 全本地/离线/隐私**:所有模型本地运行,录音不出设备;sidecar 绑定 127.0.0.1 + 随机 token。
-- **NFR-2 平台**:macOS 桌面(Tauri v2);可分发 `.app`(麦克风权限、后端冻结为 sidecar 二进制为已知工程债)。
+- **NFR-2 平台**:双平台 —— macOS 桌面(Tauri v2,Python sidecar 冻结为二进制)+ **Android 移动端(原生 Kotlin + Jetpack Compose,全端侧推理)**。Android 不复用 Python 后端(PyInstaller/torch 栈在 Android 不可行),改为 4 个模型用 ONNX Runtime Mobile / sherpa-onnx int8 重写实现;迁移方案见 `docs/android-migration.md`。两端共享评分契约与 `calibration.json`/音素表,**macOS 版作为 Android 数值对齐的金标准源**。
+- **NFR-4(Android 移动端约束)**:① 最低 Android 9(API 28+),arm64-v8a;② 全端侧推理,模型 int8 量化后总量 ~460MB(whisper base.en 打包进 APK,余 wav2vec2-base / MMS / espeak-cv-ft 首启后台下载,流程同 macOS `/warmup`);③ 设备 RAM:6GB 设备须能无 OOM 跑完整 `analyze`(espeak-cv-ft 惰性加载、句间释放 session);④ 麦克风权限 `RECORD_AUDIO`,采集用 `AudioSource.UNPROCESSED`(免 AGC/降噪染色,保评分保真);⑤ 数值对齐:Android 端评分须与 macOS 同语料在容差内一致(accuracy ±2.0 / fluency ±3.0 / DTW cost ±0.02),由 R-5 把关。
 - **NFR-3 性能**:单句分析秒级出结果;视频首次转写可后台进行并缓存。
 - **NFR-Q1 评分质量指标**:校准映射留出验证 PCC — accuracy ≥ 0.55(当前 0.60),fluency ≥ 0.40(当前 0.43);说话人不变性测试必须通过。**且校准必须对 FR-M1 的真实人声参考成立**(R-1 已实测验证:真人参考下分数不降反略升;新参考音品类须用 `scripts/ref_swap_experiment.py` 复验)。
 - **已知限制**:MMS 模型体积 1.18GB;首次转写慢(有缓存);超长连续选段(>5 分钟)wav2vec2 编码在 MPS 上有内存风险(P2,待分块编码)。
@@ -68,9 +71,17 @@
 | FR-9 反馈 | `feedback.py` 规则引擎 + `llm_hook` 预留 | ✅ |
 | 单参考依赖 | 当前每条素材仅其视频原声一条参考 | ⚠️ Richter 式相对 DTW 与 FR-M1 冲突 → 见 §7 R-2 |
 
+> **Android 平台映射**:同一张表的需求在 Android 上由对应 Kotlin Gradle 模块满足 —— FR-4/5 → `:core-scoring`,FR-2 → `:core-asr` + `:core-align`,FR-11 → `:core-mdd`,FR-8 → `:app` RecordingsRepository + Media3,FR-12 → `:app` Room。完整需求→模块矩阵见 `docs/android-migration.md`。
+
 ## 7. 技术符合性评审记录
 
 - **R-1(2026-07-22)v0.2 校准使用合成声参考 vs FR-M1** → `docs/reviews/2026-07-22-calibration-ref-fit.md`。结论:**符合,无需校正**——三组实测(LibriSpeech 350 对 / CBS 新闻 62 对 / CMU ARCTIC 母语+L2 置换)表明真人参考下校准分数不降反略升(+0.8~1.9),低分尾更窄;fluency 特征为参考相对量,天然免疫。新参考音品类引入时用 `scripts/ref_swap_experiment.py` 抽查。
 - **R-2(2026-07-22)相对 DTW 参考集 vs FR-M1** → 同上文档。结论:经典相对 DTW 与"任意网络视频"需求冲突,降级;以"多 TTS 声平均"作为符合需求的替代方向。
 - **R-3(2026-07-23)新闻域技术链验证** → `docs/reviews/2026-07-23-news-domain-verification.md`。结论:**4 项全过,FR-M2 解锁**:whisper base.en 够用(跨模型一致 98.3%)、MMS 对齐鲁棒(边界一致 ~10ms)、长句二级切分已落地(FR-M3)、端到端评分行为正常(89/88,零误报)。新发现:长选段 MPS OOM 风险(P2,待修)。
 - **R-4(2026-07-23)音素级 MDD 假设打分式方案 vs FR-11「宁缺毋滥」** → `docs/reviews/2026-07-23-mdd-phoneme-fit.md`。结论:**符合 FR-11**——三重门控(仅 weak/bad 词 + canonical 自验证 gate≤0.05 + 替换增益 margin=0.15)结构性保证精度优先:负样本增益 ≤+0.036、坏 canonical 被门控静默、good 词永不触发;think→sink 增益 +0.332 精准定位 /θ/。召回受参考解码质量上限约束(已知取舍:近亲音对、归因 delete/substitute 偶偏),不违反精度优先验收。
+- **R-5..R-9(计划中,Android Phase-0 spike)**:Android 端侧迁移的 5 个 go/no-go 符合性评审,门控判据与降级方案见 `docs/android-migration.md` §Phase 0:
+  - **R-5**(Gate A)端侧 int8 评分 vs NFR-1(离线)+ NFR-Q1(质量)+ FR-4/5 —— **项目存在性证明**(accuracy ±2.0 / fluency ±3.0 / DTW cost ±0.02,说话人不变性 cost ≤0.18);不过则 fp16 兜底,再不过战略回桌。
+  - **R-6**(Gate B)手写 CTC Viterbi 对齐精度 vs FR-2 / FR-8(每词边界 ≤1 帧/20ms)。
+  - **R-7**(Gate C)音素 MDD int8 门控 vs FR-11「宁缺毋滥」(自拟合增益阈值 int8 下复验)。
+  - **R-8**(Gate D)6GB 设备 RAM 预算 vs NFR-4③(峰值 RSS <3.5GB,20 连续无 OOM)。
+  - **R-9**(Gate E)WebM/Opus 解码保真 vs FR-3(经 FFmpeg-NDK 解码样本误差 ≤1 LSB)。
