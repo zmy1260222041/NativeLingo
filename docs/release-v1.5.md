@@ -4,7 +4,7 @@
 
 ## 下载
 
-`NativeLingo_1.5.0_aarch64.dmg`(约 400MB)
+`NativeLingo_1.5.0_aarch64.dmg`(约 410MB)
 
 ## 安装
 

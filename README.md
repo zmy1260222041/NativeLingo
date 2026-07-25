@@ -79,7 +79,7 @@ scripts/build_dmg.sh
 
 产物:`src-tauri/target/release/bundle/dmg/NativeLingo_<版本>_aarch64.dmg`(~400MB)。
 
-**体积优化(已固化进脚本)**:干净 `.venv-freeze` 冻结(排除 datasets/pyarrow/onnxruntime 等脚本依赖,−260M)、ULFO(LZMA)压缩、从**仅 `.app` 的干净 staging** 成像(避免 Tauri 残留的 `rw.*.dmg` 污染源目录致 3x 虚胖)、**逐文件 ad-hoc 重签**(`codesign --deep` 漏签 PyInstaller 深层 `.so`/`.dylib` 会致无日志崩溃)。曾用 `strip -x` 省体积,但它破坏部分 `.dylib` 签名("Invalid Page")、干净 Mac 启动即崩,已移除。
+**体积优化(已固化进脚本)**:干净 `.venv-freeze` 冻结(排除 datasets/pyarrow 等脚本依赖;**onnxruntime 必留**——faster-whisper VAD 要用)、ULFO(LZMA)压缩、从**仅 `.app` 的干净 staging** 成像(避免 Tauri 残留的 `rw.*.dmg` 污染源目录致 3x 虚胖)、**逐文件 ad-hoc 重签**(`codesign --deep` 漏签 PyInstaller 深层 `.so`/`.dylib` 会致无日志崩溃)。曾用 `strip -x` 省体积,但它破坏部分 `.dylib` 签名("Invalid Page")、干净 Mac 启动即崩,已移除。
 
 **可选:公证**(让用户免右键绕过):设 `DEVELOPER_ID_APPLICATION` 与 `NOTARY_KEYCHAIN_PROFILE` 环境变量后重跑脚本,即自动走签名 + `notarytool` 公证 + `stapler` 装订。
 

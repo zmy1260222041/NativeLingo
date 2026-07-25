@@ -7,7 +7,7 @@ NativeLingo 版本演进与技术特点。
 把后端从"开发态 venv"固化为**可分发 `.dmg`**:PyInstaller `--onedir` 冻结 Python 后端(torch/torchaudio/transformers/faster-whisper 全栈)→ 作为 Tauri 资源打包 → ad-hoc 签名 → ULFO 压缩 dmg(**383MB**)。收尾 NFR-2「后端冻结为 sidecar 二进制」工程债。
 
 ### 方案
-- **`backend/freeze.spec`**:`--onedir`(torch dylib 需目录形态);`collect_all` 覆盖 torch/torchaudio/transformers/faster_whisper/ctranslate2/sklearn/numba/llvmlite;排除 datasets/pyarrow/onnxruntime(脚本依赖,冻结泄漏会虚胖 ~260M);`calibration.json` 显式入 `datas`。
+- **`backend/freeze.spec`**:`--onedir`(torch dylib 需目录形态);`collect_all` 覆盖 torch/torchaudio/transformers/faster_whisper/ctranslate2/sklearn/numba/llvmlite;排除 datasets/pyarrow(脚本依赖);**onnxruntime 必留**(faster-whisper VAD 依赖,误排会让转写报 "Applying the VAD filter requires the onnxruntime package");`calibration.json` 显式入 `datas`。
 - **`requirements-runtime.txt`**:运行时依赖子集(与含校准脚本的 `requirements.txt` 分离),配合干净 `.venv-freeze` 冻结。
 - **`src-tauri/src/main.rs`**:`spawn_backend` 加 bundled 分支——启动 `Resources/resources/nativeLingoBackend/nativeLingoBackend`,注入 `PATH`(给随包 ffmpeg)、`NATIVELINGO_DATA_DIR`(用户数据目录)、stdout/stderr 重定向到日志文件。dev 分支不变。
 - **`backend/core/video.py`**:改用 **PyAV(`av`)** 解码视频/音频(取代 ffmpeg CLI 子进程);`videos_dir` 支持 `NATIVELINGO_DATA_DIR` env(冻结后 `__file__` 失效;dev 向后兼容)。`av` 随 faster-whisper 已在冻结包内 → 干净 Mac 无需额外 ffmpeg 二进制(亦避开 GPL 许可)。
@@ -20,7 +20,7 @@ NativeLingo 版本演进与技术特点。
 4. Tauri 保留 glob 的 `resources/` 前缀 → 后端实际在 `Resources/resources/nativeLingoBackend/`(对齐 main.rs 路径)。
 
 ### 打包要点(固化进 build_dmg.sh)
-- **体积**:干净 venv(砍 datasets/pyarrow/onnxruntime 泄漏 −260M)+ ULFO(LZMA)压缩 + **仅 `.app` 的干净 staging 成像**(Tauri 残留的 `rw.*.dmg` 会让源目录虚胖 3x)→ **398MB**。
+- **体积**:干净 venv(砍 datasets/pyarrow 泄漏)+ ULFO(LZMA)压缩 + **仅 `.app` 的干净 staging 成像**(Tauri 残留的 `rw.*.dmg` 会让源目录虚胖 3x)→ **413MB**(onnxruntime 63M 必留:faster-whisper VAD 依赖)。
 - **不用 strip**:曾用 `strip -x` 省 ~13M,但它破坏部分 `.dylib` 签名("Invalid Page"),干净 Mac(无系统副本可 dlopen 回退)启动即崩——已移除。
 - **签名**:逐文件 ad-hoc 重签(`codesign --deep` 漏签 PyInstaller 深层 `.so`/`.dylib` → arm64 无日志崩溃)。
 - **PyAV 取代 ffmpeg**:`video.py` 用已捆绑的 `av` 解码,无需额外 ffmpeg 二进制。

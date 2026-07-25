@@ -58,14 +58,14 @@ a = Analysis(
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],
-    # NOTE: sklearn is NOT excluded — librosa imports it at runtime. pyarrow /
-    # onnxruntime are pure leakage when freezing from a venv that also holds the
-    # calibration scripts (datasets -> pyarrow); they bloat the bundle by ~260MB
-    # and the app never imports them. (Freezing from a clean .venv-freeze with
-    # only requirements-runtime.txt removes them at the source; this is backup.)
+    # NOTE: sklearn is NOT excluded — librosa imports it at runtime. onnxruntime
+    # is NOT excluded either — faster-whisper's VAD (vad_filter=True, see
+    # transcribe.py) needs it; excluding it makes transcription fail with
+    # "Applying the VAD filter requires the onnxruntime package". Only the
+    # genuinely scripts-only / never-imported deps stay out.
     excludes=[
         "datasets", "torchcodec",
-        "pyarrow", "arrow", "onnxruntime",
+        "pyarrow", "arrow",
         "pytest", "matplotlib", "pandas", "IPython",
     ],
     noarchive=False,
