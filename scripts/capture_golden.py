@@ -143,9 +143,13 @@ def dump_pairs(encoder, corpus, out_dir):
 
 
 def dump_paths(encoder, corpus, out_dir):
-    """Dump the raw DTW path + per-step costs (the Gate A numerical truth)."""
+    """Dump the raw DTW path + per-step costs (Gate A truth), the fluency inputs,
+    and the per-word detail projection (FR-6) for each pair."""
     from backend.core.speaker_norm import normalize_pair
     from backend.core.align import dtw_align
+    from backend.core.prosody import extract_prosody
+    from backend.core.detail import compute_word_details
+    from backend.core import forced_align as fa
 
     pair_dir = os.path.join(out_dir, "pair")
     pairs = [
@@ -154,6 +158,19 @@ def dump_paths(encoder, corpus, out_dir):
         ("wrongtext", "ref_samantha", "wrongtext_samantha"),
         ("slow", "ref_samantha", "slow_samantha"),
     ]
+
+    # reference word boundaries (clip-relative seconds) via MMS — same for every
+    # pair (reference is always ref_samantha, already trimmed).
+    ref_words: list[dict] = []
+    if fa.is_available():
+        names = SENTENCE.rstrip(".").split()
+        spans = fa.align_words(names, corpus["ref_samantha"])
+        if spans:
+            ref_words = [
+                {"word": w, "start": sp[0], "end": sp[1]}
+                for w, sp in zip(names, spans) if sp
+            ]
+
     for pname, ref_k, lrn_k in pairs:
         ref_emb = encoder.encode(corpus[ref_k])
         lrn_emb = encoder.encode(corpus[lrn_k])
@@ -162,9 +179,7 @@ def dump_paths(encoder, corpus, out_dir):
         np.save(os.path.join(pair_dir, f"{pname}_path.npy"), dtw.path)
         np.save(os.path.join(pair_dir, f"{pname}_costs.npy"), dtw.path_costs)
 
-        # fluency inputs (Gate A · Layer 1): prosody pause features + lengths, so
-        # the ported score_fluency can be checked end-to-end (path already dumped).
-        from backend.core.prosody import extract_prosody
+        # fluency inputs (Gate A · Layer 1): prosody pause features + lengths.
         prosody = extract_prosody(corpus[lrn_k])
         dur = max(prosody.duration_s, 1e-3)
         with open(os.path.join(pair_dir, f"{pname}_fluency.json"), "w") as f:
@@ -174,6 +189,19 @@ def dump_paths(encoder, corpus, out_dir):
                 "pause_per_s": prosody.num_pauses / dur,
                 "pause_ratio": prosody.total_pause_s / dur,
             }, f, indent=2)
+
+        # per-word detail (FR-6): project DTW path onto the reference word grid.
+        if ref_words:
+            details = compute_word_details(dtw, ref_words)
+            with open(os.path.join(pair_dir, f"{pname}_detail.json"), "w") as f:
+                json.dump({
+                    "words": [
+                        {"word": d.word, "start": d.start, "end": d.end,
+                         "accuracy": d.accuracy, "status": d.status}
+                        for d in details
+                    ],
+                }, f, indent=2)
+            print(f"  detail {pname}: {len(details)} words")
 
 
 def dump_mms(corpus, out_dir):

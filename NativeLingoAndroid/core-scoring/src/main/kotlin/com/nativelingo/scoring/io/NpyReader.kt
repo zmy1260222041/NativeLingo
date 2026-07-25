@@ -91,7 +91,8 @@ object NpyReader {
         val body = SHAPE_RE.find(header)?.groupValues?.get(1)?.trim()
             ?: error("no shape in .npy header")
         if (body.isEmpty()) return IntArray(0) // scalar
-        return body.split(',').map { it.trim().toInt() }.toIntArray()
+        return body.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+            .map { it.toInt() }.toIntArray()
     }
 
     private fun parseDtype(header: String): Triple<Char, Int, Char> {

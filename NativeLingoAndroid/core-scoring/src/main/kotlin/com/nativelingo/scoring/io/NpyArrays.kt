@@ -50,3 +50,9 @@ fun NpyArray.frames2dInt(): Array<IntArray> {
     }
     return out
 }
+
+/** 1-D `.npy` payload as a FloatArray — e.g. DTW per-step costs. */
+fun NpyArray.toFloatArray1d(): FloatArray {
+    require(rank() == 1) { "expected a 1-D array, got shape ${shape.toList()}" }
+    return FloatArray(size) { data[it].toFloat() }
+}

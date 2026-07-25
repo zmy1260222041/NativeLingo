@@ -1,0 +1,67 @@
+{
+  "words": [
+    {
+      "word": "The",
+      "start": 0.02,
+      "end": 0.101,
+      "accuracy": 84.0,
+      "status": "good"
+    },
+    {
+      "word": "quick",
+      "start": 0.121,
+      "end": 0.362,
+      "accuracy": 68.9,
+      "status": "weak"
+    },
+    {
+      "word": "brown",
+      "start": 0.382,
+      "end": 0.664,
+      "accuracy": 41.7,
+      "status": "bad"
+    },
+    {
+      "word": "fox",
+      "start": 0.725,
+      "end": 0.986,
+      "accuracy": 65.2,
+      "status": "weak"
+    },
+    {
+      "word": "jumps",
+      "start": 1.087,
+      "end": 1.389,
+      "accuracy": 76.4,
+      "status": "good"
+    },
+    {
+      "word": "over",
+      "start": 1.429,
+      "end": 1.651,
+      "accuracy": 84.0,
+      "status": "good"
+    },
+    {
+      "word": "the",
+      "start": 1.671,
+      "end": 1.771,
+      "accuracy": 89.1,
+      "status": "good"
+    },
+    {
+      "word": "lazy",
+      "start": 1.791,
+      "end": 2.093,
+      "accuracy": 84.0,
+      "status": "good"
+    },
+    {
+      "word": "dog",
+      "start": 2.154,
+      "end": 2.456,
+      "accuracy": 65.2,
+      "status": "weak"
+    }
+  ]
+}
