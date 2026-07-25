@@ -162,6 +162,19 @@ def dump_paths(encoder, corpus, out_dir):
         np.save(os.path.join(pair_dir, f"{pname}_path.npy"), dtw.path)
         np.save(os.path.join(pair_dir, f"{pname}_costs.npy"), dtw.path_costs)
 
+        # fluency inputs (Gate A · Layer 1): prosody pause features + lengths, so
+        # the ported score_fluency can be checked end-to-end (path already dumped).
+        from backend.core.prosody import extract_prosody
+        prosody = extract_prosody(corpus[lrn_k])
+        dur = max(prosody.duration_s, 1e-3)
+        with open(os.path.join(pair_dir, f"{pname}_fluency.json"), "w") as f:
+            json.dump({
+                "ref_len": int(ref_emb.shape[0]),
+                "learner_len": int(lrn_emb.shape[0]),
+                "pause_per_s": prosody.num_pauses / dur,
+                "pause_ratio": prosody.total_pause_s / dur,
+            }, f, indent=2)
+
 
 def dump_mms(corpus, out_dir):
     """Layer 2 (Gate B): MMS CTC emission + torchaudio aligner word spans."""

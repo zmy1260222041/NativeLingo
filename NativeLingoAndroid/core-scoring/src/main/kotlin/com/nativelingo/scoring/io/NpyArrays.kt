@@ -36,3 +36,17 @@ fun NpyArray.frames2dDouble(): Array<DoubleArray> {
     }
     return out
 }
+
+/** 2-D `.npy` payload as an Int matrix — e.g. a DTW alignment path (K, 2). */
+fun NpyArray.frames2dInt(): Array<IntArray> {
+    require(rank() == 2) { "expected a 2-D array, got shape ${shape.toList()}" }
+    val rows = shape[0]
+    val cols = shape[1]
+    val out = Array(rows) { IntArray(cols) }
+    var idx = 0
+    for (r in 0 until rows) {
+        val row = out[r]
+        for (c in 0 until cols) row[c] = data[idx++].toInt()
+    }
+    return out
+}
