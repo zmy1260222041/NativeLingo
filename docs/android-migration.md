@@ -246,4 +246,5 @@ NativeLingoAndroid/
   - Gate B · CTC 对齐:`CtcViterbi.kt` —— 手写 CTC 强制对齐复现 torchaudio 每字符帧边界(±1 帧)。
   - `:core-scoring` 测试 8/8 全绿。
 - [ ] Phase 1 余项:校准映射(cost→accuracy/fluency,对齐 95.0/74.5)、detail 投影、word_diff、feedback。
-- [ ] **R-5 / Gate A on-device spike**(需 Android SDK + Optimum 导出 wav2vec2-base 6–9 层 int8 → 设备跑说话人不变性;JVM 已证算法可移植,此步验 int8 保真)。
+- [x] **R-5 / Gate A(Python 侧)PASS** —— `scripts/onnx_export_spike.py` 证:int8 仅 transformer(CNN 留 fp32,95MB)守住说话人不变性(cost 0.1773 ≤ 0.18,acc 95.0);全量 int8 失效(cost 0.2789)。SSL 编码器定为此策略,fp16(139MB)兜底。详见 `docs/reviews/2026-07-25-android-gate-a-onnx-int8.md`。
+- [ ] R-5 设备侧复测 + Gate B/C(MMS/espeak int8 保真)+ Phase 1 余项(word_diff/feedback)。

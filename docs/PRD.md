@@ -80,7 +80,7 @@
 - **R-3(2026-07-23)新闻域技术链验证** → `docs/reviews/2026-07-23-news-domain-verification.md`。结论:**4 项全过,FR-M2 解锁**:whisper base.en 够用(跨模型一致 98.3%)、MMS 对齐鲁棒(边界一致 ~10ms)、长句二级切分已落地(FR-M3)、端到端评分行为正常(89/88,零误报)。新发现:长选段 MPS OOM 风险(P2,待修)。
 - **R-4(2026-07-23)音素级 MDD 假设打分式方案 vs FR-11「宁缺毋滥」** → `docs/reviews/2026-07-23-mdd-phoneme-fit.md`。结论:**符合 FR-11**——三重门控(仅 weak/bad 词 + canonical 自验证 gate≤0.05 + 替换增益 margin=0.15)结构性保证精度优先:负样本增益 ≤+0.036、坏 canonical 被门控静默、good 词永不触发;think→sink 增益 +0.332 精准定位 /θ/。召回受参考解码质量上限约束(已知取舍:近亲音对、归因 delete/substitute 偶偏),不违反精度优先验收。
 - **R-5..R-9(计划中,Android Phase-0 spike)**:Android 端侧迁移的 5 个 go/no-go 符合性评审,门控判据与降级方案见 `docs/android-migration.md` §Phase 0:
-  - **R-5**(Gate A)端侧 int8 评分 vs NFR-1(离线)+ NFR-Q1(质量)+ FR-4/5 —— **项目存在性证明**(accuracy ±2.0 / fluency ±3.0 / DTW cost ±0.02,说话人不变性 cost ≤0.18);不过则 fp16 兜底,再不过战略回桌。
+  - **R-5**(Gate A)端侧 int8 评分 vs NFR-1(离线)+ NFR-Q1(质量)+ FR-4/5 —— **项目存在性证明**。✅ **Python 侧已过(2026-07-25)**:int8 仅 transformer(CNN 留 fp32,95MB)守住说话人不变性(cost 0.1773 ≤ 0.18,acc 95.0);全量 int8 失效。SSL 编码器据此策略,fp16 兜底。详见 `docs/reviews/2026-07-25-android-gate-a-onnx-int8.md`;设备侧复测待 Tier 2/3。
   - **R-6**(Gate B)手写 CTC Viterbi 对齐精度 vs FR-2 / FR-8(每词边界 ≤1 帧/20ms)。
   - **R-7**(Gate C)音素 MDD int8 门控 vs FR-11「宁缺毋滥」(自拟合增益阈值 int8 下复验)。
   - **R-8**(Gate D)6GB 设备 RAM 预算 vs NFR-4③(峰值 RSS <3.5GB,20 连续无 OOM)。
