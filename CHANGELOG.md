@@ -11,6 +11,7 @@ NativeLingo 版本演进与技术特点。
 - **`requirements-runtime.txt`**:运行时依赖子集(与含校准脚本的 `requirements.txt` 分离),配合干净 `.venv-freeze` 冻结。
 - **`src-tauri/src/main.rs`**:`spawn_backend` 加 bundled 分支——启动 `Resources/resources/nativeLingoBackend/nativeLingoBackend`,注入 `PATH`(给随包 ffmpeg)、`NATIVELINGO_DATA_DIR`(用户数据目录)、stdout/stderr 重定向到日志文件。dev 分支不变。
 - **`backend/core/video.py`**:改用 **PyAV(`av`)** 解码视频/音频(取代 ffmpeg CLI 子进程);`videos_dir` 支持 `NATIVELINGO_DATA_DIR` env(冻结后 `__file__` 失效;dev 向后兼容)。`av` 随 faster-whisper 已在冻结包内 → 干净 Mac 无需额外 ffmpeg 二进制(亦避开 GPL 许可)。
+- **`backend/core/warmup.py`(新)**:首启后台线程预下载重型分析模型(MMS ~1.2GB + 音素 ~2.4GB),`GET /warmup` 暴露进度,前端轮询显示"预下载分析模型(MMS/音素)…"而非盲等;analyze 时若未就绪则提示"首次需下载模型"。whisper base.en 已预装,转写免下载。
 - **`scripts/build_dmg.sh`**:A 冻结 → B 暂存 + strip → C `tauri build --bundles app` → D ad-hoc(或 Developer ID)签名 → E hdiutil ULFO dmg → F 可选公证装订。
 
 ### spike 发现并修复的冻结缺口

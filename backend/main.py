@@ -37,7 +37,20 @@ from backend.core.pipeline import analyze_full, analyze_detailed, get_encoder
 from backend.core import video as videomod
 from backend.core.transcribe import transcribe_sentences
 
-app = FastAPI(title="NativeLingo Backend", version="0.1.0")
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def _lifespan(_app):
+    # Prefetch the heavy analysis models (MMS ~1.2GB + phoneme ~2.4GB) in the
+    # background so the first /analyze_video doesn't block on download. Progress
+    # is exposed via /warmup. Best-effort; analyze still works if it fails.
+    from backend.core import warmup
+    warmup.start()
+    yield
+
+
+app = FastAPI(title="NativeLingo Backend", version="0.1.0", lifespan=_lifespan)
 
 # Tauri webview origins; tightened since the API is local-only anyway.
 app.add_middleware(
@@ -86,6 +99,14 @@ def _decode_upload(raw: bytes) -> np.ndarray:
 @app.get("/health")
 def health():
     return {"status": "ok", "model_loaded": get_encoder() is not None}
+
+
+@app.get("/warmup")
+def warmup():
+    """Analysis-model prefetch progress (MMS + phoneme downloaded in the
+    background at startup so the first /analyze_video isn't a multi-GB wait)."""
+    from backend.core import warmup as _warmup
+    return _warmup.status()
 
 
 @app.post("/clientlog")

@@ -19,7 +19,7 @@
 3. **首次打开**(应用未公证,Gatekeeper 会提示一次,二选一,仅一次):
    - 访达里**右键 NativeLingo → 打开 → 确认**(最简单);或
    - 终端:`xattr -dr com.apple.quarantine /Applications/NativeLingo.app`
-4. **转写模型(whisper base.en)已预装**——选视频转写无需联网。**首次「分析发音」**会按需下载对齐/音素模型(MMS 强制对齐 ~1.2GB;若词被判弱/错再加音素 CTC ~2.4GB),之后**完全离线**。应用**每次启动**需约 1-3 分钟加载本地引擎,属正常。
+4. **转写模型(whisper base.en)已预装**——选视频转写无需联网。分析所需的对齐/音素模型(MMS ~1.2GB + 音素 ~2.4GB)在**应用启动后后台预下载**并显示进度(通常选片+跟读时就下完),之后**完全离线**。应用**每次启动**需约 1-3 分钟加载本地引擎,属正常。
 5. **素材**:把你的英语视频(新闻播报、演讲、访谈等)放入 `~/Library/Application Support/com.nativelingo.app/videos/`,应用内即可选片跟读。
 
 **系统要求**:macOS 13+(Apple Silicon;Intel Mac 暂不支持)。麦克风权限在首次录音时授权。

@@ -48,6 +48,27 @@ async function checkBackend() {
   return false;
 }
 
+// Background prefetch of the heavy analysis models (MMS + phoneme). The backend
+// downloads them at startup so the first 分析 isn't a multi-GB blind wait; this
+// polls /warmup and surfaces the stage. Polling stops once everything is ready.
+let warmupState = null;
+const _WARMUP_LABEL = { encoder: "编码器", mms: "MMS 对齐 ~1.2GB", phoneme: "音素 ~2.4GB" };
+async function pollWarmup() {
+  try {
+    warmupState = await (await fetch(`${BACKEND_URL}/warmup`)).json();
+  } catch (_) { return; }
+  if (!warmupState) return;
+  const st = $("backend-status");
+  if (warmupState.stage === "done") {
+    st.textContent = "后端就绪 · 分析模型就绪";
+    st.className = "status status-ok";
+    return;
+  }
+  st.textContent = `后端就绪 · 预下载分析模型(${_WARMUP_LABEL[warmupState.stage] || warmupState.stage})…`;
+  st.className = "status status-pending";
+  setTimeout(pollWarmup, 3000);
+}
+
 // =====================================================================
 // Mode switching
 // =====================================================================
@@ -446,7 +467,9 @@ $("shadow-analyze-btn").addEventListener("click", async () => {
   const statusEl = $("shadow-analyze-status");
   const btn = $("shadow-analyze-btn");
   btn.disabled = true;
-  statusEl.textContent = "分析中,请稍候…";
+  statusEl.textContent = (warmupState && warmupState.stage !== "done")
+    ? `首次需下载分析模型(预拉中:${warmupState.stage}),请稍候…`
+    : "分析中,请稍候…";
   const st = videoState;
   const end = st.rangeEnd !== null ? st.rangeEnd : st.rangeStart;
   const form = new FormData();
@@ -735,6 +758,7 @@ async function init() {
   }
   $("record-btn").disabled = false;
   loadVideoList();
+  pollWarmup();
 }
 
 init();
