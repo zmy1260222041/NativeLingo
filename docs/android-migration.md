@@ -67,7 +67,7 @@ NativeLingo 当前是 macOS Tauri v2 + Python FastAPI sidecar(v0.5 已发布)。
 
 | 决策 | 选型 | 关键依据 / 发现 |
 |---|---|---|
-| Whisper 转写+VAD | **sherpa-onnx Android AAR**(`OfflineRecognizer` + Silero VAD) | 预编译 AAR、JNI 已通、arm64-v8a/armeabi-v7a 二进制俱全。**发现⑤**:Whisper 词时间戳不可靠(`forced_align.py` 注释明示会切尾/塌缩短词)→ Whisper 仅出**转写文本 + VAD**,词边界一律走 MMS 对齐,与 macOS 同构 |
+| Whisper 转写+VAD | **sherpa-onnx Android AAR**;参考路径走 **Whisper 长音频循环**(29s 窗 + `enable_segment_timestamps` 推进游标),Silero VAD 只用于学习者录音与"有无人声" | 预编译 AAR、JNI 已通、arm64-v8a/armeabi-v7a 二进制俱全。**发现⑤**:Whisper 词时间戳不可靠(`forced_align.py` 注释明示会切尾/塌缩短词)→ Whisper 仅出**转写文本**,词边界一律走 MMS 对齐,与 macOS 同构。**发现⑥(R-10 实测修正本行)**:离线 Whisper 一次最多吃 30s,长音频必须自己切;**按 VAD 切是三种策略里最差的** —— VAD 在句中下刀,Whisper 给每个切口加标点,凭空多出假句末(标点分歧 3.17%、练习单元 172 vs 159)。改用 Whisper 自己的长音频循环后减半(WER 5.56%→3.14%、标点→1.01%)。详见 `docs/reviews/2026-07-26-android-gate-f-asr-text.md` |
 | 强制对齐(MMS CTC) | **ONNX Mobile + 手写 Kotlin CTC Viterbi** | **发现①**:sherpa-onnx **不提供**强制对齐(Issue #3536 仍 open,无 PR)。torchaudio 的 `get_aligner()` 是教科书级 CTC Viterbi(~100 行),算法已逐行捕获(见 §5) |
 | SSL 编码器(wav2vec2-base-960h, 6–9 层) | **ONNX Mobile,自定义导出 4 个 hidden-state 输出节点** | **发现④**:`output_hidden_states=True` 不会让 Optimum 默认导出中间层 → 必须 Optimum 导出后用 `onnx` 库把第 6–9 个 transformer block 的残差 `Add` 输出节点标为 graph output 再导出 |
 | 音素 MDD(espeak-cv-ft) | **ONNX Mobile,动态 int8(318MB),惰性加载** | **发现③**:PyTorch ckpt ~2.4GB,但 `onnx-community/wav2vec2-lv-60-espeak-cv-ft-ONNX` 动态 int8 = **318MB**(fp32 1.26GB)。可载入 6GB 手机但 RAM 紧张 → 按词批惰性加载、句间释放 session |
@@ -171,13 +171,15 @@ best_sub_gain(em, ids, chars, vocab, pad):
 
 ## 7. Phase 0 — 风险 spike 门(go/no-go,先过完才动其他)
 
-仿 macOS freeze-spike 门模式。5 个 make-or-break 风险,按序验证(每门即一份 fit-review,落 `docs/reviews/`,延续 R-1..R-4 编号):
+仿 macOS freeze-spike 门模式。5 个 make-or-break 风险,按序验证(每门即一份 fit-review,落 `docs/reviews/`,延续 R-1..R-4 编号)。**R-10 / Gate F 是实施中补的第六道**,原计划没有它 —— 见本节末。
 
 - **R-5 / Gate A —— int8 下数值评分对齐(最高风险,项目存在性证明):** 导出 wav2vec2-base(6–9 层)+ int8 → Android ONNX,同一对 ref/learner 走 macOS PyTorch 与 Android,**accuracy ±2.0 / fluency ±3.0 / DTW cost ±0.02**,跨嗓音 `test_speaker_invariance` cost ≤0.18。**No-go 兜底:** int8 若破坏说话人不变性 → 退 **fp16**(~190MB);再不行 → 端侧全功能前提失败,须战略回桌。
 - **R-6 / Gate B —— Viterbi 正确性:** 手写 `CtcViterbi.kt`,同一 MMS emission 走 torchaudio 与 Kotlin,每词 `[start,end]` 误差 ≤1 帧(20ms)。
 - **R-7 / Gate C —— 音素 MDD 自拟合门控 int8 下仍成立:** espeak int8(318MB)重跑 think/sink 套件,canonical 自拟合 ≤0.04、垃圾 ≥0.09;若 int8 压缩增益域致误过门 → 设备上重调 `0.05`/`0.15`(数据在 `backend/tests/`)或退 fp16(635MB)。
 - **R-8 / Gate D —— 6GB 设备 RAM 预算:** Pixel 4a 级设备全流程 `analyze` 30s 片段,峰值 RSS <3.5GB、20 连续无 OOM。兜底:espeak 按词批惰性 `OrtSession.close()`;仍紧 → MDD 按 `ActivityManager.MemoryInfo` 在低内存设备降级。
 - **R-9 / Gate E —— Opus 解码对齐:** WebM/Opus blob 经 FFmpeg-NDK 解码 vs macOS `ffmpeg -ar 16000 -ac 1 -f f32le`,样本误差 ≤1 LSB。
+
+- **R-10 / Gate F —— 转写文本分歧(实施中新增,原计划漏掉):** 原计划把 ASR 当"输出格式对齐"的中风险机械活(§6),漏了一条:**FR-2/FR-M3 按 `[.!?]` 切句,少一个句号就把两个练习单元合成一个,即使每个词都对** —— 标准 ASR 评测剥掉标点,给不出这个数。判据(实测后定,如实标注):归一化 WER ≤5%、**仅在两侧词相同处**统计的终止标点分歧 ≤2%、练习单元数 ±5%。**实测 PASS**:3.14% / 1.01% / 162 vs 159。**判据不是文本相等** —— 两个 int8 base.en 解码器的分歧不可消除(fp32 只买回 0.11pp),但它不改变分数(分数是学习者与*同一段*参考音频的比较)。详见 `docs/reviews/2026-07-26-android-gate-f-asr-text.md`。
 
 **Gate A+B 是生死对。A 连 fp16 都失败 → "端侧全功能"不可达,须在投入更多前降级到"准确度/流畅度/word-diff、不含音素 MDD"。**
 
@@ -275,5 +277,12 @@ NativeLingoAndroid/
   - **金标准不是合成的,是真的**:`videos/7.1.sentences.json` 里那份缓存转写(**1944 词 → 164 句**)被反向拆回词序列作为输入 —— 因为 `emit` 原样透传词,把缓存里各句的词拼起来恰好就是当初喂给 merge 的输入,capture 脚本内部断言"重跑 merge 能逐字节复现缓存"来证明这一点。它一次性覆盖 62 次切分(47 标点 / 12 连词 / **4 次中点并列** / 3 次放弃),以及 whisper 真实吐出的脏 token(`long -considered`、前导连字符、引号收尾)。合成用例(15 条)是在**先给 Python 函数打桩量过分支覆盖**之后补的,只补语料没覆盖到的分支,不重复。
   - **三个新的 Python↔Kotlin 陷阱(全部与直觉相反,已测试锁死)**:① `round(x, 3)` 是对**二进制精确值**四舍六入五成双 → 忠实写法是 `BigDecimal(x).setScale(3, HALF_EVEN)`;两个顺手会写的形式(`Math.round(x*1000)/1000.0`、`"%.3f"`)都是五入,对 0.0625 给 0.063 而 Python 给 0.062。**40 万随机值找不出一处分歧** —— 只有二进制精确的并列值才能区分,所以随机测试在这里等于没测。② Java 的 `$` 在结尾的 `\r`/`\u0085`/`\u2028`/`\u2029` 前也匹配,Python 只在 `\n` 前 → 两个正则加内联 `(?d)`(UNIX_LINES),否则 `".`\u2028`"` 结尾的 token 在 Android 断句、在 macOS 不断。③ Python `str.isspace()` 认 **29 个 BMP 码点**,Java 三种说法没有一种吻合:`isWhitespace()` 特意排除不换行空格(`\xa0`/`\u2007`/`\u202f`),`isSpaceChar()` 排除制表/换行,NEL(`\u0085`)两者都不认 → 谓词取 `isWhitespace() || isSpaceChar() || =='`\u0085`'`,并**在全 65536 码点上双向比对** Python 实测集合,而不是相信这个并集。
   - **两条路径的不对称是刻意的,且被双向断言**:参考路径切,学习者路径(`_merge_into_sentences`)不切 —— 学习者录的就是他选的那一句,按*他自己*的从句结构再切会破坏与参考块的 1:1 对应。测试对同一超长词表同时断言"学习者=1 句"和"参考>1 句",这样将来任何"统一两条路径"的重构会在此处红掉,而不是悄悄改变评分单元。
+- [x] **R-10 / Gate F(2026-07-26,新增门)—— 转写文本分歧 PASS**,详见 `docs/reviews/2026-07-26-android-gate-f-asr-text.md`。macOS arm64 上用 PyPI `sherpa-onnx==1.13.4` 直接实测,不必等设备。
+  - **原计划漏了这道门**,因为 §6 把 ASR 记成"输出格式对齐"的中风险机械活。漏掉的那一条是:Whisper 在这条流水线上**只贡献文本**,而文本里的**标点决定练习单元的切分**(FR-2/FR-M3),少一个句号就合并两个单元 —— 而标准 ASR 评测剥掉标点,给不出这个数。另两条下游:文本错 → MMS 被要求对齐从未说出的字符 → 词边界任意(FR-8/FR-6);canonical 音素错 → FR-11 诊断错。
+  - **主因是我们的切块选择,不是 sherpa-onnx / ONNX / int8。** 离线 Whisper 一次最多 30s,长音频必须自己切。同模型同权重、三种策略:**VAD 分段**(§4 原选型)WER 5.56% / 标点分歧 3.17% / 单元 172;固定 29s 窗 5.56% / 1.25% / 162(丢 65 词,WER 靠删除撑);**Whisper 长音频循环** **3.14% / 1.01% / 162**(金标准 159)。机制:**VAD 在句中下刀,Whisper 给拿到的任何一段结尾加标点**,每个切口都成了假句末。长音频循环解 29s 窗后丢掉被切断的最后一个 segment、把游标推到倒数第二个 segment 结尾,切口落在 Whisper 自己认为的短语边界上。sherpa-onnx 的 `enable_segment_timestamps` 正好够实现它。**几十行游标逻辑换一半差距。**
+  - **两条与 Gate A/B/C 相反的结论**:① **int8 不是问题** —— fp32 只把 WER 从 3.14% 买到 3.03%(0.11pp)却要多付 132MB;Gate A 那里 int8 是会**破坏**说话人不变性的(0.1773→0.2789),这里的损失是噪声级,**转写不需要 fp32 退路**。② **int8 一点也不更快**(RTF 0.081 vs 0.083)—— 自回归解码器受内存带宽限制,瓶颈是 51864×512 的 embedding 表而非算力;**设备上若转写太慢,量化不是杠杆,换 `tiny.en` 档位才是。**
+  - **包体估算错了 2.3 倍**:whisper base.en int8 实测 **159.8MB**(encoder 29.1 + decoder 130.7),不是记了两版的 ~70MB。decoder 量化率只有 1.5×,因为 token embedding 表按 fp32 保留(单这一项 106MB)。连带:首启下载 → **~827MB**;且 160MB **进不了 base APK**(Play 压缩后上限 150MB),whisper 从"打包 APK"改为首启下载或 asset pack —— 要落 PRD NFR-4②。
+  - **两处待用户拍板**(已在评审里标 ❓):内置语料是否**随包分发 `videos/*.sentences.json`**、不在设备上转写(练习单元与 macOS 完全一致、省掉手机上数分钟首次转写,用户导入的视频仍走端侧);以及 whisper 的分发方式改动。
+  - **一个顺带的观察**:38 处差异里 11 处只是分词不同而**金标准是难看的那一方**(`U .S.` / `long -held` / `the 250 ,000,`)—— 这是 faster-whisper `word_timestamps` 切词的产物,即发现⑤在*文本*层面的同一个毛病。所以 `golden/seg/` 里存在 Android 永远不会产生的 token 形状;不影响 `SegmentationParityTest`(它测 merge 函数而非分词器),但别误读成"Android 也会这样"。
 - [ ] R-5/R-6/R-7 设备侧复测(arm64 int8 kernel 可能异于桌面)+ Gate D(RAM)+ Gate E(Opus)+ Tier 2 SDK;Phase 2 余项 `:core-asr`(sherpa-onnx Whisper)/ `:core-audio`(FFmpeg NDK 解码,含 Gate E)。
-- **模型包体(NFR-4②,再次修正)**:whisper ~70MB(打包 APK)+ wav2vec2 95.8MB(int8 transformer-only)+ espeak 302.9MB(int8 全量)+ MMS **338.6MB**(int8 transformer-only,实测)= **首启下载 ~737MB**(整包 ~807MB)。MMS 比上一条估的 ~300MB 略大;仍可后台预下载,但**已接近可接受上限** —— 若 Gate D 或用户反馈要求压缩,MMS 是下一个该动的对象。
+- **模型包体(NFR-4②,第三次修正,现在全部为实测)**:whisper base.en **159.8MB**(int8;R-10 实测,前两版记的 ~70MB 错了 2.3 倍)+ wav2vec2 95.8MB(int8 transformer-only)+ espeak 302.9MB(int8 全量)+ MMS 338.6MB(int8 transformer-only)= **~897MB,其中首启下载 ~827MB 起**(whisper 不再"打包 APK":160MB 越过 Play base APK 的 150MB 压缩上限,改首启下载或 install-time asset pack)。**已越过上一版所说的"接近可接受上限"。** 压缩顺序:MMS(338.6MB)最大,其次 espeak(302.9MB,惰性加载已减轻 RAM 但不减下载),whisper 换 `tiny.en` 档位是第三条 —— 且 R-10 已证明**换档是唯一能同时减体积与加速的杠杆**(量化不省时间)。
