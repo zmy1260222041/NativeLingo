@@ -107,6 +107,11 @@ def dump_embeddings(encoder: SSLEncoder, corpus: dict[str, np.ndarray], out_dir:
     os.makedirs(wav_dir, exist_ok=True)
     for name, wav in corpus.items():
         np.save(os.path.join(wav_dir, f"{name}.npy"), wav)
+        # the wav2vec2 feature-extractor NORMALISED input (what the ONNX model
+        # consumes) — lets the core-embed test isolate the ONNX run from the
+        # Kotlin normalization port.
+        inputs = encoder.extractor(wav, sampling_rate=TARGET_SR, return_tensors="pt")
+        np.save(os.path.join(wav_dir, f"{name}_input.npy"), inputs.input_values.numpy())
         emb = encoder.encode(wav)
         np.save(os.path.join(emb_dir, f"{name}.npy"), emb)
         print(f"  emb {name}: {emb.shape}")
