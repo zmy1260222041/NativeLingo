@@ -238,6 +238,6 @@ NativeLingoAndroid/
 
 - [x] PRD 修订至 v0.1(NFR-2 双平台 / NFR-4 移动端 / FR-12 in-scope / §6 Android 映射 / §7 R-5..R-9 计划)。
 - [x] 本迁移文档落地(`docs/android-migration.md`)。
-- [ ] macOS 金标准抓取脚本 `scripts/capture_golden.py`。
-- [ ] `NativeLingoAndroid/` Gradle 多模块骨架 + `:core-scoring`。
-- [ ] **R-5 / Gate A spike**(Optimum 导出 wav2vec2-base 6–9 层 + int8 → 设备跑说话人不变性)。
+- [x] macOS 金标准抓取脚本 `scripts/capture_golden.py` —— 已产出 baseline 并提交(说话人不变性 cost **0.1714** ≤0.18,acc 95.0;Gate A/B/C fixture 齐备)。
+- [x] `NativeLingoAndroid/` Gradle 多模块骨架 + `:core-scoring`(NpyReader + golden smoke 测试;算法端口留 Phase 1,在有编译器的环境对齐金标准再写)。
+- [ ] **R-5 / Gate A spike**(下一步:Optimum 导出 wav2vec2-base 6–9 层 + int8 → 设备跑说话人不变性)。
