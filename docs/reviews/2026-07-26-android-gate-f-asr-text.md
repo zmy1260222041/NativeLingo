@@ -92,6 +92,8 @@ sherpa-onnx 的 `from_whisper` 没有 prompt/prefix 参数,**没有办法开**�
 **连带两个后果:**
 1. **首启下载 737MB → ~827MB,整包 ~897MB。**(wav2vec2 95.8 + espeak 302.9 + MMS 338.6 + whisper 159.8)
    上一版已经写了"接近可接受上限",现在是越过了。
+   > **后续修正(R-12,2026-07-26):整包 ~897 → 935 MiB。** 这里的 wav2vec2 95.8 已作废 —— 那份
+   > int8-transformer 导出在 arm64 上过不了 R-5 判据,换成 fp16 的 **139.7MB**。本行其余三项不变。
 2. **160MB 进不了 base APK。** Play 的 base APK 压缩后上限 150MB;install-time asset pack 上限 1.5GB
    但会算进安装体积。所以 whisper 从"打包 APK"改为**首启下载**,或走 asset pack —— 这条要落 PRD NFR-4②,
    不在本门内擅自决定。
