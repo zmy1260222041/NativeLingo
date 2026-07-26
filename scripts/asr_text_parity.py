@@ -44,7 +44,12 @@ import wave
 
 SR = 16000
 MODELS_DIR = os.environ.get("SHERPA_MODELS", "/tmp/sherpa-models")
-WHISPER_DIR = os.path.join(MODELS_DIR, "sherpa-onnx-whisper-base.en")
+
+# 档位。R-10 的判据是在 base.en 上量的;tiny.en 是 R-11 为了把 whisper 塞进
+# Play 的 150MB 基础 APK 上限而重测的换档候选 —— **换档必须自己过一遍同样的
+# 三条判据**,因为转写文本的错误会传导到 MMS 对齐(FR-2 词边界)与 FR-8 回放。
+TIERS = {"base.en": "sherpa-onnx-whisper-base.en", "tiny.en": "sherpa-onnx-whisper-tiny.en"}
+TIER = os.environ.get("WHISPER_TIER", "base.en")
 
 # sherpa-onnx 的离线 Whisper 对 >=30s 的输入直接截断并打印警告,所以窗口留 1s 余量。
 WIN_S = 29.0
@@ -63,13 +68,17 @@ def _read_wav(path):
     return np.frombuffer(raw, dtype="<i2").astype("float32") / 32768.0
 
 
-def _recognizer(precision, segment_timestamps):
+def _recognizer(precision, segment_timestamps, tier=None):
     import sherpa_onnx
+    tier = tier or TIER
+    if tier not in TIERS:
+        raise SystemExit(f"unknown tier {tier!r}, expected one of {sorted(TIERS)}")
+    d = os.path.join(MODELS_DIR, TIERS[tier])
     suffix = ".int8" if precision == "int8" else ""
     return sherpa_onnx.OfflineRecognizer.from_whisper(
-        encoder=f"{WHISPER_DIR}/base.en-encoder{suffix}.onnx",
-        decoder=f"{WHISPER_DIR}/base.en-decoder{suffix}.onnx",
-        tokens=f"{WHISPER_DIR}/base.en-tokens.txt",
+        encoder=f"{d}/{tier}-encoder{suffix}.onnx",
+        decoder=f"{d}/{tier}-decoder{suffix}.onnx",
+        tokens=f"{d}/{tier}-tokens.txt",
         language="en",
         num_threads=4,
         enable_segment_timestamps=segment_timestamps,
@@ -255,6 +264,8 @@ STRATEGIES = {"longform": strategy_longform, "vad": strategy_vad,
 
 
 def cmd_transcribe(args):
+    global TIER
+    TIER = args.tier
     samples = _read_wav(args.wav)
     traceable = {"longform": strategy_longform, "vadwin": strategy_vadwin}
     trace = [] if (args.trace and args.strategy in traceable) else None
@@ -264,7 +275,7 @@ def cmd_transcribe(args):
         segs = STRATEGIES[args.strategy](samples, args.precision, not args.quiet)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump({"strategy": args.strategy, "precision": args.precision,
-                   "segments": segs}, f, ensure_ascii=False, indent=1)
+                   "tier": args.tier, "segments": segs}, f, ensure_ascii=False, indent=1)
     if trace is not None:
         doc = {"strategy": args.strategy, "win_s": WIN_S, "sample_rate": SR,
                "precision": args.precision, "segments": segs}
@@ -277,7 +288,7 @@ def cmd_transcribe(args):
             json.dump(doc, f, ensure_ascii=False, indent=1)
         print(f"trace: {len(doc['windows'])} windows -> {args.trace}")
     tokens = sum(len(s["text"].split()) for s in segs)
-    print(f"\n{args.strategy}/{args.precision}: {len(segs)} segments, "
+    print(f"\n{args.tier}/{args.strategy}/{args.precision}: {len(segs)} segments, "
           f"{tokens} whitespace tokens -> {args.out}")
 
 
@@ -364,6 +375,8 @@ def main():
     t.add_argument("out")
     t.add_argument("--strategy", choices=sorted(STRATEGIES), default="longform")
     t.add_argument("--precision", choices=("int8", "fp32"), default="int8")
+    t.add_argument("--tier", choices=sorted(TIERS), default=TIER,
+                   help="whisper 档位。换档要重过 Gate F 的三条判据(R-11)")
     t.add_argument("--quiet", action="store_true")
     t.add_argument("--trace", help="dump the per-window cursor trace here "
                                    "(longform only; golden input for :core-scoring)")

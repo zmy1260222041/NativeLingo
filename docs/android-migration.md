@@ -60,14 +60,14 @@ NativeLingo 当前是 macOS Tauri v2 + Python FastAPI sidecar(v0.5 已发布)。
 | **NFR-1 本地/离线/隐私** | 全端侧推理,录音不出设备,RECORD_AUDIO;无任何云调用 | Gate A/R-5 保证 |
 | **NFR-2 平台** | macOS + Android(原生 Kotlin) | — |
 | NFR-3 性能 | 单句分析秒级(设备实测);转写后台+缓存 | 设备验证 |
-| NFR-4 移动端约束 | API 28+ / arm64 / RAM / 包体 / UNPROCESSED / 数值对齐 | Gate D/R-8 等 |
+| NFR-4 移动端约束 | API 28+ / **仅 arm64-v8a** / RAM / 包体 **~897MB(asset pack)** / UNPROCESSED / 数值对齐 | Gate D/R-8 等;① ② 已落 PRD v0.2 |
 | NFR-Q1 评分质量 | `calibration.json` 原样;PCC 0.60/0.43 保持;说话人不变性 | Layer2 验证 |
 
 ## 4. 已验证的运行时选型(每项一个,含 5 个重塑假设的发现)
 
 | 决策 | 选型 | 关键依据 / 发现 |
 |---|---|---|
-| Whisper 转写+VAD | **sherpa-onnx Android AAR**;参考路径走 **VAD 段合并成 ≤29s 连续窗**(`:core-scoring/.../segment/AsrWindowPlanner.kt`),Silero VAD 另用于学习者录音与"有无人声" | 预编译 AAR、JNI 已通、arm64-v8a/armeabi-v7a 二进制俱全。**发现⑤**:Whisper 词时间戳不可靠(`forced_align.py` 注释明示会切尾/塌缩短词)→ Whisper 仅出**转写文本**,词边界一律走 MMS 对齐,与 macOS 同构。**发现⑥(R-10 实测修正本行)**:离线 Whisper 一次最多吃 30s,长音频必须自己切,而**怎么切是分歧的主因** —— Whisper 给拿到的任何一段结尾加标点,每个切口都可能成为假句末。四种策略:VAD 分段(原选型)5.56%/3.17%/172 单元、固定 29s 窗 5.56%/1.25%/162、Whisper 长音频循环 3.14%/1.01%/162、**VAD 合并窗 4.01%/1.65%/158**(金标准 159)。**发现⑦(同日补记)**:长音频循环最好但**在 Android 上写不出来** —— v1.13.4 AAR 的 `OfflineRecognizerResult` 没有 `segmentTimestamps`(Kotlin binding 落后于 Python;`javap` 已核),token 时间戳也恒为空(模型未导出 attention 输出),**Android 侧只拿得到 `text`** → 选合并窗。详见 `docs/reviews/2026-07-26-android-gate-f-asr-text.md` |
+| Whisper 转写+VAD | **sherpa-onnx Android AAR**;参考路径走 **VAD 段合并成 ≤29s 连续窗**(`:core-scoring/.../segment/AsrWindowPlanner.kt`),Silero VAD 另用于学习者录音与"有无人声" | 预编译 AAR、JNI 已通、arm64-v8a/armeabi-v7a 二进制俱全。**发现⑤**:Whisper 词时间戳不可靠(`forced_align.py` 注释明示会切尾/塌缩短词)→ Whisper 仅出**转写文本**,词边界一律走 MMS 对齐,与 macOS 同构。**发现⑥(R-10 实测修正本行)**:离线 Whisper 一次最多吃 30s,长音频必须自己切,而**怎么切是分歧的主因** —— Whisper 给拿到的任何一段结尾加标点,每个切口都可能成为假句末。四种策略:VAD 分段(原选型)5.56%/3.17%/172 单元、固定 29s 窗 5.56%/1.25%/162、Whisper 长音频循环 3.14%/1.01%/162、**VAD 合并窗 4.01%/1.65%/158**(金标准 159)。**发现⑦(同日补记)**:长音频循环最好但**在 Android 上写不出来** —— v1.13.4 AAR 的 `OfflineRecognizerResult` 没有 `segmentTimestamps`(Kotlin binding 落后于 Python;`javap` 已核),token 时间戳也恒为空(模型未导出 attention 输出),**Android 侧只拿得到 `text`** → 选合并窗。**发现⑧(R-11)**:换 `tiny.en` 档位省 57MB、快 1.67×,三条判据也都过(4.89%/1.88%/162)—— 但余量只剩 0.11pp,且**新增 `terror-frueling` 这类非词**,而 MMS 强制对齐没有拒绝路径,必须把从未说出的字符铺到真实音频上 → **base.en 保留为发布档,tiny.en 仅作低端设备速度降级**。详见 `docs/reviews/2026-07-26-android-gate-f-asr-text.md` 与 `docs/reviews/2026-07-26-android-r11-whisper-tier.md` |
 | 强制对齐(MMS CTC) | **ONNX Mobile + 手写 Kotlin CTC Viterbi** | **发现①**:sherpa-onnx **不提供**强制对齐(Issue #3536 仍 open,无 PR)。torchaudio 的 `get_aligner()` 是教科书级 CTC Viterbi(~100 行),算法已逐行捕获(见 §5) |
 | SSL 编码器(wav2vec2-base-960h, 6–9 层) | **ONNX Mobile,自定义导出 4 个 hidden-state 输出节点** | **发现④**:`output_hidden_states=True` 不会让 Optimum 默认导出中间层 → 必须 Optimum 导出后用 `onnx` 库把第 6–9 个 transformer block 的残差 `Add` 输出节点标为 graph output 再导出 |
 | 音素 MDD(espeak-cv-ft) | **ONNX Mobile,动态 int8(318MB),惰性加载** | **发现③**:PyTorch ckpt ~2.4GB,但 `onnx-community/wav2vec2-lv-60-espeak-cv-ft-ONNX` 动态 int8 = **318MB**(fp32 1.26GB)。可载入 6GB 手机但 RAM 紧张 → 按词批惰性加载、句间释放 session |
@@ -232,7 +232,7 @@ NativeLingoAndroid/
 1. **音素 MDD(FR-11)** —— R-7/R-8 失败时,仅 `ActivityManager.lowMemory==true` 设备降级(其余仍全功能)。MDD 本就门控在 weak/bad 词后、`return ""` 静默降级,切口干净。
 2. **espeak 退 fp16(635MB)** —— R-7 失败时,首 MDD 延迟 +~6s,可接受。
 3. **学习记录(FR-12)** —— Room 本地存储,无模型依赖,永不降级。
-4. **Whisper 档位** —— base 太慢则 APK 内置 `tiny.en`,base.en 作下载项。
+4. **Whisper 档位** —— 设备上首次转写太慢时降 `tiny.en`(**R-11 已量**:102.8MB、快 1.67×,代价是 WER 4.01%→4.89% 且新增 MMS 无法拒绝的非词 → **只作速度降级,不作体积手段**)。降档判据待设备数据。
 
 **唯一不可降级的是 R-5/Gate A**:int8 破坏校准且 fp16 亦破 → 端侧全功能前提失败,须回桌(重校准会作废 macOS 随包的 `calibration.json`,或对 SSL 编码器单项放松 NFR-1 走云——后者须用户决策)。
 
@@ -286,12 +286,12 @@ NativeLingoAndroid/
   - **顺带:`max_speech_duration = 25.0` 是建议值不是约束** —— 77 段里两段超 29s(29.91 / 30.17),一段超 30s 被 sherpa 静默截断,636s 里丢 0.166s(0.03%,已含在 4.01% 内)。合并不会造出超长窗(边界相对窗首判),超长窗只可能是单个超长 VAD 段直通 → `AsrWindowPlanner.overlong()` 报给 `:core-asr` 记日志,**C++ 那句警告在 Android 上没人看得见**。
   - **两条与 Gate A/B/C 相反的结论**:① **int8 不是问题** —— fp32 只把 WER 从 3.14% 买到 3.03%(0.11pp)却要多付 132MB;Gate A 那里 int8 是会**破坏**说话人不变性的(0.1773→0.2789),这里的损失是噪声级,**转写不需要 fp32 退路**。② **int8 一点也不更快**(RTF 0.081 vs 0.083)—— 自回归解码器受内存带宽限制,瓶颈是 51864×512 的 embedding 表而非算力;**设备上若转写太慢,量化不是杠杆,换 `tiny.en` 档位才是。**
   - **包体估算错了 2.3 倍**:whisper base.en int8 实测 **159.8MB**(encoder 29.1 + decoder 130.7),不是记了两版的 ~70MB。decoder 量化率只有 1.5×,因为 token embedding 表按 fp32 保留(单这一项 106MB)。连带:首启下载 → **~827MB**;且 160MB **进不了 base APK**(Play 压缩后上限 150MB),whisper 从"打包 APK"改为首启下载或 asset pack —— 要落 PRD NFR-4②。
-  - **两处待用户拍板**(已在评审里标 ❓):内置语料是否**随包分发 `videos/*.sentences.json`**、不在设备上转写(练习单元与 macOS 完全一致、省掉手机上数分钟首次转写,用户导入的视频仍走端侧);以及 whisper 的分发方式改动。
+  - ~~**两处待用户拍板**~~ ✅ **已拍板(2026-07-26)**:预置语料**随包分发 `videos/*.sentences.json`**,导入素材仍走端侧转写(落 PRD FR-2);whisper 分发改**安装时 asset pack** —— 详见下方 R-11。
   - **一个顺带的观察**:38 处差异里 11 处只是分词不同而**金标准是难看的那一方**(`U .S.` / `long -held` / `the 250 ,000,`)—— 这是 faster-whisper `word_timestamps` 切词的产物,即发现⑤在*文本*层面的同一个毛病。所以 `golden/seg/` 里存在 Android 永远不会产生的 token 形状;不影响 `SegmentationParityTest`(它测 merge 函数而非分词器),但别误读成"Android 也会这样"。
 - [x] **`:core-asr` 落地(2026-07-26)** —— sherpa-onnx Whisper + Silero VAD 的薄适配层(`WhisperTranscriber.kt` / `SpeechDetector.kt`),`assembleDebug` 通过。切窗与切句都在 `:core-scoring`,这里只剩 JNI 管线,**没有可在 JVM 上测的东西**(这是设计结果,不是缺口)。三个非显然的工程决定:
   - **依赖走"GitHub releases 当 ivy 仓库"**:k2-fsa **没有 Maven Central 制品**(`repo1` 上不存在 `com.k2-fsa` 组;搜到的 `sherpa-onnx` 都是第三方转包)。直接 `implementation(files("*.aar"))` 也不行 —— **AGP 拒绝为带本地 .aar 依赖的 library 模块产出 AAR**。settings 里声明一个 pattern 为 `v[revision]/[artifact]-[revision].[ext]` 的 ivy 仓库正好命中 release URL,于是它变成真正的模块依赖。字节由 `verifySherpaAar` 的 sha256 钉死(该 ivy 仓库没有签名),**并断言恰好解析到 1 个制品** —— 空解析下的校验循环比没有校验更糟。
   - **选 static-link 变体(37.6MB)而非默认 AAR(48.8MB)**:默认 AAR 自带 `libonnxruntime.so`,与 `onnxruntime-android`(`:core-embed`/`:core-align`/`:core-mdd`)带的那个**同名冲突**。两边今天都是 1.27.0,`pickFirst` 会"无害"解决 —— **这正是问题**:哪天任一侧升版本,胜出的那个 .so 会静默地同时服务两边,故障形态是线上崩溃而不是构建报错。静态链接把这个共享符号彻底消掉,代价是每 ABI 多约 19MB 的 ORT 副本。(顺带核过:`libsherpa-onnx-jni.so` 的 LOAD 段 `p_align = 0x4000`,**满足 Android 16KB 页要求** —— ffmpeg-kit 正是栽在这条上。)
-  - ❓**只发 arm64-v8a**:首先是正确性而非体积 —— Gate D 的 ~3.5GB 峰值预算(espeak 单模型 302.9MB + ORT arena)**32 位进程根本寻址不下**,能跑这个应用的设备都是 arm64;顺带把上面那 19MB 的重复代价减半。**这是设备支持范围的改变,要落 PRD。**
+  - ✅ **只发 arm64-v8a(2026-07-26 拍板,已落 PRD NFR-4①)**:首先是正确性而非体积 —— Gate D 的 ~3.5GB 峰值预算(espeak 单模型 302.9MB + ORT arena)**32 位进程根本寻址不下**,能跑这个应用的设备都是 arm64;顺带把上面那 19MB 的重复代价减半。
 - [x] **R-9 / Gate E 桌面侧结论(2026-07-26)—— `:core-audio` 改走 MediaCodec,Phase 2 不再需要 NDK**(`docs/reviews/2026-07-26-android-gate-e-audio-decode.md`,脚本 `scripts/resampler_parity.py`)。
   - **原判据(样本误差 ≤1 LSB)自身失效**:它只有在已经选了 FFmpeg 时才可能通过,换重采样核就必然换样本值 —— 不是在检验路线,而是在假设路线。真正要问的是「参考音频用哪个重采样器,会不会改变学习者看到的分数」,判据必须落在分数域。
   - **发现②的前提在 Android 上不存在**:学习者路径是 `AudioRecord` 直采 16kHz PCM,**根本不产生编码音频** —— webm/opus 是浏览器 `MediaRecorder` 的产物,随 WebView 一起消失。只剩视频音轨要解。而 Opus 解码**自 API 21 起是平台强制项**(容器 Ogg/MP4/Matroska),minSdk 28 稳过;`.mp4/.m4v/.mov/.mkv/.webm` 全在平台强制表里,**唯一缺口是 `.avi`**(官方文档全文未列),那是 FR-M2 的导入面 → 建议 Android 导入白名单去掉 `.avi`(要落 PRD),需要时再接 Media3 实验性 `AviExtractor`。
@@ -304,5 +304,10 @@ NativeLingoAndroid/
   - `:core-scoring/.../resample/PolyphaseResampler.kt` 是 **`scipy.signal.resample_poly`(默认 Kaiser 5.0)的 1:1 移植**,逐样本 |Δ| < 1e-12 对 4 例 float64 金标准(`golden/resample/`)。**钉 scipy 而不是"写个够好的"**,是因为 R-9 那组分数域测量就是用它做的 —— 不钉住,测量转移不过来。`:core-scoring` **53/53 全绿**(新增 5 项)。
   - `:core-audio/.../MediaAudioDecoder.kt`:`MediaExtractor`+`MediaCodec` → 下混 → 重采样,`findDecoderForFormat` 前置探测,采样率取**输出格式**而非轨道格式。`assembleDebug` 通过 —— 与 `:core-asr` 同样,**框架调用一次都还没在设备上跑过**。
   - `DecodedAudio.startS` 返回首个解出样本的真实时间戳(seek 到前一同步样本、保留 pre-start 样本,与 `video.py` 同),FR-8 回放区间需要它。
+- [x] **R-11(2026-07-26)Whisper 档位 —— 量了 tiny.en,不建议采用**(`docs/reviews/2026-07-26-android-r11-whisper-tier.md`,`scripts/asr_text_parity.py --tier`)。
+  - **换档是未测量的动作**,R-10 的三条判据是在 base.en 上量的,所以换档要自己再过一遍。同语料同策略(`vadwin`/int8)实测:**tiny.en 102.8MB / WER 4.89% / 标点 1.88% / 单元 162**,三条判据都过 —— **但余量只剩 0.11pp 与 0.12pp**,而 R-10 的判据本是**事后定的**、语料只有一段(R-10 自己写明"不足以给出 WER 的置信区间")。一条事后定的线 + 一段语料 + 0.11pp,不构成"过了"。
+  - **决定性的是分歧结构退化,而 R-10 判 PASS 恰恰依赖这一条**("全是局部替换,没有一处整段崩坏")。多词分歧摊开:base.en 6 处**无一产生非词**(`51 %`→`fifty one percent`、`stride and`→`strident` 之类);tiny.en 新增 `tariff ruling, in essence`→**`terror-frueling, and, as since`**、`decide? In factically,`→**`infatically`**,以及把主播名 `Tony DeCoupe` 揉成 `Tonya Colpola`。**MMS 强制对齐没有拒绝路径** —— 给它非词就必须把从未说出的字符铺到真实音频上,该 span 内 FR-2/FR-6/FR-8 直接失去对应关系(FR-11 有 canonical 自拟合门控兜底,**另三条没有**)。所以那 0.88pp 不是均匀变差,买来的是一类下游无防线的新错误。
+  - **tiny.en 真正值钱的是快 1.67×**(636s 全片 38.2s→22.9s 墙钟,CPU 142s→82s)—— 这把 R-10 的"换档才是那根杠杆"量出来了。**保留为低端设备的运行期降级档,不作发布默认**;降档触发条件待设备数据(桌面上量不出"多慢算太慢")。
+  - **顺带否掉「量化 embedding 表」**:该表(base.en 106.2MB,占 int8 decoder 130.7MB 的 **81%**)有 `Gather`/`Identity`/`Add` 三个消费者。`op_types_to_quantize=["MatMul","Gather"]` 只给 Gather 加一份 26.6MB uint8 副本,**fp32 原表因另两个消费者仍需保留**,文件反而变大(130.7→**157.2MB**;tiny 89.9→109.8MB)。要真省下来得改图让 tied 输出投影也吃 int8 表 —— 那是动 logits 路径,风险收益不对称,**不做**;若日后包体成硬约束,这是一条已定位清楚但需单独一道门的路。
 - [ ] R-5/R-6/R-7 设备侧复测(arm64 int8 kernel 可能异于桌面)+ Gate D(RAM)+ Gate E 设备侧(多机解码一致性)+ Tier 3 设备/模拟器。**Phase 2 的四个模块(`:core-embed`/`:core-align`/`:core-asr`/`:core-audio`)都已能构建,但除 `:core-embed` 外都没在设备上跑过** —— 端侧首跑是一件事,一起做。**`:core-asr` 的端侧首跑与 R-10 复测一并做** —— 目前它只验证到"能编译、API 用法正确",AAR 里的 JNI 一次都还没在设备上调起来过。
-- **模型包体(NFR-4②,第三次修正,现在全部为实测)**:whisper base.en **159.8MB**(int8;R-10 实测,前两版记的 ~70MB 错了 2.3 倍)+ wav2vec2 95.8MB(int8 transformer-only)+ espeak 302.9MB(int8 全量)+ MMS 338.6MB(int8 transformer-only)= **~897MB,其中首启下载 ~827MB 起**(whisper 不再"打包 APK":160MB 越过 Play base APK 的 150MB 压缩上限,改首启下载或 install-time asset pack)。**已越过上一版所说的"接近可接受上限"。** 压缩顺序:MMS(338.6MB)最大,其次 espeak(302.9MB,惰性加载已减轻 RAM 但不减下载),whisper 换 `tiny.en` 档位是第三条 —— 且 R-10 已证明**换档是唯一能同时减体积与加速的杠杆**(量化不省时间)。
+- **模型包体(NFR-4②,第三次修正,现在全部为实测)**:whisper base.en **159.8MB**(int8;R-10 实测,前两版记的 ~70MB 错了 2.3 倍)+ wav2vec2 95.8MB(int8 transformer-only)+ espeak 302.9MB(int8 全量)+ MMS 338.6MB(int8 transformer-only)= **~897MB**。whisper 的 160MB 越过 Play base APK 的 150MB 压缩上限,**四个模型统一走安装时 asset pack**(上限 1.5GB,计入安装体积)—— 这样选是因为另外三项共 737MB **无论如何都要下载机制**,whisper 搭这趟车的增量成本≈0(这一点上一版低估了,如实修正)。**已越过上一版所说的"接近可接受上限"。** 若日后要压:MMS(338.6MB)最大,其次 espeak(302.9MB,惰性加载减 RAM 但不减下载);**whisper 换 `tiny.en` 已由 R-11 量过,省 57MB 但换来 MMS 必须对齐的非词,不作为压缩手段**,只作低端设备的速度降级档。
