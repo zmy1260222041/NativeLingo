@@ -160,13 +160,67 @@ def main():
 
     # fp16 fallback (plan §7): internalize fp16, keep fp32 I/O. fp16 is the
     # mobile target (GPU/NNAPI); ORT-CPU has limited fp16 support so we convert
-    # + report size here but defer parity verification to the device.
+    # + report size here but defer *parity* verification to the device.
+    #
+    # Deferring parity is not the same as deferring "does it load", and this
+    # originally did both. The converter used here was
+    # `onnxconverter_common.float16`, and the model it produced could not be
+    # opened at all — on desktop or on device:
+    #
+    #     Type (tensor(float16)) of output arg (/model/encoder/Cast_1_output_0)
+    #     of node (/model/encoder/Cast_1) does not match expected
+    #     type (tensor(float))
+    #
+    # `/model/encoder/Cast_1` is the pos_conv_embed → encoder.Add cast, and
+    # onnxconverter_common rewrote what the node *emits* to fp16 without
+    # rewriting the `to` attribute that declares it, so ORT rejects the graph
+    # during type checking before any kernel is chosen. Nothing caught it because
+    # the only thing asserted here was the file's size.
+    #
+    # `onnxruntime.transformers.float16` is the maintained fork of the same pass
+    # and handles this correctly (verified: loads and runs on ORT-CPU). Loadability
+    # is now asserted, so the fallback stays a fallback that exists rather than one
+    # that is discovered to be broken on the day it is needed.
+    #
+    # ### Why Erf is held in fp32
+    #
+    # With the converter fixed, the model loaded on desktop and still failed on
+    # device, differently:
+    #
+    #     Failed to find kernel for com.microsoft.Gelu(1) ... implemented only for
+    #     (tensor(float),) but the node in the model has (tensor(float16))
+    #
+    # There is no Gelu in this graph — it has 17 `Erf`s. The fusion happens in
+    # ORT's *load-time* optimizer, which rewrites the Erf-shaped GELU into the
+    # contrib op at EXTENDED level; desktop ORT has an fp16 kernel for it and the
+    # pruned Android build does not. So the failure is not in what we export but
+    # in what the runtime derives from it, which is why a desktop load test could
+    # never have caught it and the device had to.
+    #
+    # Blocking `Erf` puts a Cast on each side of it, which breaks the fusion
+    # pattern and leaves the GELUs in fp32 — verified by dumping the optimized
+    # graph (`SessionOptions.optimized_model_filepath`): zero contrib ops remain,
+    # against 17 Gelu + 28 DynamicQuantizeMatMul + 9 SkipLayerNormalization for the
+    # int8 export. Holding the nonlinearity in fp32 is also where fp16 wants to be
+    # numerically. It does cost the other fusions, and hence throughput — measured
+    # on device at 12.2-12.8x realtime against int8's 21.6-25.2x (ranges over two
+    # runs; only wall-clock jitters, every number reproduces bit-for-bit), which is
+    # the honest price of this export rather than a property of fp16 as such.
     import onnx
-    from onnxconverter_common.float16 import convert_float_to_float16
+    from onnxruntime.transformers.float16 import convert_float_to_float16
     fp16_path = os.path.join(args.out, "w2v2_base_69_fp16.onnx")
-    onnx.save(convert_float_to_float16(onnx.load(fp32_path), keep_io_types=True), fp16_path)
+    onnx.save(
+        convert_float_to_float16(onnx.load(fp32_path), keep_io_types=True, op_block_list=["Erf"]),
+        fp16_path,
+    )
+    try:
+        ort.InferenceSession(fp16_path, providers=["CPUExecutionProvider"])
+        fp16_loads = "loads"
+    except Exception as exc:                                  # pragma: no cover
+        fp16_loads = f"WILL NOT LOAD — {str(exc)[:160]}"
     print(f"\n  quantized fp16    → {fp16_path} ({os.path.getsize(fp16_path)//1024//1024}MB) "
-          f"[parity deferred to mobile — ORT-CPU lacks fp16]")
+          f"[{fp16_loads}; parity deferred to mobile — ORT-CPU lacks fp16 kernels, so a "
+          f"desktop cosine here would measure ORT's fp32 emulation, not the device]")
 
     # targeted int8: quantize ONLY transformer MatMul/Gemm, leave the sensitive
     # feature-extractor Conv in fp32 (plan §7: "quantize only the transformer

@@ -9,6 +9,8 @@ media3 = "1.5.1"
 onnxRuntimeAndroid = "1.27.0"
 sherpaOnnx = "1.13.4"
 junit = "4.13.2"
+androidxTestRunner = "1.6.2"
+androidxTestJunit = "1.2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -20,6 +22,8 @@ onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime
 onnxruntime-desktop = { group = "com.microsoft.onnxruntime", name = "onnxruntime", version.ref = "onnxRuntimeAndroid" }
 sherpa-onnx = { group = "com.k2fsa.sherpa.onnx", name = "sherpa-onnx-static-link-onnxruntime", version.ref = "sherpaOnnx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
+androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestJunit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

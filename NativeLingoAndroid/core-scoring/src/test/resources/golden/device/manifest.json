@@ -1,0 +1,29 @@
+{
+  "producer": "scripts/capture_device_fixtures.py",
+  "purpose": "device-side Gate E (R-9): platform decoder vs macOS ffmpeg, same container",
+  "source": "golden/wav/ref_samantha.npy",
+  "source_samples": 39936,
+  "target_sr": 16000,
+  "criteria": {
+    "emb_min_cosine": 0.995,
+    "max_dtw_cost_delta": 0.005,
+    "max_accuracy_delta": 0.5
+  },
+  "emb_cosine_note": "0.995 was measured on the desktop with the fp32 encoder while swapping resampler kernels, so on device it is asserted as a disjunction: cos >= 0.995 OR cos >= controlCos - 0.002, where controlCos re-encodes the reference with only the measured gain/fractional-shift perturbation applied. Rationale: a quantised encoder is a step function, and R-5 measured the int8 export at 0.983-0.987 against fp32 on identical waveforms — demanding 0.995 across two decodes asks for more agreement than the encoder shows with itself across precisions. With the shipped fp16 encoder the bar is met outright (0.9998-0.99996 here, 0.9998 on the seek case), so the floor clause is currently a dormant fallback; it was the pass path on the int8 run it was written for (0.9888-0.9928). See AudioDecodeDeviceTest and docs/reviews/2026-07-26-android-device-first-run.md.",
+  "variants": {
+    "aac_44k1_stereo": {
+      "container": "clip_aac.mp4",
+      "reference": "clip_aac_ffmpeg16k.npy",
+      "container_bytes": 41297,
+      "reference_samples": 40124,
+      "delta_vs_source_samples": 188
+    },
+    "opus_48k_stereo": {
+      "container": "clip_opus.webm",
+      "reference": "clip_opus_ffmpeg16k.npy",
+      "container_bytes": 42787,
+      "reference_samples": 39936,
+      "delta_vs_source_samples": 0
+    }
+  }
+}

@@ -42,9 +42,14 @@ include(":core-asr")
 // Phase 2: MediaExtractor/MediaCodec audio decode + :core-scoring resampling.
 include(":core-audio")
 
+// Where the ~891 MiB of int8 weights come from at runtime (NFR-4② asset pack).
+// Landed ahead of its planned Phase-4 slot: the device-side gate harness cannot
+// run without a way to locate models on a device, and "locate + verify" is the
+// same problem for a pushed fixture directory and for a Play asset pack.
+include(":core-models")
+
 // Phase 4: application shell (Compose UI, repos, audio, warmup). Stub for now.
 include(":app")
 
 // Phased modules — added when their phase begins (docs/android-migration.md §8/§9):
 //   Phase 3: :core-mdd
-//   Phase 4: :core-models

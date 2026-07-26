@@ -1,0 +1,13 @@
+{
+  "producer": "手动步骤,见 docs/reviews R-10 与本次设备侧首跑评审",
+  "tier": "base.en",
+  "precision": "int8",
+  "num_threads": 4,
+  "note": "桌面 arm64(macOS)上同一 int8 权重对 golden/wav/*.npy 的转写。设备端应逐字相同 —— 不同即 arm64 kernel/线程差异。",
+  "text": {
+    "ref_samantha": "The quick brown fox jumps over the lazy dog.",
+    "crossvoice_daniel": "The quick brown fox jumps over the lazy dog.",
+    "wrongtext_samantha": "the slow purple cat sleeps under the busy table.",
+    "slow_samantha": "The quick brown fox jumps over the lazy dog."
+  }
+}

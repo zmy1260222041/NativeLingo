@@ -54,8 +54,11 @@ data/librispeech/
 # ── Build / distribution artifacts ─────────────
 # Dedicated freeze venv (rebuilt by scripts/build_dmg.sh)
 .venv-freeze/
-# Pre-bundled ML models staged for the freeze (re-downloadable; not source)
-models/
+# Pre-bundled ML models staged for the freeze (re-downloadable; not source).
+# Anchored: unanchored `models/` also matched the Kotlin package directory
+# `NativeLingoAndroid/core-models/src/*/kotlin/com/nativelingo/models/`, which
+# silently kept all of :core-models out of git.
+/models/
 # Staged PyInstaller sidecar + bundled ffmpeg (produced by build_dmg.sh, not source)
 src-tauri/resources/nativeLingoBackend/
 src-tauri/resources/bin/

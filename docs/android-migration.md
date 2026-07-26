@@ -1,7 +1,7 @@
 # Android 端完整迁移方案
 
 > 版本:v0.1(2026-07-25)
-> 关联 PRD:`docs/PRD.md` v0.1(NFR-2 双平台、NFR-4 移动端约束、FR-12 in-scope、§7 R-5..R-9)
+> 关联 PRD:`docs/PRD.md` v0.3(NFR-2 双平台、NFR-4 移动端约束、FR-12 in-scope、§7 R-5..R-12)
 > 状态:**方案已批准,Phase-0 spike 待执行**。本文件是迁移的正式落地点,后续每个 Phase 门结果回写于此 + `docs/reviews/`。
 
 ## 1. 背景与目标
@@ -60,7 +60,7 @@ NativeLingo 当前是 macOS Tauri v2 + Python FastAPI sidecar(v0.5 已发布)。
 | **NFR-1 本地/离线/隐私** | 全端侧推理,录音不出设备,RECORD_AUDIO;无任何云调用 | Gate A/R-5 保证 |
 | **NFR-2 平台** | macOS + Android(原生 Kotlin) | — |
 | NFR-3 性能 | 单句分析秒级(设备实测);转写后台+缓存 | 设备验证 |
-| NFR-4 移动端约束 | API 28+ / **仅 arm64-v8a** / RAM / 包体 **~897MB(asset pack)** / UNPROCESSED / 数值对齐 | Gate D/R-8 等;① ② 已落 PRD v0.2 |
+| NFR-4 移动端约束 | API 28+ / **仅 arm64-v8a** / RAM / 包体 **935 MiB(asset pack)** / UNPROCESSED / 数值对齐 | Gate D/R-8 等;① ② 已落 PRD v0.2,包体经 R-12 修正(v0.3) |
 | NFR-Q1 评分质量 | `calibration.json` 原样;PCC 0.60/0.43 保持;说话人不变性 | Layer2 验证 |
 
 ## 4. 已验证的运行时选型(每项一个,含 5 个重塑假设的发现)
@@ -173,7 +173,7 @@ best_sub_gain(em, ids, chars, vocab, pad):
 
 仿 macOS freeze-spike 门模式。5 个 make-or-break 风险,按序验证(每门即一份 fit-review,落 `docs/reviews/`,延续 R-1..R-4 编号)。**R-10 / Gate F 是实施中补的第六道**,原计划没有它 —— 见本节末。
 
-- **R-5 / Gate A —— int8 下数值评分对齐(最高风险,项目存在性证明):** 导出 wav2vec2-base(6–9 层)+ int8 → Android ONNX,同一对 ref/learner 走 macOS PyTorch 与 Android,**accuracy ±2.0 / fluency ±3.0 / DTW cost ±0.02**,跨嗓音 `test_speaker_invariance` cost ≤0.18。**No-go 兜底:** int8 若破坏说话人不变性 → 退 **fp16**(~190MB);再不行 → 端侧全功能前提失败,须战略回桌。
+- **R-5 / Gate A —— int8 下数值评分对齐(最高风险,项目存在性证明):** 导出 wav2vec2-base(6–9 层)+ int8 → Android ONNX,同一对 ref/learner 走 macOS PyTorch 与 Android,**accuracy ±2.0 / fluency ±3.0 / DTW cost ±0.02**,跨嗓音 `test_speaker_invariance` cost ≤0.18。**No-go 兜底:** int8 若破坏说话人不变性 → 退 **fp16**(~190MB);再不行 → 端侧全功能前提失败,须战略回桌。**这条兜底在 R-12 被真的触发了**(arm64 int8 kernel 不变性 0.18323 > 0.18),且发现兜底本身此前根本载入不了 —— 判据未改,模型换成 fp16(实测 139.7MB,不是估的 190MB)。
 - **R-6 / Gate B —— Viterbi 正确性:** 手写 `CtcViterbi.kt`,同一 MMS emission 走 torchaudio 与 Kotlin,每词 `[start,end]` 误差 ≤1 帧(20ms)。
 - **R-7 / Gate C —— 音素 MDD 自拟合门控 int8 下仍成立:** espeak int8(318MB)重跑 think/sink 套件,canonical 自拟合 ≤0.04、垃圾 ≥0.09;若 int8 压缩增益域致误过门 → 设备上重调 `0.05`/`0.15`(数据在 `backend/tests/`)或退 fp16(635MB)。
 - **R-8 / Gate D —— 6GB 设备 RAM 预算:** Pixel 4a 级设备全流程 `analyze` 30s 片段,峰值 RSS <3.5GB、20 连续无 OOM。兜底:espeak 按词批惰性 `OrtSession.close()`;仍紧 → MDD 按 `ActivityManager.MemoryInfo` 在低内存设备降级。
@@ -208,7 +208,7 @@ NativeLingoAndroid/
 |---|---|---|
 | **0** | spike 门 A–E(R-5..R-9),逐项 go/no-go | 3–4 周(**未过不进下阶段**) |
 | **1** | `:core-scoring` + 金标准测试框架(JVM,过 Layer1+2) | 3–4 周 |
-| **2** | `:core-embed/asr/audio/align` 接 ONNX/sherpa/MediaCodec,设备端跑通 | 4–5 周(R-9 免掉 NDK 工具链后偏下限) |
+| **2** | `:core-embed/asr/audio/align` 接 ONNX/sherpa/MediaCodec,设备端跑通 | 4–5 周(R-9 免掉 NDK 工具链后偏下限)—— ✅ **已完成,设备侧 22/22 见 R-12** |
 | **3** | `:core-mdd` + RAM 收紧 | 2–3 周(Gate C/D 失败可跳) |
 | **4** | Compose UI / ExoPlayer 跟读 / A/B 回放 / 录音 Repo / 首启下载 / FR-12 Room | 4–5 周 |
 | **5** | 仪器化诊断 / beta / OEM 调音 | 2–3 周 |
@@ -248,7 +248,7 @@ NativeLingoAndroid/
   - Gate B · CTC 对齐:`CtcViterbi.kt` —— 手写 CTC 强制对齐复现 torchaudio 每字符帧边界(±1 帧)。
   - `:core-scoring` 测试 8/8 全绿。
 - [x] Phase 1 余项:校准映射(cost→accuracy/fluency,对齐 95.0/74.5)、detail 投影、word_diff、feedback。
-- [x] **R-5 / Gate A(Python 侧)PASS** —— `scripts/onnx_export_spike.py` 证:int8 仅 transformer(CNN 留 fp32,95MB)守住说话人不变性(cost 0.1773 ≤ 0.18,acc 95.0);全量 int8 失效(cost 0.2789)。SSL 编码器定为此策略,fp16(139MB)兜底。详见 `docs/reviews/2026-07-25-android-gate-a-onnx-int8.md`。
+- [x] **R-5 / Gate A(Python 侧)PASS** —— `scripts/onnx_export_spike.py` 证:int8 仅 transformer(CNN 留 fp32,95MB)守住说话人不变性(cost 0.1773 ≤ 0.18,acc 95.0);全量 int8 失效(cost 0.2789)。SSL 编码器定为此策略,fp16(139MB)兜底。详见 `docs/reviews/2026-07-25-android-gate-a-onnx-int8.md`。⚠️ **R-12 推翻了「定为此策略」**:同一份 int8 导出在 arm64 上过不了同一条线(0.18323),已换成那个 fp16 兜底 —— **桌面 PASS 与设备 PASS 不是同一件事**,这是本项目最贵的一次教训。
 - [x] **R-7 / Gate C(espeak)PASS** —— int8 全量 303MB,CTC 贪解串精确,余弦 0.9946(`scripts/onnx_gate_bc_spike.py`,`docs/reviews/2026-07-25-android-gate-bc-onnx.md`)。
 - [x] **R-6 / Gate B 算法 PASS**(CtcViterbi JVM 复现 torchaudio ±1 帧);emission int8 导出当时受阻于 torchaudio `List[int]` 图怪癖 —— **已在 Phase 2 解掉,见下**。
 - [x] **Phase 1 收尾:评分层全部移植完毕(2026-07-25)** —— `:core-scoring` **21/21 全绿**,`:core-embed` 3/3 全绿,macOS 后端 `pytest backend/tests/` 12/12 不受影响(`backend/` 未改动,金标准源保持权威)。
@@ -309,5 +309,13 @@ NativeLingoAndroid/
   - **决定性的是分歧结构退化,而 R-10 判 PASS 恰恰依赖这一条**("全是局部替换,没有一处整段崩坏")。多词分歧摊开:base.en 6 处**无一产生非词**(`51 %`→`fifty one percent`、`stride and`→`strident` 之类);tiny.en 新增 `tariff ruling, in essence`→**`terror-frueling, and, as since`**、`decide? In factically,`→**`infatically`**,以及把主播名 `Tony DeCoupe` 揉成 `Tonya Colpola`。**MMS 强制对齐没有拒绝路径** —— 给它非词就必须把从未说出的字符铺到真实音频上,该 span 内 FR-2/FR-6/FR-8 直接失去对应关系(FR-11 有 canonical 自拟合门控兜底,**另三条没有**)。所以那 0.88pp 不是均匀变差,买来的是一类下游无防线的新错误。
   - **tiny.en 真正值钱的是快 1.67×**(636s 全片 38.2s→22.9s 墙钟,CPU 142s→82s)—— 这把 R-10 的"换档才是那根杠杆"量出来了。**保留为低端设备的运行期降级档,不作发布默认**;降档触发条件待设备数据(桌面上量不出"多慢算太慢")。
   - **顺带否掉「量化 embedding 表」**:该表(base.en 106.2MB,占 int8 decoder 130.7MB 的 **81%**)有 `Gather`/`Identity`/`Add` 三个消费者。`op_types_to_quantize=["MatMul","Gather"]` 只给 Gather 加一份 26.6MB uint8 副本,**fp32 原表因另两个消费者仍需保留**,文件反而变大(130.7→**157.2MB**;tiny 89.9→109.8MB)。要真省下来得改图让 tied 输出投影也吃 int8 表 —— 那是动 logits 路径,风险收益不对称,**不做**;若日后包体成硬约束,这是一条已定位清楚但需单独一道门的路。
-- [ ] R-5/R-6/R-7 设备侧复测(arm64 int8 kernel 可能异于桌面)+ Gate D(RAM)+ Gate E 设备侧(多机解码一致性)+ Tier 3 设备/模拟器。**Phase 2 的四个模块(`:core-embed`/`:core-align`/`:core-asr`/`:core-audio`)都已能构建,但除 `:core-embed` 外都没在设备上跑过** —— 端侧首跑是一件事,一起做。**`:core-asr` 的端侧首跑与 R-10 复测一并做** —— 目前它只验证到"能编译、API 用法正确",AAR 里的 JNI 一次都还没在设备上调起来过。
-- **模型包体(NFR-4②,第三次修正,现在全部为实测)**:whisper base.en **159.8MB**(int8;R-10 实测,前两版记的 ~70MB 错了 2.3 倍)+ wav2vec2 95.8MB(int8 transformer-only)+ espeak 302.9MB(int8 全量)+ MMS 338.6MB(int8 transformer-only)= **~897MB**。whisper 的 160MB 越过 Play base APK 的 150MB 压缩上限,**四个模型统一走安装时 asset pack**(上限 1.5GB,计入安装体积)—— 这样选是因为另外三项共 737MB **无论如何都要下载机制**,whisper 搭这趟车的增量成本≈0(这一点上一版低估了,如实修正)。**已越过上一版所说的"接近可接受上限"。** 若日后要压:MMS(338.6MB)最大,其次 espeak(302.9MB,惰性加载减 RAM 但不减下载);**whisper 换 `tiny.en` 已由 R-11 量过,省 57MB 但换来 MMS 必须对齐的非词,不作为压缩手段**,只作低端设备的速度降级档。
+- [x] **R-12(2026-07-26)设备侧首跑 —— 六个 core 模块首次在 arm64-v8a 上端到端跑通,22/22 绿**(`docs/reviews/2026-07-26-android-device-first-run.md`,harness:`app/src/androidTest` + `scripts/push_device_models.sh` + `scripts/run_device_gates.sh`)。方法是**判据一字不改地搬过来,看谁不过**。
+  - **R-5 换了模型,没改判据。** int8-transformer 在 arm64 上不变性 0.18323(≤0.18)、最差金标准余弦 0.98297(≥0.985),**两条同时失手**;校准后 accuracy 仍 95.00 与 macOS fp32 逐位相同,坏的是**余量**(到第一个拐点只剩 0.0032,fp32 时代 0.0155)。按本文 §Phase 0 早已写明的 no-go 阶梯退 **fp16**:0.16917 / 0.990–0.997 / 余量 0.0172,**比 macOS fp32 自身的 0.1714 还好**。代价 **+43.9 MiB**(95.8→139.7)与吞吐 21.6–25.2×→12.2–12.8× 实时(两次运行的区间 —— **只有墙钟在抖**,不变性/余弦/成对代价全部逐位复现,所以吞吐给区间而判据给单值;比值稳定 1.8–2.0×,跨运行取数不可比;单句路径 12.7–13.1×,3s 句子 231–234 ms),用户拍板接受。**没有把线放宽到 0.185/0.982** —— 只因量化恰好落得好才成立的阈值不是阈值,而放宽会让此前所有 R-5 数字不再描述任何东西。两个数并排留在 `SslPrecisionProbeDeviceTest` 里,+43.9 MiB 因此是可复核的而非声明的。
+  - **阶梯里那个 fp16 兜底本身是坏的,两层。** ①`onnxconverter_common.float16` 产出的图**根本载入不了**(Cast 输出 fp16 而声明 fp32),改用 ORT 自己维护的 `onnxruntime.transformers.float16`;②修好后桌面能载入、**Android 仍拒收**:ORT 的**载入期优化器**把图里 17 个 `Erf` 融成 `com.microsoft.Gelu`,桌面 ORT 有它的 fp16 kernel、**裁剪版移动构建没有**。把 `Erf` 留在 fp32 打断融合模式即可(代价是其余融合一并失去 —— 12.2–12.8× 里有一部分是**这份导出**的账,不是 fp16 的账,如实记)。**"能不能打开"此前和 parity 一起被推迟了,现在导出脚本直接断言它。**
+  - **`:core-audio` 两个真实缺陷,只有设备能暴露。** ①`toMono` 取算术平均,而 libswresample 的 `layout=mono` 是能量守恒重矩阵 `(L+R)/√2` —— **每路视频参考音低 3.01 dB**;下游 `frameDb`(相对参考)、`stressPos`(只取位置)、CMVN(逐维归一)恰好全都尺度不变所以分数上几乎不可见(Δcost 0.003),**但尺度不变是当下消费者的性质、不是保证**(Silero VAD 有绝对灵敏度),故电平现在**单独 gate**;②mp4/AAC seek 到 1.000s,首个输出时间戳 1.0217s **在请求点之后**,FR-8 按词回放的起音被削掉 → `PRE_ROLL_S = 0.1`。
+  - **三处测量方法返工。** ①整数对齐不够,AAC 的 2112 样本 priming 在 16kHz 上是 **766.2** 个样本,分数残差在 3kHz 上就值 −12 dB —— 第一版把纯时基偏移读成了 10.7 dB 的"解码器失真",加窗 sinc 分数移位后是 47.7–50.3 dB;②Gate E 判据 ① 的 0.995 是**桌面 fp32 编码器**量出来的,搬到量化编码器上等于要求跨解码结果的吻合度高于编码器对自己跨精度的吻合度,改为对**实测噪声底** `controlCos` 判定 —— 不过 fp16 换装把这条结论的适用范围改窄了:换装后判据 ① **直接达标**(0.999803–0.999956 ≫ 0.995),噪声底退为**休眠兜底**,它只在 int8 那次运行里是唯一的通过路径(0.9888–0.9928);③模型校验测试**报了它没测的数**(`Infinity MiB/s` —— marker 跨运行存活,`verifyAll` 直接返回),现在先删 marker 再计时并**结构性断言**,而不是拿时间当代理(第一版 `ms > 1000` 被模拟器的宿主 page cache 当场证伪:424 ms / 2205 MiB/s,**真机冷存储 I/O 仍未知**)。
+  - **一个非算法的坑**:六个 core 模块原挂 `androidTestImplementation`(理由是 `:app` 还是空壳),11 个测试在 class-init 全灭于 `dlopen` 找不到 `libonnxruntime4j_jni.so` —— 三个 `.so` 都在,在**错误的 APK** 里:instrumentation 合并 test APK 的 **dex**,**不**以同样方式合并它的 `lib/`。而 R-8 要测的"一个进程同时持有所有 session 的峰值"本就是**应用进程**的性质。已改 `implementation`。
+  - **R-8 转 PASS 但范围是部分的**:峰值 PSS 892 MiB(预算 3500)、20 轮增长 67.5 MiB、单轮 624–673 ms(两次运行,中位 640/646);**没测到** espeak 推理、whisper 与 SSL 真正并发、30s 片段 → NFR-4③ 要到 Phase 3 才能真正关门。R-6 设备侧完美(9 个边界逐个相同,最差漂移 0.0248 帧);R-10 四段转写与桌面**逐字相同**、18.1–20.7× 实时。**跑了两次的收获不只是区间**:所有数值(不变性、四个金标准余弦、Gate E 三个余弦与其噪声底、9 个词边界、四段转写文本)**逐位复现**,变化只在墙钟 —— 端侧这条链是确定性的,这一点比任何单次的数字都更值得记。
+- [ ] **真机(非模拟器)复测** —— 一台模拟器是一个解码器实现、一份宿主 page cache。留三项:多 OEM 解码一致性(R-9 原遗留)、**冷存储全量校验耗时**(决定 warmup 是否每次启动都校验)、CPU 热降频下的 NFR-3。另:`golden/device/manifest.json` 的 `emb_min_cosine: 0.995` 已补 `emb_cosine_note` 说明析取与噪声底;若日后换回量化编码器,该析取重新变为现役判据,届时应把 `controlCos` 实测值也落进 manifest。
+- [ ] R-7 设备侧复测 —— 随 Phase 3 `:core-mdd` 一起做(espeak 至今没在设备上推理过,它同时是 R-8 关门的前提)。
+- **模型包体(NFR-4②,第四次修正,全部为实测)**:whisper base.en **159.8MB**(int8;R-10 实测,前两版记的 ~70MB 错了 2.3 倍)+ wav2vec2 **139.7MB**(**fp16** —— R-12 把它从 95.8 的 int8-transformer 换掉了,理由见上)+ espeak 302.9MB(int8 全量)+ MMS 338.6MB(int8 transformer-only)+ VAD/tokens = **935 MiB**。whisper 的 160MB 越过 Play base APK 的 150MB 压缩上限,**四个模型统一走安装时 asset pack**(上限 1.5GB,计入安装体积,现余 590 MiB)—— 这样选是因为另外三项 **无论如何都要下载机制**,whisper 搭这趟车的增量成本≈0(这一点上一版低估了,如实修正)。**+43.9 MiB 没有改变分发机制**,这正是那个决定除吞吐外的全部代价。若日后要压:MMS(338.6MB)最大,其次 espeak(302.9MB,惰性加载减 RAM 但不减下载);**whisper 换 `tiny.en` 已由 R-11 量过,省 57MB 但换来 MMS 必须对齐的非词,不作为压缩手段**,只作低端设备的速度降级档(触发条件现有设备数据可定:base.en 18.1–20.7× 实时)。

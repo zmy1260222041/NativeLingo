@@ -11,8 +11,17 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * Device-side R-5 on JVM: the int8-transformer ONNX encoder (via onnxruntime's
- * Java API) reproduces the macOS golden embeddings within functional tolerance.
+ * Device-side R-5 on JVM: the shipped ONNX encoder (via onnxruntime's Java API)
+ * reproduces the macOS golden embeddings within functional tolerance.
+ *
+ * The shipped export is **fp16** (see ModelCatalog.SSL_ENCODER), not the
+ * int8-transformer this test was written against. The swap came out of the
+ * device run: int8 cleared these same bars on desktop ORT and missed both of
+ * them on arm64. Which is the reason this test is not the one that decides
+ * anything — same bars, but desktop kernels, and R-5's whole finding is that
+ * those two can disagree by more than the remaining margin. It stays because it
+ * localises a failure: if it passes and the device test fails, the export is
+ * fine and the runtime differs.
  *
  * Two independent checks:
  *  1. onnx_run_matches_golden — feed the golden NORMALIZED input → ONNX →
@@ -20,13 +29,13 @@ import kotlin.test.assertTrue
  *  2. kotlin_normalization_matches_extractor — my Kotlin normalization matches
  *     the Wav2Vec2FeatureExtractor output element-wise.
  *
- * Loads the 95MB model from build/onnx (gitignored, regenerable via
+ * Loads the 140MB model from build/onnx (gitignored, regenerable via
  * scripts/onnx_export_spike.py); skips if absent.
  */
 class Wav2Vec2EncoderTest {
 
     private val goldenDir = "../core-scoring/src/test/resources/golden"
-    private val modelPath = "../../build/onnx/w2v2_base_69_int8_transformer.onnx"
+    private val modelPath = "../../build/onnx/w2v2_base_69_fp16.onnx"
 
     private fun npy(path: String) = NpyReader.read(java.io.File("$goldenDir/$path").inputStream())
     private fun emb(name: String) = npy("emb/$name.npy").frames2d()
