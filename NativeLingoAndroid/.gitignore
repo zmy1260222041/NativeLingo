@@ -7,3 +7,10 @@ captures/
 .cxx/
 local.properties
 /.kotlin/
+# Staged model weights — synced at build time, not committed.
+app/src/main/assets/models/
+# Corpus videos — synced from ../videos at build time.
+app/src/main/assets/corpus/
+# Release signing — never commit the keystore or its credentials.
+nativelingo-release.jks
+keystore.properties

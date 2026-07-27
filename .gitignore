@@ -67,6 +67,13 @@ src-tauri/resources/bin/
 # app/build.gradle.kts syncCorpus), not committed. 91 MiB; source of truth is videos/.
 NativeLingoAndroid/app/src/main/assets/corpus/
 
+# Android model asset pack — synced from build/onnx + sherpa at build time
+# (see asset-pack-models/build.gradle.kts syncModels), not committed. 935 MiB.
+NativeLingoAndroid/asset-pack-models/src/main/assets/
+
+# Local dev tools (bundletool for AAB/asset-pack verification).
+NativeLingoAndroid/.tools/
+
 # ── Secrets / env ──
 .env
 .env.*

@@ -10,6 +10,8 @@
 > **v0.3 变更(2026-07-26)**:设备侧首跑(R-12)—— 前六道门首次在 arm64-v8a 上以**原判据**复测,22/22 通过,但 **R-5 是靠换模型才过的**:int8-transformer 编码器在 arm64 上说话人不变性 0.18323(判据 ≤0.18)、最差金标准余弦 0.98297(判据 ≥0.985),两条同时失手;按 R-5 既有 no-go 阶梯退 **fp16**(实测 0.16917 / 0.990–0.997,优于 macOS fp32 自身),**判据一字未改**。连带 NFR-4② 包体 ~897MB → **935 MiB**(wav2vec2-base 95.8 → **139.7**)。此外 `:core-audio` 修掉两个只有设备能暴露的真实缺陷(立体声下混少了 √2 能量守恒因子、seek 后首帧被吃)。R-8 转为**部分范围 PASS**(espeak/whisper 并存与 30s 片段待 Phase 3)。详见 `docs/reviews/2026-07-26-android-device-first-run.md`。
 >
 > **v0.4 变更(2026-07-27)**:Phase 4 `:app` 外壳启动,三项范围决策落定 —— ① **FR-M2 内置素材的视频本身随包发**(精选语料为用户自有、无版权,故不只发 `.sentences.json`,视频文件一并随包);用户导入路径(FR-M2)与内置并存。② **FR-11 音素诊断(`:core-mdd`)标为 v1.0 后待完成** —— P2 且自门控(不确定时静默),不影响其它流程的发布。③ **FR-12 学习记录(Room)本轮暂缓** —— P2、无模型依赖,事后补。本轮 DI 用手工 `AppContainer`(无 Hilt)。详见 `docs/android-migration.md` §12 Phase 4。
+>
+> **v0.5 变更(2026-07-27)**:模型投递从 Play install-time asset pack 切换为 **APK 内 assets 首次启动自动解压** —— GitHub APK 发布不依赖 Play Store 资产分发链路;935 MiB 模型在 `assets/models/` 内随 APK 压缩存储(zip,830MB),`AssetsModelSource` 首次启动时解压至 `filesDir/models/` 并显示进度条,后续启动跳过。Warmup 增加 `Copying` 态区分"解压中"与"校验中"。`DirectoryModelSource`(adb push)保留为降级兜底,`AssetPackModelSource` 保留源码供日后 Play 发布切换(见 `app/build.gradle.kts` 注释说明)。详见 `docs/android-migration.md` §12。
 
 ## 1. 背景与愿景
 

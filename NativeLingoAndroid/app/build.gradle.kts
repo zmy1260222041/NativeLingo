@@ -1,11 +1,23 @@
 // :app — Phase 4 application shell: Compose UI, manual AppContainer DI,
 // AudioRecord (FR-3), Media3 playback (FR-8), VideoRepository/RecordingsRepository,
 // AnalyzePipeline, first-launch model verification/warmup.
+
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
+
+// Release signing — reads keystore.properties next to this file (gitignored).
+// CI can set the same keys via env: ORG_GRADLE_PROJECT_storeFile, etc.
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.isFile) keystorePropsFile.inputStream().use { load(it) }
+}
+fun keystoreProp(name: String): String? =
+    (project.findProperty(name) as? String) ?: keystoreProps.getProperty(name)
 
 android {
     namespace = "com.nativelingo.app"
@@ -34,15 +46,36 @@ android {
         ndk { abiFilters += "arm64-v8a" }
     }
 
+    signingConfigs {
+        val storeFile = keystoreProp("storeFile")
+        val storePassword = keystoreProp("storePassword")
+        val keyAlias = keystoreProp("keyAlias")
+        val keyPassword = keystoreProp("keyPassword")
+        if (storeFile != null && storePassword != null && keyAlias != null && keyPassword != null) {
+            create("release") {
+                this.storeFile = rootProject.file(storeFile)
+                this.storePassword = storePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+        }
+    }
+
     buildFeatures {
         compose = true
     }
 
-    // M3: the 935 MiB model weights ship as an install-time Play asset pack, not
-    // in the base APK (NFR-4② — base APK ceiling is 150 MiB). Registered here so
-    // :bundleRelease assembles it into the AAB; bundletool installs it locally
-    // via build-apks --connected-device.
-    assetPacks += listOf(":asset-pack-models")
+    // Models ship inside the APK's assets/models/ for GitHub releases (extracted to
+    // filesDir on first launch). For Play Store distribution, switch back to the
+    // install-time asset pack: uncomment the line below and comment out syncModelsToAssets.
+    // assetPacks += listOf(":asset-pack-models")
 
     // The curated corpus (7.1.mp4 + .sentences.json) is an uncompressed asset so
     // ExoPlayer's asset:/// scheme and MediaCodec get a clean file descriptor.
@@ -92,16 +125,46 @@ val syncCorpus = tasks.register<Sync>("syncCorpus") {
     }
     into(corpusAssets)
 }
-// mergeAssets runs before packaging; making it depend on the sync covers both
+// Stage model weights into the APK's assets/models/ so AssetsModelSource can
+// extract them to filesDir on first launch. The same 7 files (935 MiB) that the
+// asset-pack module staged; sourced from the same host directories.
+// For Play Store distribution comment this block and uncomment assetPacks above.
+val modelAssets = layout.projectDirectory.dir("src/main/assets/models")
+val syncModelsToAssets = tasks.register<Sync>("syncModelsToAssets") {
+    // Keep this list in lockstep with ModelCatalog.installTime + asset-pack-models/build.gradle.kts.
+    from(rootProject.layout.projectDirectory.dir("../build/onnx").asFile.absolutePath) {
+        include(
+            "w2v2_base_69_fp16.onnx",
+            "mms_fa_int8_transformer.onnx",
+            "espeak_cv_ft_int8.onnx",
+        )
+    }
+    val sherpaDir = providers.gradleProperty("sherpaModelsDir")
+        .orElse(providers.environmentVariable("SHERPA_MODELS").orElse("/tmp/sherpa-models"))
+        .get()
+    from(sherpaDir) {
+        includeEmptyDirs = false
+        include(
+            "silero_vad.onnx",
+            "sherpa-onnx-whisper-base.en/base.en-encoder.int8.onnx",
+            "sherpa-onnx-whisper-base.en/base.en-decoder.int8.onnx",
+            "sherpa-onnx-whisper-base.en/base.en-tokens.txt",
+        )
+        eachFile { path = name }
+    }
+    into(modelAssets)
+}
+
+// mergeAssets runs before packaging; making it depend on both syncs covers
 // debug and release variants without touching the incubating applicationVariants API.
 tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
-    .configureEach { dependsOn(syncCorpus) }
+    .configureEach { dependsOn(syncCorpus, syncModelsToAssets) }
 
-// :app's asset-pack pre-bundle task reads :asset-pack-models' staged assets —
-// order it after that module's sync. (The corpus sync above covers :app's own
-// mergeAssets; the model pack is a separate module.)
-tasks.matching { it.name.endsWith("PreBundleTask") }
-    .configureEach { dependsOn(":asset-pack-models:syncModels") }
+// Lint tasks read assets and need the syncs to have run first.
+tasks.matching {
+    val n = it.name
+    n.startsWith("generate") && n.contains("Lint") || n.startsWith("lint")
+}.configureEach { dependsOn(syncModelsToAssets, syncCorpus) }
 
 dependencies {
     implementation(libs.androidx.core.ktx)

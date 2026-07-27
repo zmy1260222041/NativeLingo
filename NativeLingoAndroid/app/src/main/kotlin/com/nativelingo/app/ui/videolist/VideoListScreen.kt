@@ -108,7 +108,14 @@ fun VideoListScreen(container: AppContainer, onPick: (VideoRepository.CorpusVide
 private fun WarmupStatus(state: Warmup.State) {
     val brand = LocalNativeLingoColors.current
     when (state) {
-        Warmup.State.Idle -> Text("准备校验模型…", color = brand.muted)
+        Warmup.State.Idle -> Text("准备模型…", color = brand.muted)
+        is Warmup.State.Copying -> {
+            val frac = if (state.totalBytes > 0) state.doneBytes.toFloat() / state.totalBytes else 0f
+            Column(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Text("解压模型 %d%%".format((frac * 100).toInt()), color = brand.muted)
+                LinearProgressIndicator(progress = { frac }, modifier = Modifier.fillMaxWidth())
+            }
+        }
         is Warmup.State.Verifying -> {
             val frac = if (state.totalBytes > 0) state.doneBytes.toFloat() / state.totalBytes else 0f
             Column(Modifier.fillMaxWidth().padding(top = 8.dp)) {

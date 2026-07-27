@@ -1,6 +1,7 @@
 package com.nativelingo.app.di
 
 import android.content.Context
+import com.nativelingo.app.repo.AssetsModelSource
 import com.nativelingo.app.audio.ClipPlayer
 import com.nativelingo.app.audio.LearnerRecorder
 import com.nativelingo.app.pipeline.AnalyzePipeline
@@ -50,12 +51,15 @@ class AppContainer(context: Context) {
     /** Checksum markers — deliberately not next to the models (R-12 harness). */
     val stateDir: File = File(appContext.filesDir, "model-state")
 
+    /** Extracts models from APK assets on first launch; null if assets are not staged. */
+    val assetsModelSource: AssetsModelSource = AssetsModelSource(appContext, modelDir)
+
     val registry: ModelRegistry =
         ModelRegistry(
             listOf(
-                // M3: prefer the install-time asset pack (production delivery).
-                com.nativelingo.app.repo.AssetPackModelSource(appContext),
-                // Fall back to the adb-pushed directory (gate harness / smoke test).
+                // First: models extracted from APK assets (production / GitHub release).
+                assetsModelSource,
+                // Fall back: adb-pushed directory (gate harness / smoke test / dev).
                 DirectoryModelSource(modelDir, "pushed models (dev/gate harness)"),
             ),
             stateDir,
@@ -98,5 +102,5 @@ class AppContainer(context: Context) {
     /** One audio-clip player for FR-8 — the muted-video player is per-screen. */
     val clipPlayer: ClipPlayer by lazy { ClipPlayer(appContext) }
 
-    val warmup: Warmup by lazy { Warmup(registry, appScope) }
+    val warmup: Warmup by lazy { Warmup(registry, assetsModelSource, appScope) }
 }

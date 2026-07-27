@@ -55,7 +55,11 @@ include(":app")
 // at install, unpacked to an app-private directory `AssetPackLocation.assetsPath()`
 // points at — which is why a model can be a File for ONNX/sherpa path args without
 // a copy-out (see core-models/.../ModelSource.kt).
-include(":asset-pack-models")
+//
+// COMMENTED OUT for GitHub APK releases: models are bundled in :app's assets/models/
+// instead and extracted on first launch by AssetsModelSource. To switch back to
+// Play distribution, uncomment this line and the assetPacks block in app/build.gradle.kts.
+// include(":asset-pack-models")
 
 // Phased modules — added when their phase begins (docs/android-migration.md §8/§9):
 //   Phase 3: :core-mdd
