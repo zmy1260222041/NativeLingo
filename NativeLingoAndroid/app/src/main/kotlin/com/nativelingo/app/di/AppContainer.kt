@@ -47,7 +47,15 @@ class AppContainer(context: Context) {
     val stateDir: File = File(appContext.filesDir, "model-state")
 
     val registry: ModelRegistry =
-        ModelRegistry(listOf(DirectoryModelSource(modelDir, "pushed models")), stateDir)
+        ModelRegistry(
+            listOf(
+                // M3: prefer the install-time asset pack (production delivery).
+                com.nativelingo.app.repo.AssetPackModelSource(appContext),
+                // Fall back to the adb-pushed directory (gate harness / smoke test).
+                DirectoryModelSource(modelDir, "pushed models (dev/gate harness)"),
+            ),
+            stateDir,
+        )
 
     /** calibration.json ships on the classpath via :core-scoring's resources. */
     val calibration: Calibration by lazy { CalibrationLoader.loadDefault() }

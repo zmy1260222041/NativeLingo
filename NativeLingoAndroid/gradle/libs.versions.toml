@@ -8,6 +8,7 @@ composeBom = "2024.12.01"
 media3 = "1.5.1"
 navigationCompose = "2.8.5"
 coroutines = "1.8.1"
+playAssetDelivery = "2.3.0"
 onnxRuntimeAndroid = "1.27.0"
 sherpaOnnx = "1.13.4"
 junit = "4.13.2"
@@ -29,6 +30,7 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+google-play-asset-delivery = { group = "com.google.android.play", name = "asset-delivery", version.ref = "playAssetDelivery" }
 onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxRuntimeAndroid" }
 onnxruntime-desktop = { group = "com.microsoft.onnxruntime", name = "onnxruntime", version.ref = "onnxRuntimeAndroid" }
 sherpa-onnx = { group = "com.k2fsa.sherpa.onnx", name = "sherpa-onnx-static-link-onnxruntime", version.ref = "sherpaOnnx" }
@@ -39,6 +41,7 @@ androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+android-asset-pack = { id = "com.android.asset-pack", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

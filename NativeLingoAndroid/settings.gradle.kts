@@ -51,5 +51,11 @@ include(":core-models")
 // Phase 4: application shell (Compose UI, repos, audio, warmup). Stub for now.
 include(":app")
 
+// Phase 4 / M3: the 935 MiB install-time asset pack (NFR-4②). Delivered by Play
+// at install, unpacked to an app-private directory `AssetPackLocation.assetsPath()`
+// points at — which is why a model can be a File for ONNX/sherpa path args without
+// a copy-out (see core-models/.../ModelSource.kt).
+include(":asset-pack-models")
+
 // Phased modules — added when their phase begins (docs/android-migration.md §8/§9):
 //   Phase 3: :core-mdd

@@ -38,6 +38,12 @@ android {
         compose = true
     }
 
+    // M3: the 935 MiB model weights ship as an install-time Play asset pack, not
+    // in the base APK (NFR-4② — base APK ceiling is 150 MiB). Registered here so
+    // :bundleRelease assembles it into the AAB; bundletool installs it locally
+    // via build-apks --connected-device.
+    assetPacks += listOf(":asset-pack-models")
+
     // The curated corpus (7.1.mp4 + .sentences.json) is an uncompressed asset so
     // ExoPlayer's asset:/// scheme and MediaCodec get a clean file descriptor.
     androidResources {
@@ -91,6 +97,12 @@ val syncCorpus = tasks.register<Sync>("syncCorpus") {
 tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
     .configureEach { dependsOn(syncCorpus) }
 
+// :app's asset-pack pre-bundle task reads :asset-pack-models' staged assets —
+// order it after that module's sync. (The corpus sync above covers :app's own
+// mergeAssets; the model pack is a separate module.)
+tasks.matching { it.name.endsWith("PreBundleTask") }
+    .configureEach { dependsOn(":asset-pack-models:syncModels") }
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
@@ -110,6 +122,10 @@ dependencies {
     // Media3 — muted-video playback (FR-3) and WAV-clip replay (FR-8).
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
+
+    // M3: install-time asset pack (NFR-4②). AssetPackManager resolves the pack's
+    // unpacked directory; install-time packs are present immediately at first launch.
+    implementation(libs.google.play.asset.delivery)
 
     // The cores belong to the *app*, not to the test APK, even though today only
     // the harness calls them.
