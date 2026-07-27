@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Base launch-window theme. Compose draws its own Material3 theme on top
+  (ui/theme/Theme.kt), but the XML theme governs the window before Compose
+  composes — so its background matches the app bg token (#0F1117) to avoid a
+  white flash on cold start. Uses the framework Material theme so no AppCompat
+  dependency is needed (ComponentActivity + Compose).
+-->
+<resources>
+    <style name="Theme.NativeLingo" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#0F1117</item>
+        <item name="android:colorBackground">#0F1117</item>
+        <item name="android:statusBarColor">#0F1117</item>
+        <item name="android:navigationBarColor">#0F1117</item>
+    </style>
+</resources>

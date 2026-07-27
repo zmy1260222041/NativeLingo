@@ -1,10 +1,10 @@
-// :app — Phase 4 application shell (Compose UI, ViewModel/DI, AudioRecord,
-// Media3 playback, VideoRepository/RecordingsRepository, first-launch model
-// download + warmup, FR-12 Room history). STUB for now: just enough to be a
-// valid `com.android.application` module. UI/repos/audio land in Phase 4.
+// :app — Phase 4 application shell: Compose UI, manual AppContainer DI,
+// AudioRecord (FR-3), Media3 playback (FR-8), VideoRepository/RecordingsRepository,
+// AnalyzePipeline, first-launch model verification/warmup.
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -31,10 +31,17 @@ android {
         // run this app is arm64. It also halves the native payload, which matters
         // because :core-asr statically links its own copy of ONNX Runtime
         // (~19MB/ABI) to avoid a silent .so collision — see core-asr/build.gradle.kts.
-        //
-        // Revisit if the model set ever shrinks enough for armeabi-v7a to be
-        // viable; that is a device-support change and belongs in the PRD.
         ndk { abiFilters += "arm64-v8a" }
+    }
+
+    buildFeatures {
+        compose = true
+    }
+
+    // The curated corpus (7.1.mp4 + .sentences.json) is an uncompressed asset so
+    // ExoPlayer's asset:/// scheme and MediaCodec get a clean file descriptor.
+    androidResources {
+        noCompress.add("mp4")
     }
 
     compileOptions {
@@ -62,30 +69,47 @@ android {
         // wins.
         resources.excludes += setOf("META-INF/**")
 
-        // Drop every ABI but the one we ship. `ndk.abiFilters` above is not enough:
-        // AGP does not apply it to the androidTest variant's native-lib merge, so
-        // the merge sees all four slices of both AARs.
-        //
-        // And in one of those slices they genuinely collide. The sherpa-onnx AAR is
-        // named `sherpa-onnx-static-link-onnxruntime`, but the static linking only
-        // holds for arm64-v8a, armeabi-v7a and x86_64 — its **x86** slice ships a
-        // separate `libonnxruntime.so` (25.9MB) alongside the JNI lib, which is a
-        // second copy of the library `onnxruntime-android` already provides
-        // (34.0MB, a different version: 1.13.4 vs 1.27.0). Two `libonnxruntime.so`
-        // at the same path is an error the build refuses to guess at, and rightly:
-        // `pickFirst` would resolve it by loading whichever ORT won the race for a
-        // library the other module was compiled against.
-        //
-        // So this is not a workaround for a packaging quirk — it is NFR-4①'s
-        // arm64-only decision being what actually makes the two runtimes able to
-        // share a process. If armeabi-v7a is ever revisited, check the x86 slice
-        // first; the collision is real, just not on any ABI we build for.
+        // Drop every ABI but the one we ship — see the long note in defaultConfig.
         jniLibs.excludes += setOf("lib/x86/**", "lib/x86_64/**", "lib/armeabi-v7a/**")
     }
 }
 
+// Bundle the curated corpus from the repo's videos/ dir into the app's assets at
+// build time. Not committed (the assets/corpus dir is gitignored): the source of
+// truth is videos/ (shared with macOS); it is *synced* here so the APK is
+// self-contained without duplicating 91 MiB in git. M3 moves this into the Play
+// install-time asset pack alongside the models.
+val corpusAssets = layout.projectDirectory.dir("src/main/assets/corpus")
+val syncCorpus = tasks.register<Sync>("syncCorpus") {
+    from(rootProject.layout.projectDirectory.dir("../videos")) {
+        include("*.mp4", "*.sentences.json")
+    }
+    into(corpusAssets)
+}
+// mergeAssets runs before packaging; making it depend on the sync covers both
+// debug and release variants without touching the incubating applicationVariants API.
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
+    .configureEach { dependsOn(syncCorpus) }
+
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.kotlinx.coroutines.android)
+
+    // Compose (versions via the BOM).
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // Media3 — muted-video playback (FR-3) and WAV-clip replay (FR-8).
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
 
     // The cores belong to the *app*, not to the test APK, even though today only
     // the harness calls them.

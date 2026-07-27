@@ -63,6 +63,10 @@ data/librispeech/
 src-tauri/resources/nativeLingoBackend/
 src-tauri/resources/bin/
 
+# Android bundled corpus — synced from ../videos at build time (see
+# app/build.gradle.kts syncCorpus), not committed. 91 MiB; source of truth is videos/.
+NativeLingoAndroid/app/src/main/assets/corpus/
+
 # ── Secrets / env ──
 .env
 .env.*

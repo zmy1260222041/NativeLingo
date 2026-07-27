@@ -8,6 +8,8 @@
 > **v0.2 变更(2026-07-26)**:落地四项 Android 决策 —— FR-M2 Android 导入面去掉 `.avi`(R-9,平台对 AVI 无保证);FR-2 预置素材的切分随包提供、导入素材仍走端侧转写;NFR-4① 明确**仅发 arm64-v8a**(32 位地址空间装不下 NFR-4③ 的内存预算);NFR-4② 包体按实测改为 **~897MB**、四模型统一走安装时 asset pack,`tiny.en` 降为低端设备降级档(R-11)。新增评审记录 R-9 / R-10 / R-11。
 >
 > **v0.3 变更(2026-07-26)**:设备侧首跑(R-12)—— 前六道门首次在 arm64-v8a 上以**原判据**复测,22/22 通过,但 **R-5 是靠换模型才过的**:int8-transformer 编码器在 arm64 上说话人不变性 0.18323(判据 ≤0.18)、最差金标准余弦 0.98297(判据 ≥0.985),两条同时失手;按 R-5 既有 no-go 阶梯退 **fp16**(实测 0.16917 / 0.990–0.997,优于 macOS fp32 自身),**判据一字未改**。连带 NFR-4② 包体 ~897MB → **935 MiB**(wav2vec2-base 95.8 → **139.7**)。此外 `:core-audio` 修掉两个只有设备能暴露的真实缺陷(立体声下混少了 √2 能量守恒因子、seek 后首帧被吃)。R-8 转为**部分范围 PASS**(espeak/whisper 并存与 30s 片段待 Phase 3)。详见 `docs/reviews/2026-07-26-android-device-first-run.md`。
+>
+> **v0.4 变更(2026-07-27)**:Phase 4 `:app` 外壳启动,三项范围决策落定 —— ① **FR-M2 内置素材的视频本身随包发**(精选语料为用户自有、无版权,故不只发 `.sentences.json`,视频文件一并随包);用户导入路径(FR-M2)与内置并存。② **FR-11 音素诊断(`:core-mdd`)标为 v1.0 后待完成** —— P2 且自门控(不确定时静默),不影响其它流程的发布。③ **FR-12 学习记录(Room)本轮暂缓** —— P2、无模型依赖,事后补。本轮 DI 用手工 `AppContainer`(无 Hilt)。详见 `docs/android-migration.md` §12 Phase 4。
 
 ## 1. 背景与愿景
 
@@ -30,7 +32,7 @@
 **FR-M2(P1)素材获取方式。**
 - 当前(v0.x):用户自备视频文件放入 `videos/` 目录。
 - 目标:应用内素材库(预置精选新闻片段 + 用户导入),含来源/时长/难度等元信息。
-- 约束:版权——新闻视频有版权,分发形态只能是"用户自行获取素材"或链接指引,应用不得内置受版权保护的成片(见 §5 风险)。
+- 约束:版权——新闻视频有版权,分发形态只能是"用户自行获取素材"或链接指引,应用不得内置受版权保护的成片(见 §5 风险)。**例外(v0.4)**:应用随包分发的**精选预置语料为用户自有、无版权**素材(如 `7.1.mp4`),故其**视频文件本身随包发**(与 `.sentences.json` 一并),不触本约束;用户导入路径与预置并存。
 - **导入格式(v0.1 分平台)**:macOS `{.mp4, .mov, .mkv, .m4v, .webm, .avi}`;**Android 为 `{.mp4, .mov, .mkv, .m4v, .webm}` —— 不含 `.avi`**。Android 走系统 `MediaExtractor`(R-9 决定放弃 FFmpeg NDK 路线),而 Android 官方 *Supported media formats* 对前五种容器是**平台强制项**,对 AVI **无任何保证**。后果限于"该文件导不进来"(有明确报错,不是静默算错分);需要时再接 Media3 的实验性 `AviExtractor`。Android 侧不支持的格式须在导入处给出可读的失败原因(区分"这台机器没有解码器"与"文件损坏",由 `findDecoderForFormat` 前置探测提供)。
 
 **FR-M3(P1)素材难度适配。**
@@ -96,6 +98,8 @@
 > (ii) 636s 素材首次转写在桌面上 38.2s,手机上是数分钟量级,这段等待落在用户第一次打开应用时(NFR-3);
 > (iii) **不违反 NFR-1** —— 变的只是"内置内容的切分由谁预制",没有任何数据离开设备,也没有任何云调用。
 > 验收:预置素材开箱即可进入跟读,无转写等待;导入素材的端侧转写路径不受影响、须单独验收。
+>
+> **Phase 4 `:app` 外壳(2026-07-27 启动)**:进入原生应用壳(此前 `:app` 仅有 `Placeholder.kt`,无 Activity)。范围:**内置 `7.1.mp4` → 选句 → 跟读录音 → 出分 + 逐词着色 + 提示 + A/B 回放**的端到端垂直切片为先,用户导入(FR-M2)为后。DI 用手工 `AppContainer`,UI 用 Compose + Navigation-Compose,播放用 Media3 ExoPlayer,录音用 AudioRecord `UNPROCESSED`。**本轮不做** FR-11(`:core-mdd`,v1.0 后)与 FR-12(Room,暂缓)。开工前先补一个真实洞:`:core-scoring` 此前没有暂停特征提取(`scoreTrackB` 的 `pausePerS`/`pauseRatio` 一直从 golden JSON 读、从未在 Kotlin 算),M0 移植 `prosody._pause_feats` 落进纯 JVM 层。模型投递先走 `DirectoryModelSource` + adb push 让外壳跑通,**Play install-time Asset Pack 的端到端投递验证提前做**(唯一没验过的发布链路)。实施计划见 `.claude/plans/scalable-brewing-wall.md`,进度回写 `docs/android-migration.md` §12。
 
 ## 7. 技术符合性评审记录
 
