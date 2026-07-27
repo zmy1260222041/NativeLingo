@@ -4,15 +4,19 @@ import android.content.Context
 import com.nativelingo.app.audio.ClipPlayer
 import com.nativelingo.app.audio.LearnerRecorder
 import com.nativelingo.app.pipeline.AnalyzePipeline
+import com.nativelingo.app.repo.ImportRepository
 import com.nativelingo.app.repo.RecordingsRepository
 import com.nativelingo.app.repo.VideoRepository
 import com.nativelingo.app.warmup.Warmup
 import com.nativelingo.align.ForcedAligner
 import com.nativelingo.align.MmsEmitter
+import com.nativelingo.asr.SpeechDetector
+import com.nativelingo.asr.WhisperTranscriber
 import com.nativelingo.embed.Wav2Vec2Encoder
 import com.nativelingo.models.DirectoryModelSource
 import com.nativelingo.models.ModelId
 import com.nativelingo.models.ModelRegistry
+import com.nativelingo.models.WhisperTier
 import com.nativelingo.scoring.score.Calibration
 import com.nativelingo.scoring.score.CalibrationLoader
 import kotlinx.coroutines.CoroutineScope
@@ -70,6 +74,21 @@ class AppContainer(context: Context) {
     val aligner: ForcedAligner by lazy { ForcedAligner(mmsEmitter) }
 
     val pipeline: AnalyzePipeline by lazy { AnalyzePipeline(sslEncoder, aligner, calibration) }
+
+    // ── M2 import path (Whisper + VAD — only loaded when the user imports) ────
+    val speechDetector: SpeechDetector by lazy {
+        SpeechDetector(registry.resolve(ModelId.VAD).absolutePath)
+    }
+    val whisperTranscriber: WhisperTranscriber by lazy {
+        WhisperTranscriber(
+            registry.resolve(WhisperTier.DEFAULT.encoder).absolutePath,
+            registry.resolve(WhisperTier.DEFAULT.decoder).absolutePath,
+            registry.resolve(WhisperTier.DEFAULT.tokens).absolutePath,
+        )
+    }
+    val importRepository: ImportRepository by lazy {
+        ImportRepository(appContext, whisperTranscriber, speechDetector, aligner)
+    }
 
     // ── repos / hardware ──────────────────────────────────────────────────────
     val videoRepository: VideoRepository by lazy { VideoRepository(appContext) }

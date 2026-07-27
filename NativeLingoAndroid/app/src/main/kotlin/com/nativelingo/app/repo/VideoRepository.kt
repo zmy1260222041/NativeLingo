@@ -25,17 +25,33 @@ class VideoRepository(private val appContext: Context) {
     /** A selectable corpus entry. */
     data class CorpusVideo(
         val name: String,          // "7.1" (basename, no extension)
-        val assetMp4: String,      // "corpus/7.1.mp4"
+        val assetMp4: String? = null,       // "corpus/7.1.mp4" — null for imported
+        val importPath: String? = null,      // absolute path for imported — null for bundled
         val durationS: Double,
     )
 
-    /** ExoPlayer plays bundled assets via the `asset:///` scheme. */
-    fun assetUri(video: CorpusVideo): String = "asset:///${video.assetMp4}"
+    /** ExoPlayer URI: asset:// for bundled, file:// for imported. */
+    fun playUri(video: CorpusVideo): String =
+        video.importPath?.let { android.net.Uri.fromFile(java.io.File(it)).toString() }
+            ?: "asset:///${video.assetMp4}"
+
+    /** An absolute path [MediaAudioDecoder.decode] can open. For bundled this copies the asset fd out. */
+    fun decodePath(video: CorpusVideo): String =
+        video.importPath ?: materialiseForDecode(video.assetMp4!!)
+
+    /** Copy a bundled asset to cache so MediaAudioDecoder.decode(String) can open it. */
+    private fun materialiseForDecode(assetPath: String): String {
+        val out = java.io.File(appContext.cacheDir, assetPath.substringAfterLast('/'))
+        if (!out.isFile) {
+            appContext.assets.open(assetPath).use { ins -> out.outputStream().use { ins.copyTo(it) } }
+        }
+        return out.absolutePath
+    }
 
     /** List the bundled corpus (M1: the synced `videos` mp4s). */
     fun listBundled(): List<CorpusVideo> {
         val names = appContext.assets.list("corpus") ?: emptyArray()
-        return names.filter { it.endsWith(".mp4") }.sorted().mapNotNull { file ->
+        return names.filter { it.endsWith(".mp4") }.sorted().map { file ->
             val base = file.removeSuffix(".mp4")
             val duration = runCatching {
                 JSONObject(readAsset("corpus/$base.sentences.json")).optDouble("duration", 0.0)
@@ -46,7 +62,12 @@ class VideoRepository(private val appContext: Context) {
 
     /** Load a video's sentence grid (video-relative seconds). Throws if missing. */
     fun loadSentences(video: CorpusVideo): List<SentenceSpan> {
-        val json = JSONObject(readAsset("corpus/${video.name}.sentences.json"))
+        val jsonText = if (video.importPath != null) {
+            java.io.File(java.io.File(appContext.filesDir, "imported"), "${video.name}.sentences.json").readText()
+        } else {
+            readAsset("corpus/${video.name}.sentences.json")
+        }
+        val json = JSONObject(jsonText)
         val arr = json.getJSONArray("sentences")
         val out = ArrayList<SentenceSpan>(arr.length())
         for (i in 0 until arr.length()) {
@@ -68,16 +89,20 @@ class VideoRepository(private val appContext: Context) {
      * Decode the reference audio for `[segStart, segEnd]` (video-relative) to
      * 16 kHz mono float. Returns [DecodedAudio] whose `startS <= segStart`
      * (MediaCodec pre-roll); [AnalyzePipeline] reconciles sentence times to it.
-     * Uses the AssetFileDescriptor overload because a compressed-in-APK asset has
-     * no plain filesystem path.
+     * For bundled videos the asset needs an AssetFileDescriptor (in-APK entries
+     * have no plain path). Imported videos are regular files.
      */
     fun decodeReferenceSegment(video: CorpusVideo, segStart: Double, segEnd: Double): DecodedAudio {
-        val afd = appContext.assets.openFd(video.assetMp4)
-        return afd.use {
-            MediaAudioDecoder.decode(
-                it.fileDescriptor, it.startOffset, it.declaredLength,
-                startS = segStart, endS = segEnd,
-            )
+        return if (video.importPath != null) {
+            MediaAudioDecoder.decode(video.importPath, startS = segStart, endS = segEnd)
+        } else {
+            val afd = appContext.assets.openFd(video.assetMp4!!)
+            afd.use {
+                MediaAudioDecoder.decode(
+                    it.fileDescriptor, it.startOffset, it.declaredLength,
+                    startS = segStart, endS = segEnd,
+                )
+            }
         }
     }
 

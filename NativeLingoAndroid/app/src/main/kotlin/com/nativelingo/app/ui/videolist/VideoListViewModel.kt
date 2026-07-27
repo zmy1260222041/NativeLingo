@@ -1,8 +1,10 @@
 package com.nativelingo.app.ui.videolist
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nativelingo.app.di.AppContainer
+import com.nativelingo.app.repo.ImportRepository.ImportProgress
 import com.nativelingo.app.repo.VideoRepository
 import com.nativelingo.app.warmup.Warmup
 import kotlinx.coroutines.Dispatchers
@@ -14,9 +16,16 @@ import kotlinx.coroutines.launch
 
 class VideoListViewModel(private val container: AppContainer) : ViewModel() {
 
+    data class ImportState(
+        val isImporting: Boolean = false,
+        val stage: String = "",
+        val error: String? = null,
+    )
+
     data class UiState(
         val videos: List<VideoRepository.CorpusVideo> = emptyList(),
-        val error: String? = null,
+        val import: ImportState = ImportState(),
+        val listError: String? = null,
     )
 
     private val _state = MutableStateFlow(UiState())
@@ -24,15 +33,51 @@ class VideoListViewModel(private val container: AppContainer) : ViewModel() {
     val warmup: StateFlow<Warmup.State> get() = container.warmup.state
 
     init {
-        // Kick verification (idempotent) so the model-integrity bar runs on first
-        // entry, then list the corpus in parallel.
         container.warmup.start()
+        refreshList()
+    }
+
+    fun refreshList() {
         viewModelScope.launch(Dispatchers.Default) {
-            val outcome = runCatching { container.videoRepository.listBundled() }
+            val outcome = runCatching {
+                val bundled = container.videoRepository.listBundled()
+                val imported = container.importRepository.listImported()
+                bundled + imported
+            }
             outcome.fold(
-                onSuccess = { vids -> _state.update { it.copy(videos = vids) } },
-                onFailure = { e -> _state.update { UiState(error = e.message ?: e.toString()) } },
+                onSuccess = { vids -> _state.update { it.copy(videos = vids, listError = null) } },
+                onFailure = { e -> _state.update { it.copy(listError = e.message ?: e.toString()) } },
             )
         }
+    }
+
+    fun importVideo(uri: Uri) {
+        val repo = container.importRepository
+        _state.update { it.copy(import = ImportState(isImporting = true, stage = "复制中…")) }
+        viewModelScope.launch {
+            val outcome = repo.importVideo(uri) { prog ->
+                val label = when (prog) {
+                    is ImportProgress.Copying -> "复制中…"
+                    is ImportProgress.Decoding -> "解码音频…"
+                    is ImportProgress.Transcribing -> "转写中…"
+                    is ImportProgress.Aligning -> "对齐词边界…"
+                    is ImportProgress.Segmenting -> "切句…"
+                }
+                _state.update { it.copy(import = ImportState(isImporting = true, stage = label)) }
+            }
+            outcome.fold(
+                onSuccess = {
+                    _state.update { it.copy(import = ImportState(isImporting = false)) }
+                    refreshList()
+                },
+                onFailure = { e ->
+                    _state.update { it.copy(import = ImportState(error = e.message ?: e.toString())) }
+                },
+            )
+        }
+    }
+
+    fun dismissImportError() {
+        _state.update { it.copy(import = ImportState()) }
     }
 }

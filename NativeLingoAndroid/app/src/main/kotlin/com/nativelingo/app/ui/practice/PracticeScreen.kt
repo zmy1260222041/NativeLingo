@@ -153,7 +153,7 @@ private fun RecordStudio(container: AppContainer, vm: PracticeViewModel, state: 
     val context = LocalContext.current
     val span = vm.selectedSpan()
     val range = state.range
-    val assetUri = remember(state.video.name) { container.videoRepository.assetUri(state.video) }
+    val assetUri = remember(state.video.name) { container.videoRepository.playUri(state.video) }
 
     // One muted-video ExoPlayer per practice entry. Clipped to [segStart, segEnd]
     // so playback stops at the range end without a position watcher.
