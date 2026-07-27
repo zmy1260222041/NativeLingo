@@ -39,6 +39,13 @@ fun VideoListScreen(container: AppContainer, onPick: (VideoRepository.CorpusVide
     Scaffold(topBar = { TopAppBar(title = { Text("NativeLingo") }) }) { pad ->
         Column(Modifier.fillMaxSize().padding(pad).padding(16.dp)) {
             Text("选择参考视频", style = MaterialTheme.typography.titleLarge)
+            // Onboarding: a brand-new user lands on this screen with no idea what
+            // the app does. One line, not a wizard.
+            Text(
+                "选一段视频 → 选句子 → 跟读录音 → 看发音准确度与逐词改进建议。全程离线。",
+                color = brand.muted, style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            )
             WarmupStatus(warmup)
             when {
                 state.error != null -> Text("读取素材出错:${state.error}", color = brand.bad)

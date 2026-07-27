@@ -93,30 +93,53 @@ private fun Center(content: @Composable () -> Unit) =
 private fun SentencePicker(vm: PracticeViewModel, state: PracticeViewModel.UiState) {
     val brand = LocalNativeLingoColors.current
     val range = state.range
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        itemsIndexed(state.sentences) { idx, s ->
-            val inRange = range != null && idx in range
-            val endpoint = idx == state.rangeStart || idx == state.rangeEnd
-            val bg = when {
-                endpoint -> brand.accent.copy(alpha = 0.18f)
-                inRange -> brand.accent.copy(alpha = 0.08f)
-                else -> brand.card
+    Column(Modifier.fillMaxSize()) {
+        LazyColumn(
+            Modifier.weight(1f).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 12.dp),
+        ) {
+            item {
+                // Onboarding hint: a new user lands here with no instruction otherwise.
+                Text(
+                    "点一句选定起点(可再点一句扩大范围),然后点下方「去跟读」。",
+                    color = brand.muted, style = MaterialTheme.typography.bodyMedium,
+                )
             }
-            Column(
-                Modifier.fillMaxWidth().clickable { vm.pickSentence(idx) }
-                    .background(bg, RoundedCornerShape(8.dp)).padding(12.dp)
-            ) {
-                Text("${idx + 1}.  %d:%02d".format((s.start / 60).toInt(), (s.start % 60).toInt()),
-                    color = brand.muted, style = MaterialTheme.typography.bodyMedium)
-                Text(s.text, color = brand.text, style = MaterialTheme.typography.bodyLarge)
+            itemsIndexed(state.sentences) { idx, s ->
+                val inRange = range != null && idx in range
+                val endpoint = idx == state.rangeStart || idx == state.rangeEnd
+                val bg = when {
+                    endpoint -> brand.accent.copy(alpha = 0.18f)
+                    inRange -> brand.accent.copy(alpha = 0.08f)
+                    else -> brand.card
+                }
+                Column(
+                    Modifier.fillMaxWidth().clickable { vm.pickSentence(idx) }
+                        .background(bg, RoundedCornerShape(8.dp)).padding(12.dp)
+                ) {
+                    Text("${idx + 1}.  %d:%02d".format((s.start / 60).toInt(), (s.start % 60).toInt()),
+                        color = brand.muted, style = MaterialTheme.typography.bodyMedium)
+                    Text(s.text, color = brand.text, style = MaterialTheme.typography.bodyLarge)
+                }
             }
         }
-        item {
-            // macOS: a single click is enough to practice one sentence; the
-            // second click extends the range. Enter the studio once a start is set.
-            Spacer8()
-            Button(onClick = vm::enterStudio, enabled = state.rangeStart != null, modifier = Modifier.fillMaxWidth()) {
-                Text(if (state.rangeEnd == null) "去跟读这一句" else "去跟读选中段落")
+        // Sticky action bar — the "去跟读" button is always on screen, not buried
+        // at the end of a long list.
+        androidx.compose.material3.HorizontalDivider(color = brand.cardBorder)
+        Column(Modifier.fillMaxWidth().background(brand.card).padding(16.dp)) {
+            Button(
+                onClick = vm::enterStudio,
+                enabled = state.rangeStart != null,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    when {
+                        state.rangeStart == null -> "先点一句"
+                        state.rangeEnd == null -> "去跟读这一句"
+                        else -> "去跟读选中段落"
+                    }
+                )
             }
         }
     }
