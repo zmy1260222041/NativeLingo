@@ -12,6 +12,16 @@ import java.nio.ByteOrder
  * faithfully). R-9 settled that the learner path never produces encoded audio:
  * AudioRecord yields PCM directly, so there is no codec round-trip to account for.
  *
+ * **Emulator caveat:** the Android emulator's microphone is unusable for scoring
+ * — a capture probe (`CaptureProbeDeviceTest`) shows it delivers either
+ * full-scale-clipped garbage (a square wave → the "电流音" buzz) or near-silence,
+ * never clean speech. That is the emulator's audio backend, not this code, and
+ * not fixable from the app (AudioRecord can't trim the emulator's preamp gain).
+ * Real devices capture cleanly; the analyze path itself is verified end-to-end
+ * by `AnalyzePipelineDeviceTest` (95.0, same-voice identity). On the emulator,
+ * use the studio's "调试:用原声当跟读" affordance to exercise the results UI
+ * without the mic.
+ *
  * The caller owns the RECORD_AUDIO runtime permission; [start] assumes it is held.
  */
 class LearnerRecorder {

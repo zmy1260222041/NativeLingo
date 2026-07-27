@@ -140,6 +140,26 @@ class PracticeViewModel(
         }
     }
 
+    /** Skip the mic and feed the decoded reference back as the learner take
+     *  — same-voice identity, expect ~95.0 accuracy. Useful on the emulator where
+     *  the microphone delivers clipped garbage (CaptureProbeDeviceTest). */
+    fun demoAnalyze() {
+        val span = selectedSpan() ?: return
+        val sentences = selectedSentences() ?: return
+        _state.update { it.copy(isAnalyzing = true, error = null) }
+        viewModelScope.launch(Dispatchers.Default) {
+            val outcome = runCatching {
+                val ref: DecodedAudio = container.videoRepository.decodeReferenceSegment(video, span.first, span.second)
+                learnerSamples = ref.samples
+                container.pipeline.analyzeDetailed(ref, learnerSamples.copyOf(), sentences)
+            }
+            outcome.fold(
+                onSuccess = { res -> _state.update { it.copy(isAnalyzing = false, result = res, hasTake = true) } },
+                onFailure = { e -> _state.update { it.copy(isAnalyzing = false, error = e.message ?: e.toString()) } },
+            )
+        }
+    }
+
     fun resetResult() {
         _state.update { it.copy(result = null) }
     }

@@ -223,6 +223,15 @@ private fun RecordStudio(container: AppContainer, vm: PracticeViewModel, state: 
                 else Text("分析我的发音")
             }
         }
+
+        // Demo affordance: skip the (broken) emulator mic and score the reference
+        // against itself. Same-voice identity → ~95.0 accuracy; useful for UX
+        // testing when a real mic is unavailable. Hidden once recording is used.
+        if (!state.hasTake && !state.isRecording && !state.isAnalyzing) {
+            OutlinedButton(onClick = { vm.demoAnalyze() }) {
+                Text("调试:跳过录音,用原声试分", color = brand.muted, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
     }
 }
 
