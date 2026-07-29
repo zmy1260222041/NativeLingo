@@ -62,7 +62,14 @@ fn spawn_backend(
         .map(|p| p.to_path_buf());
 
     let root = project_root.unwrap_or_else(|| std::path::PathBuf::from("."));
-    let venv_python = root.join(".venv").join("bin").join("python");
+    // .venv lives at the repo root (shared with scripts/), one level above
+    // `root` (root == desktop/, the dir holding backend/main.py).
+    let venv_python = root
+        .parent()
+        .unwrap_or(root.as_path())
+        .join(".venv")
+        .join("bin")
+        .join("python");
     let python = if venv_python.exists() {
         venv_python
     } else {

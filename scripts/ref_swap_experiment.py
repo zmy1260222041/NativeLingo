@@ -23,8 +23,12 @@ import argparse
 import os
 import shutil
 import subprocess
+import sys
 
 import numpy as np
+
+# `backend/` now lives under desktop/ (not the repo root).
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "desktop"))
 
 from backend.core.audio_io import TARGET_SR, load_audio, trim_silence
 from backend.core.ssl_encoder import SSLEncoder

@@ -32,8 +32,8 @@ pnpm-debug.log*
 .vite/
 
 # ── Rust / Tauri ──
-src-tauri/target/
-src-tauri/gen/schemas/
+desktop/src-tauri/target/
+desktop/src-tauri/gen/schemas/
 
 # ── App runtime output & large media ──────────
 # Reference videos are large binaries: kept on disk, kept out of git.
@@ -57,8 +57,8 @@ data/librispeech/
 # Pre-bundled ML models staged for the freeze (re-downloadable; not source)
 models/
 # Staged PyInstaller sidecar + bundled ffmpeg (produced by build_dmg.sh, not source)
-src-tauri/resources/nativeLingoBackend/
-src-tauri/resources/bin/
+desktop/src-tauri/resources/nativeLingoBackend/
+desktop/src-tauri/resources/bin/
 
 # ── Secrets / env ──
 .env

@@ -24,13 +24,14 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+MAC="$ROOT/desktop"   # macOS app source lives under desktop/ (shared assets stay at root)
 
 FREEZE_VENV="$ROOT/.venv-freeze"
 PYI_DIST="$ROOT/build/pyinstaller"
-RES_DIR="$ROOT/src-tauri/resources"
-BUNDLE_MACOS="$ROOT/src-tauri/target/release/bundle/macos"
+RES_DIR="$MAC/src-tauri/resources"
+BUNDLE_MACOS="$MAC/src-tauri/target/release/bundle/macos"
 APP_BUNDLE="$BUNDLE_MACOS/NativeLingo.app"
-DMG_DIR="$ROOT/src-tauri/target/release/bundle/dmg"
+DMG_DIR="$MAC/src-tauri/target/release/bundle/dmg"
 
 log() { printf "\n\033[1m=== %s ===\033[0m\n" "$*"; }
 die() { printf "\033[31m[build_dmg] %s\033[0m\n" "$*" >&2; exit 1; }
@@ -53,8 +54,8 @@ if [[ ! -x "$FREEZE_VENV/bin/python" ]]; then
     python3 -m venv "$FREEZE_VENV"
     "$FREEZE_VENV/bin/pip" install --upgrade pip >/dev/null
 fi
-"$FREEZE_VENV/bin/pip" install -q -r requirements-runtime.txt pyinstaller
-"$FREEZE_VENV/bin/pyinstaller" backend/freeze.spec --noconfirm \
+"$FREEZE_VENV/bin/pip" install -q -r "$MAC/requirements-runtime.txt" pyinstaller
+"$FREEZE_VENV/bin/pyinstaller" "$MAC/backend/freeze.spec" --noconfirm \
     --distpath "$PYI_DIST" --workpath "$ROOT/build/pyinstaller_work"
 [[ -x "$PYI_DIST/nativeLingoBackend/nativeLingoBackend" ]] \
     || die "freeze produced no binary"
@@ -70,7 +71,7 @@ cp -R "$PYI_DIST/nativeLingoBackend" "$RES_DIR/nativeLingoBackend"
 
 # ── Phase C: Tauri build (.app only) ──────────────────────────────────────
 log "C: npx tauri build --bundles app"
-npx tauri build --bundles app
+(cd "$MAC" && npx tauri build --bundles app)
 [[ -d "$APP_BUNDLE" ]] || die "tauri build produced no .app"
 
 # ── Phase D: codesign the .app (optional, before dmg wrap) ────────────────
@@ -106,7 +107,7 @@ fi
 # which would otherwise bloat the source ~3x. ULFO (LZMA) >> UDZO (zlib) here.
 log "E: create .dmg (hdiutil ULFO, clean staging)"
 rm -f "$BUNDLE_MACOS"/rw.*.dmg 2>/dev/null || true
-VERSION=$(grep -oE '"version": "[^"]+"' src-tauri/tauri.conf.json | head -1 | cut -d'"' -f4)
+VERSION=$(grep -oE '"version": "[^"]+"' "$MAC/src-tauri/tauri.conf.json" | head -1 | cut -d'"' -f4)
 DMG="$DMG_DIR/NativeLingo_${VERSION}_aarch64.dmg"
 mkdir -p "$DMG_DIR"
 rm -f "$DMG"

@@ -38,9 +38,10 @@ def videos_dir(root: str | None = None) -> str:
     if root is None:
         root = os.environ.get("NATIVELINGO_DATA_DIR")
     if root is None:
-        # backend/core/video.py -> project root is two levels up from backend/
+        # desktop/backend/core/video.py -> repo root is three levels up.
+        # (Bundled app sets NATIVELINGO_DATA_DIR and never reaches here.)
         here = os.path.dirname(os.path.abspath(__file__))
-        root = os.path.abspath(os.path.join(here, "..", ".."))
+        root = os.path.abspath(os.path.join(here, "..", "..", ".."))
     d = os.path.join(root, "videos")
     os.makedirs(d, exist_ok=True)
     return d

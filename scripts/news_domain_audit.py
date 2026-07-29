@@ -20,9 +20,15 @@ from __future__ import annotations
 import argparse
 import difflib
 import json
+import os
 import re
+import sys
 
 import numpy as np
+
+# `backend/` now lives under desktop/ (not repo root); the forced_align import
+# inside _mms_audit() is lazy, so bootstrap the path at module load.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "desktop"))
 
 VIDEO = "videos/7.1.mp4"
 SENTS = "videos/7.1.sentences.json"

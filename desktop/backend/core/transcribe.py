@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 
 from .video import resolve_video, videos_dir, extract_audio
 from . import forced_align
@@ -25,12 +26,16 @@ from . import forced_align
 DEFAULT_MODEL_SIZE = "base.en"
 
 # Prefer a pre-bundled model so the frozen app transcribes offline (no 141MB
-# first-run download). The freeze ships it at ../../models/whisper-base.en
-# (relative to this file = backend/core/); in dev the dir is absent and we
-# fall back to the model-size name (HuggingFace download, cached after first use).
-_BUNDLED_MODEL = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "models", "whisper-base.en"
-)
+# first-run download). Depth differs between the frozen onedir and dev:
+#   frozen: <bundle>/backend/core/ -> ../../models = <bundle>/models  (freeze.spec stages it there)
+#   dev:    desktop/backend/core/  -> ../../../models = <repo>/models  (staged at repo root)
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, "frozen", False):
+    _BUNDLED_MODEL = os.path.join(_HERE, "..", "..", "models", "whisper-base.en")
+else:
+    _BUNDLED_MODEL = os.path.join(_HERE, "..", "..", "..", "models", "whisper-base.en")
+# In dev the dir may be absent; _model_path() then falls back to the
+# model-size name (HuggingFace download, cached after first use).
 
 
 def _model_path():

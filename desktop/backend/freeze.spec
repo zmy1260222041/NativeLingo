@@ -54,7 +54,9 @@ datas += [(os.path.join(PROJROOT, "backend", "core", "calibration.json"),
 # Pre-bundle the Whisper base.en model (141MB) so transcription runs offline —
 # no first-run download. transcribe.py resolves it via a __file__-relative path.
 # Conditional: if the model wasn't staged (clean dev), skip and fall back to HF.
-_whisper_model = os.path.join(PROJROOT, "models", "whisper-base.en")
+# models/ lives at the repo root (one level above desktop/, shared with Android),
+# so reach one level above PROJROOT (PROJROOT == desktop/).
+_whisper_model = os.path.join(os.path.dirname(PROJROOT), "models", "whisper-base.en")
 if os.path.isdir(_whisper_model):
     datas += [(_whisper_model, "models/whisper-base.en")]
 

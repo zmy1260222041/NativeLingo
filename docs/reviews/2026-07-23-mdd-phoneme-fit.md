@@ -56,7 +56,7 @@
 
 ### 3.4 全量回归
 
-`pytest backend/tests/` **12/12 通过**(phoneme 3 + recordings 2 + pipeline 2 + track_b 5);`pipeline.analyze_detailed` 集成处 try/except 兜底,音素轨永不中断主分析。
+`pytest desktop/backend/tests/` **12/12 通过**(phoneme 3 + recordings 2 + pipeline 2 + track_b 5);`pipeline.analyze_detailed` 集成处 try/except 兜底,音素轨永不中断主分析。
 
 ## 4. 召回上限与已知取舍(不阻塞,记录备查)
 
