@@ -60,6 +60,12 @@ models/
 desktop/src-tauri/resources/nativeLingoBackend/
 desktop/src-tauri/resources/bin/
 
+# ── Android (separate platform branch; not part of the macOS line) ──
+# The Android project lives on the `android` branch. Any local NativeLingoAndroid/
+# working state — including the release keystore + its credentials — is irrelevant
+# to `main` and must NEVER be added or deleted from here.
+/NativeLingoAndroid/
+
 # ── Secrets / env ──
 .env
 .env.*
@@ -70,6 +76,7 @@ desktop/src-tauri/resources/bin/
 # ── Claude Code (local only) ──
 # Shared .claude/settings.json may be committed; ignore the local override.
 .claude/settings.local.json
+CLAUDE.md
 
 # ── Editors ──
 .vscode/
