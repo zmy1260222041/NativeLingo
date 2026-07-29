@@ -7,7 +7,7 @@ const BACKEND_URL = window.__NATIVELINGO_BACKEND__ || "http://127.0.0.1:8756";
 const BACKEND_TOKEN = window.__NATIVELINGO_TOKEN__ || null;
 
 // boot marker: lets us confirm in the backend log which JS version loaded
-fetch(`${BACKEND_URL}/health?boot=v6`).catch(() => {});
+fetch(`${BACKEND_URL}/health?boot=v7`).catch(() => {});
 
 // send a debug message to the backend log (webview has no visible console)
 function clientLog(msg) {
@@ -102,6 +102,7 @@ function createRecorder() {
     mediaRecorder: null,
     chunks: [],
     recording: false,
+    prepared: false,
     blob: null,
     stream: null,
     _onStop: null,
@@ -115,7 +116,11 @@ function createRecorder() {
       if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
       if (this._onStop) this._onStop(this.blob);
     },
-    async start(onStop) {
+    // Open the mic + build the MediaRecorder WITHOUT starting capture. Lets
+    // the caller run a countdown between prepare() and begin() so the learner
+    // has an unambiguous "start now" cue — the getUserMedia delay is absorbed
+    // during the countdown, so nothing at the opening gets clipped.
+    async prepare(onStop) {
       this._onStop = onStop;
       this._finalized = false;
       this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -129,10 +134,21 @@ function createRecorder() {
       };
       rec.onstop = () => { clientLog("MediaRecorder.onstop fired"); this._finalize(); };
       rec.onerror = (e) => clientLog("MediaRecorder.onerror: " + (e.error && e.error.name));
-      // timeslice: flush data periodically (WKWebView needs this to emit data)
-      rec.start(500);
       this.mediaRecorder = rec;
-      this.recording = true;
+      this.prepared = true;
+    },
+    // Start capture (call after prepare()). timeslice: flush data periodically
+    // (WKWebView needs this to emit data).
+    begin() {
+      if (this.mediaRecorder) {
+        this.mediaRecorder.start(500);
+        this.recording = true;
+      }
+    },
+    // Convenience: prepare + begin with no gap (legacy callers).
+    async start(onStop) {
+      await this.prepare(onStop);
+      this.begin();
     },
     stop() {
       if (this.mediaRecorder && this.recording) {
@@ -173,6 +189,28 @@ function makeTimer(elId) {
   };
 }
 
+// Countdown shown in the status bar between mic-prepare and capture-start,
+// giving the learner an unambiguous "start reading now" cue. Shows secs..1
+// (one number per second), then resolves — capture should begin() at resolve.
+function runCountdown(statusEl, secs = 3) {
+  return new Promise((resolve) => {
+    let n = secs;
+    const tick = () => {
+      statusEl.textContent = String(n);
+      if (n <= 1) { setTimeout(resolve, 1000); return; }
+      n -= 1;
+      setTimeout(tick, 1000);
+    };
+    tick();
+  });
+}
+
+// Swap the status bar's modifier class (prep / countdown / rec / "").
+function setStatus(el, cls, msg) {
+  el.className = "analyze-status" + (cls ? " " + cls : "");
+  if (msg != null) el.textContent = msg;
+}
+
 // =====================================================================
 // AUDIO MODE (original)
 // =====================================================================
@@ -195,22 +233,35 @@ $("record-btn").addEventListener("click", async () => {
   if (audioRec.recording) {
     audioRec.stop();
     audioTimer.stop();
+    setStatus($("analyze-status"), "", "处理录音中…");
     btn.textContent = "● 开始录音";
     btn.classList.remove("recording");
   } else {
     try {
-      await audioRec.start((blob) => {
+      const statusEl = $("analyze-status");
+      setStatus(statusEl, "prep", "正在准备麦克风…");
+      btn.disabled = true;
+      btn.textContent = "准备中…";
+      await audioRec.prepare((blob) => {
         audio.learnerBlob = blob;
         const player = $("learner-player");
         player.src = URL.createObjectURL(blob);
         player.hidden = false;
         audioUpdateBtn();
+        setStatus(statusEl, "", "录制完成,可点击“分析我的发音”");
       });
+      setStatus(statusEl, "countdown");
+      await runCountdown(statusEl, 3);
+      audioRec.begin();
       audioTimer.start();
+      setStatus(statusEl, "rec", "正在录音,请开始朗读");
+      btn.disabled = false;
       btn.textContent = "■ 停止录音";
       btn.classList.add("recording");
     } catch (err) {
-      alert("无法访问麦克风: " + err.message);
+      btn.disabled = false;
+      btn.textContent = "● 开始录音";
+      setStatus($("analyze-status"), "", "无法访问麦克风: " + (err.message || err));
     }
   }
 });
@@ -415,7 +466,7 @@ function playShadowClip() {
 $("shadow-replay-btn").addEventListener("click", playShadowClip);
 
 function shadowStatus(msg) {
-  $("shadow-analyze-status").textContent = msg;
+  setStatus($("shadow-analyze-status"), "", msg);
 }
 
 $("shadow-record-btn").addEventListener("click", async () => {
@@ -436,8 +487,11 @@ $("shadow-record-btn").addEventListener("click", async () => {
     clientLog("mediaDevices exists=" + !!(navigator.mediaDevices) +
       " getUserMedia=" + !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia));
     try {
-      shadowStatus("正在请求麦克风权限…");
-      await shadowRec.start((blob) => {
+      const statusEl = $("shadow-analyze-status");
+      setStatus(statusEl, "prep", "正在准备麦克风…");
+      btn.disabled = true;
+      btn.textContent = "准备中…";
+      await shadowRec.prepare((blob) => {
         clientLog("recording stopped; blob size=" + blob.size);
         videoState.learnerBlob = blob;
         videoState.learnerRid = null;
@@ -450,14 +504,23 @@ $("shadow-record-btn").addEventListener("click", async () => {
         shadowStatus(blob.size > 0 ? "录制完成,可点击“分析我的发音”" : "录音为空,请重试");
         uploadLearnerRecording(blob);
       });
-      clientLog("getUserMedia succeeded; recording started");
-      shadowStatus("跟读中…读完点“停止跟读”");
+      clientLog("getUserMedia succeeded; recorder prepared");
+      // Countdown gives a clear "start now" cue. Capture + video begin
+      // together at zero, so the opening isn't clipped and there's no
+      // lead-in silence to skew alignment/fluency.
+      setStatus(statusEl, "countdown");
+      await runCountdown(statusEl, 3);
+      shadowRec.begin();
+      playShadowClip(); // muted video + subtitles play in sync, from rangeStart
       shadowTimer.start();
-      playShadowClip(); // muted video + subtitles play in sync
+      setStatus(statusEl, "rec", "正在录音,请开始朗读");
+      btn.disabled = false;
       btn.textContent = "■ 停止跟读";
       btn.classList.add("recording");
     } catch (err) {
       clientLog("getUserMedia FAILED: " + (err && err.name) + " / " + (err && err.message));
+      btn.disabled = false;
+      btn.textContent = "● 开始跟读";
       shadowStatus("无法访问麦克风: " + (err && err.message ? err.message : err));
     }
   }

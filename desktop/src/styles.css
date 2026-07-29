@@ -60,7 +60,34 @@ audio { width: 100%; margin-top: 12px; }
 .record-row { display: flex; align-items: center; gap: 16px; }
 .timer { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 15px; }
 
-.analyze-status { margin-left: 12px; font-size: 13px; color: var(--muted); }
+/* recording status bar: default (result/hint) / prep / countdown / rec */
+.analyze-status {
+  margin-left: 12px; font-size: 13px; color: var(--muted);
+  padding: 4px 10px; border-radius: 8px; font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+.analyze-status.prep {
+  background: rgba(224, 166, 74, 0.18); color: var(--fair);
+  font-size: 14px; font-weight: 600;
+}
+.analyze-status.countdown {
+  background: rgba(224, 166, 74, 0.18); color: var(--fair);
+  font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums;
+  padding: 0 16px; line-height: 1.15;
+}
+.analyze-status.rec {
+  background: rgba(255, 91, 110, 0.18); color: var(--record);
+  font-size: 14px; font-weight: 600;
+}
+.analyze-status.rec::before {
+  content: ""; display: inline-block; width: 9px; height: 9px;
+  border-radius: 50%; background: var(--record); margin-right: 7px;
+  vertical-align: middle; animation: recpulse 1s ease-in-out infinite;
+}
+@keyframes recpulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
 
 .scores { display: flex; gap: 12px; margin: 8px 0 4px; }
 .score-card {
