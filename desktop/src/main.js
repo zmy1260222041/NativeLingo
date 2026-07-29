@@ -1,13 +1,26 @@
 // NativeLingo frontend logic.
-// Two modes: audio-upload (original) and video-shadowing (new).
+// Two top-level modules: Speaking (口语: video-shadowing + audio-upload) and
+// Memorizing (识物: photo object labeling + scenario sentences, Phase D).
 // Talks to the local FastAPI sidecar; backend URL + token injected by the Tauri
 // shell, with dev fallbacks.
 
 const BACKEND_URL = window.__NATIVELINGO_BACKEND__ || "http://127.0.0.1:8756";
 const BACKEND_TOKEN = window.__NATIVELINGO_TOKEN__ || null;
 
-// boot marker: lets us confirm in the backend log which JS version loaded
-fetch(`${BACKEND_URL}/health?boot=v7`).catch(() => {});
+// boot marker: confirms in the backend log which JS build loaded. Fired both at
+// load (visible when the backend is already up from a prior session) and again
+// once the backend responds, so the marker is reliable across cold starts (the
+// load-time ping otherwise fails silently while the backend is still spinning
+// up and never reaches the log).
+const BOOT_TAG = "v10";
+let _bootMarked = false;
+function markBoot() {
+  if (_bootMarked) return;
+  fetch(`${BACKEND_URL}/health?boot=${BOOT_TAG}`)
+    .then(() => { _bootMarked = true; })
+    .catch(() => {});
+}
+markBoot();
 
 // send a debug message to the backend log (webview has no visible console)
 function clientLog(msg) {
@@ -40,6 +53,7 @@ async function checkBackend() {
     if (data.status === "ok") {
       status.textContent = data.model_loaded ? "后端就绪" : "后端启动中(模型加载)…";
       status.className = "status status-ok";
+      markBoot();   // now that the backend is up, the boot marker will reach the log
       return true;
     }
   } catch (_) {}
@@ -70,18 +84,38 @@ async function pollWarmup() {
 }
 
 // =====================================================================
-// Mode switching
+// Module + mode switching
 // =====================================================================
-document.querySelectorAll(".tab").forEach((tab) => {
+// Top-level modules: Speaking vs Memorizing. Only one module-pane is visible
+// at a time; the Speaking results section belongs to Speaking only.
+document.querySelectorAll(".module").forEach((mod) => {
+  mod.addEventListener("click", () => {
+    const m = mod.dataset.module;
+    document.querySelectorAll(".module").forEach((x) => x.classList.toggle("module-active", x === mod));
+    document.querySelectorAll(".module-pane").forEach((p) => { p.hidden = p.id !== "module-" + m; });
+    if (m !== "speaking") $("results").hidden = true;
+    onModuleChange(m);
+  });
+});
+
+// Speaking sub-tabs (video / audio). Scoped to the Speaking pane so the
+// toggle generalizes if more Speaking modes are added later.
+document.querySelectorAll("#module-speaking .tab").forEach((tab) => {
   tab.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach((t) => t.classList.remove("tab-active"));
+    document.querySelectorAll("#module-speaking .tab").forEach((t) => t.classList.remove("tab-active"));
     tab.classList.add("tab-active");
     const mode = tab.dataset.mode;
-    $("mode-video").hidden = mode !== "video";
-    $("mode-audio").hidden = mode !== "audio";
+    document.querySelectorAll("#module-speaking .mode").forEach((m) => { m.hidden = m.id !== "mode-" + mode; });
     $("results").hidden = true;
   });
 });
+
+// Module lifecycle hook. Memorize warmup/release are wired in Phase D once the
+// /memorize/* endpoints + this module's UI exist.
+function onModuleChange(module) {
+  if (module === "memorize") memoEnter();
+  else memoLeave();
+}
 
 // =====================================================================
 // Shared recording helper
@@ -804,6 +838,236 @@ async function uploadLearnerRecording(blob) {
 }
 
 // =====================================================================
+// MEMORIZE MODULE (看图识物: FR-13/14/15)
+// =====================================================================
+// Upload a photo -> whole-object detection with clickable hotspots (FR-13) ->
+// click an object -> zoom into its parts (FR-14) + scenario example sentences
+// (FR-15). All recognition is on-device (NFR-5). Photos are re-encoded to JPEG
+// via <canvas> before upload so iOS HEIC (which Pillow can't decode) and huge
+// files are handled, and the displayed image dims match what the backend saw.
+const memo = {
+  entered: false,
+  warmupTimer: null,
+  imgEl: null,
+  imgW: 0, imgH: 0,        // pixel dims of the uploaded (canvas-reencoded) image
+  photoId: null,
+  objects: [],
+};
+const MEMO_MAX_DIM = 1280;
+const _MEMO_STAGE_LABEL = { yolo: "检测模型", llm: "情景模型", vlm: "部件视觉模型 ~6GB" };
+
+function memoStatus(cls, msg) {
+  const el = $("memo-status");
+  if (!msg) { el.className = "memo-status"; el.textContent = ""; return; }
+  el.className = "memo-status show" + (cls ? " " + cls : "");
+  el.textContent = msg;
+}
+
+// ---- on-demand model lifecycle: prefetch on tab-enter, free on tab-leave ----
+async function memoEnter() {
+  if (memo.entered) return;
+  memo.entered = true;
+  try {
+    await fetch(`${BACKEND_URL}/memorize/warmup`, { method: "POST", headers: authHeaders() });
+  } catch (_) { /* backend not up yet; status poll will retry softly */ }
+  memoPollStatus();
+}
+
+async function memoLeave() {
+  if (!memo.entered) return;
+  memo.entered = false;
+  if (memo.warmupTimer) { clearTimeout(memo.warmupTimer); memo.warmupTimer = null; }
+  try {
+    await fetch(`${BACKEND_URL}/memorize/release`, { method: "POST", headers: authHeaders() });
+  } catch (_) {}
+}
+
+async function memoPollStatus() {
+  try {
+    const st = await (await fetch(`${BACKEND_URL}/memorize/status`, { headers: authHeaders() })).json();
+    const busy = st.running || (st.stage && !["done", "idle", "error"].includes(st.stage));
+    if (st.stage === "error") {
+      memoStatus("err", "模型准备出错:" + (st.error || "") + "(仍可尝试,将按需下载)");
+    } else if (busy) {
+      memoStatus("", `正在准备${_MEMO_STAGE_LABEL[st.stage] || st.stage}…(首次需下载,请稍候)`);
+    } else {
+      memoStatus("", "");  // ready / idle -> hide
+    }
+    if (busy) memo.warmupTimer = setTimeout(memoPollStatus, 2500);
+  } catch (_) { /* backend mid-start; retry lazily on next entry */ }
+}
+
+// ---- upload + recognition ----
+function memoWireUpload() {
+  const zone = $("memo-upload");
+  const input = $("memo-file");
+  zone.addEventListener("click", () => input.click());
+  zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("drag"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("drag"));
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault(); zone.classList.remove("drag");
+    const f = e.dataTransfer.files[0]; if (f) memoHandleFile(f);
+  });
+  input.addEventListener("change", (e) => {
+    const f = e.target.files[0]; if (f) memoHandleFile(f); input.value = "";
+  });
+  $("memo-reupload").addEventListener("click", memoResetToUpload);
+  $("memo-back").addEventListener("click", () => {
+    $("memo-detail").hidden = true;
+    $("memo-view").scrollIntoView({ behavior: "smooth" });
+  });
+}
+
+function memoResetToUpload() {
+  $("memo-view").hidden = true;
+  $("memo-detail").hidden = true;
+  $("memo-upload").closest(".card").hidden = false;
+  memo.objects = []; memo.photoId = null;
+  $("memo-hotspots").innerHTML = "";
+}
+
+// Re-encode any decodable image (incl. iOS HEIC if the system decodes it) to a
+// size-capped JPEG via <canvas>. Returns {blob, w, h}.
+function memoReencode(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const im = new Image();
+    im.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = im.naturalWidth, h = im.naturalHeight;
+      const scale = Math.min(1, MEMO_MAX_DIM / Math.max(w, h));
+      w = Math.max(1, Math.round(w * scale)); h = Math.max(1, Math.round(h * scale));
+      const c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(im, 0, 0, w, h);
+      c.toBlob((b) => (b ? resolve({ blob: b, w, h }) : reject(new Error("encode"))),
+               "image/jpeg", 0.9);
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); reject(new Error("decode")); };
+    im.src = url;
+  });
+}
+
+async function memoHandleFile(file) {
+  let enc;
+  try { enc = await memoReencode(file); }
+  catch (e) { memoStatus("err", "无法读取该图片,请换一张(JPG/PNG/HEIC)。"); return; }
+
+  $("memo-upload").closest(".card").hidden = true;
+  $("memo-detail").hidden = true;
+  const view = $("memo-view"); view.hidden = false;
+  const img = $("memo-img");
+  img.src = URL.createObjectURL(enc.blob);
+  memo.imgEl = img;
+  memo.imgW = enc.w; memo.imgH = enc.h;
+  $("memo-hotspots").innerHTML = "";
+  $("memo-analyzing").hidden = false;
+
+  try {
+    const form = new FormData();
+    form.append("photo", enc.blob, "photo.jpg");
+    const res = await fetch(`${BACKEND_URL}/memorize/analyze`, {
+      method: "POST", body: form, headers: authHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "识别失败");
+    memo.photoId = data.photo_id;
+    memo.objects = data.objects || [];
+    memoRenderHotspots();
+  } catch (e) {
+    memoStatus("err", "识别失败:" + e.message);
+  } finally {
+    $("memo-analyzing").hidden = true;
+  }
+}
+
+function memoRenderHotspots() {
+  const hs = $("memo-hotspots");
+  hs.innerHTML = "";
+  if (!memo.objects.length) {
+    memoStatus("warn", "没有识别到明确的物品。试试物品更突出、更居中的照片。");
+    return;
+  }
+  memoStatus("", "");  // clear any prior warn
+  memo.objects.forEach((o) => {
+    const [x, y, w, h] = o.box;
+    const dot = document.createElement("div");
+    dot.className = "hotspot";
+    dot.style.left = (x / memo.imgW * 100) + "%";
+    dot.style.top = (y / memo.imgH * 100) + "%";
+    dot.style.width = (w / memo.imgW * 100) + "%";
+    dot.style.height = (h / memo.imgH * 100) + "%";
+    const tag = document.createElement("div");
+    tag.className = "hotspot-tag";
+    tag.textContent = o.label_en;
+    dot.appendChild(tag);
+    dot.addEventListener("click", () => memoOpenDetail(o));
+    hs.appendChild(dot);
+  });
+}
+
+async function memoOpenDetail(obj) {
+  const detail = $("memo-detail");
+  detail.hidden = false;
+  detail.scrollIntoView({ behavior: "smooth" });
+
+  // crop the object out of the displayed image for the detail thumbnail
+  const [x, y, w, h] = obj.box.map((v) => Math.round(v));
+  try {
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, w); c.height = Math.max(1, h);
+    c.getContext("2d").drawImage(memo.imgEl, x, y, w, h, 0, 0, w, h);
+    $("memo-detail-img").src = c.toDataURL("image/jpeg", 0.9);
+  } catch (e) { $("memo-detail-img").src = memo.imgEl.src; }
+  $("memo-detail-label").innerHTML =
+    obj.label_en + (obj.label_zh ? `<span class="zh">${obj.label_zh}</span>` : "");
+
+  // FR-14: parts
+  const partsEl = $("memo-parts"); partsEl.innerHTML = "";
+  setStatus($("memo-parts-status"), "prep", "正在识别部件…");
+  try {
+    const res = await fetch(`${BACKEND_URL}/memorize/parts`, {
+      method: "POST", headers: { ...authHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({
+        photo_id: memo.photoId, box: obj.box,
+        label_en: obj.label_en, label_zh: obj.label_zh,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "部件识别失败");
+    (data.parts || []).forEach((p) => {
+      const chip = document.createElement("div"); chip.className = "part-chip";
+      chip.innerHTML = p.label_en + (p.label_zh ? `<span class="zh">${p.label_zh}</span>` : "");
+      partsEl.appendChild(chip);
+    });
+    if (!partsEl.children.length) partsEl.innerHTML = '<div class="hint">未识别到部件</div>';
+    setStatus($("memo-parts-status"), "", "");
+  } catch (e) {
+    setStatus($("memo-parts-status"), "", "部件识别失败:" + e.message);
+  }
+
+  // FR-15: scenario example sentences
+  const scEl = $("memo-scenario"); scEl.innerHTML = "";
+  setStatus($("memo-scenario-status"), "prep", "正在生成情景例句…");
+  try {
+    const res = await fetch(`${BACKEND_URL}/memorize/scenario`, {
+      method: "POST", headers: { ...authHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({ label_en: obj.label_en, label_zh: obj.label_zh }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "情景生成失败");
+    (data.sentences || []).forEach((s) => {
+      const card = document.createElement("div"); card.className = "scenario-card";
+      card.innerHTML = `<div class="en">${s.en}</div>` + (s.zh ? `<div class="zh">${s.zh}</div>` : "");
+      scEl.appendChild(card);
+    });
+    setStatus($("memo-scenario-status"), "", "");
+  } catch (e) {
+    setStatus($("memo-scenario-status"), "", "情景生成失败:" + e.message);
+  }
+}
+
+// =====================================================================
 // Init
 // =====================================================================
 async function init() {
@@ -822,6 +1086,7 @@ async function init() {
   $("record-btn").disabled = false;
   loadVideoList();
   pollWarmup();
+  memoWireUpload();
 }
 
 init();

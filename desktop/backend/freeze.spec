@@ -34,6 +34,9 @@ for pkg in [
     "uvicorn", "anyio", "h11",
     # video.py decodes via PyAV directly (replaces the ffmpeg CLI subprocess):
     "av",
+    # Memorizing module: photo decode/crop (vision.py). PIL's native JPEG/PNG
+    # codec plugins must be collected or image decode silently fails post-freeze.
+    "PIL",
     # librosa transitively needs these at runtime (audio decode path):
     "sklearn", "numba", "llvmlite",
 ]:
@@ -50,6 +53,12 @@ hiddenimports += ["ctranslate2", "ctranslate2.convertors", "tokenizers"]
 # data files. Without this the frozen app silently falls back to the manual map.
 datas += [(os.path.join(PROJROOT, "backend", "core", "calibration.json"),
            os.path.join("backend", "core"))]
+# COCO labels (EN + ZH) for the Memorizing module's vision.py -- tracked source
+# data, staged next to calibration.json so the frozen app reads them via a
+# __file__-relative path. (The yolov8n.onnx weight is staged separately below.)
+for _coco in ("coco_names.txt", "coco_zh.json"):
+    datas += [(os.path.join(PROJROOT, "backend", "core", _coco),
+               os.path.join("backend", "core"))]
 
 # Pre-bundle the Whisper base.en model (141MB) so transcription runs offline —
 # no first-run download. transcribe.py resolves it via a __file__-relative path.
@@ -59,6 +68,14 @@ datas += [(os.path.join(PROJROOT, "backend", "core", "calibration.json"),
 _whisper_model = os.path.join(os.path.dirname(PROJROOT), "models", "whisper-base.en")
 if os.path.isdir(_whisper_model):
     datas += [(_whisper_model, "models/whisper-base.en")]
+
+# Pre-bundle the YOLOv8n ONNX model + COCO labels (FR-13) so object detection
+# runs offline. Tiny (~12MB), so bundle it (unlike the multi-GB VLM/LLM, which
+# stay as lazy HF downloads like wav2vec2/MMS). vision.py resolves it via a
+# __file__-relative path; models/ is one level above PROJROOT (== desktop/).
+_yolo_model = os.path.join(os.path.dirname(PROJROOT), "models", "yolov8n-coco")
+if os.path.isdir(_yolo_model):
+    datas += [(_yolo_model, "models/yolov8n-coco")]
 
 a = Analysis(
     [os.path.join(SPECPATH, "main.py")],

@@ -31,6 +31,7 @@ import soundfile as sf
 from fastapi import FastAPI, File, UploadFile, Form, Header, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, Response
+from pydantic import BaseModel
 
 from backend.core.audio_io import load_audio_from_array, trim_silence
 from backend.core.pipeline import analyze_full, analyze_detailed, get_encoder
@@ -378,6 +379,147 @@ def recording_clip(rid: str, start: float, end: float, token: str | None = None)
     buf = io.BytesIO()
     sf.write(buf, wav[a:b], sr, format="WAV", subtype="PCM_16")
     return Response(content=buf.getvalue(), media_type="audio/wav")
+
+
+# --------------------------------------------------------------------------- #
+# Memorizing module (FR-13..15): photo object recognition + scenario sentences
+# --------------------------------------------------------------------------- #
+# The frontend uploads a photo, gets back whole-object boxes (clickable
+# hotspots), then per-click asks for that object's parts and a scenario. The
+# photo is stored server-side under a UUID (mirrors /recordings) so each click
+# doesn't re-upload the multi-MB image. All handlers are plain `def` (not async)
+# so FastAPI runs blocking model inference in the threadpool without stalling
+# the event loop. Intelligence is fully on-device (NFR-5): no media is served
+# back, only JSON (boxes + text).
+_MEMORIZES_DIR = tempfile.mkdtemp(prefix="nativelingo_photos_")
+_MID_RE = re.compile(r"^[0-9a-f]{32}$")
+
+
+def _photo_path(mid: str) -> str:
+    if not _MID_RE.match(mid):
+        raise HTTPException(status_code=400, detail="invalid photo id")
+    path = os.path.join(_MEMORIZES_DIR, f"{mid}.img")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="photo not found")
+    return path
+
+
+def _load_image(path: str):
+    from PIL import Image
+    return Image.open(path).convert("RGB")
+
+
+class PartsReq(BaseModel):
+    photo_id: str
+    box: list            # [x, y, w, h] in original-image pixels
+    label_en: str | None = None
+    label_zh: str | None = None
+
+
+class ScenarioReq(BaseModel):
+    label_en: str
+    label_zh: str = ""
+
+
+@app.post("/memorize/analyze")
+def memorize_analyze(photo: UploadFile = File(...), _=Depends(require_token)):
+    """FR-13: detect whole objects in an uploaded photo. Stores the photo under
+    a UUID and returns each object's label (en + zh) + box [x,y,w,h]."""
+    raw = photo.file.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="empty image upload")
+    if len(raw) > 15_000_000:
+        raise HTTPException(status_code=400, detail="image too large (>15MB)")
+    from PIL import Image
+    try:
+        img = Image.open(io.BytesIO(raw)).convert("RGB")
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail=f"could not decode image: {exc}")
+
+    mid = uuid.uuid4().hex
+    with open(os.path.join(_MEMORIZES_DIR, f"{mid}.img"), "wb") as f:
+        f.write(raw)
+
+    from backend.core import vision
+    try:
+        objects = vision.detect(img)
+    except Exception as exc:  # noqa: BLE001  (model not staged / downloading)
+        raise HTTPException(status_code=503, detail=f"object detection unavailable: {exc}")
+    return {"photo_id": mid, "objects": objects}
+
+
+@app.post("/memorize/parts")
+def memorize_parts(req: PartsReq, _=Depends(require_token)):
+    """FR-14: name the visible parts of a clicked object (server-side crop from
+    the stored photo + its box, so the image isn't re-uploaded per click)."""
+    path = _photo_path(req.photo_id)
+    if len(req.box) != 4:
+        raise HTTPException(status_code=400, detail="box must be [x, y, w, h]")
+    img = _load_image(path)
+    x, y, w, h = (float(v) for v in req.box)
+    iw, ih = img.size
+    cx, cy = x + w / 2.0, y + h / 2.0
+    sw, sh = w * 1.2, h * 1.2  # +10% context each side so edges aren't clipped
+    left = max(0, int(cx - sw / 2.0))
+    top = max(0, int(cy - sh / 2.0))
+    right = min(iw, int(cx + sw / 2.0))
+    bottom = min(ih, int(cy + sh / 2.0))
+    if right <= left or bottom <= top:
+        raise HTTPException(status_code=400, detail="invalid object box")
+    crop = img.crop((left, top, right, bottom))
+
+    from backend.core import parts, memorize_warmup
+    st = memorize_warmup.status()
+    if st["running"] and not st["vlm_ready"]:
+        raise HTTPException(status_code=503, detail="parts model still preparing; see /memorize/status")
+    try:
+        result = parts.name_parts(crop, req.label_en or "", req.label_zh or "")
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail=f"part naming unavailable: {exc}")
+    return {"parts": result}
+
+
+@app.post("/memorize/scenario")
+def memorize_scenario(req: ScenarioReq, _=Depends(require_token)):
+    """FR-15: generate 1-3 target-language example sentences placing the object
+    in a memorable real-world situation (text-only memory aid, no audio)."""
+    from backend.core import scenario, memorize_warmup
+    st = memorize_warmup.status()
+    if st["running"] and not st["llm_ready"]:
+        raise HTTPException(status_code=503, detail="scenario model still preparing; see /memorize/status")
+    try:
+        sents = scenario.generate(req.label_en, req.label_zh)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail=f"scenario generation unavailable: {exc}")
+    return {"sentences": sents}
+
+
+@app.get("/memorize/status")
+def memorize_status(_=Depends(require_token)):
+    """Memorize-model prefetch progress (yolo -> llm -> vlm). The frontend polls
+    this on tab-enter to show staged download progress instead of a blind wait."""
+    from backend.core import memorize_warmup
+    return memorize_warmup.status()
+
+
+@app.post("/memorize/warmup")
+def memorize_warmup_start(_=Depends(require_token)):
+    """Kick the on-demand model prefetch (called when the user enters the
+    Memorize tab). Idempotent."""
+    from backend.core import memorize_warmup
+    memorize_warmup.start()
+    return memorize_warmup.status()
+
+
+@app.post("/memorize/release")
+def memorize_release(_=Depends(require_token)):
+    """Free the big Memorize models (VLM + LLM) when the user leaves the tab.
+    YOLO stays resident (tiny + bundled). First model-unload mechanism in the
+    codebase."""
+    from backend.core import parts, scenario
+    parts.unload()
+    scenario.unload()
+    return {"released": True}
 
 
 def main():
