@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>NativeLingo — Speaking · Memorizing</title>
-  <link rel="stylesheet" href="styles.css?v=10" />
+  <link rel="stylesheet" href="styles.css?v=12" />
 </head>
 <body>
   <div class="app">
@@ -92,10 +92,10 @@
 
       <!-- ============ MEMORIZE MODULE (看图识物) ============ -->
       <div id="module-memorize" class="module-pane" hidden>
+        <div id="memo-status" class="memo-status"></div>
         <section class="card">
           <h2>📸 看图识物</h2>
-          <p class="hint">上传一张日常照片,NativeLingo 用英语标出物品。点击物品可放大看部件,并生成记忆情景例句。全端侧识别,照片不出设备。</p>
-          <div id="memo-status" class="memo-status"></div>
+          <p class="hint">上传一张日常照片,NativeLingo 用英语标出物品。点击物品可用 Florence 视觉增强查看部件,再由本机 Qwen 实时生成个性化记忆情景。首次进入约下载 0.95GB 固定模型,缓存后可离线;照片不出设备。</p>
           <div id="memo-upload" class="memo-upload-zone">
             <input type="file" id="memo-file" accept="image/*" hidden />
             <div class="memo-upload-emoji">🖼️</div>
@@ -113,6 +113,7 @@
               <div class="spinner"></div><div>正在识别物品…</div>
             </div>
           </div>
+          <div id="memo-object-summary" class="memo-object-summary" hidden></div>
           <div class="memo-actions">
             <button id="memo-reupload" class="btn btn-record">换一张照片</button>
           </div>
@@ -131,6 +132,7 @@
           <h3>部件 · Parts</h3>
           <div id="memo-parts" class="memo-chips"></div>
           <h3>情景例句 · In context</h3>
+          <p class="hint">点击整件物品或任一部件,会根据当前照片重新生成。</p>
           <div id="memo-scenario-status" class="analyze-status"></div>
           <div id="memo-scenario" class="memo-scenario"></div>
         </section>
@@ -176,6 +178,6 @@
       </section>
     </main>
   </div>
-  <script type="module" src="main.js?v=10"></script>
+  <script type="module" src="main.js?v=14"></script>
 </body>
 </html>

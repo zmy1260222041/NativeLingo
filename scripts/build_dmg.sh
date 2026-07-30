@@ -27,6 +27,7 @@ cd "$ROOT"
 MAC="$ROOT/desktop"   # macOS app source lives under desktop/ (shared assets stay at root)
 
 FREEZE_VENV="$ROOT/.venv-freeze"
+LLAMA_BUILD_MARKER="$FREEZE_VENV/.llama-cpp-0.3.34-metal-macos13"
 PYI_DIST="$ROOT/build/pyinstaller"
 RES_DIR="$MAC/src-tauri/resources"
 BUNDLE_MACOS="$MAC/src-tauri/target/release/bundle/macos"
@@ -48,13 +49,33 @@ if [[ ! -d "$ROOT/models/whisper-base.en" ]]; then
     cp -RL "$SNAP" "$ROOT/models/whisper-base.en"
 fi
 
+# YOLOE uses a NativeLingo detection-only dynamic ONNX export. It cannot be
+# fetched as a stock ONNX file, so require the pinned artifact produced by
+# scripts/export_yoloe_onnx.py before freezing.
+YOLOE_MODEL="$ROOT/models/yoloe-26s-pf/yoloe-26s-pf.onnx"
+YOLOE_SHA256="b54b75dfdc803038c5dbbd510898c99fad0cc17e2a7577f33406af135c73028d"
+[[ -f "$YOLOE_MODEL" ]] \
+    || die "YOLOE model missing. Run scripts/export_yoloe_onnx.py with the official yoloe-26s-seg-pf.pt checkpoint."
+[[ "$(shasum -a 256 "$YOLOE_MODEL" | cut -d' ' -f1)" == "$YOLOE_SHA256" ]] \
+    || die "YOLOE model checksum mismatch; re-export the pinned artifact."
+
 # ── Phase A: freeze the backend ───────────────────────────────────────────
 log "A: freeze backend (PyInstaller --onedir) in .venv-freeze"
 if [[ ! -x "$FREEZE_VENV/bin/python" ]]; then
     python3 -m venv "$FREEZE_VENV"
     "$FREEZE_VENV/bin/pip" install --upgrade pip >/dev/null
 fi
-"$FREEZE_VENV/bin/pip" install -q -r "$MAC/requirements-runtime.txt" pyinstaller
+LLAMA_CMAKE_ARGS="-DGGML_METAL=on -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0"
+CMAKE_ARGS="$LLAMA_CMAKE_ARGS" MACOSX_DEPLOYMENT_TARGET=13.0 \
+    "$FREEZE_VENV/bin/pip" install -q -r "$MAC/requirements-runtime.txt" pyinstaller
+# Rebuild once when an older freeze venv already contains the same llama-cpp
+# version without Metal or with the build host's (too-new) deployment target.
+if [[ ! -f "$LLAMA_BUILD_MARKER" ]]; then
+    CMAKE_ARGS="$LLAMA_CMAKE_ARGS" MACOSX_DEPLOYMENT_TARGET=13.0 \
+        "$FREEZE_VENV/bin/pip" install -q --force-reinstall --no-deps \
+        --no-binary llama-cpp-python --no-cache-dir llama-cpp-python==0.3.34
+    touch "$LLAMA_BUILD_MARKER"
+fi
 "$FREEZE_VENV/bin/pyinstaller" "$MAC/backend/freeze.spec" --noconfirm \
     --distpath "$PYI_DIST" --workpath "$ROOT/build/pyinstaller_work"
 [[ -x "$PYI_DIST/nativeLingoBackend/nativeLingoBackend" ]] \

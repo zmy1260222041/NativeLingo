@@ -1,29 +1,30 @@
-"""On-demand prefetch of the Memorizing module's models (FR-13..15, NFR-5).
+"""On-demand lifecycle for the Memorizing models (FR-13..15, NFR-5).
 
-Unlike the Speaking path (warmup.py, which runs at process startup), the
-Memorizing models -- a ~6GB VLM and a small LLM -- are only loaded when the user
-actually opens the Memorize tab, so cold-start memory and a multi-GB download
-never penalize a user who only does shadowing. The frontend calls
-``POST /memorize/warmup`` on tab-enter and polls ``GET /memorize/status``; on
-tab-leave it calls ``POST /memorize/release`` to free the big models.
-
-Structural clone of warmup.py: module-level lock + status dict, idempotent
-``start()`` (no-op under pytest), best-effort daemon thread. Stage order is
-yolo (tiny, bundled, instant) -> llm (cheap scenario win) -> vlm (largest).
+Loading runs yolo -> Qwen GGUF -> Florence only after the user enters the
+module.  A generation token makes tab exit safe even while a large model is
+still downloading/loading: stale workers unload what they just acquired rather
+than repopulating caches after ``release()``.
 """
 from __future__ import annotations
 
 import threading
 
 _lock = threading.Lock()
-_status: dict = {
-    "running": False,
-    "stage": "idle",  # idle | yolo | llm | vlm | done | error
-    "yolo_ready": False,
-    "llm_ready": False,
-    "vlm_ready": False,
-    "error": None,
-}
+_generation = 0
+
+
+def _initial_status() -> dict:
+    return {
+        "running": False,
+        "stage": "idle",  # idle | yolo | llm | florence | done | error
+        "yolo_ready": False,
+        "llm_ready": False,
+        "florence_ready": False,
+        "error": None,
+    }
+
+
+_status = _initial_status()
 
 
 def status() -> dict:
@@ -31,36 +32,74 @@ def status() -> dict:
         return dict(_status)
 
 
-def _set(**kw) -> None:
+def _advance(token: int, **updates) -> bool:
     with _lock:
-        _status.update(kw)
+        if token != _generation:
+            return False
+        _status.update(updates)
+        return True
 
 
-def _run() -> None:
+def _run(token: int) -> None:
     try:
-        _set(running=True, stage="yolo")
         from backend.core import vision
-        vision._load()                 # yolov8n-onnx (~12MB, bundled -> instant)
-        _set(yolo_ready=True, stage="llm")
+
+        vision._load()
+        if not _advance(token, yolo_ready=True, stage="llm"):
+            return
+
         from backend.core import scenario
-        scenario._load()               # Qwen2.5-Instruct (~1-3GB)
-        _set(llm_ready=True, stage="vlm")
+
+        scenario._load()
+        if not _advance(token, llm_ready=True, stage="florence"):
+            scenario.unload()
+            return
+
         from backend.core import parts
-        parts._load()                  # Qwen2.5-VL-3B (~6GB)
-        _set(vlm_ready=True, stage="done", running=False)
-    except Exception as e:  # noqa: BLE001 -- prefetch must never break the app
-        _set(stage="error", running=False, error=str(e))
+
+        parts._load()
+        if not _advance(
+            token,
+            florence_ready=True,
+            stage="done",
+            running=False,
+            error=None,
+        ):
+            parts.unload()
+            scenario.unload()
+    except Exception as exc:  # noqa: BLE001 -- prefetch must not crash the app
+        _advance(token, stage="error", running=False, error=str(exc))
 
 
 def start() -> None:
-    """Start the on-demand prefetch once. Idempotent; no-op if already done or
-    running under pytest (avoids a multi-GB download + races with tests)."""
-    import sys
-    if "pytest" in sys.modules:
-        _status["stage"] = "done"
-        return
+    """Start or retry the staged warmup. Calls are idempotent while active."""
+    global _generation
     with _lock:
-        if _status["running"] or _status["stage"] in ("done", "error"):
+        if _status["running"] or _status["stage"] == "done":
             return
-        _status["running"] = True
-    threading.Thread(target=_run, daemon=True, name="nl-memorize-warmup").start()
+        _generation += 1
+        token = _generation
+        _status.clear()
+        _status.update(_initial_status())
+        _status.update(running=True, stage="yolo")
+    threading.Thread(
+        target=_run,
+        args=(token,),
+        daemon=True,
+        name=f"nl-memorize-warmup-{token}",
+    ).start()
+
+
+def release() -> None:
+    """Cancel the active generation and unload Florence + Qwen."""
+    global _generation
+    with _lock:
+        _generation += 1
+        _status.clear()
+        _status.update(_initial_status())
+
+    # Do not hold the lifecycle lock while destructors/Metal cleanup run.
+    from backend.core import parts, scenario
+
+    parts.unload()
+    scenario.unload()

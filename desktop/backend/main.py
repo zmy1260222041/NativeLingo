@@ -24,6 +24,7 @@ import io
 import os
 import re
 import tempfile
+import threading
 import uuid
 
 import numpy as np
@@ -48,7 +49,14 @@ async def _lifespan(_app):
     # is exposed via /warmup. Best-effort; analyze still works if it fails.
     from backend.core import warmup
     warmup.start()
-    yield
+    try:
+        yield
+    finally:
+        # llama.cpp Metal must be released before interpreter/dylib teardown;
+        # otherwise an exceptional request followed by app exit can trip a
+        # ggml-metal resource-set assertion.
+        from backend.core import memorize_warmup
+        memorize_warmup.release()
 
 
 app = FastAPI(title="NativeLingo Backend", version="0.1.0", lifespan=_lifespan)
@@ -393,6 +401,41 @@ def recording_clip(rid: str, start: float, end: float, token: str | None = None)
 # back, only JSON (boxes + text).
 _MEMORIZES_DIR = tempfile.mkdtemp(prefix="nativelingo_photos_")
 _MID_RE = re.compile(r"^[0-9a-f]{32}$")
+_MEMORIZE_META: dict[str, dict] = {}
+_MEMORIZE_META_LOCK = threading.Lock()
+_MEMORIZE_REQUEST_TIMEOUT_S = 15.0
+
+
+class _MemorizeRequestTimedOut(TimeoutError):
+    """A local model call exceeded the learner-facing responsiveness budget."""
+
+
+def _within_memorize_deadline(operation):
+    """Return an operation result or fail the HTTP request after 15 seconds.
+
+    Python cannot safely kill a thread inside ONNX/Torch native code, so a
+    timed-out worker is daemonized and allowed to finish in the background.
+    Crucially, the request and UI are released immediately; future clicks get a
+    deterministic retry path rather than an unbounded spinner.
+    """
+    completed = threading.Event()
+    result: dict[str, object] = {}
+
+    def run() -> None:
+        try:
+            result["value"] = operation()
+        except BaseException as exc:  # preserve model-library failures
+            result["error"] = exc
+        finally:
+            completed.set()
+
+    worker = threading.Thread(target=run, daemon=True, name="nl-memorize-request")
+    worker.start()
+    if not completed.wait(_MEMORIZE_REQUEST_TIMEOUT_S):
+        raise _MemorizeRequestTimedOut()
+    if "error" in result:
+        raise result["error"]  # type: ignore[misc]
+    return result.get("value")
 
 
 def _photo_path(mid: str) -> str:
@@ -411,14 +454,26 @@ def _load_image(path: str):
 
 class PartsReq(BaseModel):
     photo_id: str
-    box: list            # [x, y, w, h] in original-image pixels
-    label_en: str | None = None
-    label_zh: str | None = None
+    object_id: int
 
 
 class ScenarioReq(BaseModel):
-    label_en: str
-    label_zh: str = ""
+    photo_id: str
+    object_id: int
+    part_en: str = ""
+
+
+def _object_for(photo_id: str, object_id: int) -> dict:
+    """Return one server-owned detection; never trust client boxes/labels."""
+    _photo_path(photo_id)
+    with _MEMORIZE_META_LOCK:
+        meta = _MEMORIZE_META.get(photo_id)
+        if meta is None:
+            raise HTTPException(status_code=404, detail="photo context not found")
+        for item in meta["objects"]:
+            if item["id"] == object_id:
+                return dict(item)
+    raise HTTPException(status_code=404, detail="object not found")
 
 
 @app.post("/memorize/analyze")
@@ -442,9 +497,27 @@ def memorize_analyze(photo: UploadFile = File(...), _=Depends(require_token)):
 
     from backend.core import vision
     try:
-        objects = vision.detect(img)
+        objects = _within_memorize_deadline(lambda: vision.detect(img))
+    except _MemorizeRequestTimedOut:
+        try:
+            os.remove(os.path.join(_MEMORIZES_DIR, f"{mid}.img"))
+        except OSError:
+            pass
+        raise HTTPException(
+            status_code=504,
+            detail="图片识别等待超过15秒，已停止本次请求。请重试。",
+        )
     except Exception as exc:  # noqa: BLE001  (model not staged / downloading)
+        try:
+            os.remove(os.path.join(_MEMORIZES_DIR, f"{mid}.img"))
+        except OSError:
+            pass
         raise HTTPException(status_code=503, detail=f"object detection unavailable: {exc}")
+    with _MEMORIZE_META_LOCK:
+        _MEMORIZE_META[mid] = {
+            "objects": objects,
+            "contexts": {},
+        }
     return {"photo_id": mid, "objects": objects}
 
 
@@ -453,10 +526,9 @@ def memorize_parts(req: PartsReq, _=Depends(require_token)):
     """FR-14: name the visible parts of a clicked object (server-side crop from
     the stored photo + its box, so the image isn't re-uploaded per click)."""
     path = _photo_path(req.photo_id)
-    if len(req.box) != 4:
-        raise HTTPException(status_code=400, detail="box must be [x, y, w, h]")
+    obj = _object_for(req.photo_id, req.object_id)
     img = _load_image(path)
-    x, y, w, h = (float(v) for v in req.box)
+    x, y, w, h = (float(v) for v in obj["box"])
     iw, ih = img.size
     cx, cy = x + w / 2.0, y + h / 2.0
     sw, sh = w * 1.2, h * 1.2  # +10% context each side so edges aren't clipped
@@ -470,25 +542,79 @@ def memorize_parts(req: PartsReq, _=Depends(require_token)):
 
     from backend.core import parts, memorize_warmup
     st = memorize_warmup.status()
-    if st["running"] and not st["vlm_ready"]:
+    if st["running"] and not st["florence_ready"]:
         raise HTTPException(status_code=503, detail="parts model still preparing; see /memorize/status")
     try:
-        result = parts.name_parts(crop, req.label_en or "", req.label_zh or "")
+        result = _within_memorize_deadline(
+            lambda: parts.analyze_parts(crop, obj["label_en"], obj["label_zh"])
+        )
+    except _MemorizeRequestTimedOut:
+        raise HTTPException(
+            status_code=504,
+            detail="部件识别等待超过15秒，已停止本次请求。请重试。",
+        )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=503, detail=f"part naming unavailable: {exc}")
-    return {"parts": result}
+    with _MEMORIZE_META_LOCK:
+        meta = _MEMORIZE_META.get(req.photo_id)
+        if meta is not None:
+            meta["contexts"][req.object_id] = {
+                "crop_context": result["crop_context"],
+                "parts": result["parts"],
+            }
+    return result
 
 
 @app.post("/memorize/scenario")
 def memorize_scenario(req: ScenarioReq, _=Depends(require_token)):
     """FR-15: generate 1-3 target-language example sentences placing the object
     in a memorable real-world situation (text-only memory aid, no audio)."""
+    obj = _object_for(req.photo_id, req.object_id)
+    with _MEMORIZE_META_LOCK:
+        meta = _MEMORIZE_META.get(req.photo_id) or {"objects": [], "contexts": {}}
+        context = dict(meta["contexts"].get(req.object_id) or {})
+        scene_objects = [
+            item["label_en"]
+            for item in meta["objects"]
+            if item["id"] != req.object_id
+        ]
+
+    part_en = ""
+    part_zh = ""
+    if req.part_en.strip():
+        selected = next(
+            (
+                item
+                for item in context.get("parts", [])
+                if item["label_en"].casefold() == req.part_en.strip().casefold()
+            ),
+            None,
+        )
+        if selected is None:
+            raise HTTPException(status_code=400, detail="selected part is not in the analyzed crop")
+        part_en = selected["label_en"]
+        part_zh = selected.get("label_zh", "")
+
     from backend.core import scenario, memorize_warmup
     st = memorize_warmup.status()
     if st["running"] and not st["llm_ready"]:
         raise HTTPException(status_code=503, detail="scenario model still preparing; see /memorize/status")
     try:
-        sents = scenario.generate(req.label_en, req.label_zh)
+        sents = _within_memorize_deadline(
+            lambda: scenario.generate(
+                obj["label_en"],
+                obj["label_zh"],
+                photo_context=context.get("crop_context", ""),
+                scene_objects=scene_objects,
+                part_en=part_en,
+                part_zh=part_zh,
+            )
+        )
+    except _MemorizeRequestTimedOut:
+        raise HTTPException(
+            status_code=504,
+            detail="情景生成等待超过15秒，已停止本次请求。请重试。",
+        )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=503, detail=f"scenario generation unavailable: {exc}")
     return {"sentences": sents}
@@ -496,7 +622,7 @@ def memorize_scenario(req: ScenarioReq, _=Depends(require_token)):
 
 @app.get("/memorize/status")
 def memorize_status(_=Depends(require_token)):
-    """Memorize-model prefetch progress (yolo -> llm -> vlm). The frontend polls
+    """Memorize-model prefetch progress (yolo -> llm -> florence). The frontend polls
     this on tab-enter to show staged download progress instead of a blind wait."""
     from backend.core import memorize_warmup
     return memorize_warmup.status()
@@ -513,19 +639,23 @@ def memorize_warmup_start(_=Depends(require_token)):
 
 @app.post("/memorize/release")
 def memorize_release(_=Depends(require_token)):
-    """Free the big Memorize models (VLM + LLM) when the user leaves the tab.
+    """Cancel warmup and free Florence + Qwen when the user leaves the tab.
     YOLO stays resident (tiny + bundled). First model-unload mechanism in the
     codebase."""
-    from backend.core import parts, scenario
-    parts.unload()
-    scenario.unload()
+    from backend.core import memorize_warmup
+    memorize_warmup.release()
     return {"released": True}
 
 
 def main():
     """Entry point for running the sidecar standalone."""
+    # Required by PyInstaller on macOS: model libraries may use multiprocessing
+    # during warmup. Without this, a spawned child re-enters main() and briefly
+    # tries to bind a second Uvicorn server on the same port.
+    import multiprocessing
     import uvicorn
 
+    multiprocessing.freeze_support()
     host = os.environ.get("NATIVELINGO_HOST", "127.0.0.1")
     port = int(os.environ.get("NATIVELINGO_PORT", "8756"))
     uvicorn.run(app, host=host, port=port, log_level="info")

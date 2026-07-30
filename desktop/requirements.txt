@@ -10,6 +10,8 @@ scipy==1.18.0
 
 # Image (Memorizing module: photo decode/crop for 看图识物)
 Pillow>=10.4
+# Local Qwen2.5-0.5B Q4_K_M inference. Build with GGML_METAL=on on macOS.
+llama-cpp-python==0.3.34
 
 # Backend
 fastapi==0.138.2

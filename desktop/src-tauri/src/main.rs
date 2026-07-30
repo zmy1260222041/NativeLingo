@@ -6,6 +6,7 @@
 // is killed when the app exits.
 
 use std::fs::OpenOptions;
+use std::net::TcpListener;
 use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use tauri::{Manager, RunEvent};
@@ -21,6 +22,16 @@ fn generate_token() -> String {
         .map(|d| d.as_nanos())
         .unwrap_or(0);
     format!("{:x}{:x}", nanos, std::process::id())
+}
+
+fn allocate_backend_port() -> u16 {
+    // A fixed 8756 lets a stale/other NativeLingo instance hijack the new
+    // window's API calls. Ask the OS for a free loopback port on every launch;
+    // the tiny bind-to-spawn race is preferable to a deterministic collision.
+    TcpListener::bind("127.0.0.1:0")
+        .and_then(|listener| listener.local_addr())
+        .map(|addr| addr.port())
+        .unwrap_or(8756)
 }
 
 fn spawn_backend(
@@ -89,7 +100,7 @@ fn spawn_backend(
 
 fn main() {
     let token = generate_token();
-    let port: u16 = 8756;
+    let port = allocate_backend_port();
     let backend_url = format!("http://127.0.0.1:{}", port);
 
     let init_script = format!(

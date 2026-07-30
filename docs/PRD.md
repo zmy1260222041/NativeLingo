@@ -3,7 +3,7 @@
 > 版本:v0.6(2026-07-29)
 > 状态:已生效。此后所有技术迭代必须能追溯到本文档的需求条目(见 §6 追踪矩阵);新需求先落本文档,再排技术方案。
 >
-> **v0.6 变更(2026-07-29)**:新增 **Memorizing 模块** —— 看图识物(FR-13 整件识别+定位 / FR-14 部件级微观)+ 情景例句记忆强化(FR-15,纯文字、与 Speaking 评分分离、**不触 FR-M1**)+ 双模块信息架构 Speaking/Memorizing(FR-16)。智能层全端侧、无云无密钥(NFR-5,延续 NFR-1/FR-12);模型选型「最小可行」:YOLOv8n-onnx 做宏观整件检测(带 box 热点)+ Qwen2.5-VL-3B 做部件微观命名 + Qwen2.5-Instruct(≤1.5B)做情景例句。同步全 App 视觉升级为 Duolingo 风高级感(NFR-UX)。识物质量为最大不确定性,以 R-13 数字门控。新增评审记录 R-13。
+> **v0.6 变更(2026-07-29)**:新增 **Memorizing 模块** —— 看图识物(FR-13 整件识别+定位 / FR-14 部件级微观)+ 情景例句记忆强化(FR-15,纯文字、与 Speaking 评分分离、**不触 FR-M1**)+ 双模块信息架构 Speaking/Memorizing(FR-16)。智能层全端侧、无云无密钥(NFR-5,延续 NFR-1/FR-12);宏观整件检测直接使用 YOLOE-26S-PF 的 detection-only 动态 ONNX(带 box 热点、实体词表与逐标签阈值)，**不做 Florence 整图后台补充**;Microsoft Florence-2-base-ft(`florence-community/Florence-2-base-ft` 原生 Transformers 转换)仅用于点击后的部件视觉增强;`Qwen/Qwen2.5-0.5B-Instruct-GGUF` 的 Q4_K_M 文件通过 llama.cpp 实时生成情景例句。不使用 Apple 系统模型、不升 1.5B/3B。同步全 App 视觉升级为 Duolingo 风高级感(NFR-UX)。识物质量以 R-13 数字门控。
 >
 > **v0.1 变更(2026-07-25)**:平台扩为 macOS + Android(NFR-2 重写);新增 NFR-4(Android 移动端约束);FR-12 学习记录转 in-scope 并写验收。Android 迁移方案见 `docs/android-migration.md`,Phase-0 符合性评审计划 R-5..R-9 见 §7。
 >
@@ -58,9 +58,9 @@
 | FR-10 | P1 | 反复练习闭环 | 同一素材可重复跟读、重看结果 | ✅ 已实现 |
 | FR-11 | P2 | 音素级诊断 | 能指出"/θ/ 发成了 /s/"级别的替换诊断;宁缺毋滥(不确定时静默) | ✅ 已实现(假设打分式 MDD + 自验证门控,见 CHANGELOG v0.4) |
 | FR-12 | P2 | 学习记录/进度 | 本地存储历史成绩(按素材/句),可看进步曲线;纯端侧,无云 | 🚧 待实现(Android 版起 in-scope,见 `docs/android-migration.md`) |
-| FR-13 | P0 | 看图识物·整件识别与定位(Memorizing) | 用户上传日常照片,端侧识别图中整件物品并标注**目标语言(英语)+ 中文释义**;返回每个物品的可点击定位(box),点击可进入该物品详情。验收:常见物品(家具/餐具/电子/交通工具等)整件识别 precision ≥0.80、recall ≥0.60(R-13 实测);标签含目标语言 + 母语释义;全程无网络调用(NFR-5) | 🚧 待实现 |
-| FR-14 | P1 | 部件级识别·微观(Memorizing) | 点击某整件物品 → 放大进入该物品详情页 → 展示其各组成部分的名称(目标语言 + 中文释义)。验收:对裁剪后的物品,部件命名人工相关性 ≥0.75、幻觉率(列出不可见部件)≤0.15(R-13) | 🚧 待实现 |
-| FR-15 | P1 | 情景例句·记忆强化(Memorizing) | 为某物品/部件生成 1–3 句把它融入真实生活情景的目标语言例句(+中文翻译),用于加深记忆;**纯文字、不参与发音评分、不与 Speaking 模块的跟读参考混用**(故不触 FR-M1)。验收:例句流畅度(人工 1–5)≥4.0、情境贴切度 ≥3.5、中英匹配 ≥0.95(R-13) | 🚧 待实现 |
+| FR-13 | P0 | 看图识物·整件识别与定位(Memorizing) | 用户上传日常照片,端侧识别图中整件物品并标注**目标语言(英语)+ 中文释义**;返回每个物品的可点击定位(box),点击可进入该物品详情。验收:常见物品(家具/餐具/电子/交通工具等)整件识别 precision ≥0.80、recall ≥0.60(R-13 实测);标签含目标语言 + 母语释义;全程无网络调用(NFR-5) | 🚧 功能已实现，正式手标质量门待完成 |
+| FR-14 | P1 | 部件级识别·微观(Memorizing) | 点击某整件物品 → 放大进入该物品详情页 → 默认调用 Microsoft Florence-2-base-ft 的原生 Transformers 转换 `florence-community/Florence-2-base-ft` 对裁剪图做详细描述/密集区域描述 → 展示可见组成部分名称(目标语言 + 中文释义)。验收:部件命名人工相关性 ≥0.75、幻觉率(列出不可见部件)≤0.15(R-13);不依赖 Apple Vision/Foundation Models | 🚧 待实现 |
+| FR-15 | P1 | 情景例句·记忆强化(Memorizing) | 固定用 `Qwen2.5-0.5B-Instruct-GGUF` Q4_K_M 在本机实时生成 1–3 句与当前照片、整件物品/所选部件、同图物体有关的目标语言例句(+中文翻译),用于加深记忆;**不读取预制例句、纯文字、不参与发音评分、不与 Speaking 模块的跟读参考混用**(故不触 FR-M1)。验收:例句流畅度(人工 1–5)≥4.0、图片/部件情境贴切度 ≥3.5、中英匹配 ≥0.95、明显臆造图片事实率 ≤0.10(R-13) | 🚧 待实现 |
 | FR-16 | P1 | 双模块信息架构 | App 顶层划分为 **Speaking**(口语跟读评估,含原视频跟读/上传音频)与 **Memorizing**(看图识物 + 情景例句)两大模块,各自独立流程、互不干扰。验收:模块切换清晰;Memorizing 模型的加载/释放不影响 Speaking 评分;视觉为 Duolingo 风高级感(NFR-UX) | 🚧 待实现 |
 
 ## 5. 非功能性需求与约束
@@ -75,9 +75,9 @@
   - **⑤ 数值对齐**:Android 端评分须与 macOS 同语料在容差内一致(accuracy ±2.0 / fluency ±3.0 / DTW cost ±0.02),由 R-5 把关。**转写文本不在对等目标内**(R-10 决定 2):两个 int8 base.en 解码器在难音频上以 ~4% 的比例各自出错且不可消除,参考切分不同只是给出另一个同样有效的练习单元。
 - **NFR-3 性能**:单句分析秒级出结果;视频首次转写可后台进行并缓存。
 - **NFR-Q1 评分质量指标**:校准映射留出验证 PCC — accuracy ≥ 0.55(当前 0.60),fluency ≥ 0.40(当前 0.43);说话人不变性测试必须通过。**且校准必须对 FR-M1 的真实人声参考成立**(R-1 已实测验证:真人参考下分数不降反略升;新参考音品类须用 `scripts/ref_swap_experiment.py` 复验)。
-- **NFR-5 端侧智能(Memorizing 模块)**:看图识物与情景例句的全部推理在设备本地完成(YOLO 检测 + 端侧 VLM + 端侧小 LLM),**无云调用、无 API key、无联网** —— 延续 NFR-1 与 FR-12 的离线/隐私立场;用户照片不出设备。LLM 选型遵循「最小可行」:优先 ≤1.5B 参数,质量不足再升档(R-13 定);VLM/LLM 多 GB 权重走首次惰性下载(同 wav2vec2/MMS),由 `memorize_warmup` 预取并分阶段显示进度。
-- **NFR-UX 高级感视觉**:全 App 视觉升级为 Duolingo 风高级感(亮色主调、大圆角、3D 立体按键、友好),并承载 FR-16 的双模块顶层导航。设计令牌见 `desktop/src/styles.css`。
-- **已知限制**:MMS 模型体积 1.18GB;首次转写慢(有缓存);超长连续选段(>5 分钟)wav2vec2 编码在 MPS 上有内存风险(P2,待分块编码);Memorizing 的 VLM/LLM 首次下载数 GB、首轮推理含加载延迟(分阶段进度 UI 缓冲)。
+- **NFR-5 端侧智能(Memorizing 模块)**:看图识物与情景例句的全部推理在设备本地完成(YOLOE-26S-PF 检测 + Florence-2-base-ft 部件分析 + Qwen2.5-0.5B-Instruct Q4_K_M),**无云调用、无 API key;联网仅用于首次下载固定 revision 的模型,缓存后可离线**,用户照片与提示不出设备。YOLOE 为 45,190,231 bytes 的 detection-only 动态 ONNX，导出图在 Top-K 前固化 177 个实体类别过滤，运行时再做逐标签阈值与同框去重；Florence 不参与整图检测，只在用户点击物品后分析裁剪图。Florence 权重 463,178,864 bytes;GGUF 文件 `qwen2.5-0.5b-instruct-q4_k_m.gguf` 为 491,400,032 bytes,由 llama.cpp/Metal 运行。模型由 `memorize_warmup` 分阶段准备,离开模块时释放内存。**不采用 Apple Vision/Foundation Models,不保留 1.5B/3B 升档路线。**
+- **NFR-UX 高级感视觉**:全 App 视觉升级为 Duolingo 风高级感(亮色主调、大圆角、3D 立体按键、友好),并承载 FR-16 的双模块顶层导航。Memorizing 的整件识别、部件识别与情景生成请求均有 **15 秒** 前端 AbortController 与后端 504 deadline:超时立刻清除加载态、显示可读错误并允许重试,不得无限“识别中”;每个 App 实例使用随机本地端口,不得连接到另一实例的旧后端。设计令牌见 `desktop/src/styles.css`。
+- **已知限制**:MMS 模型体积 1.18GB;首次转写慢(有缓存);超长连续选段(>5 分钟)wav2vec2 编码在 MPS 上有内存风险(P2,待分块编码);Memorizing 的 Florence + GGUF 首次下载合计约 0.95GB、首轮推理含加载延迟(分阶段进度 UI 缓冲)。
 - **风险**:素材版权(BBC 等)——产品形态必须停留在"用户自备素材",不得分发成片;技术调研不得引入需联网调用的评分服务(违反 NFR-1)。
 
 ## 6. 需求-技术追踪矩阵
@@ -92,9 +92,9 @@
 | FR-8 A/B 回放 | `/clip` 原声采样级;学习者回放走 `/recordings/{id}/clip` 后端切 WAV(v0.3) | ✅ |
 | FR-9 反馈 | `feedback.py` 规则引擎 + `llm_hook` 预留 | ✅ |
 | 单参考依赖 | 当前每条素材仅其视频原声一条参考 | ⚠️ Richter 式相对 DTW 与 FR-M1 冲突 → 见 §7 R-2 |
-| FR-13 整件识别+定位 | `core/vision.py`(YOLOv8n-onnx,onnxruntime CPU)+ `/memorize/analyze` | 🚧(待 R-13) |
-| FR-14 部件级微观 | `core/parts.py`(Qwen2.5-VL-3B,MPS)+ `/memorize/parts` | 🚧(待 R-13) |
-| FR-15 情景例句 | `core/scenario.py`(Qwen2.5-Instruct,MPS)+ `/memorize/scenario` | 🚧(待 R-13) |
+| FR-13 整件识别+定位 | `core/vision.py`(YOLOE-26S-PF detection-only ONNX,onnxruntime CPU,实体词表/逐标签阈值)+ `/memorize/analyze` | 🚧 功能完成，待正式 R-13 手标质量门 |
+| FR-14 部件级微观 | `core/parts.py`(Florence-2-base-ft 原生 Transformers 转换,MPS/CPU)+ `/memorize/parts` | 🚧(待 R-13) |
+| FR-15 情景例句 | `core/scenario.py`(Qwen2.5-0.5B-Instruct Q4_K_M,llama.cpp Metal/CPU)+ `/memorize/scenario` | 🚧(待 R-13) |
 | FR-16 双模块 IA | `desktop/src/{index.html,main.js,styles.css}` | 🚧 |
 
 > **Android 平台映射**:同一张表的需求在 Android 上由对应 Kotlin Gradle 模块满足 —— FR-4/5 → `:core-scoring`,FR-2 → `:core-asr` + `:core-align`,FR-11 → `:core-mdd`,FR-8 → `:app` RecordingsRepository + Media3,FR-12 → `:app` Room。完整需求→模块矩阵见 `docs/android-migration.md`。
@@ -133,4 +133,4 @@
   - **① 桌面能过不等于设备能过,而且失因未必在我们导出什么。** fp16 兜底在 Android 被拒是因为 ORT 的**载入期优化器**把图里 17 个 `Erf` 融成 `com.microsoft.Gelu`,而裁剪版移动构建没有它的 fp16 kernel —— 桌面有。这类"运行时从模型里推导出什么"的失败,桌面侧的载入测试原理上抓不到。
   - **② 尺度不变是当下消费者的性质,不是保证。** √2 下混缺陷之所以在分数上几乎不可见,是因为 `frameDb` 用相对参考、`stressPos` 只取位置、CMVN 逐维归一 —— 三个都恰好尺度不变。据此把它当"无害"就错了:VAD 有绝对灵敏度。所以电平现在**单独 gate**(`|gain−1|<0.01`),不靠下游分数间接兜。
   - **③ 一条绿着的测量可能在报它没测的数。** 模型校验测试打印过 `SHA-256 over 935.1 MiB took 0 ms (Infinity MiB/s)` —— marker 跨运行存活,`verifyAll` 直接返回,而这行正是它本该产出的 NFR-3 warmup 数据点。现在先删 marker 再计时,并**结构性断言**而非用时间做代理(第一版改法拿 `ms > 1000` 当下限,被模拟器的宿主 page cache 当场证伪:424 ms / 2205 MiB/s)。**真机冷存储 I/O 因此仍是未知数**,"每次启动是否全量校验"这个 warmup 设计问题待真机数据。
-- **R-13(2026-07-29,计划中)端侧识物 + 情景质量门 vs FR-13/FR-14/FR-15 + NFR-5** → `docs/reviews/2026-07-29-photo-recognition-fit.md`。在手标照片小集上实测三模型,数字门控:宏观 YOLO precision ≥0.80 / recall ≥0.60、微观 VLM 相关性 ≥0.75 / 幻觉率 ≤0.15、情景 LLM 流畅度 ≥4.0 / 情境贴切 ≥3.5 / 中英匹配 ≥0.95、同驻峰值 RSS ≤12GB。决定两个开放架构问题:① 宏观走 YOLO(带 box 可点热点)还是整图 VLM caption(无热点降级);② 小 LLM 选型(0.5B→1.5B→3B 逐级,直至流畅度达标)。**结果待 Phase E 回填**。
+- **R-13(2026-07-29,进行中)端侧识物 + 情景质量门 vs FR-13/FR-14/FR-15 + NFR-5** → `docs/reviews/2026-07-29-photo-recognition-fit.md`。探索集已完成 10 室内 + 10 室外逐图复核，并据此把宏观模型直接切为 YOLOE-26S-PF：Top-K 前屏蔽非实体词，运行时按标签校准阈值和去重，不再后台调用 Florence。热态中位 57.7ms、P95 63.8ms；该探索集没有手标框，不能替代正式 precision ≥0.80 / recall ≥0.60 门。Florence 微观相关性、Qwen 情景质量和同驻 RSS 仍待正式手标/人工评分回填。

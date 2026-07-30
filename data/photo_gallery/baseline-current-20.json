@@ -1,0 +1,1044 @@
+{
+  "model": "YOLOE-26S-PF detection-only ONNX + curated tangible vocabulary",
+  "photo_count": 20,
+  "summary": {
+    "detection_count": 64,
+    "unique_labels": [
+      "alarm clock",
+      "basket",
+      "bed",
+      "bench",
+      "bicycle",
+      "bin",
+      "book",
+      "bottle",
+      "bowl",
+      "bus",
+      "car",
+      "carpet",
+      "cart",
+      "chair",
+      "cleaning product",
+      "clock",
+      "coffee machine",
+      "couch",
+      "fan",
+      "faucet",
+      "flower",
+      "glasses",
+      "grass",
+      "hat",
+      "house exterior",
+      "lamp",
+      "laptop",
+      "motorcycle",
+      "mug",
+      "office building",
+      "path",
+      "pillow",
+      "placard",
+      "road",
+      "showcase",
+      "shower",
+      "speaker",
+      "traffic sign",
+      "tree",
+      "washing machine",
+      "waste container"
+    ],
+    "zero_result_photos": 0,
+    "median_ms": 59.4,
+    "p95_ms": 247.6,
+    "threshold_policy": "155-label pre-top-k vocabulary at proposal confidence 0.10 + per-label minimum score + class-agnostic IoU 0.72 + contextual 1280px plaque detail pass"
+  },
+  "results": [
+    {
+      "file": "indoor/01-bathroom.jpg",
+      "scene": "bathroom",
+      "size": [
+        1280,
+        1707
+      ],
+      "latency_ms": 165.0,
+      "objects": [
+        {
+          "label_en": "shower",
+          "label_zh": "淋浴间",
+          "score": 0.704,
+          "box": [
+            0.0,
+            105.4,
+            588.7,
+            1601.6
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "lamp",
+          "label_zh": "灯",
+          "score": 0.606,
+          "box": [
+            466.2,
+            97.8,
+            180.9,
+            351.0
+          ],
+          "id": 1
+        }
+      ]
+    },
+    {
+      "file": "indoor/02-bedroom.jpg",
+      "scene": "bedroom",
+      "size": [
+        1280,
+        2844
+      ],
+      "latency_ms": 45.9,
+      "objects": [
+        {
+          "label_en": "bin",
+          "label_zh": "收纳箱",
+          "score": 0.505,
+          "box": [
+            0.0,
+            1623.7,
+            300.8,
+            1220.3
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "bed",
+          "label_zh": "床",
+          "score": 0.494,
+          "box": [
+            0.0,
+            623.2,
+            1280.0,
+            2214.0
+          ],
+          "id": 1
+        },
+        {
+          "label_en": "pillow",
+          "label_zh": "枕头",
+          "score": 0.417,
+          "box": [
+            101.0,
+            1131.8,
+            889.8,
+            504.0
+          ],
+          "id": 2
+        }
+      ]
+    },
+    {
+      "file": "indoor/03-classroom.jpg",
+      "scene": "classroom",
+      "size": [
+        1280,
+        960
+      ],
+      "latency_ms": 281.4,
+      "objects": [
+        {
+          "label_en": "glasses",
+          "label_zh": "眼镜",
+          "score": 0.856,
+          "box": [
+            519.5,
+            387.9,
+            106.6,
+            37.0
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "clock",
+          "label_zh": "时钟",
+          "score": 0.792,
+          "box": [
+            1201.8,
+            0.0,
+            78.2,
+            106.5
+          ],
+          "id": 1
+        },
+        {
+          "label_en": "book",
+          "label_zh": "书",
+          "score": 0.616,
+          "box": [
+            686.2,
+            777.1,
+            464.4,
+            182.9
+          ],
+          "id": 2
+        },
+        {
+          "label_en": "faucet",
+          "label_zh": "水龙头",
+          "score": 0.392,
+          "box": [
+            989.0,
+            537.8,
+            164.2,
+            201.6
+          ],
+          "id": 3
+        }
+      ]
+    },
+    {
+      "file": "indoor/04-dining-room.jpg",
+      "scene": "dining room",
+      "size": [
+        1280,
+        960
+      ],
+      "latency_ms": 58.9,
+      "objects": [
+        {
+          "label_en": "chair",
+          "label_zh": "椅子",
+          "score": 0.896,
+          "box": [
+            644.1,
+            603.5,
+            189.9,
+            304.0
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "chair",
+          "label_zh": "椅子",
+          "score": 0.894,
+          "box": [
+            519.6,
+            583.2,
+            156.0,
+            271.9
+          ],
+          "id": 1
+        },
+        {
+          "label_en": "chair",
+          "label_zh": "椅子",
+          "score": 0.889,
+          "box": [
+            869.6,
+            635.0,
+            204.3,
+            325.0
+          ],
+          "id": 2
+        },
+        {
+          "label_en": "chair",
+          "label_zh": "椅子",
+          "score": 0.857,
+          "box": [
+            1163.4,
+            605.3,
+            116.3,
+            351.5
+          ],
+          "id": 3
+        }
+      ]
+    },
+    {
+      "file": "indoor/05-kitchen-coffee.jpg",
+      "scene": "people preparing coffee in a kitchen",
+      "size": [
+        1280,
+        852
+      ],
+      "latency_ms": 56.9,
+      "objects": [
+        {
+          "label_en": "mug",
+          "label_zh": "马克杯",
+          "score": 0.769,
+          "box": [
+            760.1,
+            679.1,
+            140.6,
+            114.5
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "coffee machine",
+          "label_zh": "咖啡机",
+          "score": 0.177,
+          "box": [
+            769.8,
+            289.0,
+            510.2,
+            545.5
+          ],
+          "id": 1
+        }
+      ]
+    },
+    {
+      "file": "indoor/06-kitchen-dishes.jpg",
+      "scene": "person washing dishes in a kitchen",
+      "size": [
+        1280,
+        892
+      ],
+      "latency_ms": 58.6,
+      "objects": [
+        {
+          "label_en": "bottle",
+          "label_zh": "瓶子",
+          "score": 0.58,
+          "box": [
+            97.6,
+            284.0,
+            28.6,
+            84.9
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "bottle",
+          "label_zh": "瓶子",
+          "score": 0.524,
+          "box": [
+            680.3,
+            445.9,
+            45.5,
+            85.0
+          ],
+          "id": 1
+        },
+        {
+          "label_en": "bowl",
+          "label_zh": "碗",
+          "score": 0.516,
+          "box": [
+            517.7,
+            823.1,
+            322.3,
+            68.9
+          ],
+          "id": 2
+        },
+        {
+          "label_en": "cleaning product",
+          "label_zh": "清洁用品",
+          "score": 0.463,
+          "box": [
+            645.8,
+            415.5,
+            38.4,
+            100.5
+          ],
+          "id": 3
+        }
+      ]
+    },
+    {
+      "file": "indoor/07-laundromat.jpg",
+      "scene": "indoor self-service laundromat",
+      "size": [
+        1280,
+        960
+      ],
+      "latency_ms": 59.3,
+      "objects": [
+        {
+          "label_en": "lamp",
+          "label_zh": "灯",
+          "score": 0.709,
+          "box": [
+            1178.3,
+            190.4,
+            82.1,
+            92.7
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "washing machine",
+          "label_zh": "洗衣机",
+          "score": 0.702,
+          "box": [
+            628.9,
+            423.5,
+            49.5,
+            265.4
+          ],
+          "id": 1
+        },
+        {
+          "label_en": "washing machine",
+          "label_zh": "洗衣机",
+          "score": 0.685,
+          "box": [
+            486.7,
+            404.7,
+            88.2,
+            326.6
+          ],
+          "id": 2
+        },
+        {
+          "label_en": "washing machine",
+          "label_zh": "洗衣机",
+          "score": 0.671,
+          "box": [
+            571.1,
+            414.4,
+            60.3,
+            291.5
+          ],
+          "id": 3
+        },
+        {
+          "label_en": "washing machine",
+          "label_zh": "洗衣机",
+          "score": 0.559,
+          "box": [
+            678.1,
+            442.6,
+            48.5,
+            232.6
+          ],
+          "id": 4
+        },
+        {
+          "label_en": "washing machine",
+          "label_zh": "洗衣机",
+          "score": 0.502,
+          "box": [
+            725.5,
+            450.3,
+            45.1,
+            210.1
+          ],
+          "id": 5
+        }
+      ]
+    },
+    {
+      "file": "indoor/08-living-room.jpg",
+      "scene": "living room",
+      "size": [
+        1280,
+        852
+      ],
+      "latency_ms": 247.6,
+      "objects": [
+        {
+          "label_en": "couch",
+          "label_zh": "沙发",
+          "score": 0.878,
+          "box": [
+            17.3,
+            435.5,
+            573.9,
+            402.9
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "couch",
+          "label_zh": "沙发",
+          "score": 0.851,
+          "box": [
+            861.1,
+            373.7,
+            358.9,
+            324.3
+          ],
+          "id": 1
+        },
+        {
+          "label_en": "couch",
+          "label_zh": "沙发",
+          "score": 0.765,
+          "box": [
+            178.7,
+            333.3,
+            219.5,
+            169.5
+          ],
+          "id": 2
+        },
+        {
+          "label_en": "clock",
+          "label_zh": "时钟",
+          "score": 0.716,
+          "box": [
+            828.2,
+            35.7,
+            40.7,
+            49.3
+          ],
+          "id": 3
+        },
+        {
+          "label_en": "couch",
+          "label_zh": "沙发",
+          "score": 0.694,
+          "box": [
+            388.0,
+            313.4,
+            179.1,
+            154.0
+          ],
+          "id": 4
+        },
+        {
+          "label_en": "fan",
+          "label_zh": "风扇",
+          "score": 0.598,
+          "box": [
+            557.0,
+            223.6,
+            77.1,
+            100.5
+          ],
+          "id": 5
+        },
+        {
+          "label_en": "carpet",
+          "label_zh": "地毯",
+          "score": 0.541,
+          "box": [
+            468.8,
+            480.8,
+            399.1,
+            140.7
+          ],
+          "id": 6
+        },
+        {
+          "label_en": "speaker",
+          "label_zh": "音箱",
+          "score": 0.514,
+          "box": [
+            879.9,
+            399.8,
+            56.9,
+            66.6
+          ],
+          "id": 7
+        }
+      ]
+    },
+    {
+      "file": "indoor/09-home-office.jpg",
+      "scene": "person working on a laptop at home",
+      "size": [
+        1280,
+        1917
+      ],
+      "latency_ms": 58.3,
+      "objects": [
+        {
+          "label_en": "laptop",
+          "label_zh": "笔记本电脑",
+          "score": 0.908,
+          "box": [
+            266.6,
+            870.6,
+            466.3,
+            419.9
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "chair",
+          "label_zh": "椅子",
+          "score": 0.671,
+          "box": [
+            588.2,
+            1448.2,
+            687.4,
+            468.7
+          ],
+          "id": 1
+        },
+        {
+          "label_en": "alarm clock",
+          "label_zh": "闹钟",
+          "score": 0.551,
+          "box": [
+            70.3,
+            1129.9,
+            128.0,
+            184.9
+          ],
+          "id": 2
+        },
+        {
+          "label_en": "book",
+          "label_zh": "书",
+          "score": 0.54,
+          "box": [
+            176.4,
+            1221.7,
+            313.5,
+            187.5
+          ],
+          "id": 3
+        }
+      ]
+    },
+    {
+      "file": "indoor/10-retail-zone.png",
+      "scene": "supermarket retail zone",
+      "size": [
+        1280,
+        853
+      ],
+      "latency_ms": 243.1,
+      "objects": [
+        {
+          "label_en": "cart",
+          "label_zh": "购物车",
+          "score": 0.655,
+          "box": [
+            311.4,
+            445.8,
+            274.7,
+            313.9
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "showcase",
+          "label_zh": "陈列柜",
+          "score": 0.583,
+          "box": [
+            717.2,
+            40.3,
+            562.5,
+            810.2
+          ],
+          "id": 1
+        }
+      ]
+    },
+    {
+      "file": "outdoor/01-people-in-park.jpg",
+      "scene": "people sitting in a park",
+      "size": [
+        1280,
+        2274
+      ],
+      "latency_ms": 52.7,
+      "objects": [
+        {
+          "label_en": "office building",
+          "label_zh": "办公楼",
+          "score": 0.915,
+          "box": [
+            566.8,
+            0.0,
+            707.6,
+            584.1
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "bench",
+          "label_zh": "长椅",
+          "score": 0.689,
+          "box": [
+            180.6,
+            1240.4,
+            247.1,
+            156.1
+          ],
+          "id": 1
+        },
+        {
+          "label_en": "bench",
+          "label_zh": "长椅",
+          "score": 0.588,
+          "box": [
+            415.5,
+            1233.2,
+            333.2,
+            219.6
+          ],
+          "id": 2
+        },
+        {
+          "label_en": "grass",
+          "label_zh": "草地",
+          "score": 0.522,
+          "box": [
+            2.2,
+            1495.7,
+            1277.8,
+            778.2
+          ],
+          "id": 3
+        },
+        {
+          "label_en": "tree",
+          "label_zh": "树",
+          "score": 0.119,
+          "box": [
+            1.9,
+            0.0,
+            698.1,
+            1068.9
+          ],
+          "id": 4
+        }
+      ]
+    },
+    {
+      "file": "outdoor/02-park-bench.jpg",
+      "scene": "people sitting on a park bench",
+      "size": [
+        1280,
+        832
+      ],
+      "latency_ms": 70.8,
+      "objects": [
+        {
+          "label_en": "bench",
+          "label_zh": "长椅",
+          "score": 0.778,
+          "box": [
+            94.2,
+            620.0,
+            738.7,
+            211.0
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "car",
+          "label_zh": "汽车",
+          "score": 0.62,
+          "box": [
+            1083.8,
+            564.4,
+            196.0,
+            141.2
+          ],
+          "id": 1
+        }
+      ]
+    },
+    {
+      "file": "outdoor/03-people-on-street.jpg",
+      "scene": "people walking on a street",
+      "size": [
+        1280,
+        871
+      ],
+      "latency_ms": 66.0,
+      "objects": [
+        {
+          "label_en": "placard",
+          "label_zh": "标牌",
+          "score": 0.693,
+          "box": [
+            345.5,
+            415.9,
+            96.3,
+            127.4
+          ],
+          "id": 0
+        }
+      ]
+    },
+    {
+      "file": "outdoor/04-city-park.jpg",
+      "scene": "people sitting and walking in a city park",
+      "size": [
+        1280,
+        850
+      ],
+      "latency_ms": 72.9,
+      "objects": [
+        {
+          "label_en": "bench",
+          "label_zh": "长椅",
+          "score": 0.67,
+          "box": [
+            77.4,
+            549.4,
+            195.6,
+            212.7
+          ],
+          "id": 0
+        }
+      ]
+    },
+    {
+      "file": "outdoor/05-park-benches.jpg",
+      "scene": "people relaxing on benches in a park",
+      "size": [
+        1280,
+        853
+      ],
+      "latency_ms": 59.5,
+      "objects": [
+        {
+          "label_en": "bench",
+          "label_zh": "长椅",
+          "score": 0.877,
+          "box": [
+            770.9,
+            377.2,
+            260.1,
+            119.7
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "bench",
+          "label_zh": "长椅",
+          "score": 0.86,
+          "box": [
+            241.6,
+            378.2,
+            253.4,
+            121.4
+          ],
+          "id": 1
+        }
+      ]
+    },
+    {
+      "file": "outdoor/06-modern-urban-park.jpg",
+      "scene": "modern urban park",
+      "size": [
+        1280,
+        853
+      ],
+      "latency_ms": 58.1,
+      "objects": [
+        {
+          "label_en": "waste container",
+          "label_zh": "垃圾桶",
+          "score": 0.808,
+          "box": [
+            393.9,
+            407.8,
+            57.4,
+            62.0
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "car",
+          "label_zh": "汽车",
+          "score": 0.662,
+          "box": [
+            1237.6,
+            409.2,
+            42.4,
+            38.3
+          ],
+          "id": 1
+        }
+      ]
+    },
+    {
+      "file": "outdoor/07-park-pathway.jpg",
+      "scene": "people on a city park pathway",
+      "size": [
+        1280,
+        853
+      ],
+      "latency_ms": 57.7,
+      "objects": [
+        {
+          "label_en": "path",
+          "label_zh": "小路",
+          "score": 0.336,
+          "box": [
+            23.5,
+            616.9,
+            1248.2,
+            233.4
+          ],
+          "id": 0
+        }
+      ]
+    },
+    {
+      "file": "outdoor/08-elderly-couple-park.jpg",
+      "scene": "elderly couple walking in a park",
+      "size": [
+        1280,
+        1600
+      ],
+      "latency_ms": 67.7,
+      "objects": [
+        {
+          "label_en": "traffic sign",
+          "label_zh": "交通标志",
+          "score": 0.8,
+          "box": [
+            0.0,
+            462.1,
+            187.0,
+            138.6
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "car",
+          "label_zh": "汽车",
+          "score": 0.742,
+          "box": [
+            0.0,
+            984.8,
+            176.4,
+            228.5
+          ],
+          "id": 1
+        },
+        {
+          "label_en": "house exterior",
+          "label_zh": "住宅",
+          "score": 0.738,
+          "box": [
+            0.0,
+            2.5,
+            1280.0,
+            1124.8
+          ],
+          "id": 2
+        }
+      ]
+    },
+    {
+      "file": "outdoor/09-street-vendor-bicycle.jpg",
+      "scene": "street vendor with bicycle",
+      "size": [
+        1280,
+        1024
+      ],
+      "latency_ms": 60.2,
+      "objects": [
+        {
+          "label_en": "bus",
+          "label_zh": "公交车",
+          "score": 0.887,
+          "box": [
+            559.9,
+            0.0,
+            719.9,
+            465.1
+          ],
+          "id": 0
+        },
+        {
+          "label_en": "motorcycle",
+          "label_zh": "摩托车",
+          "score": 0.8,
+          "box": [
+            55.8,
+            297.3,
+            171.9,
+            119.4
+          ],
+          "id": 1
+        },
+        {
+          "label_en": "hat",
+          "label_zh": "帽子",
+          "score": 0.78,
+          "box": [
+            664.3,
+            258.5,
+            141.2,
+            90.3
+          ],
+          "id": 2
+        },
+        {
+          "label_en": "basket",
+          "label_zh": "篮子",
+          "score": 0.659,
+          "box": [
+            368.3,
+            582.6,
+            188.2,
+            86.4
+          ],
+          "id": 3
+        },
+        {
+          "label_en": "basket",
+          "label_zh": "篮子",
+          "score": 0.638,
+          "box": [
+            254.5,
+            443.4,
+            313.0,
+            147.2
+          ],
+          "id": 4
+        },
+        {
+          "label_en": "bicycle",
+          "label_zh": "自行车",
+          "score": 0.606,
+          "box": [
+            374.7,
+            502.6,
+            672.9,
+            347.5
+          ],
+          "id": 5
+        },
+        {
+          "label_en": "flower",
+          "label_zh": "花",
+          "score": 0.559,
+          "box": [
+            354.5,
+            137.1,
+            246.1,
+            306.7
+          ],
+          "id": 6
+        }
+      ]
+    },
+    {
+      "file": "outdoor/10-bus-stop.jpg",
+      "scene": "city bus stop",
+      "size": [
+        1280,
+        1916
+      ],
+      "latency_ms": 56.2,
+      "objects": [
+        {
+          "label_en": "road",
+          "label_zh": "道路",
+          "score": 0.211,
+          "box": [
+            1.3,
+            0.0,
+            1278.7,
+            1914.3
+          ],
+          "id": 0
+        }
+      ]
+    }
+  ]
+}

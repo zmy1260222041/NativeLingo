@@ -1,76 +1,131 @@
-"""Macro object detection for the Memorizing module (FR-13).
+"""YOLOE-26S-PF macro object detection for the Memorizing module (FR-13).
 
-Runs a YOLOv8n model exported to ONNX directly via onnxruntime (no
-ultralytics / opencv dependency) so everyday objects in a photo get a label
-+ a bounding box the frontend turns into a clickable hotspot. Labels are
-English (COCO class names) with a hand-authored Chinese gloss shipped next
-to the model, so the learner sees the target language + their native language.
+The model is a detection-only ONNX export of Ultralytics' prompt-free
+YOLOE-26S segmentation checkpoint.  It keeps YOLOE's open vocabulary but
+removes the unused mask branch from the exported output.  Runtime inference is
+direct onnxruntime: Ultralytics, PyTorch and OpenCV are build-time only.
 
-Design mirrors the rest of core/: a lazily-loaded singleton behind
-``functools.lru_cache`` (see phoneme.py), a bundled-model path resolved via the
-sys.frozen idiom (see transcribe.py), and an ``unload()`` for the
-/memorize/release RAM-management path. The letterbox / NMS / rescale math is
-exposed as pure functions so it can be unit-tested without the model.
+Prompt-free YOLOE exposes thousands of labels, including actions, scene types
+and noisy training aliases.  Showing all of them is actively harmful in a
+language-learning UI, so ``yoloe_labels.json`` is both:
+
+* a tangible-object allowlist; and
+* a per-label confidence calibration table.
+
+Unknown labels are discarded.  A conservative COCO vocabulary is merged in so
+common objects remain available, while ``person`` is deliberately omitted to
+avoid covering a photo with human hotspots.
 """
 from __future__ import annotations
 
+import ast
 import functools
 import json
+import math
 import os
 import sys
 
 import numpy as np
 
-# Input side of the exported model (ultralytics default: 640x640, NCHW float32).
+from backend.core import model_assets
+
 _IN_SIZE = 640
-
-# Prefer a pre-bundled model so the frozen app recognizes offline (no 12MB
-# first-run download). Depth differs between the frozen onedir and dev:
-#   frozen: <bundle>/backend/core/ -> ../../models = <bundle>/models
-#   dev:    desktop/backend/core/  -> ../../../models = <repo>/models
+_DETAIL_IN_SIZE = 1280
+_DETAIL_MIN_LONG_SIDE = 960
+_DETAIL_LABELS = frozenset({"plaque"})
+_DETAIL_CONTEXT_LABELS = frozenset({"clock", "cabinet", "showcase"})
+_STRIDE = 32
 _HERE = os.path.dirname(os.path.abspath(__file__))
+_MODEL_FILENAME = model_assets.YOLO_FILENAME
+
 if getattr(sys, "frozen", False):
-    _BUNDLED_MODEL = os.path.join(_HERE, "..", "..", "models", "yolov8n-coco")
+    _BUNDLED_MODEL = os.path.join(_HERE, "..", "..", "models", "yoloe-26s-pf")
 else:
-    _BUNDLED_MODEL = os.path.join(_HERE, "..", "..", "..", "models", "yolov8n-coco")
-
-# HF fallback id if the local dir is absent (downloaded to ~/.cache on first use).
-_FALLBACK_REPO = "onnx-community/yolov8n-detect-ONNX"
-_FALLBACK_FILE = "onnx/model.onnx"
+    _BUNDLED_MODEL = os.path.join(
+        _HERE, "..", "..", "..", "models", "yoloe-26s-pf"
+    )
 
 
-def _model_dir() -> str | None:
-    return _BUNDLED_MODEL if os.path.isdir(_BUNDLED_MODEL) else None
+def _model_path() -> str:
+    path = os.path.join(_BUNDLED_MODEL, _MODEL_FILENAME)
+    if not os.path.isfile(path):
+        raise FileNotFoundError(
+            f"{_MODEL_FILENAME} is not staged; run scripts/export_yoloe_onnx.py"
+        )
+    return path
+
+
+def _load_label_specs(model_names: dict[int, str]) -> dict[str, dict]:
+    """Build the curated label → {zh, min_score} table.
+
+    COCO supplies conservative coverage for familiar objects; explicit YOLOE
+    entries override its translation and threshold.  A label absent from the
+    resulting mapping can never reach the UI.
+    """
+    with open(os.path.join(_HERE, "coco_names.txt"), encoding="utf-8") as handle:
+        coco_en = [line.strip() for line in handle if line.strip()]
+    with open(os.path.join(_HERE, "coco_zh.json"), encoding="utf-8") as handle:
+        coco_zh = json.load(handle)
+    with open(os.path.join(_HERE, "yoloe_labels.json"), encoding="utf-8") as handle:
+        config = json.load(handle)
+
+    available = set(model_names.values())
+    default_score = float(config["_default_coco_min_score"])
+    specs = {}
+    for label_en, label_zh in zip(coco_en, coco_zh):
+        if label_en == "person" or label_en not in available:
+            continue
+        specs[label_en] = {"zh": label_zh, "min_score": default_score}
+
+    for label_en, spec in config["labels"].items():
+        if label_en not in available:
+            continue
+        specs[label_en] = {
+            "zh": str(spec["zh"]),
+            "min_score": float(spec["min_score"]),
+        }
+    return specs
 
 
 @functools.lru_cache(maxsize=1)
 def _load():
-    """Load the ONNX session + the EN/ZH label lists. Returns
-    (session, names_en, names_zh)."""
+    """Load and validate the ONNX model plus its embedded class vocabulary."""
     import onnxruntime as ort
 
-    # Labels are tracked source in core/ (coco_names.txt + coco_zh.json),
-    # committed and staged by freeze.spec next to calibration.json -- so they
-    # are always present regardless of where the onnx weight lives.
-    with open(os.path.join(_HERE, "coco_names.txt"), encoding="utf-8") as f:
-        names_en = [ln.strip() for ln in f if ln.strip()]
-    with open(os.path.join(_HERE, "coco_zh.json"), encoding="utf-8") as f:
-        names_zh = json.load(f)
+    path = model_assets.verify_file(
+        _model_path(),
+        model_assets.YOLO_SIZE,
+        model_assets.YOLO_SHA256,
+    )
+    session = ort.InferenceSession(path, providers=["CPUExecutionProvider"])
+    metadata = session.get_modelmeta().custom_metadata_map
 
-    model_dir = _model_dir()
-    if model_dir:
-        onnx_path = os.path.join(model_dir, "yolov8n.onnx")
-    else:
-        # Lazy HF download (dev / unbundled). Best-effort; the gate (R-13) and
-        # the frozen app run where the bundle is staged.
-        from huggingface_hub import hf_hub_download
-        onnx_path = hf_hub_download(_FALLBACK_REPO, _FALLBACK_FILE)
+    if metadata.get("end2end") != "True" or metadata.get("task") != "detect":
+        raise model_assets.ModelIntegrityError(
+            "YOLOE ONNX metadata is not the NativeLingo end-to-end detect export"
+        )
+    if metadata.get("native_lingo_proposal_conf") != "0.10":
+        raise model_assets.ModelIntegrityError("unexpected YOLOE proposal threshold")
+    if metadata.get("native_lingo_max_det") != "50":
+        raise model_assets.ModelIntegrityError("unexpected YOLOE candidate limit")
+    if metadata.get("native_lingo_pre_topk_label_count") != "177":
+        raise model_assets.ModelIntegrityError(
+            "YOLOE ONNX is missing the curated pre-top-k vocabulary filter"
+        )
 
-    # CPU EP: yolov8n at 640^2 is ~30 ms on CPU, and the frozen onnxruntime
-    # wheel is not guaranteed to ship the CoreML EP. (First direct onnxruntime
-    # import in the codebase.)
-    session = ort.InferenceSession(onnx_path, providers=["CPUExecutionProvider"])
-    return session, names_en, names_zh
+    try:
+        raw_names = ast.literal_eval(metadata["names"])
+        names = {int(index): str(label) for index, label in raw_names.items()}
+    except (KeyError, SyntaxError, TypeError, ValueError) as exc:
+        raise model_assets.ModelIntegrityError(
+            "YOLOE ONNX has no usable embedded class vocabulary"
+        ) from exc
+    if len(names) < 1_200:
+        raise model_assets.ModelIntegrityError(
+            f"YOLOE vocabulary is unexpectedly small ({len(names)} labels)"
+        )
+
+    return session, names, _load_label_specs(names)
 
 
 def is_available() -> bool:
@@ -82,139 +137,241 @@ def is_available() -> bool:
 
 
 def unload() -> None:
-    """Release the session so /memorize/release can free RAM. The YOLO model is
-    tiny + bundled, so callers usually keep it resident; this is here for
-    symmetry with parts/scenario."""
     _load.cache_clear()
+    model_assets.verify_file.cache_clear()
     import gc
+
     gc.collect()
 
 
-# --------------------------------------------------------------------------- #
-# Pure preprocessing / postprocessing (unit-tested without the model)
-# --------------------------------------------------------------------------- #
-def letterbox(img_size_wh, new_size=_IN_SIZE):
-    """Compute the letterbox transform for an image of (w, h).
+def letterbox(img_size_wh, new_size=_IN_SIZE, stride=_STRIDE):
+    """Return the rectangular letterbox transform used by dynamic YOLOE.
 
-    Returns (ratio, pad_x, pad_y): scale applied to the image, and the left/top
-    padding (in input pixels) added to reach new_size. A box coordinate (cx, cy)
-    in the letterboxed input maps back to the original via
-    ``((cx - pad_x) / ratio, (cy - pad_y) / ratio)``.
+    The longest side is scaled to ``new_size`` and the shorter side is padded
+    only to the next stride multiple.  Returns
+    ``(ratio, pad_x, pad_y, input_width, input_height)``.
     """
-    w, h = img_size_wh
-    ratio = min(new_size / h, new_size / w)
-    nw, nh = round(w * ratio), round(h * ratio)
-    pad_x = (new_size - nw) / 2.0
-    pad_y = (new_size - nh) / 2.0
-    return ratio, pad_x, pad_y
+    width, height = img_size_wh
+    ratio = min(new_size / width, new_size / height)
+    resized_width = max(1, int(round(width * ratio)))
+    resized_height = max(1, int(round(height * ratio)))
+    input_width = min(new_size, int(math.ceil(resized_width / stride) * stride))
+    input_height = min(new_size, int(math.ceil(resized_height / stride) * stride))
+    pad_x = int(round((input_width - resized_width) / 2 - 0.1))
+    pad_y = int(round((input_height - resized_height) / 2 - 0.1))
+    return ratio, pad_x, pad_y, input_width, input_height
 
 
-def _prepare_tensor(pil_img):
-    """Letterbox + normalize a PIL image into a 1x3xHxW float32 numpy array."""
+def _prepare_tensor(pil_img, new_size=_IN_SIZE):
     from PIL import Image
 
-    w, h = pil_img.size
-    ratio, pad_x, pad_y = letterbox((w, h))
-    nw, nh = int(round(w * ratio)), int(round(h * ratio))
-    resized = pil_img.resize((nw, nh), Image.BILINEAR)
-    canvas = Image.new("RGB", (_IN_SIZE, _IN_SIZE), (114, 114, 114))
-    canvas.paste(resized, (int(round(pad_x)), int(round(pad_y))))
-    arr = np.asarray(canvas, dtype=np.float32) / 255.0  # HWC
-    arr = np.transpose(arr, (2, 0, 1))[None]             # NCHW
-    return np.ascontiguousarray(arr), ratio, pad_x, pad_y
+    ratio, pad_x, pad_y, input_width, input_height = letterbox(
+        pil_img.size, new_size=new_size
+    )
+    resized_width = int(round(pil_img.size[0] * ratio))
+    resized_height = int(round(pil_img.size[1] * ratio))
+    resized = pil_img.resize(
+        (resized_width, resized_height), Image.Resampling.BILINEAR
+    )
+    canvas = Image.new("RGB", (input_width, input_height), (114, 114, 114))
+    canvas.paste(resized, (pad_x, pad_y))
+    array = np.asarray(canvas, dtype=np.float32) / 255.0
+    array = np.transpose(array, (2, 0, 1))[None]
+    return np.ascontiguousarray(array), ratio, pad_x, pad_y
 
 
-def _nms(boxes_xyxy, scores, iou_thr):
-    """Greedy per-image NMS (classes already filtered by caller). Returns the
-    kept indices, sorted by score desc. Pure numpy, no cv2/torchvision."""
-    order = np.argsort(scores)[::-1]
-    keep = []
-    while order.size > 0:
-        i = order[0]
-        keep.append(int(i))
-        if order.size == 1:
+def _run(session, pil_img, *, new_size=_IN_SIZE):
+    """Run one dynamic-shape YOLOE pass and return its geometry metadata."""
+    tensor, ratio, pad_x, pad_y = _prepare_tensor(pil_img, new_size=new_size)
+    input_name = session.get_inputs()[0].name
+    output_name = session.get_outputs()[0].name
+    raw = session.run([output_name], {input_name: tensor})[0]
+    return raw, ratio, pad_x, pad_y
+
+
+def _box_iou(a, b) -> float:
+    ax1, ay1, aw, ah = a
+    bx1, by1, bw, bh = b
+    ax2, ay2 = ax1 + aw, ay1 + ah
+    bx2, by2 = bx1 + bw, by1 + bh
+    inter = max(0.0, min(ax2, bx2) - max(ax1, bx1)) * max(
+        0.0, min(ay2, by2) - max(ay1, by1)
+    )
+    return inter / (aw * ah + bw * bh - inter + 1e-9)
+
+
+def _box_containment(a, b) -> float:
+    """Intersection divided by the smaller box, for nested alias boxes."""
+    ax1, ay1, aw, ah = a
+    bx1, by1, bw, bh = b
+    ax2, ay2 = ax1 + aw, ay1 + ah
+    bx2, by2 = bx1 + bw, by1 + bh
+    inter = max(0.0, min(ax2, bx2) - max(ax1, bx1)) * max(
+        0.0, min(ay2, by2) - max(ay1, by1)
+    )
+    return inter / (min(aw * ah, bw * bh) + 1e-9)
+
+
+def _labels_are_nested_aliases(first: str, second: str) -> bool:
+    first_words = set(first.split())
+    second_words = set(second.split())
+    return first_words <= second_words or second_words <= first_words
+
+
+def _detail_detection_is_usable(detection: dict) -> bool:
+    """Apply geometry checks only to labels recovered by the detail pass."""
+    if detection["label_en"] == "plaque":
+        _, _, width, height = detection["box"]
+        aspect_ratio = width / max(height, 1e-9)
+        return 1.6 <= aspect_ratio <= 2.5
+    return True
+
+
+def _parse_output(
+    raw,
+    *,
+    ratio,
+    pad_x,
+    pad_y,
+    orig_wh,
+    names,
+    label_specs,
+    confidence_floor=0.0,
+    dedupe_iou=0.72,
+    max_det=40,
+):
+    """Filter YOLOE's ``[x1,y1,x2,y2,score,class]`` end-to-end output."""
+    prediction = np.asarray(raw)
+    if prediction.ndim == 3:
+        prediction = prediction[0]
+    if prediction.ndim != 2 or prediction.shape[1] != 6:
+        raise RuntimeError(f"unexpected YOLOE output shape {prediction.shape}")
+
+    orig_width, orig_height = orig_wh
+    candidates = []
+    for row in prediction:
+        score = float(row[4])
+        class_id = int(round(float(row[5])))
+        label_en = names.get(class_id)
+        spec = label_specs.get(label_en)
+        if spec is None:
+            continue
+        if score < max(float(spec["min_score"]), confidence_floor):
+            continue
+
+        x1 = min(max((float(row[0]) - pad_x) / ratio, 0.0), orig_width)
+        y1 = min(max((float(row[1]) - pad_y) / ratio, 0.0), orig_height)
+        x2 = min(max((float(row[2]) - pad_x) / ratio, 0.0), orig_width)
+        y2 = min(max((float(row[3]) - pad_y) / ratio, 0.0), orig_height)
+        width = x2 - x1
+        height = y2 - y1
+        if width < 2.0 or height < 2.0:
+            continue
+        candidates.append(
+            {
+                "label_en": label_en,
+                "label_zh": spec["zh"],
+                "score": round(score, 3),
+                "box": [
+                    round(x1, 1),
+                    round(y1, 1),
+                    round(width, 1),
+                    round(height, 1),
+                ],
+            }
+        )
+
+    candidates.sort(key=lambda item: item["score"], reverse=True)
+    kept = []
+    for candidate in candidates:
+        # Prompt-free vocabulary often emits synonyms for exactly the same
+        # region (mug/cup, sofa/couch).  Keep only the highest-confidence term.
+        if any(
+            _box_iou(candidate["box"], prior["box"]) >= dedupe_iou
+            or (
+                _labels_are_nested_aliases(
+                    candidate["label_en"], prior["label_en"]
+                )
+                and _box_containment(candidate["box"], prior["box"]) >= 0.88
+            )
+            for prior in kept
+        ):
+            continue
+        kept.append(candidate)
+        if len(kept) >= max_det:
             break
-        rest = order[1:]
-        # IoU of box i vs the rest
-        xx1 = np.maximum(boxes_xyxy[i, 0], boxes_xyxy[rest, 0])
-        yy1 = np.maximum(boxes_xyxy[i, 1], boxes_xyxy[rest, 1])
-        xx2 = np.minimum(boxes_xyxy[i, 2], boxes_xyxy[rest, 2])
-        yy2 = np.minimum(boxes_xyxy[i, 3], boxes_xyxy[rest, 3])
-        inter = np.clip(xx2 - xx1, 0, None) * np.clip(yy2 - yy1, 0, None)
-        area_i = (boxes_xyxy[i, 2] - boxes_xyxy[i, 0]) * (boxes_xyxy[i, 3] - boxes_xyxy[i, 1])
-        area_rest = (boxes_xyxy[rest, 2] - boxes_xyxy[rest, 0]) * (boxes_xyxy[rest, 3] - boxes_xyxy[rest, 1])
-        iou = inter / (area_i + area_rest - inter + 1e-9)
-        order = rest[iou <= iou_thr]
-    return keep
+
+    for index, item in enumerate(kept):
+        item["id"] = index
+    return kept
 
 
-def _parse_output(raw, conf, iou, ratio, pad_x, pad_y, orig_wh):
-    """Turn the raw YOLOv8 ONNX output into a list of detection dicts.
+def detect(
+    pil_img,
+    confidence_floor=0.0,
+    dedupe_iou=0.72,
+    max_det=40,
+):
+    """Return curated open-vocabulary objects with original-image boxes.
 
-    Output layout (ultralytics non-NMS export) is [1, 84, 8400]: 4 box coords
-    (cx, cy, w, h in input pixels) + 80 class scores. We handle the transposed
-    [1, 8400, 84] layout too, defensively.
+    The 640px pass preserves large-scene recall and speed. On sufficiently
+    large photos, a second dynamic 1280px pass contributes only explicitly
+    approved small-detail labels. This retains city-name plaques without
+    importing the noisier high-resolution predictions for every class.
     """
-    pred = raw[0]
-    if pred.shape[0] == 84 and pred.shape[1] != 84:   # [84, 8400] -> [8400, 84]
-        pred = pred.T
-    # pred: [N, 84]
-    xywh = pred[:, :4].copy()
-    cls_scores = pred[:, 4:]
-    class_ids = cls_scores.argmax(axis=1)
-    scores = cls_scores.max(axis=1)
+    session, names, label_specs = _load()
+    raw, ratio, pad_x, pad_y = _run(session, pil_img)
+    detections = _parse_output(
+        raw,
+        ratio=ratio,
+        pad_x=pad_x,
+        pad_y=pad_y,
+        orig_wh=pil_img.size,
+        names=names,
+        label_specs=label_specs,
+        confidence_floor=confidence_floor,
+        dedupe_iou=dedupe_iou,
+        max_det=max_det,
+    )
 
-    mask = scores >= conf
-    xywh, scores, class_ids = xywh[mask], scores[mask], class_ids[mask]
-    if len(scores) == 0:
-        return []
+    detail_context_found = any(
+        detection["label_en"] in _DETAIL_CONTEXT_LABELS
+        for detection in detections
+    )
+    if max(pil_img.size) >= _DETAIL_MIN_LONG_SIDE and detail_context_found:
+        detail_specs = {
+            label: label_specs[label]
+            for label in _DETAIL_LABELS
+            if label in label_specs
+        }
+        if detail_specs:
+            detail_raw, detail_ratio, detail_pad_x, detail_pad_y = _run(
+                session, pil_img, new_size=_DETAIL_IN_SIZE
+            )
+            details = _parse_output(
+                detail_raw,
+                ratio=detail_ratio,
+                pad_x=detail_pad_x,
+                pad_y=detail_pad_y,
+                orig_wh=pil_img.size,
+                names=names,
+                label_specs=detail_specs,
+                confidence_floor=confidence_floor,
+                dedupe_iou=dedupe_iou,
+                max_det=max_det,
+            )
+            for detail in details:
+                if not _detail_detection_is_usable(detail):
+                    continue
+                if not any(
+                    detail["label_en"] == prior["label_en"]
+                    and _box_iou(detail["box"], prior["box"]) >= dedupe_iou
+                    for prior in detections
+                ):
+                    detections.append(detail)
 
-    # cx,cy,w,h (input px) -> xyxy (input px)
-    cx, cy, bw, bh = xywh[:, 0], xywh[:, 1], xywh[:, 2], xywh[:, 3]
-    xyxy = np.stack([cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2], axis=1)
-    keep = _nms(xyxy, scores, iou)
-
-    ow, oh = orig_wh
-    out = []
-    for k in keep:
-        x1, y1, x2, y2 = xyxy[k]
-        # inverse letterbox -> original-image pixels
-        x1 = (x1 - pad_x) / ratio
-        y1 = (y1 - pad_y) / ratio
-        x2 = (x2 - pad_x) / ratio
-        y2 = (y2 - pad_y) / ratio
-        # clamp + [x, y, w, h]
-        x1 = float(min(max(x1, 0), ow))
-        y1 = float(min(max(y1, 0), oh))
-        x2 = float(min(max(x2, 0), ow))
-        y2 = float(min(max(y2, 0), oh))
-        out.append({
-            "cls": int(class_ids[k]),
-            "score": round(float(scores[k]), 3),
-            "box": [round(x1, 1), round(y1, 1), round(x2 - x1, 1), round(y2 - y1, 1)],
-        })
-    return out
-
-
-def detect(pil_img, conf=0.25, iou=0.45, max_det=50):
-    """Detect whole objects in a PIL image. Returns a list of
-    ``{id, label_en, label_zh, score, box:[x,y,w,h]}`` (box in original-image
-    pixels, top-left + size)."""
-    session, names_en, names_zh = _load()
-    inp, ratio, pad_x, pad_y = _prepare_tensor(pil_img)
-    inp_name = session.get_inputs()[0].name
-    out_name = session.get_outputs()[0].name
-    raw = session.run([out_name], {inp_name: inp})[0]
-    dets = _parse_output(raw, conf, iou, ratio, pad_x, pad_y, pil_img.size)
-    dets = sorted(dets, key=lambda d: d["score"], reverse=True)[:max_det]
-    result = []
-    for i, d in enumerate(dets):
-        cid = d["cls"]
-        result.append({
-            "id": i,
-            "label_en": names_en[cid] if cid < len(names_en) else f"class-{cid}",
-            "label_zh": names_zh[cid] if cid < len(names_zh) else "",
-            "score": d["score"],
-            "box": d["box"],
-        })
-    return result
+    detections.sort(key=lambda item: item["score"], reverse=True)
+    detections = detections[:max_det]
+    for index, item in enumerate(detections):
+        item["id"] = index
+    return detections

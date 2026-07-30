@@ -12,7 +12,7 @@ const BACKEND_TOKEN = window.__NATIVELINGO_TOKEN__ || null;
 // once the backend responds, so the marker is reliable across cold starts (the
 // load-time ping otherwise fails silently while the backend is still spinning
 // up and never reaches the log).
-const BOOT_TAG = "v10";
+const BOOT_TAG = "v14";
 let _bootMarked = false;
 function markBoot() {
   if (_bootMarked) return;
@@ -41,6 +41,27 @@ const $ = (id) => document.getElementById(id);
 const authHeaders = () =>
   BACKEND_TOKEN ? { Authorization: `Bearer ${BACKEND_TOKEN}` } : {};
 const tokenQS = () => (BACKEND_TOKEN ? `?token=${encodeURIComponent(BACKEND_TOKEN)}` : "");
+
+// Memorizing actions should never leave a learner staring at an infinite
+// spinner. The backend mirrors this deadline, but AbortController gives the
+// UI a prompt, deterministic recovery path even if a local process wedges.
+const MEMO_REQUEST_TIMEOUT_MS = 15_000;
+async function memoFetch(path, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MEMO_REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(`${BACKEND_URL}${path}`, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      const timeout = new Error("等待超过15秒，已停止本次请求。请重试；若持续发生，请重新打开应用。");
+      timeout.name = "MemoTimeoutError";
+      throw timeout;
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 // =====================================================================
 // Backend health
@@ -852,9 +873,16 @@ const memo = {
   imgW: 0, imgH: 0,        // pixel dims of the uploaded (canvas-reencoded) image
   photoId: null,
   objects: [],
+  recognitionToken: 0,
+  detailToken: 0,
+  scenarioToken: 0,
 };
 const MEMO_MAX_DIM = 1280;
-const _MEMO_STAGE_LABEL = { yolo: "检测模型", llm: "情景模型", vlm: "部件视觉模型 ~6GB" };
+const _MEMO_STAGE_LABEL = {
+  yolo: "YOLO 检测模型",
+  llm: "Qwen Q4_K_M 情景模型 ~491MB",
+  florence: "Florence 视觉增强模型 ~463MB",
+};
 
 function memoStatus(cls, msg) {
   const el = $("memo-status");
@@ -868,7 +896,7 @@ async function memoEnter() {
   if (memo.entered) return;
   memo.entered = true;
   try {
-    await fetch(`${BACKEND_URL}/memorize/warmup`, { method: "POST", headers: authHeaders() });
+    await memoFetch("/memorize/warmup", { method: "POST", headers: authHeaders() });
   } catch (_) { /* backend not up yet; status poll will retry softly */ }
   memoPollStatus();
 }
@@ -876,15 +904,17 @@ async function memoEnter() {
 async function memoLeave() {
   if (!memo.entered) return;
   memo.entered = false;
+  memo.detailToken += 1;
+  memo.scenarioToken += 1;
   if (memo.warmupTimer) { clearTimeout(memo.warmupTimer); memo.warmupTimer = null; }
   try {
-    await fetch(`${BACKEND_URL}/memorize/release`, { method: "POST", headers: authHeaders() });
+    await memoFetch("/memorize/release", { method: "POST", headers: authHeaders() });
   } catch (_) {}
 }
 
 async function memoPollStatus() {
   try {
-    const st = await (await fetch(`${BACKEND_URL}/memorize/status`, { headers: authHeaders() })).json();
+    const st = await (await memoFetch("/memorize/status", { headers: authHeaders() })).json();
     const busy = st.running || (st.stage && !["done", "idle", "error"].includes(st.stage));
     if (st.stage === "error") {
       memoStatus("err", "模型准备出错:" + (st.error || "") + "(仍可尝试,将按需下载)");
@@ -923,7 +953,12 @@ function memoResetToUpload() {
   $("memo-detail").hidden = true;
   $("memo-upload").closest(".card").hidden = false;
   memo.objects = []; memo.photoId = null;
+  memo.recognitionToken += 1;
+  memo.detailToken += 1;
+  memo.scenarioToken += 1;
   $("memo-hotspots").innerHTML = "";
+  $("memo-object-summary").hidden = true;
+  $("memo-object-summary").textContent = "";
 }
 
 // Re-encode any decodable image (incl. iOS HEIC if the system decodes it) to a
@@ -949,6 +984,7 @@ function memoReencode(file) {
 }
 
 async function memoHandleFile(file) {
+  const recognitionToken = ++memo.recognitionToken;
   let enc;
   try { enc = await memoReencode(file); }
   catch (e) { memoStatus("err", "无法读取该图片,请换一张(JPG/PNG/HEIC)。"); return; }
@@ -961,35 +997,65 @@ async function memoHandleFile(file) {
   memo.imgEl = img;
   memo.imgW = enc.w; memo.imgH = enc.h;
   $("memo-hotspots").innerHTML = "";
+  $("memo-object-summary").hidden = true;
+  $("memo-object-summary").textContent = "";
   $("memo-analyzing").hidden = false;
 
   try {
     const form = new FormData();
     form.append("photo", enc.blob, "photo.jpg");
-    const res = await fetch(`${BACKEND_URL}/memorize/analyze`, {
+    const res = await memoFetch("/memorize/analyze", {
       method: "POST", body: form, headers: authHeaders(),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "识别失败");
+    if (recognitionToken !== memo.recognitionToken) return;
     memo.photoId = data.photo_id;
     memo.objects = data.objects || [];
     memoRenderHotspots();
   } catch (e) {
+    if (recognitionToken !== memo.recognitionToken) return;
     memoStatus("err", "识别失败:" + e.message);
   } finally {
-    $("memo-analyzing").hidden = true;
+    // CSS explicitly honors the hidden attribute, and the token means an
+    // earlier upload cannot hide the spinner belonging to a newer one.
+    if (recognitionToken === memo.recognitionToken) {
+      $("memo-analyzing").hidden = true;
+    }
   }
 }
 
 function memoRenderHotspots() {
   const hs = $("memo-hotspots");
+  const summary = $("memo-object-summary");
   hs.innerHTML = "";
   if (!memo.objects.length) {
+    summary.hidden = true;
+    summary.textContent = "";
     memoStatus("warn", "没有识别到明确的物品。试试物品更突出、更居中的照片。");
     return;
   }
   memoStatus("", "");  // clear any prior warn
-  memo.objects.forEach((o) => {
+  const counts = new Map();
+  memo.objects.forEach((object) => {
+    const key = `${object.label_en}\u0000${object.label_zh || ""}`;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+  summary.textContent = `识别到 ${memo.objects.length} 个：` +
+    [...counts.entries()].map(([key, count]) => {
+      const [en, zh] = key.split("\u0000");
+      return `${en}${zh ? `（${zh}）` : ""}${count > 1 ? ` ×${count}` : ""}`;
+    }).join(" · ");
+  summary.hidden = false;
+
+  // Large container boxes go below their contained objects. This keeps a
+  // cabinet/showcase from covering a plaque, book or trophy hotspot.
+  const renderObjects = [...memo.objects].sort((first, second) => {
+    const firstArea = first.box[2] * first.box[3];
+    const secondArea = second.box[2] * second.box[3];
+    return secondArea - firstArea;
+  });
+  renderObjects.forEach((o) => {
     const [x, y, w, h] = o.box;
     const dot = document.createElement("div");
     dot.className = "hotspot";
@@ -997,9 +1063,14 @@ function memoRenderHotspots() {
     dot.style.top = (y / memo.imgH * 100) + "%";
     dot.style.width = (w / memo.imgW * 100) + "%";
     dot.style.height = (h / memo.imgH * 100) + "%";
+    const areaRatio = (w * h) / Math.max(1, memo.imgW * memo.imgH);
+    dot.style.zIndex = String(Math.max(1, 1000 - Math.round(areaRatio * 1000)));
     const tag = document.createElement("div");
     tag.className = "hotspot-tag";
+    if (y / memo.imgH < 0.055) tag.classList.add("hotspot-tag-inside");
+    if (x / memo.imgW > 0.72) tag.classList.add("hotspot-tag-right");
     tag.textContent = o.label_en;
+    tag.title = o.label_zh ? `${o.label_en} · ${o.label_zh}` : o.label_en;
     dot.appendChild(tag);
     dot.addEventListener("click", () => memoOpenDetail(o));
     hs.appendChild(dot);
@@ -1007,6 +1078,8 @@ function memoRenderHotspots() {
 }
 
 async function memoOpenDetail(obj) {
+  const detailToken = ++memo.detailToken;
+  memo.scenarioToken += 1;
   const detail = $("memo-detail");
   detail.hidden = false;
   detail.scrollIntoView({ behavior: "smooth" });
@@ -1019,50 +1092,101 @@ async function memoOpenDetail(obj) {
     c.getContext("2d").drawImage(memo.imgEl, x, y, w, h, 0, 0, w, h);
     $("memo-detail-img").src = c.toDataURL("image/jpeg", 0.9);
   } catch (e) { $("memo-detail-img").src = memo.imgEl.src; }
-  $("memo-detail-label").innerHTML =
-    obj.label_en + (obj.label_zh ? `<span class="zh">${obj.label_zh}</span>` : "");
+  const detailLabel = $("memo-detail-label");
+  detailLabel.replaceChildren(document.createTextNode(obj.label_en));
+  if (obj.label_zh) {
+    const zh = document.createElement("span");
+    zh.className = "zh";
+    zh.textContent = obj.label_zh;
+    detailLabel.appendChild(zh);
+  }
 
   // FR-14: parts
-  const partsEl = $("memo-parts"); partsEl.innerHTML = "";
+  const partsEl = $("memo-parts"); partsEl.replaceChildren();
   setStatus($("memo-parts-status"), "prep", "正在识别部件…");
+  let analyzedParts = [];
   try {
-    const res = await fetch(`${BACKEND_URL}/memorize/parts`, {
+    const res = await memoFetch("/memorize/parts", {
       method: "POST", headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify({
-        photo_id: memo.photoId, box: obj.box,
-        label_en: obj.label_en, label_zh: obj.label_zh,
+        photo_id: memo.photoId, object_id: obj.id,
       }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "部件识别失败");
-    (data.parts || []).forEach((p) => {
-      const chip = document.createElement("div"); chip.className = "part-chip";
-      chip.innerHTML = p.label_en + (p.label_zh ? `<span class="zh">${p.label_zh}</span>` : "");
-      partsEl.appendChild(chip);
-    });
-    if (!partsEl.children.length) partsEl.innerHTML = '<div class="hint">未识别到部件</div>';
+    if (detailToken !== memo.detailToken) return;
+    analyzedParts = data.parts || [];
     setStatus($("memo-parts-status"), "", "");
   } catch (e) {
+    if (detailToken !== memo.detailToken) return;
     setStatus($("memo-parts-status"), "", "部件识别失败:" + e.message);
   }
 
-  // FR-15: scenario example sentences
-  const scEl = $("memo-scenario"); scEl.innerHTML = "";
+  const selections = [
+    { label_en: obj.label_en, label_zh: obj.label_zh, whole: true },
+    ...analyzedParts,
+  ];
+  selections.forEach((part, index) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "part-chip" + (index === 0 ? " active" : "");
+    chip.appendChild(document.createTextNode(part.whole ? `整件 · ${part.label_en}` : part.label_en));
+    if (part.label_zh) {
+      const zh = document.createElement("span");
+      zh.className = "zh";
+      zh.textContent = part.label_zh;
+      chip.appendChild(zh);
+    }
+    chip.addEventListener("click", () => {
+      partsEl.querySelectorAll(".part-chip").forEach((item) => item.classList.toggle("active", item === chip));
+      memoGenerateScenario(obj, part.whole ? null : part);
+    });
+    partsEl.appendChild(chip);
+  });
+  if (!analyzedParts.length) {
+    const hint = document.createElement("span");
+    hint.className = "hint";
+    hint.textContent = "未识别到可靠部件,仍可为整件物品生成情景。";
+    partsEl.appendChild(hint);
+  }
+
+  // Generate for the whole object after Florence context has been stored.
+  memoGenerateScenario(obj, null);
+}
+
+async function memoGenerateScenario(obj, part) {
+  const scenarioToken = ++memo.scenarioToken;
+  const scEl = $("memo-scenario"); scEl.replaceChildren();
   setStatus($("memo-scenario-status"), "prep", "正在生成情景例句…");
   try {
-    const res = await fetch(`${BACKEND_URL}/memorize/scenario`, {
+    const res = await memoFetch("/memorize/scenario", {
       method: "POST", headers: { ...authHeaders(), "Content-Type": "application/json" },
-      body: JSON.stringify({ label_en: obj.label_en, label_zh: obj.label_zh }),
+      body: JSON.stringify({
+        photo_id: memo.photoId,
+        object_id: obj.id,
+        part_en: part ? part.label_en : "",
+      }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "情景生成失败");
+    if (scenarioToken !== memo.scenarioToken) return;
     (data.sentences || []).forEach((s) => {
       const card = document.createElement("div"); card.className = "scenario-card";
-      card.innerHTML = `<div class="en">${s.en}</div>` + (s.zh ? `<div class="zh">${s.zh}</div>` : "");
+      const en = document.createElement("div");
+      en.className = "en";
+      en.textContent = s.en;
+      card.appendChild(en);
+      if (s.zh) {
+        const zh = document.createElement("div");
+        zh.className = "zh";
+        zh.textContent = s.zh;
+        card.appendChild(zh);
+      }
       scEl.appendChild(card);
     });
     setStatus($("memo-scenario-status"), "", "");
   } catch (e) {
+    if (scenarioToken !== memo.scenarioToken) return;
     setStatus($("memo-scenario-status"), "", "情景生成失败:" + e.message);
   }
 }
