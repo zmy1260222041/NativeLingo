@@ -21,28 +21,36 @@ def test_fixed_qwen_artifact_manifest():
     assert len(model_assets.YOLO_SHA256) == 64
 
 
-def test_parse_requires_bilingual_json_and_has_no_canned_fallback():
-    fenced = '```json\n{"sentences":[{"en":"Grip the handle.","zh":"握紧把手。"}]}\n```'
-    assert scenario._parse(fenced) == [{"en": "Grip the handle.", "zh": "握紧把手。"}]
+def test_parse_requires_dialogue_json_and_has_no_canned_fallback():
+    fenced = (
+        '```json\n{"scene":"Beside a car","turns":['
+        '{"speaker":"A","en":"Grip the handle.","zh":"握紧把手。"}'
+        ']}```'
+    )
+    assert scenario._parse(fenced) == {
+        "scene": "Beside a car",
+        "turns": [{"speaker": "A", "en": "Grip the handle.", "zh": "握紧把手。"}],
+    }
     with pytest.raises(ValueError):
         scenario._parse("I use my handle every day.")
     with pytest.raises(ValueError):
         scenario._parse('{"sentences":[{"en":"English only","zh":""}]}')
+    with pytest.raises(ValueError):
+        scenario._parse('{"scene":"Beside a car","turns":[]}')
 
 
 def test_generate_includes_photo_part_and_nearby_objects(monkeypatch):
     captured = {}
 
-    def fake_chat(messages, schema, max_tokens=384):
+    def fake_chat(messages, schema, max_tokens=384, **kwargs):
         captured["messages"] = messages
         captured["schema"] = schema
         return {
-            "sentences": [
-                {
-                    "en": "I grip the handlebar as the bicycle rolls beside the car.",
-                    "zh": "自行车从汽车旁经过时，我握紧车把。",
-                }
-            ]
+            "scene": "Beside a car",
+            "turns": [
+                {"speaker": "A", "en": "Is the handlebar straight?", "zh": "车把正吗？"},
+                {"speaker": "B", "en": "Yes, it looks fine.", "zh": "嗯，看着没问题。"},
+            ],
         }
 
     monkeypatch.setattr(scenario, "_chat_json", fake_chat)
@@ -58,31 +66,81 @@ def test_generate_includes_photo_part_and_nearby_objects(monkeypatch):
     assert "Target: handlebar" in prompt
     assert "visible handlebar" in prompt
     assert "Other detected objects: car, person" in prompt
-    assert result[0]["zh"]
+    assert result["turns"][0]["zh"]
 
 
-def test_memory_sentence_gate_rejects_caption_copy_and_partial_word():
-    assert scenario._valid_memory_sentence(
-        {"en": "I hold the bus handle.", "zh": "我握住公交车把手。"},
-        "bus",
-    )
-    assert not scenario._valid_memory_sentence(
-        {"en": "The bus is parked. People walk nearby.", "zh": "公交车停着。"},
-        "bus",
-    )
-    assert not scenario._valid_memory_sentence(
-        {"en": "I discuss business.", "zh": "我讨论生意。"},
-        "bus",
-    )
-
-
-def test_memory_sentence_normalization_trims_small_model_run_on():
-    assert scenario._normalize_memory_sentence(
+def test_dialogue_gate_rejects_runons_partial_words_and_single_speaker():
+    # valid: two speakers, target "bus" appears with word boundaries
+    assert scenario._valid_dialogue(
         {
+            "turns": [
+                {"speaker": "A", "en": "I hold the bus handle.", "zh": "我握住公交车把手。"},
+                {"speaker": "B", "en": "Careful, it's heavy.", "zh": "小心，很重。"},
+            ]
+        },
+        "bus",
+    )
+    # invalid: a run-on turn (two sentences) is rejected
+    assert not scenario._valid_dialogue(
+        {
+            "turns": [
+                {"speaker": "A", "en": "The bus is parked. People walk nearby.", "zh": "公交车停着。"},
+                {"speaker": "B", "en": "I see it.", "zh": "我看到了。"},
+            ]
+        },
+        "bus",
+    )
+    # invalid: "business" must not satisfy the target "bus" (word boundary)
+    assert not scenario._valid_dialogue(
+        {
+            "turns": [
+                {"speaker": "A", "en": "I discuss business.", "zh": "我讨论生意。"},
+                {"speaker": "B", "en": "Sounds good.", "zh": "听起来不错。"},
+            ]
+        },
+        "bus",
+    )
+    # invalid: only one distinct speaker
+    assert not scenario._valid_dialogue(
+        {
+            "turns": [
+                {"speaker": "A", "en": "I see the bus.", "zh": "我看到公交车。"},
+                {"speaker": "A", "en": "It is red.", "zh": "它是红色的。"},
+            ]
+        },
+        "bus",
+    )
+    # multi-word target: a head-noun hit ("frame") satisfies "picture frame"
+    assert scenario._valid_dialogue(
+        {
+            "turns": [
+                {"speaker": "A", "en": "Is this frame level?", "zh": "这个相框正吗？"},
+                {"speaker": "B", "en": "Looks straight.", "zh": "看着正。"},
+            ]
+        },
+        "picture frame",
+    )
+    # but a dialogue mentioning neither token of the target is still rejected
+    assert not scenario._valid_dialogue(
+        {
+            "turns": [
+                {"speaker": "A", "en": "Sure thing, I'll check it out.", "zh": "好的，我看看。"},
+                {"speaker": "B", "en": "Thanks a lot.", "zh": "多谢。"},
+            ]
+        },
+        "picture frame",
+    )
+
+
+def test_turn_normalization_trims_small_model_run_on():
+    assert scenario._normalize_turn(
+        {
+            "speaker": "A",
             "en": "I see the bus beside a car. Three people stand nearby.",
             "zh": "我看到汽车旁的公交车。三个人站在附近。",
         }
     ) == {
+        "speaker": "A",
         "en": "I see the bus beside a car.",
         "zh": "我看到汽车旁的公交车。",
     }
@@ -111,6 +169,24 @@ def test_translate_terms_uses_structured_result(monkeypatch):
         },
     )
     assert scenario.translate_terms(["front fork"]) == {"front fork": "前叉"}
+
+
+def test_extract_contents_uses_container_relation_prompt(monkeypatch):
+    captured = {}
+
+    def fake_chat(messages, schema, max_tokens=384, **kwargs):
+        captured["messages"] = messages
+        captured["schema"] = schema
+        return {"contents": ["gold statue", "award", "gold statue"]}
+
+    monkeypatch.setattr(scenario, "_chat_json", fake_chat)
+    assert scenario.extract_contents(
+        "cabinet",
+        "A cabinet has a gold statue and several awards.",
+    ) == ["gold statue", "award"]
+    prompt = captured["messages"][-1]["content"]
+    assert '"container": "cabinet"' in prompt
+    assert "gold statue" in prompt
 
 
 def test_verify_file_rejects_wrong_size(tmp_path):

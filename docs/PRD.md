@@ -5,6 +5,10 @@
 >
 > **v0.6 变更(2026-07-29)**:新增 **Memorizing 模块** —— 看图识物(FR-13 整件识别+定位 / FR-14 部件级微观)+ 情景例句记忆强化(FR-15,纯文字、与 Speaking 评分分离、**不触 FR-M1**)+ 双模块信息架构 Speaking/Memorizing(FR-16)。智能层全端侧、无云无密钥(NFR-5,延续 NFR-1/FR-12);宏观整件检测直接使用 YOLOE-26S-PF 的 detection-only 动态 ONNX(带 box 热点、实体词表与逐标签阈值)，**不做 Florence 整图后台补充**;Microsoft Florence-2-base-ft(`florence-community/Florence-2-base-ft` 原生 Transformers 转换)仅用于点击后的部件视觉增强;`Qwen/Qwen2.5-0.5B-Instruct-GGUF` 的 Q4_K_M 文件通过 llama.cpp 实时生成情景例句。不使用 Apple 系统模型、不升 1.5B/3B。同步全 App 视觉升级为 Duolingo 风高级感(NFR-UX)。识物质量以 R-13 数字门控。
 >
+> **v0.6.x 变更(2026-07-31)**:FR-15 情景例句由「1–3 句第一人称陈述句」改为**多角色日常对话**(固定 2 位说话人 A/B、2–3 轮,每轮英文 + 中文,目标词自然出现在至少一轮)——让例句贴近生活口语而非陈述句;仍纯文字、本地实时生成(Qwen2.5-0.5B-Instruct Q4_K_M)、不读取预制例句、不参与发音评分、不与 Speaking 模块混用(故不触 FR-M1)。R-13 情景轨新增「对话自然度(1–5)≥3.5」指标。
+>
+> **v0.6.x 变更(2026-07-31,容器内容物)**:FR-14 在普通物品的部件分析之外，增加**容器感知的一层内容物增强**。YOLOE 仍是唯一整图检测器；用户点击 `cabinet` / `shelf` / `showcase` 等容器后，Florence 先从裁剪图生成详细描述，Qwen 只提取描述中明确可见的独立实体（Qwen 空结果时，仅从同一描述按实体词表确定性回退），再由 Florence phrase grounding 为全部候选联合定位。只有同时被描述和定位、且通过实体词表/几何/去重门控的候选才展示为 `contents`。内容物记录父容器关系但不得继续下钻，最大深度固定为 1；结构部件与内容物分区展示，防止把 `shelf` / `door` 当内容物或形成递归嵌套。
+>
 > **v0.1 变更(2026-07-25)**:平台扩为 macOS + Android(NFR-2 重写);新增 NFR-4(Android 移动端约束);FR-12 学习记录转 in-scope 并写验收。Android 迁移方案见 `docs/android-migration.md`,Phase-0 符合性评审计划 R-5..R-9 见 §7。
 >
 > **v0.2 变更(2026-07-26)**:落地四项 Android 决策 —— FR-M2 Android 导入面去掉 `.avi`(R-9,平台对 AVI 无保证);FR-2 预置素材的切分随包提供、导入素材仍走端侧转写;NFR-4① 明确**仅发 arm64-v8a**(32 位地址空间装不下 NFR-4③ 的内存预算);NFR-4② 包体按实测改为 **~897MB**、四模型统一走安装时 asset pack,`tiny.en` 降为低端设备降级档(R-11)。新增评审记录 R-9 / R-10 / R-11。
@@ -58,9 +62,9 @@
 | FR-10 | P1 | 反复练习闭环 | 同一素材可重复跟读、重看结果 | ✅ 已实现 |
 | FR-11 | P2 | 音素级诊断 | 能指出"/θ/ 发成了 /s/"级别的替换诊断;宁缺毋滥(不确定时静默) | ✅ 已实现(假设打分式 MDD + 自验证门控,见 CHANGELOG v0.4) |
 | FR-12 | P2 | 学习记录/进度 | 本地存储历史成绩(按素材/句),可看进步曲线;纯端侧,无云 | 🚧 待实现(Android 版起 in-scope,见 `docs/android-migration.md`) |
-| FR-13 | P0 | 看图识物·整件识别与定位(Memorizing) | 用户上传日常照片,端侧识别图中整件物品并标注**目标语言(英语)+ 中文释义**;返回每个物品的可点击定位(box),点击可进入该物品详情。验收:常见物品(家具/餐具/电子/交通工具等)整件识别 precision ≥0.80、recall ≥0.60(R-13 实测);标签含目标语言 + 母语释义;全程无网络调用(NFR-5) | 🚧 功能已实现，正式手标质量门待完成 |
-| FR-14 | P1 | 部件级识别·微观(Memorizing) | 点击某整件物品 → 放大进入该物品详情页 → 默认调用 Microsoft Florence-2-base-ft 的原生 Transformers 转换 `florence-community/Florence-2-base-ft` 对裁剪图做详细描述/密集区域描述 → 展示可见组成部分名称(目标语言 + 中文释义)。验收:部件命名人工相关性 ≥0.75、幻觉率(列出不可见部件)≤0.15(R-13);不依赖 Apple Vision/Foundation Models | 🚧 待实现 |
-| FR-15 | P1 | 情景例句·记忆强化(Memorizing) | 固定用 `Qwen2.5-0.5B-Instruct-GGUF` Q4_K_M 在本机实时生成 1–3 句与当前照片、整件物品/所选部件、同图物体有关的目标语言例句(+中文翻译),用于加深记忆;**不读取预制例句、纯文字、不参与发音评分、不与 Speaking 模块的跟读参考混用**(故不触 FR-M1)。验收:例句流畅度(人工 1–5)≥4.0、图片/部件情境贴切度 ≥3.5、中英匹配 ≥0.95、明显臆造图片事实率 ≤0.10(R-13) | 🚧 待实现 |
+| FR-13 | P0 | 看图识物·整件识别与定位(Memorizing) | 用户上传日常照片,端侧识别图中整件物品并以**目标语言(英语)单语标注**;返回每个物品的可点击定位(box),点击可进入该物品详情。验收:常见物品(家具/餐具/电子/交通工具等)整件识别 precision ≥0.80、recall ≥0.60(R-13 实测);整图框、图片下方汇总、详情标题、悬停提示和无障碍词汇均不显示中文释义;全程无网络调用(NFR-5) | 🚧 功能已实现，正式手标质量门待完成 |
+| FR-14 | P1 | 部件与容器内容物·微观(Memorizing) | 点击普通整件物品 → Florence 详细描述/密集区域描述 → 以**目标语言(英语)单语**展示可见结构部件；点击 `cabinet` / `shelf` / `showcase` 等容器 → 详细描述 + Qwen 独立实体提取 + Florence phrase grounding → 分区展示可见内容物。内容物须同时出现在描述候选和有效定位框中，记录 `parent_id` / `relation` / `depth=1`，不允许再次触发微观分析；结构部件与内容物不得互相混入。验收:所有框、按钮、悬停提示和无障碍词汇不显示中文释义；部件/内容物人工相关性 ≥0.75、不可见项幻觉率≤0.15；容器内容物去重后最多 8 项、最大层级深度固定为 1；不依赖 Apple Vision/Foundation Models | 🚧 待实现 |
+| FR-15 | P1 | 情景例句·记忆强化(Memorizing) | 固定用 `Qwen2.5-0.5B-Instruct-GGUF` Q4_K_M 在本机实时生成**一段简短多角色日常对话**(固定 2 位说话人 A/B、2–3 轮,每轮英文 + 中文翻译),场景取自当前照片、整件物品/所选部件与同图物体,所点击的目标词自然出现在至少一轮,贴近生活口语而非陈述句,用于加深记忆;**不读取预制例句、纯文字、不参与发音评分、不与 Speaking 模块的跟读参考混用**(故不触 FR-M1)。验收:对话流畅度(人工 1–5)≥4.0、图片/部件情境贴切度 ≥3.5、对话自然度(人工 1–5)≥3.5、中英匹配 ≥0.95、明显臆造图片事实率 ≤0.10(R-13) | 🚧 待实现 |
 | FR-16 | P1 | 双模块信息架构 | App 顶层划分为 **Speaking**(口语跟读评估,含原视频跟读/上传音频)与 **Memorizing**(看图识物 + 情景例句)两大模块,各自独立流程、互不干扰。验收:模块切换清晰;Memorizing 模型的加载/释放不影响 Speaking 评分;视觉为 Duolingo 风高级感(NFR-UX) | 🚧 待实现 |
 
 ## 5. 非功能性需求与约束
@@ -93,7 +97,7 @@
 | FR-9 反馈 | `feedback.py` 规则引擎 + `llm_hook` 预留 | ✅ |
 | 单参考依赖 | 当前每条素材仅其视频原声一条参考 | ⚠️ Richter 式相对 DTW 与 FR-M1 冲突 → 见 §7 R-2 |
 | FR-13 整件识别+定位 | `core/vision.py`(YOLOE-26S-PF detection-only ONNX,onnxruntime CPU,实体词表/逐标签阈值)+ `/memorize/analyze` | 🚧 功能完成，待正式 R-13 手标质量门 |
-| FR-14 部件级微观 | `core/parts.py`(Florence-2-base-ft 原生 Transformers 转换,MPS/CPU)+ `/memorize/parts` | 🚧(待 R-13) |
+| FR-14 部件与容器内容物微观 | `core/parts.py`(Florence 详细描述/密集区域/phrase grounding + Qwen/显式描述词表实体过滤,最大深度 1)+ `/memorize/parts` | 🚧(待 R-13) |
 | FR-15 情景例句 | `core/scenario.py`(Qwen2.5-0.5B-Instruct Q4_K_M,llama.cpp Metal/CPU)+ `/memorize/scenario` | 🚧(待 R-13) |
 | FR-16 双模块 IA | `desktop/src/{index.html,main.js,styles.css}` | 🚧 |
 

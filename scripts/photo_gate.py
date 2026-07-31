@@ -4,7 +4,7 @@
 Runs the three on-device models on a small labeled photo set and emits the
 numbers that fill docs/reviews/2026-07-29-photo-recognition-fit.md:
   * macro (YOLO):     precision / recall vs ground-truth boxes+classes
-  * micro (Florence): part-name relevance + hallucination (human-judged -> CSV)
+  * micro (Florence): part/content relevance + hallucination (human-judged -> CSV)
   * scenario (Q4_K_M): contextual vs word-only quality (human-judged -> CSV)
   * latency + RSS
 
@@ -86,8 +86,7 @@ def run_macro(photos, labels, vision):
 
 
 def run_micro(photos, labels, parts, out_csv):
-    """Run Florence on one crop per labeled object; dump for human relevance /
-    hallucination scoring (columns: photo, object, predicted_parts, score, is_halluc)."""
+    """Dump one crop per object for separate part/content human scoring."""
     to_score = []
     contexts = {}
     for ph in photos:
@@ -101,16 +100,49 @@ def run_micro(photos, labels, parts, out_csv):
             t0 = time.time()
             try:
                 result = parts.analyze_parts(crop, g["label"], g.get("label_zh", ""))
-                res = result["parts"]
                 contexts[(os.path.basename(ph), object_index)] = result
             except Exception as e:  # noqa: BLE001
-                res = [{"label_en": f"ERROR: {e}", "label_zh": ""}]
+                result = {
+                    "parts": [{"label_en": f"ERROR: {e}", "label_zh": ""}],
+                    "contents": [],
+                }
             lat = (time.time() - t0)
-            names = "; ".join(f'{p["label_en"]}/{p["label_zh"]}' for p in res)
-            to_score.append([os.path.basename(ph), g["label"], names, "", "", f"{lat:.1f}s"])
+            part_names = "; ".join(
+                f'{item["label_en"]}/{item["label_zh"]}'
+                for item in result.get("parts", [])
+            )
+            content_names = "; ".join(
+                f'{item["label_en"]}/{item["label_zh"]}'
+                for item in result.get("contents", [])
+            )
+            to_score.append(
+                [
+                    os.path.basename(ph),
+                    g["label"],
+                    part_names,
+                    content_names,
+                    "",
+                    "",
+                    "",
+                    "",
+                    f"{lat:.1f}s",
+                ]
+            )
     with open(out_csv, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-        w.writerow(["photo", "object", "predicted_parts", "relevance(0/0.5/1)", "is_halluc(0/1)", "latency"])
+        w.writerow(
+            [
+                "photo",
+                "object",
+                "predicted_parts",
+                "predicted_contents",
+                "parts_relevance(0/0.5/1)",
+                "parts_is_halluc(0/1)",
+                "contents_relevance(0/0.5/1)",
+                "contents_is_halluc(0/1)",
+                "latency",
+            ]
+        )
         w.writerows(to_score)
     return len(to_score), contexts
 
@@ -124,10 +156,17 @@ def run_scenario(labels, scenario, contexts, out_csv):
             for object_index, g in enumerate(objects):
                 result = contexts.get((photo_name, object_index), {})
                 predicted_parts = result.get("parts", [])
-                selected = predicted_parts[0] if predicted_parts else {
-                    "label_en": g["label"],
-                    "label_zh": g.get("label_zh", ""),
-                }
+                predicted_contents = result.get("contents", [])
+                selected = (
+                    predicted_contents[0]
+                    if predicted_contents
+                    else predicted_parts[0]
+                    if predicted_parts
+                    else {
+                        "label_en": g["label"],
+                        "label_zh": g.get("label_zh", ""),
+                    }
+                )
                 items.append({
                     "photo": photo_name,
                     "object": g,
@@ -154,17 +193,19 @@ def run_scenario(labels, scenario, contexts, out_csv):
                 )
             t0 = time.time()
             try:
-                sents = scenario.generate(g["label"], g.get("label_zh", ""), **kwargs)
+                result = scenario.generate(g["label"], g.get("label_zh", ""), **kwargs)
             except Exception as e:  # noqa: BLE001
-                sents = [{"en": f"ERROR: {e}", "zh": ""}]
+                result = {"scene": "", "turns": [{"speaker": "", "en": f"ERROR: {e}", "zh": ""}]}
             lat = time.time() - t0
-            for sentence in sents:
+            for turn in result.get("turns", []):
                 to_score.append([
                     item["photo"],
                     condition,
                     selected["label_en"],
-                    sentence.get("en", ""),
-                    sentence.get("zh", ""),
+                    turn.get("speaker", ""),
+                    turn.get("en", ""),
+                    turn.get("zh", ""),
+                    "",
                     "",
                     "",
                     "",
@@ -177,10 +218,12 @@ def run_scenario(labels, scenario, contexts, out_csv):
             "photo",
             "condition",
             "selected_word",
+            "speaker",
             "en",
             "zh",
             "fluency(1-5)",
             "photo_part_fit(1-5)",
+            "conversational_naturalness(1-5)",
             "en_zh_match(0/1)",
             "invented_photo_fact(0/1)",
             "latency",

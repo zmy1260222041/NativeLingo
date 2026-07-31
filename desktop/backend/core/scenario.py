@@ -1,9 +1,10 @@
-"""Personalized example sentences for Memorizing (FR-15).
+"""Personalized everyday dialogues for Memorizing (FR-15).
 
 The product deliberately fixes one compact model:
 Qwen2.5-0.5B-Instruct GGUF Q4_K_M, run locally through llama.cpp.  It receives
-only compact, server-owned facts derived from the current photo and generates
-fresh bilingual examples on every selection; there is no canned-sentence path.
+only compact, server-owned facts derived from the current photo and generates a
+fresh two-speaker bilingual dialogue on every selection; there is no canned
+dialogue path.
 """
 from __future__ import annotations
 
@@ -22,37 +23,49 @@ MODEL_REVISION = model_assets.QWEN_REVISION
 _INFER_LOCK = threading.RLock()
 
 _SYSTEM = (
-    "You are a careful bilingual English teacher. Return exactly one short, "
-    "natural English memory-scene sentence and its exact Simplified Chinese "
-    "translation. The English sentence MUST contain the exact Target word. The "
-    "scene is inspired by the supplied photo facts, but is not a literal photo "
-    "caption. Mention only named objects or visible parts. You may add a simple "
-    "learner action involving the Target, but do not invent other people, colors, "
-    "brands, weather, locations, object condition, or unseen parts. Return only "
-    "JSON matching the requested schema. Start the English sentence with I. Use "
-    "the Target as the selected object or part itself; do not turn it into a new "
-    "compound noun."
+    "You are a careful bilingual English teacher. Write ONE short, natural, "
+    "everyday spoken dialogue set in the scene described by the photo facts. "
+    "Use exactly TWO speakers, labelled A and B, with 2 or 3 turns total. Each "
+    "turn is ONE short spoken line — a question, a request, an offer, or a "
+    "reply — the way people really talk in daily life, NOT a formal declarative "
+    "sentence. CRITICAL RULES: (1) Speaker A's first English line MUST contain "
+    "the exact Target phrase. (2) In each turn, put only the spoken line as the "
+    "English text and only the label (A or B) as the speaker — never put the "
+    "speaker label or the Target word alone as the spoken line. (3) Mention "
+    "ONLY objects or parts named in the facts; do not invent other people, "
+    "colors, brands, weather, locations, object condition, or unseen parts. "
+    "Keep each English turn under 200 characters and to a single sentence. "
+    "Return ONLY JSON matching the requested schema: a short \"scene\" phrase "
+    "and a \"turns\" array of {speaker, en, zh}."
 )
 
-_SENTENCE_SCHEMA = {
+_DIALOGUE_SCHEMA = {
     "type": "object",
     "properties": {
-        "sentences": {
+        "scene": {"type": "string"},
+        "turns": {
             "type": "array",
-            "minItems": 1,
-            "maxItems": 3,
+            "minItems": 2,
+            "maxItems": 4,
             "items": {
                 "type": "object",
                 "properties": {
+                    "speaker": {"type": "string"},
                     "en": {"type": "string"},
                     "zh": {"type": "string"},
                 },
-                "required": ["en", "zh"],
+                "required": ["speaker", "en", "zh"],
             },
-        }
+        },
     },
-    "required": ["sentences"],
+    "required": ["scene", "turns"],
 }
+
+# Per-attempt sampling temperature. The first attempt stays conservative for
+# reliability; retries escalate so a stuck 0.5B can't keep emitting the same
+# off-target line (e.g. naming "plates" instead of "dining table"). Each call
+# is ~1–2s, so three attempts stay far inside the 15s scenario deadline.
+_RETRY_TEMPERATURES = (0.1, 0.45, 0.7)
 
 
 @functools.lru_cache(maxsize=1)
@@ -104,20 +117,25 @@ def _parse_object(resp: str) -> dict:
     return data
 
 
-def _parse(resp: str) -> list[dict[str, str]]:
-    """Validate the bilingual sentence contract; never invent a canned result."""
+def _parse(resp: str) -> dict:
+    """Validate the dialogue contract; never invent a canned result."""
     data = _parse_object(resp)
-    out: list[dict[str, str]] = []
-    for item in data.get("sentences", []):
+    scene = str(data.get("scene") or "").strip()
+    raw_turns = data.get("turns")
+    if not isinstance(raw_turns, list):
+        raise ValueError("model JSON has no turns array")
+    turns: list[dict[str, str]] = []
+    for item in raw_turns:
         if not isinstance(item, dict):
             continue
+        speaker = str(item.get("speaker") or "").strip()
         en = str(item.get("en") or "").strip()
         zh = str(item.get("zh") or "").strip()
-        if en and zh and len(en) <= 300 and len(zh) <= 300:
-            out.append({"en": en, "zh": zh})
-    if not out:
-        raise ValueError("model returned no valid bilingual sentences")
-    return out[:3]
+        if speaker and en and zh and len(en) <= 200 and len(zh) <= 120:
+            turns.append({"speaker": speaker[:24], "en": en, "zh": zh})
+    if not scene or not turns:
+        raise ValueError("model returned no valid dialogue")
+    return {"scene": scene[:80], "turns": turns[:4]}
 
 
 def _first_sentence(text: str, endings: str) -> str:
@@ -128,11 +146,12 @@ def _first_sentence(text: str, endings: str) -> str:
     return text[: match.end()].strip()
 
 
-def _normalize_memory_sentence(sentence: dict[str, str]) -> dict[str, str]:
-    """Keep the first bilingual sentence when the 0.5B model over-generates."""
+def _normalize_turn(turn: dict[str, str]) -> dict[str, str]:
+    """Keep the first sentence of each turn when the 0.5B model over-generates."""
     return {
-        "en": _first_sentence(sentence["en"], ".!?"),
-        "zh": _first_sentence(sentence["zh"], "。！？"),
+        "speaker": turn["speaker"],
+        "en": _first_sentence(turn["en"], ".!?"),
+        "zh": _first_sentence(turn["zh"], "。！？"),
     }
 
 
@@ -146,13 +165,20 @@ def _content(response: dict) -> str:
     return json.dumps(content, ensure_ascii=False)
 
 
-def _chat_json(messages: list[dict], schema: dict, max_tokens: int = 384) -> dict:
+def _chat_json(
+    messages: list[dict],
+    schema: dict,
+    max_tokens: int = 384,
+    *,
+    temperature: float = 0.1,
+    top_p: float = 0.8,
+) -> dict:
     model = _load()
     with _INFER_LOCK:
         response = model.create_chat_completion(
             messages=messages,
-            temperature=0.1,
-            top_p=0.8,
+            temperature=temperature,
+            top_p=top_p,
             repeat_penalty=1.1,
             max_tokens=max_tokens,
             response_format={"type": "json_object", "schema": schema},
@@ -186,17 +212,32 @@ def _relevant_context(context: str, object_en: str, selected_en: str) -> str:
     return _clean(" ".join((relevant or sentences)[:2]), 360)
 
 
-def _valid_memory_sentence(sentence: dict[str, str], selected_en: str) -> bool:
-    english = sentence["en"].strip()
-    target = re.compile(
-        rf"(?<![A-Za-z]){re.escape(selected_en)}(?![A-Za-z])",
-        re.IGNORECASE,
-    )
-    return (
-        bool(re.match(r"^I(?:\s|['’])", english))
-        and bool(target.search(english))
-        and len(re.findall(r"[.!?]", english)) <= 1
-    )
+def _valid_dialogue(dialogue: dict, selected_en: str) -> bool:
+    # The target anchors the vocabulary. Match the full phrase OR any of its
+    # whitespace tokens (e.g. "frame" stands in for "picture frame"): a 0.5B
+    # model often drops a modifier, and a head-noun hit still ties the line to
+    # the clicked object. Word boundaries on every token keep "business" from
+    # satisfying a "bus" target.
+    needles = [selected_en] + [t for t in re.split(r"\s+", selected_en) if t]
+    patterns = [
+        re.compile(rf"(?<![A-Za-z]){re.escape(n)}(?![A-Za-z])", re.IGNORECASE)
+        for n in needles
+    ]
+    turns = dialogue.get("turns", [])
+    if not (2 <= len(turns) <= 4):
+        return False
+    if len({t["speaker"].strip().casefold() for t in turns}) < 2:
+        return False  # need at least two distinct speakers
+    target_anywhere = False
+    for turn in turns:
+        en = turn["en"].strip()
+        if not (turn["speaker"].strip() and turn["zh"].strip()):
+            return False
+        if len(en) > 200 or len(re.findall(r"[.!?]", en)) > 1:
+            return False
+        if any(p.search(en) for p in patterns):
+            target_anywhere = True
+    return target_anywhere
 
 
 def generate(
@@ -207,8 +248,8 @@ def generate(
     scene_objects: list[str] | None = None,
     part_en: str = "",
     part_zh: str = "",
-) -> list[dict[str, str]]:
-    """Generate personalized bilingual examples from compact photo facts."""
+) -> dict:
+    """Generate a short two-speaker everyday dialogue from compact photo facts."""
     object_en = _clean(label_en, 80)
     object_zh = _clean(label_zh, 80)
     selected_en = _clean(part_en, 80) or object_en
@@ -236,7 +277,9 @@ def generate(
         f"Whole object: {object_en}\n"
         f"Visible facts: {facts['visible_crop_description'] or object_en}\n"
         f"Other detected objects: {', '.join(nearby[:8]) or 'none'}\n"
-        f"Write one sentence that begins with I and contains the exact word {selected_en}."
+        f"Write a short everyday dialogue between A and B (2 or 3 turns) ABOUT the "
+        f"{selected_en} itself. Speaker A's first line MUST name the {selected_en}. "
+        f"Do not replace it with another object."
     )
     messages = [
         {"role": "system", "content": _SYSTEM},
@@ -250,8 +293,29 @@ def generate(
         {
             "role": "assistant",
             "content": (
-                '{"sentences":[{"en":"I hold the mug by its handle beside the book.",'
-                '"zh":"我在书旁握住杯子的把手。"}]}'
+                '{"scene":"Beside a book on a desk","turns":['
+                '{"speaker":"A","en":"Could you hand me that mug?",'
+                '"zh":"能把那个杯子递给我吗？"},'
+                '{"speaker":"B","en":"Sure — grip the handle so it doesn\'t slip.",'
+                '"zh":"好，握住把手别滑了。"}]}'
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                "Target: picture frame\nWhole object: picture frame\n"
+                "Visible facts: a picture frame on a shelf\n"
+                "Other detected objects: shelf"
+            ),
+        },
+        {
+            "role": "assistant",
+            "content": (
+                '{"scene":"By a shelf","turns":['
+                '{"speaker":"A","en":"Is this picture frame level?",'
+                '"zh":"这个相框挂正了吗？"},'
+                '{"speaker":"B","en":"Looks straight to me.",'
+                '"zh":"我看挺正的。"}]}'
             ),
         },
         {
@@ -264,34 +328,50 @@ def generate(
         {
             "role": "assistant",
             "content": (
-                '{"sentences":[{"en":"I walk toward the bicycle beside the car.",'
-                '"zh":"我走向汽车旁的自行车。"}]}'
+                '{"scene":"Beside a car on the street","turns":['
+                '{"speaker":"A","en":"Is that your bicycle next to the car?",'
+                '"zh":"汽车旁边那辆自行车是你的吗？"},'
+                '{"speaker":"B","en":"Yes, I ride it to work every day.",'
+                '"zh":"是的，我每天骑它上班。"},'
+                '{"speaker":"A","en":"Want me to move the car so you can get out?",'
+                '"zh":"要我把车挪一下好让你出来吗？"}]}'
             ),
         },
         {"role": "user", "content": request},
     ]
 
-    for attempt in range(2):
+    for attempt in range(3):
         try:
-            data = _chat_json(messages, _SENTENCE_SCHEMA)
-            sentences = [
-                _normalize_memory_sentence(item)
-                for item in _parse(json.dumps(data, ensure_ascii=False))
-            ]
-            if not all(_valid_memory_sentence(item, selected_en) for item in sentences):
-                raise ValueError("model output is not a one-sentence first-person memory scene")
-            return sentences
+            data = _chat_json(
+                messages,
+                _DIALOGUE_SCHEMA,
+                temperature=_RETRY_TEMPERATURES[attempt],
+                top_p=0.9,
+            )
+            dialogue = _parse(json.dumps(data, ensure_ascii=False))
+            dialogue["turns"] = [_normalize_turn(turn) for turn in dialogue["turns"]]
+            if not _valid_dialogue(dialogue, selected_en):
+                raise ValueError("model output is not a valid two-speaker dialogue")
+            return dialogue
         except (ValueError, json.JSONDecodeError):
-            if attempt:
+            if attempt >= 2:
                 raise
+            # Retry with a stricter, target-anchoring ask. The 0.5B occasionally
+            # paraphrases the target noun away (e.g. "these things" for "cabinet",
+            # or "plates" for "dining table"), so force the exact word into
+            # Speaker A's first line and tell it not to substitute other objects.
+            # _RETRY_TEMPERATURES escalates so the model can't repeat the same
+            # off-target line.
             messages[-1] = {
                 "role": "user",
                 "content": (
                     f"Target: {selected_en}\nWhole object: {object_en}\n"
                     f"Visible facts: {relevant_context or object_en}\n"
                     "Other detected objects: none\n"
-                    f"Write one sentence beginning with I and containing the exact word "
-                    f"{selected_en}, then give one faithful Chinese translation."
+                    f"Write a 2-turn dialogue between speakers A and B. Speaker A's "
+                    f"first line MUST contain the exact word {selected_en} — refer "
+                    f"to the {selected_en} itself, not other objects. Give a "
+                    f"faithful Simplified Chinese translation per turn. JSON only."
                 ),
             }
     raise ValueError("scenario generation failed")
@@ -362,6 +442,87 @@ def extract_parts(
             seen.add(term)
             result.append(term)
     return result[:12]
+
+
+def extract_contents(container_label: str, caption: str) -> list[str]:
+    """Extract visible independent objects placed inside or on a container."""
+    schema = {
+        "type": "object",
+        "properties": {
+            "contents": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {"type": "string"},
+            }
+        },
+        "required": ["contents"],
+    }
+    facts = {
+        "container": _clean(container_label, 80),
+        "crop_caption": _clean(caption, 700),
+    }
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "Extract only independent, tangible objects explicitly visible "
+                "inside or on the selected container. Exclude the container itself, "
+                "people, background, colors, materials, inferred objects, and "
+                "structural parts such as shelves, doors, drawers, handles, panels, "
+                "walls, and frames. Return short singular English noun phrases as "
+                "JSON. An award, statue, vase, book, bottle, or ornament is content."
+            ),
+        },
+        {
+            "role": "user",
+            "content": json.dumps(
+                {
+                    "container": "cabinet",
+                    "crop_caption": (
+                        "A wooden cabinet has a gold statue on the top shelf and "
+                        "several awards on the bottom shelf."
+                    ),
+                }
+            ),
+        },
+        {
+            "role": "assistant",
+            "content": '{"contents":["gold statue","award"]}',
+        },
+        {
+            "role": "user",
+            "content": json.dumps(
+                {
+                    "container": "bookshelf",
+                    "crop_caption": "A bookshelf with books and a blue vase.",
+                }
+            ),
+        },
+        {
+            "role": "assistant",
+            "content": '{"contents":["book","vase"]}',
+        },
+        {
+            "role": "user",
+            "content": json.dumps(
+                {
+                    "container": "cabinet",
+                    "crop_caption": "A cabinet with two shelves and a closed door.",
+                }
+            ),
+        },
+        {"role": "assistant", "content": '{"contents":[]}'},
+        {"role": "user", "content": json.dumps(facts, ensure_ascii=False)},
+    ]
+    data = _chat_json(messages, schema, max_tokens=160)
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in data.get("contents", []):
+        term = _clean(value, 60).lower().strip(" .,:;")
+        if term and term not in seen:
+            seen.add(term)
+            result.append(term)
+    return result[:8]
 
 
 def translate_terms(terms: list[str]) -> dict[str, str]:

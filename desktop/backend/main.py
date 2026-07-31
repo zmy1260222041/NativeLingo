@@ -390,10 +390,12 @@ def recording_clip(rid: str, start: float, end: float, token: str | None = None)
 
 
 # --------------------------------------------------------------------------- #
-# Memorizing module (FR-13..15): photo object recognition + scenario sentences
+# Memorizing module (FR-13..15): photo recognition + one-level detail + dialogue
 # --------------------------------------------------------------------------- #
 # The frontend uploads a photo, gets back whole-object boxes (clickable
-# hotspots), then per-click asks for that object's parts and a scenario. The
+# hotspots), then per-click asks for that object's parts, optional container
+# contents, and a scenario. Container contents remain server-owned leaf
+# selections and can never become recursively analyzable whole objects. The
 # photo is stored server-side under a UUID (mirrors /recordings) so each click
 # doesn't re-upload the multi-MB image. All handlers are plain `def` (not async)
 # so FastAPI runs blocking model inference in the threadpool without stalling
@@ -523,8 +525,7 @@ def memorize_analyze(photo: UploadFile = File(...), _=Depends(require_token)):
 
 @app.post("/memorize/parts")
 def memorize_parts(req: PartsReq, _=Depends(require_token)):
-    """FR-14: name the visible parts of a clicked object (server-side crop from
-    the stored photo + its box, so the image isn't re-uploaded per click)."""
+    """FR-14: name visible parts and one-level contents of a clicked object."""
     path = _photo_path(req.photo_id)
     obj = _object_for(req.photo_id, req.object_id)
     img = _load_image(path)
@@ -539,6 +540,12 @@ def memorize_parts(req: PartsReq, _=Depends(require_token)):
     if right <= left or bottom <= top:
         raise HTTPException(status_code=400, detail="invalid object box")
     crop = img.crop((left, top, right, bottom))
+    object_box = [
+        round(x - left, 1),
+        round(y - top, 1),
+        round(x + w - left, 1),
+        round(y + h - top, 1),
+    ]
 
     from backend.core import parts, memorize_warmup
     st = memorize_warmup.status()
@@ -546,7 +553,12 @@ def memorize_parts(req: PartsReq, _=Depends(require_token)):
         raise HTTPException(status_code=503, detail="parts model still preparing; see /memorize/status")
     try:
         result = _within_memorize_deadline(
-            lambda: parts.analyze_parts(crop, obj["label_en"], obj["label_zh"])
+            lambda: parts.analyze_parts(
+                crop,
+                obj["label_en"],
+                obj["label_zh"],
+                object_box=object_box,
+            )
         )
     except _MemorizeRequestTimedOut:
         raise HTTPException(
@@ -555,20 +567,40 @@ def memorize_parts(req: PartsReq, _=Depends(require_token)):
         )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=503, detail=f"part naming unavailable: {exc}")
+    result = dict(result)
+    relation = parts.container_relation(obj["label_en"])
+    result["contents"] = [
+        {
+            **item,
+            "kind": "content",
+            "parent_id": req.object_id,
+            "relation": relation,
+            "depth": 1,
+        }
+        for item in result.get("contents", [])
+    ]
     with _MEMORIZE_META_LOCK:
         meta = _MEMORIZE_META.get(req.photo_id)
         if meta is not None:
             meta["contexts"][req.object_id] = {
                 "crop_context": result["crop_context"],
                 "parts": result["parts"],
+                "contents": result["contents"],
             }
-    return result
+    # Florence boxes are xyxy coordinates relative to this context-expanded
+    # crop. Return its exact geometry so the frontend can display the same
+    # pixels and place part labels without guessing or coordinate drift.
+    return {
+        **result,
+        "crop_box": [left, top, right - left, bottom - top],
+        "crop_size": [right - left, bottom - top],
+    }
 
 
 @app.post("/memorize/scenario")
 def memorize_scenario(req: ScenarioReq, _=Depends(require_token)):
-    """FR-15: generate 1-3 target-language example sentences placing the object
-    in a memorable real-world situation (text-only memory aid, no audio)."""
+    """FR-15: generate a short everyday multi-role dialogue placing the object in
+    a memorable real-world situation (text-only memory aid, no audio)."""
     obj = _object_for(req.photo_id, req.object_id)
     with _MEMORIZE_META_LOCK:
         meta = _MEMORIZE_META.get(req.photo_id) or {"objects": [], "contexts": {}}
@@ -582,16 +614,23 @@ def memorize_scenario(req: ScenarioReq, _=Depends(require_token)):
     part_en = ""
     part_zh = ""
     if req.part_en.strip():
+        selectable = [
+            *context.get("parts", []),
+            *context.get("contents", []),
+        ]
         selected = next(
             (
                 item
-                for item in context.get("parts", [])
+                for item in selectable
                 if item["label_en"].casefold() == req.part_en.strip().casefold()
             ),
             None,
         )
         if selected is None:
-            raise HTTPException(status_code=400, detail="selected part is not in the analyzed crop")
+            raise HTTPException(
+                status_code=400,
+                detail="selected detail is not in the analyzed crop",
+            )
         part_en = selected["label_en"]
         part_zh = selected.get("label_zh", "")
 
@@ -600,7 +639,7 @@ def memorize_scenario(req: ScenarioReq, _=Depends(require_token)):
     if st["running"] and not st["llm_ready"]:
         raise HTTPException(status_code=503, detail="scenario model still preparing; see /memorize/status")
     try:
-        sents = _within_memorize_deadline(
+        dialogue = _within_memorize_deadline(
             lambda: scenario.generate(
                 obj["label_en"],
                 obj["label_zh"],
@@ -617,7 +656,7 @@ def memorize_scenario(req: ScenarioReq, _=Depends(require_token)):
         )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=503, detail=f"scenario generation unavailable: {exc}")
-    return {"sentences": sents}
+    return dialogue
 
 
 @app.get("/memorize/status")

@@ -94,3 +94,144 @@ def test_nested_scene_objects_are_not_reported_as_parts():
     assert parts._looks_like_component("derailleur")
     assert not parts._looks_like_component("footwear")
     assert not parts._looks_like_component("trousers")
+
+
+def test_compound_part_uses_local_suffix_translation(monkeypatch):
+    monkeypatch.setattr(
+        scenario,
+        "translate_terms",
+        lambda _terms: {},
+    )
+    assert parts._translate(["bicycle wheel", "cabinet door"]) == {
+        "bicycle wheel": "车轮",
+        "cabinet door": "门",
+    }
+
+
+def test_container_contents_require_caption_candidate_and_grounded_box(monkeypatch):
+    prompts = []
+
+    def fake_run(_image, task, prompt=""):
+        prompts.append((task, prompt))
+        if task == "<MORE_DETAILED_CAPTION>":
+            return {
+                task: (
+                    "A cabinet has a gold statue on the top shelf and several "
+                    "awards below."
+                )
+            }
+        if task == "<DENSE_REGION_CAPTION>":
+            return {
+                task: {
+                    "labels": ["cabinet", "shelf"],
+                    "bboxes": [[0, 0, 100, 100], [0, 40, 100, 60]],
+                }
+            }
+        return {
+            task: {
+                "labels": ["gold statue", "awards"],
+                "bboxes": [[40, 10, 75, 38], [12, 55, 35, 82]],
+            }
+        }
+
+    monkeypatch.setattr(parts, "_run_task", fake_run)
+    monkeypatch.setattr(
+        scenario,
+        "extract_parts",
+        lambda *_args: ["shelf", "gold statue"],
+    )
+    monkeypatch.setattr(
+        scenario,
+        "extract_contents",
+        lambda *_args: [
+            "gold statues",
+            "awards",
+            "shelf",
+            "person",
+            "unlisted artifact",
+        ],
+    )
+    monkeypatch.setattr(
+        scenario,
+        "translate_terms",
+        lambda terms: {
+            term: {
+                "gold statue": "金色雕像",
+                "award": "奖项",
+            }[term]
+            for term in terms
+        },
+    )
+
+    result = parts.analyze_parts(
+        Image.new("RGB", (100, 100)),
+        "cabinet",
+        "柜子",
+        object_box=[5, 5, 95, 95],
+    )
+    assert result["is_container"] is True
+    assert result["parts"] == [
+        {
+            "label_en": "shelf",
+            "label_zh": "架子",
+            "box": [0.0, 40.0, 100.0, 60.0],
+        }
+    ]
+    assert result["contents"] == [
+        {
+            "label_en": "gold statue",
+            "canonical_label": "statue",
+            "box": [40.0, 10.0, 75.0, 38.0],
+            "label_zh": "金色雕像",
+        },
+        {
+            "label_en": "award",
+            "canonical_label": "award",
+            "box": [12.0, 55.0, 35.0, 82.0],
+            "label_zh": "奖项",
+        },
+    ]
+    assert prompts[-1] == (
+        "<CAPTION_TO_PHRASE_GROUNDING>",
+        "gold statues and awards",
+    )
+
+
+def test_content_geometry_and_overlap_gates_are_precision_first(monkeypatch):
+    monkeypatch.setattr(scenario, "translate_terms", lambda terms: {})
+    grounded = {
+        "<CAPTION_TO_PHRASE_GROUNDING>": {
+            "labels": ["book", "vase", "statue", "award"],
+            "bboxes": [
+                [10, 10, 40, 40],
+                [12, 12, 39, 39],
+                [90, 90, 99, 99],
+                [0, 0, 100, 100],
+            ],
+        }
+    }
+    assert parts._content_items(
+        ["book", "vase", "statue", "award"],
+        grounded,
+        crop_size=(100, 100),
+        container_box=[5, 5, 80, 80],
+    ) == [
+        {
+            "label_en": "book",
+            "canonical_label": "book",
+            "box": [10.0, 10.0, 40.0, 40.0],
+            "label_zh": "",
+        }
+    ]
+
+
+def test_only_explicit_container_labels_enable_content_analysis():
+    assert parts.is_container("cabinet")
+    assert parts.container_relation("bookshelf") == "on"
+    assert not parts.is_container("table")
+
+
+def test_caption_fallback_keeps_visible_plural_but_excludes_structure():
+    assert parts._caption_content_terms(
+        "A wooden shelf has a gold Buddha statue and several awards."
+    ) == ["statue", "awards"]

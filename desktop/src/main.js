@@ -12,7 +12,7 @@ const BACKEND_TOKEN = window.__NATIVELINGO_TOKEN__ || null;
 // once the backend responds, so the marker is reliable across cold starts (the
 // load-time ping otherwise fails silently while the backend is still spinning
 // up and never reaches the log).
-const BOOT_TAG = "v14";
+const BOOT_TAG = "v19";
 let _bootMarked = false;
 function markBoot() {
   if (_bootMarked) return;
@@ -877,7 +877,7 @@ const memo = {
   detailToken: 0,
   scenarioToken: 0,
 };
-const MEMO_MAX_DIM = 1280;
+const MEMO_MAX_DIM = 1920;
 const _MEMO_STAGE_LABEL = {
   yolo: "YOLO 检测模型",
   llm: "Qwen Q4_K_M 情景模型 ~491MB",
@@ -1036,16 +1036,16 @@ function memoRenderHotspots() {
     return;
   }
   memoStatus("", "");  // clear any prior warn
+  // Vocabulary surfaces deliberately stay English-only. Chinese is reserved
+  // for complete scenario-sentence translations, avoiding a translation bridge.
   const counts = new Map();
   memo.objects.forEach((object) => {
-    const key = `${object.label_en}\u0000${object.label_zh || ""}`;
-    counts.set(key, (counts.get(key) || 0) + 1);
+    counts.set(object.label_en, (counts.get(object.label_en) || 0) + 1);
   });
   summary.textContent = `识别到 ${memo.objects.length} 个：` +
-    [...counts.entries()].map(([key, count]) => {
-      const [en, zh] = key.split("\u0000");
-      return `${en}${zh ? `（${zh}）` : ""}${count > 1 ? ` ×${count}` : ""}`;
-    }).join(" · ");
+    [...counts.entries()].map(([label, count]) =>
+      `${label}${count > 1 ? ` ×${count}` : ""}`,
+    ).join(" · ");
   summary.hidden = false;
 
   // Large container boxes go below their contained objects. This keeps a
@@ -1070,11 +1070,90 @@ function memoRenderHotspots() {
     if (y / memo.imgH < 0.055) tag.classList.add("hotspot-tag-inside");
     if (x / memo.imgW > 0.72) tag.classList.add("hotspot-tag-right");
     tag.textContent = o.label_en;
-    tag.title = o.label_zh ? `${o.label_en} · ${o.label_zh}` : o.label_en;
+    tag.title = o.label_en;
     dot.appendChild(tag);
     dot.addEventListener("click", () => memoOpenDetail(o));
     hs.appendChild(dot);
   });
+}
+
+function memoContextCropBox(obj) {
+  const [x, y, w, h] = obj.box.map(Number);
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  const contextW = w * 1.2;
+  const contextH = h * 1.2;
+  const left = Math.max(0, Math.trunc(cx - contextW / 2));
+  const top = Math.max(0, Math.trunc(cy - contextH / 2));
+  const right = Math.min(memo.imgW, Math.trunc(cx + contextW / 2));
+  const bottom = Math.min(memo.imgH, Math.trunc(cy + contextH / 2));
+  return [left, top, Math.max(1, right - left), Math.max(1, bottom - top)];
+}
+
+function memoDrawDetailCrop(cropBox) {
+  const [x, y, w, h] = cropBox.map((value) => Math.round(Number(value)));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, w);
+  canvas.height = Math.max(1, h);
+  canvas.getContext("2d").drawImage(
+    memo.imgEl, x, y, w, h, 0, 0, canvas.width, canvas.height,
+  );
+  $("memo-detail-img").src = canvas.toDataURL("image/jpeg", 0.9);
+  return [canvas.width, canvas.height];
+}
+
+function memoPartBox(part, cropSize) {
+  if (!Array.isArray(part.box) || part.box.length !== 4) return null;
+  const values = part.box.map(Number);
+  if (values.some((value) => !Number.isFinite(value))) return null;
+  const [cropW, cropH] = cropSize;
+  const x1 = Math.max(0, Math.min(cropW, values[0]));
+  const y1 = Math.max(0, Math.min(cropH, values[1]));
+  const x2 = Math.max(0, Math.min(cropW, values[2]));
+  const y2 = Math.max(0, Math.min(cropH, values[3]));
+  if (x2 - x1 < 2 || y2 - y1 < 2) return null;
+  return [x1, y1, x2 - x1, y2 - y1];
+}
+
+function memoRenderPartHotspots(parts, cropSize, onSelect, chipByPart) {
+  const layer = $("memo-part-hotspots");
+  layer.replaceChildren();
+  const hotspotByPart = new Map();
+  const [cropW, cropH] = cropSize;
+
+  parts.forEach((part) => {
+    const box = memoPartBox(part, cropSize);
+    if (!box) return;
+    const [x, y, w, h] = box;
+    const hotspot = document.createElement("button");
+    hotspot.type = "button";
+    const isContent = part.kind === "content";
+    hotspot.className = "part-hotspot" + (isContent ? " content-hotspot" : "");
+    hotspot.style.left = `${x / cropW * 100}%`;
+    hotspot.style.top = `${y / cropH * 100}%`;
+    hotspot.style.width = `${w / cropW * 100}%`;
+    hotspot.style.height = `${h / cropH * 100}%`;
+    const areaRatio = (w * h) / Math.max(1, cropW * cropH);
+    hotspot.style.zIndex = String(Math.max(1, 1000 - Math.round(areaRatio * 1000)));
+
+    const tag = document.createElement("span");
+    tag.className = "part-hotspot-tag";
+    if (y / cropH < 0.075) tag.classList.add("part-hotspot-tag-inside");
+    if (x / cropW > 0.68) tag.classList.add("part-hotspot-tag-right");
+    tag.textContent = part.label_en;
+    hotspot.appendChild(tag);
+    hotspot.setAttribute(
+      "aria-label",
+      `${isContent ? "选择内容物" : "选择部件"} ${tag.textContent}`,
+    );
+    hotspot.title = `点击生成 ${tag.textContent} 的情景对话`;
+    hotspot.addEventListener("click", () => onSelect(part));
+    hotspot.addEventListener("mouseenter", () => chipByPart.get(part)?.classList.add("preview"));
+    hotspot.addEventListener("mouseleave", () => chipByPart.get(part)?.classList.remove("preview"));
+    layer.appendChild(hotspot);
+    hotspotByPart.set(part, hotspot);
+  });
+  return hotspotByPart;
 }
 
 async function memoOpenDetail(obj) {
@@ -1084,27 +1163,29 @@ async function memoOpenDetail(obj) {
   detail.hidden = false;
   detail.scrollIntoView({ behavior: "smooth" });
 
-  // crop the object out of the displayed image for the detail thumbnail
-  const [x, y, w, h] = obj.box.map((v) => Math.round(v));
+  // Match the backend's +10% context crop. Florence's part boxes are xyxy
+  // coordinates within this crop, so the same pixels must be shown here.
+  let detailCropSize;
   try {
-    const c = document.createElement("canvas");
-    c.width = Math.max(1, w); c.height = Math.max(1, h);
-    c.getContext("2d").drawImage(memo.imgEl, x, y, w, h, 0, 0, w, h);
-    $("memo-detail-img").src = c.toDataURL("image/jpeg", 0.9);
-  } catch (e) { $("memo-detail-img").src = memo.imgEl.src; }
+    detailCropSize = memoDrawDetailCrop(memoContextCropBox(obj));
+  } catch (e) {
+    $("memo-detail-img").src = memo.imgEl.src;
+    detailCropSize = [memo.imgW, memo.imgH];
+  }
+  $("memo-part-hotspots").replaceChildren();
+  $("memo-parts-analyzing").hidden = false;
   const detailLabel = $("memo-detail-label");
   detailLabel.replaceChildren(document.createTextNode(obj.label_en));
-  if (obj.label_zh) {
-    const zh = document.createElement("span");
-    zh.className = "zh";
-    zh.textContent = obj.label_zh;
-    detailLabel.appendChild(zh);
-  }
 
   // FR-14: parts
   const partsEl = $("memo-parts"); partsEl.replaceChildren();
-  setStatus($("memo-parts-status"), "prep", "正在识别部件…");
+  const contentsEl = $("memo-contents"); contentsEl.replaceChildren();
+  const contentsSection = $("memo-contents-section");
+  contentsSection.hidden = true;
+  setStatus($("memo-parts-status"), "prep", "正在分析部件和可见内容物…");
   let analyzedParts = [];
+  let analyzedContents = [];
+  let isContainer = false;
   try {
     const res = await memoFetch("/memorize/parts", {
       method: "POST", headers: { ...authHeaders(), "Content-Type": "application/json" },
@@ -1115,39 +1196,94 @@ async function memoOpenDetail(obj) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "部件识别失败");
     if (detailToken !== memo.detailToken) return;
-    analyzedParts = data.parts || [];
-    setStatus($("memo-parts-status"), "", "");
+    analyzedParts = (data.parts || []).map((part) => ({ ...part, kind: "part" }));
+    analyzedContents = (data.contents || []).map((item) => ({
+      ...item,
+      kind: "content",
+    }));
+    isContainer = Boolean(data.is_container);
+    if (Array.isArray(data.crop_box) && data.crop_box.length === 4) {
+      try {
+        detailCropSize = memoDrawDetailCrop(data.crop_box);
+      } catch (_) { /* keep the locally computed matching crop */ }
+    } else if (Array.isArray(data.crop_size) && data.crop_size.length === 2) {
+      detailCropSize = data.crop_size.map(Number);
+    }
   } catch (e) {
     if (detailToken !== memo.detailToken) return;
     setStatus($("memo-parts-status"), "", "部件识别失败:" + e.message);
+  } finally {
+    if (detailToken === memo.detailToken) $("memo-parts-analyzing").hidden = true;
   }
 
-  const selections = [
-    { label_en: obj.label_en, label_zh: obj.label_zh, whole: true },
-    ...analyzedParts,
-  ];
-  selections.forEach((part, index) => {
+  contentsSection.hidden = !isContainer;
+  const chipByPart = new Map();
+  let hotspotByPart = new Map();
+  const selectPart = (part) => {
+    detail.querySelectorAll(".part-chip").forEach((item) => {
+      item.classList.toggle("active", item === chipByPart.get(part));
+    });
+    $("memo-part-hotspots").querySelectorAll(".part-hotspot").forEach((item) => {
+      item.classList.toggle("active", item === hotspotByPart.get(part));
+    });
+    memoGenerateScenario(obj, part.whole ? null : part);
+  };
+  const addChip = (part, parent, label, active = false) => {
     const chip = document.createElement("button");
     chip.type = "button";
-    chip.className = "part-chip" + (index === 0 ? " active" : "");
-    chip.appendChild(document.createTextNode(part.whole ? `整件 · ${part.label_en}` : part.label_en));
-    if (part.label_zh) {
-      const zh = document.createElement("span");
-      zh.className = "zh";
-      zh.textContent = part.label_zh;
-      chip.appendChild(zh);
-    }
-    chip.addEventListener("click", () => {
-      partsEl.querySelectorAll(".part-chip").forEach((item) => item.classList.toggle("active", item === chip));
-      memoGenerateScenario(obj, part.whole ? null : part);
-    });
-    partsEl.appendChild(chip);
-  });
+    chip.className = "part-chip" +
+      (part.kind === "content" ? " content-chip" : "") +
+      (active ? " active" : "");
+    chip.appendChild(document.createTextNode(label));
+    chip.addEventListener("click", () => selectPart(part));
+    chip.addEventListener("mouseenter", () => hotspotByPart.get(part)?.classList.add("preview"));
+    chip.addEventListener("mouseleave", () => hotspotByPart.get(part)?.classList.remove("preview"));
+    parent.appendChild(chip);
+    chipByPart.set(part, chip);
+  };
+  const whole = {
+    label_en: obj.label_en,
+    label_zh: obj.label_zh,
+    whole: true,
+    kind: "whole",
+  };
+  addChip(whole, partsEl, `整件 · ${obj.label_en}`, true);
+  analyzedParts.forEach((part) => addChip(part, partsEl, part.label_en));
+  analyzedContents.forEach((item) => addChip(item, contentsEl, item.label_en));
+
+  hotspotByPart = memoRenderPartHotspots(
+    [...analyzedContents, ...analyzedParts],
+    detailCropSize,
+    selectPart,
+    chipByPart,
+  );
+  const locatedCount = hotspotByPart.size;
+  const detailCount = analyzedParts.length + analyzedContents.length;
+  if (detailCount && locatedCount) {
+    setStatus(
+      $("memo-parts-status"), "",
+      `识别到 ${analyzedContents.length} 个内容物、${analyzedParts.length} 个部件，` +
+      `${locatedCount} 个已在图中标注。`,
+    );
+  } else if (detailCount) {
+    setStatus(
+      $("memo-parts-status"), "",
+      `识别到 ${detailCount} 个可见细节，但当前没有可靠位置框。`,
+    );
+  } else {
+    setStatus($("memo-parts-status"), "", "");
+  }
   if (!analyzedParts.length) {
     const hint = document.createElement("span");
     hint.className = "hint";
     hint.textContent = "未识别到可靠部件,仍可为整件物品生成情景。";
     partsEl.appendChild(hint);
+  }
+  if (isContainer && !analyzedContents.length) {
+    const hint = document.createElement("span");
+    hint.className = "hint";
+    hint.textContent = "未识别到同时具有描述证据和可靠位置框的内容物。";
+    contentsEl.appendChild(hint);
   }
 
   // Generate for the whole object after Florence context has been stored.
@@ -1157,7 +1293,7 @@ async function memoOpenDetail(obj) {
 async function memoGenerateScenario(obj, part) {
   const scenarioToken = ++memo.scenarioToken;
   const scEl = $("memo-scenario"); scEl.replaceChildren();
-  setStatus($("memo-scenario-status"), "prep", "正在生成情景例句…");
+  setStatus($("memo-scenario-status"), "prep", "正在生成情景对话…");
   try {
     const res = await memoFetch("/memorize/scenario", {
       method: "POST", headers: { ...authHeaders(), "Content-Type": "application/json" },
@@ -1170,19 +1306,48 @@ async function memoGenerateScenario(obj, part) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "情景生成失败");
     if (scenarioToken !== memo.scenarioToken) return;
-    (data.sentences || []).forEach((s) => {
-      const card = document.createElement("div"); card.className = "scenario-card";
+    const speakerStyles = [
+      { bg: "var(--primary-soft)", fg: "var(--primary-dark)", border: "var(--primary)" },
+      { bg: "var(--accent-soft)", fg: "var(--accent-dark)", border: "var(--accent)" },
+      { bg: "var(--purple-soft)", fg: "var(--purple)", border: "var(--purple)" },
+      { bg: "var(--amber-soft)", fg: "var(--amber-dark)", border: "var(--fair)" },
+    ];
+    const speakerStyle = new Map();
+    const styleFor = (sp) => {
+      if (!speakerStyle.has(sp)) {
+        speakerStyle.set(sp, speakerStyles[speakerStyle.size % speakerStyles.length]);
+      }
+      return speakerStyle.get(sp);
+    };
+    if (data.scene) {
+      const scene = document.createElement("div");
+      scene.className = "dialogue-scene";
+      scene.textContent = data.scene;
+      scEl.appendChild(scene);
+    }
+    (data.turns || []).forEach((t) => {
+      const turn = document.createElement("div");
+      turn.className = "dialogue-turn";
+      const st = styleFor(t.speaker || "?");
+      turn.style.borderLeftColor = st.border;
+      const chip = document.createElement("span");
+      chip.className = "speaker-chip";
+      chip.textContent = t.speaker || "?";
+      chip.style.background = st.bg;
+      chip.style.color = st.fg;
+      chip.style.borderColor = st.border;
+      turn.appendChild(chip);
       const en = document.createElement("div");
       en.className = "en";
-      en.textContent = s.en;
-      card.appendChild(en);
-      if (s.zh) {
+      en.textContent = t.en;
+      turn.appendChild(en);
+      if (t.zh) {
         const zh = document.createElement("div");
         zh.className = "zh";
-        zh.textContent = s.zh;
-        card.appendChild(zh);
+        zh.textContent = t.zh;
+        turn.appendChild(zh);
       }
-      scEl.appendChild(card);
+      scEl.appendChild(turn);
     });
     setStatus($("memo-scenario-status"), "", "");
   } catch (e) {
