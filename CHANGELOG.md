@@ -2,6 +2,30 @@
 
 NativeLingo 版本演进与技术特点。
 
+## [v0.6] — 2026-08-03 — 学习工作台重构 + Memorizing 模块
+
+在 v0.5 可分发骨架之上,完成**学习工作台 UI 全面重构**与 **Memorizing(看图识物/情景例句)模块**两件大事:前端从工具面板式界面升级为 editorial 风格学习工作台,后端新增本地记忆管线(照片→检测→例句→情景对话),全部推理仍在本机完成。
+
+### 前端:学习工作台重构(PR #2 / #3)
+- **editorial redesign**:重新设计学习工作台布局与信息层级(29c43a6,codex 前端分支);dark mode、排版系统、无障碍(a11y)一次性到位(408a035)。
+- **品牌重塑**:应用图标与界面吉祥物统一为 **Goza** 形象(aa0b165)。
+- **录音体验**:「开始跟读」前 3-2-1 倒计时,`getUserMedia` 在倒计时中完成,`rec.start()` 与静音参考视频零点同步,修复跟读开头被截断的问题(a0dccc8)。
+
+### 后端:Memorizing 模块
+- **看图识物 + 情景例句(Duolingo 风格)**:本地照片→YOLOE 检测→例句生成,交互与 Duolingo 一致(8a50c92 WIP → 37b1f21 完整管线 + 图库)。
+- **容器内容(FR-14)+ 情景对话(FR-15)**:照片中"容器内容"(抽屉里的东西等)识别与情景对话生成(403dbbd)。
+- **照片预处理统一**:预处理与拼接检测逻辑统一(memorize_image.py,5d9e665),消除室内/室外照片在检测前的尺寸与拼接差异。
+- **识别与发音练习改进**:`vision.py` 重构、YOLOE 标签体系扩展(日常物 everyday labels,328 条目)+ 本地 **Piper TTS**(piper_tts.py,205 行)支持例句语音(9fabc75)。
+
+### 测试
+- 新增 `test_piper_tts.py`(151 行)、扩展 `test_vision.py`(134 行)、`test_memorize_api.py`(131 行)、`test_memorize_warmup.py`(9fabc75 / 5d9e665)。
+
+### 已知限制(与 v0.5 相同)
+- **冷启动 ~1-3 分钟(每次启动)**:numba/torch/transformers 冻结态导入 + 模型加载;前端轮询 `/health` 并显示"后端启动中"(等待上限 240s)。
+- **arm64-only**:Intel Mac 需另冻结 + 通用二进制(未做)。
+- **模型首运下载**(~1.7GB,之后离线);未预打包(NFR-1)。
+- **未公证**:GitHub 发布足以(用户首次右键绕过 Gatekeeper);公证($99/yr Developer ID)为可选项。
+
 ## [v0.5] — 2026-07-25 — 首个可分发版(macOS .dmg)
 
 把后端从"开发态 venv"固化为**可分发 `.dmg`**:PyInstaller `--onedir` 冻结 Python 后端(torch/torchaudio/transformers/faster-whisper 全栈)→ 作为 Tauri 资源打包 → ad-hoc 签名 → ULFO 压缩 dmg(**383MB**)。收尾 NFR-2「后端冻结为 sidecar 二进制」工程债。

@@ -1,6 +1,6 @@
 {
   "name": "nativelingo",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "NativeLingo desktop learning workbench",
   "scripts": {
     "dev": "vite",
