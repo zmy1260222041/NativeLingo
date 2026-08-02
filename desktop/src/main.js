@@ -1,71 +1,59 @@
-// NativeLingo frontend logic.
-// Two top-level modules: Speaking (口语: video-shadowing + audio-upload) and
-// Memorizing (识物: photo object labeling + scenario sentences, Phase D).
-// Talks to the local FastAPI sidecar; backend URL + token injected by the Tauri
-// shell, with dev fallbacks.
+import "@fontsource-variable/geist/wght.css";
+import {
+  BACKEND_TOKEN,
+  BACKEND_URL,
+  apiFetch,
+  authHeaders,
+  clientLog,
+  deadlineFetch,
+  installRuntimeLogging,
+  readJson,
+  tokenQS,
+} from "./modules/runtime.js";
+import { appStore } from "./modules/state.js";
+import { UI_COPY } from "./modules/copy.js";
+import { setIconButton } from "./modules/icons.js";
+import {
+  flipLayout,
+  refreshMotion,
+  revealHotspots,
+  revealImage,
+  revealView,
+  stackResults,
+} from "./modules/motion.js";
+import {
+  createRecorder,
+  makeTimer,
+  runCountdown,
+  setStatus,
+} from "./modules/recording.js";
+import { feedbackIndex, formatSpeechRate, scoreColor } from "./modules/results.js";
+import { selectedRangeLabel, setSpeakingStage } from "./modules/speaking.js";
+import {
+  countObjectLabels,
+  MEMO_PREPROCESSING_CONTRACT,
+  setMemoStage,
+} from "./modules/memorizing.js";
+import { wireEditorialShell, wireTheme } from "./modules/shell.js";
 
-const BACKEND_URL = window.__NATIVELINGO_BACKEND__ || "http://127.0.0.1:8756";
-const BACKEND_TOKEN = window.__NATIVELINGO_TOKEN__ || null;
+installRuntimeLogging();
 
 // boot marker: confirms in the backend log which JS build loaded. Fired both at
 // load (visible when the backend is already up from a prior session) and again
 // once the backend responds, so the marker is reliable across cold starts (the
 // load-time ping otherwise fails silently while the backend is still spinning
 // up and never reaches the log).
-const BOOT_TAG = "v23";
+const BOOT_TAG = "v24-editorial";
 let _bootMarked = false;
 function markBoot() {
   if (_bootMarked) return;
-  fetch(`${BACKEND_URL}/health?boot=${BOOT_TAG}`)
+  apiFetch(`/health?boot=${BOOT_TAG}`)
     .then(() => { _bootMarked = true; })
     .catch(() => {});
 }
 markBoot();
 
-// send a debug message to the backend log (webview has no visible console)
-function clientLog(msg) {
-  try {
-    fetch(`${BACKEND_URL}/clientlog`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ msg: String(msg) }),
-    }).catch(() => {});
-  } catch (_) {}
-}
-window.addEventListener("error", (e) => clientLog("window.error: " + e.message));
-window.addEventListener("unhandledrejection", (e) =>
-  clientLog("unhandledrejection: " + (e.reason && e.reason.message ? e.reason.message : e.reason))
-);
-
 const $ = (id) => document.getElementById(id);
-const authHeaders = () =>
-  BACKEND_TOKEN ? { Authorization: `Bearer ${BACKEND_TOKEN}` } : {};
-const tokenQS = () => (BACKEND_TOKEN ? `?token=${encodeURIComponent(BACKEND_TOKEN)}` : "");
-
-// =====================================================================
-// Theme (light / dark)
-// =====================================================================
-// The no-flash initial class was set by an inline script in <head>; here we
-// wire the toggle button and persist the choice. Defaults to the system
-// preference until the user picks one.
-const themeToggle = $("theme-toggle");
-function applyTheme(dark) {
-  document.documentElement.classList.toggle("dark", dark);
-  if (themeToggle) {
-    themeToggle.textContent = dark ? "☀️" : "🌙";
-    const label = dark ? "切换到浅色主题" : "切换到深色主题";
-    themeToggle.title = label;
-    themeToggle.setAttribute("aria-label", label);
-  }
-}
-if (themeToggle) {
-  themeToggle.addEventListener("click", () => {
-    const nextDark = !document.documentElement.classList.contains("dark");
-    applyTheme(nextDark);
-    try { localStorage.setItem("nl-theme", nextDark ? "dark" : "light"); } catch (_) {}
-  });
-}
-applyTheme(document.documentElement.classList.contains("dark"));
 
 // Memorizing actions should never leave a learner staring at an infinite
 // spinner. The backend mirrors this deadline, but AbortController gives the
@@ -73,31 +61,8 @@ applyTheme(document.documentElement.classList.contains("dark"));
 const MEMO_REQUEST_TIMEOUT_MS = 15_000;
 const MEMO_HEALTH_TIMEOUT_MS = 3_000;
 const MEMO_PRONOUNCE_TIMEOUT_MS = 18_000;
-async function memoFetch(path, options = {}, timeoutMs = MEMO_REQUEST_TIMEOUT_MS) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  const headers = new Headers(options.headers || {});
-  if (BACKEND_TOKEN && !headers.has("Authorization")) {
-    headers.set("Authorization", `Bearer ${BACKEND_TOKEN}`);
-  }
-  try {
-    return await fetch(`${BACKEND_URL}${path}`, {
-      ...options,
-      headers,
-      signal: controller.signal,
-    });
-  } catch (error) {
-    if (controller.signal.aborted) {
-      const seconds = Math.ceil(timeoutMs / 1000);
-      const timeout = new Error(`等待超过${seconds}秒，已停止本次请求。请重试；若持续发生，请重新打开应用。`);
-      timeout.name = "MemoTimeoutError";
-      throw timeout;
-    }
-    throw error;
-  } finally {
-    clearTimeout(timer);
-  }
-}
+const memoFetch = (path, options = {}, timeoutMs = MEMO_REQUEST_TIMEOUT_MS) =>
+  deadlineFetch(path, options, timeoutMs);
 
 // =====================================================================
 // Backend health
@@ -105,17 +70,23 @@ async function memoFetch(path, options = {}, timeoutMs = MEMO_REQUEST_TIMEOUT_MS
 async function checkBackend() {
   const status = $("backend-status");
   try {
-    const res = await fetch(`${BACKEND_URL}/health`);
+    const res = await apiFetch("/health");
     const data = await res.json();
     if (data.status === "ok") {
-      status.textContent = data.model_loaded ? "后端就绪" : "后端启动中(模型加载)…";
+      status.textContent = data.model_loaded ? UI_COPY.backendReady : "正在载入分析模型";
       status.className = "status status-ok";
+      status.dataset.tooltip = status.textContent;
+      $("backend-detail").textContent = status.textContent;
+      appStore.patch({ backend: { state: "ready", label: status.textContent } });
       markBoot();   // now that the backend is up, the boot marker will reach the log
       return true;
     }
   } catch (_) {}
-  status.textContent = "无法连接后端";
+  status.textContent = UI_COPY.backendUnavailable;
   status.className = "status status-error";
+  status.dataset.tooltip = status.textContent;
+  $("backend-detail").textContent = status.textContent;
+  appStore.patch({ backend: { state: "error", label: status.textContent } });
   return false;
 }
 
@@ -126,17 +97,21 @@ let warmupState = null;
 const _WARMUP_LABEL = { encoder: "编码器", mms: "MMS 对齐 ~1.2GB", phoneme: "音素 ~2.4GB" };
 async function pollWarmup() {
   try {
-    warmupState = await (await fetch(`${BACKEND_URL}/warmup`)).json();
+    warmupState = await (await apiFetch("/warmup")).json();
   } catch (_) { return; }
   if (!warmupState) return;
   const st = $("backend-status");
   if (warmupState.stage === "done") {
-    st.textContent = "后端就绪 · 分析模型就绪";
+    st.textContent = UI_COPY.backendReady;
     st.className = "status status-ok";
+    st.dataset.tooltip = st.textContent;
+    $("backend-detail").textContent = st.textContent;
     return;
   }
-  st.textContent = `后端就绪 · 预下载分析模型(${_WARMUP_LABEL[warmupState.stage] || warmupState.stage})…`;
+  st.textContent = `正在准备${_WARMUP_LABEL[warmupState.stage] || warmupState.stage}`;
   st.className = "status status-pending";
+  st.dataset.tooltip = st.textContent;
+  $("backend-detail").textContent = st.textContent;
   setTimeout(pollWarmup, 3000);
 }
 
@@ -148,9 +123,18 @@ async function pollWarmup() {
 document.querySelectorAll(".module").forEach((mod) => {
   mod.addEventListener("click", () => {
     const m = mod.dataset.module;
-    document.querySelectorAll(".module").forEach((x) => x.classList.toggle("module-active", x === mod));
-    document.querySelectorAll(".module-pane").forEach((p) => { p.hidden = p.id !== "module-" + m; });
+    const panes = document.querySelectorAll(".module-pane");
+    flipLayout(panes, () => {
+      document.querySelectorAll(".module").forEach((x) => {
+        const active = x === mod;
+        x.classList.toggle("module-active", active);
+        x.setAttribute("aria-pressed", String(active));
+      });
+      panes.forEach((p) => { p.hidden = p.id !== "module-" + m; });
+    });
     if (m !== "speaking") $("results").hidden = true;
+    appStore.patch({ module: m });
+    revealView($("module-" + m));
     onModuleChange(m);
   });
 });
@@ -159,11 +143,16 @@ document.querySelectorAll(".module").forEach((mod) => {
 // toggle generalizes if more Speaking modes are added later.
 document.querySelectorAll("#module-speaking .tab").forEach((tab) => {
   tab.addEventListener("click", () => {
-    document.querySelectorAll("#module-speaking .tab").forEach((t) => t.classList.remove("tab-active"));
-    tab.classList.add("tab-active");
+    document.querySelectorAll("#module-speaking .tab").forEach((t) => {
+      const active = t === tab;
+      t.classList.toggle("tab-active", active);
+      t.setAttribute("aria-pressed", String(active));
+    });
     const mode = tab.dataset.mode;
     document.querySelectorAll("#module-speaking .mode").forEach((m) => { m.hidden = m.id !== "mode-" + mode; });
     $("results").hidden = true;
+    appStore.patch({ speakingMode: mode });
+    revealView($("mode-" + mode));
   });
 });
 
@@ -172,134 +161,6 @@ document.querySelectorAll("#module-speaking .tab").forEach((tab) => {
 function onModuleChange(module) {
   if (module === "memorize") memoEnter();
   else memoLeave();
-}
-
-// =====================================================================
-// Shared recording helper
-// =====================================================================
-function pickMime() {
-  // WKWebView typically supports mp4/aac; Chromium supports webm/opus.
-  const cands = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm", ""];
-  for (const c of cands) {
-    if (c === "" || (window.MediaRecorder && MediaRecorder.isTypeSupported(c))) {
-      return c;
-    }
-  }
-  return "";
-}
-
-function createRecorder() {
-  return {
-    mediaRecorder: null,
-    chunks: [],
-    recording: false,
-    prepared: false,
-    blob: null,
-    stream: null,
-    _onStop: null,
-    _finalize() {
-      // guard against double-finalize (onstop + manual fallback)
-      if (this._finalized) return;
-      this._finalized = true;
-      const type = (this.mediaRecorder && this.mediaRecorder.mimeType) || "audio/mp4";
-      this.blob = new Blob(this.chunks, { type });
-      clientLog("recorder finalize; chunks=" + this.chunks.length + " blob=" + this.blob.size);
-      if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
-      if (this._onStop) this._onStop(this.blob);
-    },
-    // Open the mic + build the MediaRecorder WITHOUT starting capture. Lets
-    // the caller run a countdown between prepare() and begin() so the learner
-    // has an unambiguous "start now" cue — the getUserMedia delay is absorbed
-    // during the countdown, so nothing at the opening gets clipped.
-    async prepare(onStop) {
-      this._onStop = onStop;
-      this._finalized = false;
-      this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.chunks = [];
-      const mime = pickMime();
-      clientLog("MediaRecorder mime=" + (mime || "(default)"));
-      const rec = mime ? new MediaRecorder(this.stream, { mimeType: mime })
-                       : new MediaRecorder(this.stream);
-      rec.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) this.chunks.push(e.data);
-      };
-      rec.onstop = () => { clientLog("MediaRecorder.onstop fired"); this._finalize(); };
-      rec.onerror = (e) => clientLog("MediaRecorder.onerror: " + (e.error && e.error.name));
-      this.mediaRecorder = rec;
-      this.prepared = true;
-    },
-    // Start capture (call after prepare()). timeslice: flush data periodically
-    // (WKWebView needs this to emit data).
-    begin() {
-      if (this.mediaRecorder) {
-        this.mediaRecorder.start(500);
-        this.recording = true;
-      }
-    },
-    // Convenience: prepare + begin with no gap (legacy callers).
-    async start(onStop) {
-      await this.prepare(onStop);
-      this.begin();
-    },
-    stop() {
-      if (this.mediaRecorder && this.recording) {
-        this.recording = false;
-        try {
-          this.mediaRecorder.requestData();  // force a final dataavailable
-        } catch (_) {}
-        try {
-          this.mediaRecorder.stop();
-        } catch (_) {}
-        // fallback: if onstop doesn't fire within 800ms, finalize manually
-        setTimeout(() => this._finalize(), 800);
-      }
-    },
-  };
-}
-
-function makeTimer(elId) {
-  let interval = null;
-  let elapsed = 0;
-  const render = () => {
-    const m = String(Math.floor(elapsed / 60)).padStart(2, "0");
-    const s = String(elapsed % 60).padStart(2, "0");
-    $(elId).textContent = `${m}:${s}`;
-  };
-  return {
-    start() {
-      elapsed = 0;
-      render();
-      interval = setInterval(() => {
-        elapsed += 1;
-        render();
-      }, 1000);
-    },
-    stop() {
-      if (interval) clearInterval(interval);
-    },
-  };
-}
-
-// Countdown shown in the status bar between mic-prepare and capture-start,
-// giving the learner an unambiguous "start reading now" cue. Shows secs..1
-// (one number per second), then resolves — capture should begin() at resolve.
-function runCountdown(statusEl, secs = 3) {
-  return new Promise((resolve) => {
-    let n = secs;
-    const tick = () => {
-      statusEl.textContent = String(n);
-      if (n <= 1) { setTimeout(resolve, 1000); return; }
-      n -= 1;
-      setTimeout(tick, 1000);
-    };
-    tick();
-  });
-}
-
-// Swap the status bar's modifier class (prep / countdown / rec / "").
-function setStatus(el, cls, msg) {
-  el.className = "analyze-status" + (cls ? " " + cls : "");
-  if (msg != null) el.textContent = msg;
 }
 
 // =====================================================================
@@ -316,6 +177,7 @@ $("ref-file").addEventListener("change", (e) => {
   const player = $("ref-player");
   player.src = URL.createObjectURL(file);
   player.hidden = false;
+  setSpeakingStage("source-ready", { mode: "audio", filename: file.name });
   audioUpdateBtn();
 });
 
@@ -324,35 +186,39 @@ $("record-btn").addEventListener("click", async () => {
   if (audioRec.recording) {
     audioRec.stop();
     audioTimer.stop();
-    setStatus($("analyze-status"), "", "处理录音中…");
-    btn.textContent = "● 开始录音";
+    setStatus($("analyze-status"), "", "正在整理录音");
+    setIconButton(btn, "record", "开始录音");
     btn.classList.remove("recording");
   } else {
     try {
       const statusEl = $("analyze-status");
-      setStatus(statusEl, "prep", "正在准备麦克风…");
+      setSpeakingStage("preparing", { mode: "audio" });
+      setStatus(statusEl, "prep", "正在准备麦克风");
       btn.disabled = true;
-      btn.textContent = "准备中…";
+      setIconButton(btn, "record", "正在准备麦克风");
       await audioRec.prepare((blob) => {
         audio.learnerBlob = blob;
         const player = $("learner-player");
         player.src = URL.createObjectURL(blob);
         player.hidden = false;
         audioUpdateBtn();
-        setStatus(statusEl, "", "录制完成,可点击“分析我的发音”");
+        setStatus(statusEl, "", "录制完成，可以开始分析");
+        setSpeakingStage("recorded", { mode: "audio" });
       });
       setStatus(statusEl, "countdown");
       await runCountdown(statusEl, 3);
       audioRec.begin();
       audioTimer.start();
-      setStatus(statusEl, "rec", "正在录音,请开始朗读");
+      setStatus(statusEl, "rec", "正在录音");
+      setSpeakingStage("recording", { mode: "audio" });
       btn.disabled = false;
-      btn.textContent = "■ 停止录音";
+      setIconButton(btn, "stop", "停止录音");
       btn.classList.add("recording");
     } catch (err) {
       btn.disabled = false;
-      btn.textContent = "● 开始录音";
-      setStatus($("analyze-status"), "", "无法访问麦克风: " + (err.message || err));
+      setIconButton(btn, "record", "开始录音");
+      setStatus($("analyze-status"), "", "无法访问麦克风：" + (err.message || err));
+      setSpeakingStage("error", { mode: "audio", reason: "microphone" });
     }
   }
 });
@@ -365,19 +231,20 @@ $("analyze-btn").addEventListener("click", async () => {
   const statusEl = $("analyze-status");
   const btn = $("analyze-btn");
   btn.disabled = true;
-  statusEl.textContent = "分析中,请稍候…";
+  statusEl.textContent = "正在分析";
+  setSpeakingStage("analyzing", { mode: "audio" });
   const form = new FormData();
   form.append("reference", audio.referenceBlob, "reference");
   form.append("learner", audio.learnerBlob, "learner.webm");
   try {
-    const res = await fetch(`${BACKEND_URL}/analyze`, {
+    const res = await apiFetch("/analyze", {
       method: "POST", body: form, headers: authHeaders(),
     });
-    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || "分析失败");
-    renderResults(await res.json());
+    renderResults(await readJson(res, "分析失败"));
     statusEl.textContent = "";
   } catch (err) {
-    statusEl.textContent = "错误: " + err.message;
+    statusEl.textContent = "分析失败：" + err.message;
+    setSpeakingStage("error", { mode: "audio", reason: "analysis" });
   } finally {
     btn.disabled = false;
     audioUpdateBtn();
@@ -402,22 +269,29 @@ const shadowTimer = makeTimer("shadow-timer");
 async function loadVideoList() {
   const container = $("video-list");
   try {
-    const res = await fetch(`${BACKEND_URL}/videos`, { headers: authHeaders() });
-    const data = await res.json();
+    const res = await apiFetch("/videos", { headers: authHeaders() });
+    const data = await readJson(res, "素材加载失败");
     if (!data.videos || data.videos.length === 0) {
-      container.innerHTML = '<div class="hint">videos/ 目录下暂无视频。放入 .mp4 后刷新。</div>';
+      container.innerHTML = '<div class="empty-inline">暂无视频素材</div>';
       return;
     }
-    container.innerHTML = "";
+    container.replaceChildren();
     data.videos.forEach((v) => {
-      const item = document.createElement("div");
+      const item = document.createElement("button");
+      item.type = "button";
       item.className = "video-item";
-      item.innerHTML = `<span>${v.name}</span><span class="meta">${v.size_mb} MB</span>`;
+      const name = document.createElement("span");
+      name.textContent = v.name;
+      const meta = document.createElement("span");
+      meta.className = "meta";
+      meta.textContent = `${v.size_mb} MB`;
+      item.append(name, meta);
       item.addEventListener("click", () => selectVideo(v.name, item));
       container.appendChild(item);
     });
   } catch (err) {
-    container.innerHTML = `<div class="hint">加载失败: ${err.message}</div>`;
+    container.textContent = `加载失败：${err.message}`;
+    container.classList.add("empty-inline");
   }
 }
 
@@ -427,25 +301,28 @@ async function selectVideo(name, itemEl) {
   videoState.name = name;
   videoState.rangeStart = null;
   videoState.rangeEnd = null;
+  setSpeakingStage("source-ready", { mode: "video", filename: name });
+  $("speaking-empty").hidden = true;
 
   const sentSection = $("sentence-section");
   const list = $("sentence-list");
   sentSection.hidden = false;
   $("shadow-section").hidden = true;
-  list.innerHTML = '<div class="hint">转写并切分句子中(首次较慢,请稍候)…</div>';
-  $("range-info").textContent = "转写中…";
+  list.innerHTML = '<div class="empty-inline">正在准备字幕</div>';
+  $("range-info").textContent = "正在转写";
+  revealView(sentSection);
 
   try {
-    const res = await fetch(`${BACKEND_URL}/videos/${encodeURIComponent(name)}/process`, {
+    const res = await apiFetch(`/videos/${encodeURIComponent(name)}/process`, {
       method: "POST", headers: authHeaders(),
     });
-    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || "转写失败");
-    const data = await res.json();
+    const data = await readJson(res, "转写失败");
     videoState.sentences = data.sentences;
     renderSentences();
   } catch (err) {
-    list.innerHTML = `<div class="hint">转写失败: ${err.message}</div>`;
-    $("range-info").textContent = "出错";
+    list.textContent = `转写失败：${err.message}`;
+    $("range-info").textContent = "无法准备字幕";
+    setSpeakingStage("error", { mode: "video", reason: "transcription" });
   }
 }
 
@@ -457,15 +334,22 @@ function fmt(t) {
 
 function renderSentences() {
   const list = $("sentence-list");
-  list.innerHTML = "";
+  list.replaceChildren();
   videoState.sentences.forEach((sent) => {
-    const item = document.createElement("div");
+    const item = document.createElement("button");
+    item.type = "button";
     item.className = "sentence-item";
     item.dataset.index = sent.index;
-    item.innerHTML =
-      `<span class="idx">${sent.index + 1}.</span>` +
-      `<span class="ts">${fmt(sent.start)}</span>` +
-      `<span class="txt">${sent.text}</span>`;
+    const index = document.createElement("span");
+    index.className = "idx";
+    index.textContent = String(sent.index + 1).padStart(2, "0");
+    const timestamp = document.createElement("span");
+    timestamp.className = "ts";
+    timestamp.textContent = fmt(sent.start);
+    const text = document.createElement("span");
+    text.className = "txt";
+    text.textContent = sent.text;
+    item.append(index, timestamp, text);
     item.addEventListener("click", () => pickSentence(sent.index));
     list.appendChild(item);
   });
@@ -478,12 +362,14 @@ function pickSentence(idx) {
     // start a new selection
     st.rangeStart = idx;
     st.rangeEnd = null;
+    setSpeakingStage("range-started", { start: idx });
   } else {
     // set the end
     st.rangeEnd = idx;
     if (st.rangeEnd < st.rangeStart) {
       [st.rangeStart, st.rangeEnd] = [st.rangeEnd, st.rangeStart];
     }
+    setSpeakingStage("range-ready", { start: st.rangeStart, end: st.rangeEnd });
   }
   updateRangeUI();
 }
@@ -502,17 +388,13 @@ function updateRangeUI() {
 
   const info = $("range-info");
   if (start === null) {
-    info.textContent = "尚未选择";
+    info.textContent = "点按一句开始";
     $("shadow-section").hidden = true;
     return;
   }
   const s = st.sentences[start];
   const e = st.sentences[end];
-  const count = end - start + 1;
-  info.textContent =
-    st.rangeEnd === null
-      ? `已选起始:第 ${start + 1} 句 — 再点一句设为结束(或直接开始跟读单句)`
-      : `已选:第 ${start + 1} — ${end + 1} 句 (共 ${count} 句, ${fmt(s.start)}–${fmt(e.end)})`;
+  info.textContent = selectedRangeLabel(start, st.rangeEnd);
 
   // show the shadow section once at least a start is chosen
   setupShadow(s.start, e.end);
@@ -538,6 +420,7 @@ function setupShadow(startT, endT) {
   else video.addEventListener("loadedmetadata", seek, { once: true });
   $("shadow-analyze-btn").disabled = true;
   $("shadow-learner-player").hidden = true;
+  revealView($("shadow-section"));
 }
 
 function playShadowClip() {
@@ -567,9 +450,9 @@ $("shadow-record-btn").addEventListener("click", async () => {
     shadowRec.stop();
     shadowTimer.stop();
     $("shadow-video").pause();
-    btn.textContent = "● 开始跟读";
+    setIconButton(btn, "record", "开始跟读");
     btn.classList.remove("recording");
-    shadowStatus("处理录音中…");
+    shadowStatus("正在整理录音");
   } else {
     if (videoState.rangeStart === null) {
       shadowStatus("请先选择要跟读的句子");
@@ -579,9 +462,10 @@ $("shadow-record-btn").addEventListener("click", async () => {
       " getUserMedia=" + !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia));
     try {
       const statusEl = $("shadow-analyze-status");
-      setStatus(statusEl, "prep", "正在准备麦克风…");
+      setSpeakingStage("preparing", { mode: "video" });
+      setStatus(statusEl, "prep", "正在准备麦克风");
       btn.disabled = true;
-      btn.textContent = "准备中…";
+      setIconButton(btn, "record", "正在准备麦克风");
       await shadowRec.prepare((blob) => {
         clientLog("recording stopped; blob size=" + blob.size);
         videoState.learnerBlob = blob;
@@ -592,7 +476,8 @@ $("shadow-record-btn").addEventListener("click", async () => {
         player.src = videoState.learnerUrl;
         player.hidden = false;
         $("shadow-analyze-btn").disabled = false;
-        shadowStatus(blob.size > 0 ? "录制完成,可点击“分析我的发音”" : "录音为空,请重试");
+        shadowStatus(blob.size > 0 ? "录制完成，可以开始分析" : "没有录到声音，请重试");
+        setSpeakingStage(blob.size > 0 ? "recorded" : "error", { mode: "video" });
         uploadLearnerRecording(blob);
       });
       clientLog("getUserMedia succeeded; recorder prepared");
@@ -604,15 +489,17 @@ $("shadow-record-btn").addEventListener("click", async () => {
       shadowRec.begin();
       playShadowClip(); // muted video + subtitles play in sync, from rangeStart
       shadowTimer.start();
-      setStatus(statusEl, "rec", "正在录音,请开始朗读");
+      setStatus(statusEl, "rec", "正在录音");
+      setSpeakingStage("recording", { mode: "video" });
       btn.disabled = false;
-      btn.textContent = "■ 停止跟读";
+      setIconButton(btn, "stop", "停止跟读");
       btn.classList.add("recording");
     } catch (err) {
       clientLog("getUserMedia FAILED: " + (err && err.name) + " / " + (err && err.message));
       btn.disabled = false;
-      btn.textContent = "● 开始跟读";
-      shadowStatus("无法访问麦克风: " + (err && err.message ? err.message : err));
+      setIconButton(btn, "record", "开始跟读");
+      shadowStatus("无法访问麦克风：" + (err && err.message ? err.message : err));
+      setSpeakingStage("error", { mode: "video", reason: "microphone" });
     }
   }
 });
@@ -621,9 +508,10 @@ $("shadow-analyze-btn").addEventListener("click", async () => {
   const statusEl = $("shadow-analyze-status");
   const btn = $("shadow-analyze-btn");
   btn.disabled = true;
+  setSpeakingStage("analyzing", { mode: "video" });
   statusEl.textContent = (warmupState && warmupState.stage !== "done")
-    ? `首次需下载分析模型(预拉中:${warmupState.stage}),请稍候…`
-    : "分析中,请稍候…";
+    ? "正在准备分析模型"
+    : "正在分析";
   const st = videoState;
   const end = st.rangeEnd !== null ? st.rangeEnd : st.rangeStart;
   const form = new FormData();
@@ -632,14 +520,14 @@ $("shadow-analyze-btn").addEventListener("click", async () => {
   form.append("end_index", end);
   form.append("learner", st.learnerBlob, "learner.webm");
   try {
-    const res = await fetch(`${BACKEND_URL}/analyze_video`, {
+    const res = await apiFetch("/analyze_video", {
       method: "POST", body: form, headers: authHeaders(),
     });
-    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || "分析失败");
-    renderResults(await res.json());
+    renderResults(await readJson(res, "分析失败"));
     statusEl.textContent = "";
   } catch (err) {
-    statusEl.textContent = "错误: " + err.message;
+    statusEl.textContent = "分析失败：" + err.message;
+    setSpeakingStage("error", { mode: "video", reason: "analysis" });
   } finally {
     btn.disabled = false;
   }
@@ -648,18 +536,13 @@ $("shadow-analyze-btn").addEventListener("click", async () => {
 // =====================================================================
 // Shared results rendering
 // =====================================================================
-function bandColor(score) {
-  if (score >= 75) return "var(--good)";
-  if (score >= 60) return "var(--fair)";
-  return "var(--bad)";
-}
-
 function renderResults(data) {
   $("results").hidden = false;
+  setSpeakingStage("results", { score: Math.round(data.overall_score) });
 
   const refText = $("reference-text");
   if (data.reference_text) {
-    refText.textContent = "参考文本: " + data.reference_text;
+    refText.textContent = "参考文本：" + data.reference_text;
     refText.hidden = false;
   } else {
     refText.hidden = true;
@@ -668,18 +551,17 @@ function renderResults(data) {
   const set = (id, val) => {
     const el = $(id);
     el.textContent = Math.round(val);
-    el.style.color = bandColor(val);
+    const track = id === "accuracy-score" ? $("accuracy-track") : id === "fluency-score" ? $("fluency-track") : null;
+    if (track) {
+      track.style.setProperty("--score", `${Math.max(0, Math.min(100, val))}%`);
+      track.style.setProperty("--score-color", scoreColor(val));
+    }
   };
   set("overall-score", data.overall_score);
   set("accuracy-score", data.accuracy);
   set("fluency-score", data.fluency);
 
-  const ratio = data.speech_rate_ratio;
-  let rateText = `语速比(你/参考): ${ratio.toFixed(2)}×`;
-  if (ratio > 1.15) rateText += " — 偏慢";
-  else if (ratio < 0.85) rateText += " — 偏快";
-  else rateText += " — 接近参考";
-  $("rate-info").textContent = rateText;
+  $("rate-info").textContent = formatSpeechRate(data.speech_rate_ratio);
 
   const tipsList = $("tips-list");
   tipsList.innerHTML = "";
@@ -697,13 +579,21 @@ function renderResults(data) {
 
   const prosody = data.prosody;
   if (prosody) {
-    $("prosody-info").innerHTML =
-      `语调匹配: <span>${Math.round(prosody.intonation_match)}</span> · ` +
-      `停顿匹配: <span>${Math.round(prosody.pause_match)}</span> · ` +
-      `你的停顿次数: <span>${prosody.learner_pauses}</span> (参考 ${prosody.reference_pauses})`;
+    const prosodyInfo = $("prosody-info");
+    prosodyInfo.replaceChildren();
+    [
+      `语调 ${Math.round(prosody.intonation_match)}`,
+      `停顿 ${Math.round(prosody.pause_match)}`,
+      `停顿次数 ${prosody.learner_pauses}，参考 ${prosody.reference_pauses}`,
+    ].forEach((text) => {
+      const item = document.createElement("span");
+      item.textContent = text;
+      prosodyInfo.appendChild(item);
+    });
   }
 
   renderSentenceDetails(data.sentences, data.segment);
+  revealView($("results"));
   $("results").scrollIntoView({ behavior: "smooth" });
 }
 
@@ -715,7 +605,7 @@ function renderSentenceDetails(sentences, segment) {
     return;
   }
   block.hidden = false;
-  container.innerHTML = "";
+  container.replaceChildren();
 
   // point the learner clip player at the current recording (if any)
   const myPlayer = $("my-clip-player");
@@ -723,17 +613,22 @@ function renderSentenceDetails(sentences, segment) {
     myPlayer.src = videoState.learnerUrl;
   }
 
-  sentences.forEach((sd) => {
+  sentences.forEach((sd, sentenceIndex) => {
     const card = document.createElement("div");
     card.className = "sent-detail";
+    card.style.setProperty("--stack-offset", `${Math.min(sentenceIndex, 5) * 6}px`);
 
     const head = document.createElement("div");
     head.className = "sent-head";
     const scores = document.createElement("span");
     scores.className = "sent-scores";
-    scores.innerHTML =
-      `准确度 <span style="color:${bandColor(sd.accuracy)}">${Math.round(sd.accuracy)}</span> · ` +
-      `流畅度 <span style="color:${bandColor(sd.fluency)}">${Math.round(sd.fluency)}</span>`;
+    const accuracy = document.createElement("span");
+    accuracy.textContent = `准确度 ${Math.round(sd.accuracy)}`;
+    accuracy.style.color = scoreColor(sd.accuracy);
+    const fluency = document.createElement("span");
+    fluency.textContent = `流畅度 ${Math.round(sd.fluency)}`;
+    fluency.style.color = scoreColor(sd.fluency);
+    scores.append(accuracy, fluency);
     head.appendChild(scores);
 
     // in-place clip playback: original reference audio + your own recording,
@@ -745,16 +640,16 @@ function renderSentenceDetails(sentences, segment) {
       const absEnd = segment.start + sd.end;
       const refBtn = document.createElement("button");
       refBtn.className = "sent-play";
-      refBtn.textContent = "▶ 原声";
-      refBtn.title = "播放此句参考原声";
+      refBtn.type = "button";
+      setIconButton(refBtn, "play", "播放原声");
       refBtn.addEventListener("click", () => playRefClip(absStart, absEnd));
       btns.appendChild(refBtn);
     }
     if (videoState.learnerUrl && sd.learner_end > sd.learner_start) {
       const myBtn = document.createElement("button");
       myBtn.className = "sent-play sent-play-mine";
-      myBtn.textContent = "▶ 我的录音";
-      myBtn.title = "播放你自己读这句的录音";
+      myBtn.type = "button";
+      setIconButton(myBtn, "audio", "播放我的录音");
       myBtn.addEventListener("click", () => playMyClip(sd.learner_start, sd.learner_end));
       btns.appendChild(myBtn);
     }
@@ -776,10 +671,25 @@ function renderSentenceDetails(sentences, segment) {
     const tipped = sd.words.filter((w) => w.tip);
     if (tipped.length) {
       const tipsEl = document.createElement("div");
-      tipsEl.className = "word-tips";
-      tipped.forEach((w) => {
+      tipsEl.className = "word-tips feedback-carousel";
+      const feedbackViewport = document.createElement("div");
+      feedbackViewport.className = "feedback-viewport";
+      const feedbackControls = document.createElement("div");
+      feedbackControls.className = "feedback-controls";
+      const previous = document.createElement("button");
+      previous.type = "button";
+      previous.className = "icon-button compact";
+      setIconButton(previous, "chevronLeft", "上一条反馈");
+      const counter = document.createElement("span");
+      const next = document.createElement("button");
+      next.type = "button";
+      next.className = "icon-button compact";
+      setIconButton(next, "chevronRight", "下一条反馈");
+      const rows = [];
+      tipped.forEach((w, tipIndex) => {
         const row = document.createElement("div");
         row.className = "word-tip";
+        row.hidden = tipIndex !== 0;
 
         const label = document.createElement("span");
         label.className = "word w-" + w.status + " wt-label";
@@ -796,8 +706,8 @@ function renderSentenceDetails(sentences, segment) {
         if (segment && videoState.name) {
           const rb = document.createElement("button");
           rb.className = "wt-btn";
-          rb.textContent = "🔊 原声";
-          rb.title = "只听原声这个词";
+          rb.type = "button";
+          setIconButton(rb, "play", `播放 ${w.word} 的原声`);
           rb.addEventListener("click", () =>
             playRefClip(segment.start + w.start, segment.start + w.end));
           ab.appendChild(rb);
@@ -805,18 +715,34 @@ function renderSentenceDetails(sentences, segment) {
         if (videoState.learnerUrl && w.learner_end > w.learner_start) {
           const mb = document.createElement("button");
           mb.className = "wt-btn wt-btn-mine";
-          mb.textContent = "🔊 我的";
-          mb.title = "只听你自己这个词";
+          mb.type = "button";
+          setIconButton(mb, "audio", `播放我读的 ${w.word}`);
           mb.addEventListener("click", () => playMyClip(w.learner_start, w.learner_end));
           ab.appendChild(mb);
         }
         row.appendChild(ab);
-        tipsEl.appendChild(row);
+        rows.push(row);
+        feedbackViewport.appendChild(row);
       });
+      let activeTip = 0;
+      const showTip = (index) => {
+        activeTip = feedbackIndex(0, index, rows.length);
+        rows.forEach((row, rowIndex) => { row.hidden = rowIndex !== activeTip; });
+        counter.textContent = `${activeTip + 1} / ${rows.length}`;
+        revealView(rows[activeTip]);
+      };
+      previous.addEventListener("click", () => showTip(activeTip - 1));
+      next.addEventListener("click", () => showTip(activeTip + 1));
+      feedbackControls.append(previous, counter, next);
+      tipsEl.append(feedbackViewport);
+      if (rows.length > 1) tipsEl.append(feedbackControls);
+      showTip(0);
       card.appendChild(tipsEl);
     }
     container.appendChild(card);
   });
+  stackResults(container);
+  refreshMotion();
 }
 
 // stop any clip / video that might currently be playing
@@ -884,11 +810,10 @@ async function uploadLearnerRecording(blob) {
   try {
     const form = new FormData();
     form.append("learner", blob, "learner.webm");
-    const res = await fetch(`${BACKEND_URL}/recordings`, {
+    const res = await apiFetch("/recordings", {
       method: "POST", body: form, headers: authHeaders(),
     });
-    if (!res.ok) throw new Error(`status ${res.status}`);
-    const data = await res.json();
+    const data = await readJson(res, "无法保存录音");
     // only adopt if the user hasn't re-recorded in the meantime
     if (videoState.learnerBlob === blob) {
       videoState.learnerRid = data.recording_id;
@@ -927,7 +852,6 @@ const memo = {
 };
 const MEMO_MAX_DIM = 1920;
 const MEMO_MAX_DIRECT_UPLOAD_BYTES = 50_000_000;
-const MEMO_PREPROCESSING_CONTRACT = "memorize-image-v1";
 const MEMO_BACKEND_IMAGE_TYPES = new Set([
   "image/jpeg", "image/png", "image/webp",
 ]);
@@ -971,9 +895,9 @@ async function memoPollStatus() {
     const st = await (await memoFetch("/memorize/status", { headers: authHeaders() })).json();
     const busy = st.running || (st.stage && !["done", "idle", "error"].includes(st.stage));
     if (st.stage === "error") {
-      memoStatus("err", "模型准备出错:" + (st.error || "") + "(仍可尝试,将按需下载)");
+      memoStatus("err", "模型准备失败：" + (st.error || "请稍后重试"));
     } else if (busy) {
-      memoStatus("", `正在准备${_MEMO_STAGE_LABEL[st.stage] || st.stage}…(首次需下载,请稍候)`);
+      memoStatus("", `正在准备${_MEMO_STAGE_LABEL[st.stage] || st.stage}`);
     } else {
       memoStatus("", "");  // ready / idle -> hide
     }
@@ -985,7 +909,6 @@ async function memoPollStatus() {
 function memoWireUpload() {
   const zone = $("memo-upload");
   const input = $("memo-file");
-  zone.addEventListener("click", () => input.click());
   zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("drag"); });
   zone.addEventListener("dragleave", () => zone.classList.remove("drag"));
   zone.addEventListener("drop", (e) => {
@@ -999,6 +922,8 @@ function memoWireUpload() {
   $("memo-back").addEventListener("click", () => {
     memoPronounceReset();
     $("memo-detail").hidden = true;
+    appStore.patch({ memoView: "recognition" });
+    setMemoStage("photo", { objects: memo.objects.length });
     $("memo-view").scrollIntoView({ behavior: "smooth" });
   });
 }
@@ -1017,6 +942,9 @@ function memoResetToUpload() {
   $("memo-hotspots").innerHTML = "";
   $("memo-object-summary").hidden = true;
   $("memo-object-summary").textContent = "";
+  appStore.patch({ memoView: "upload" });
+  setMemoStage("upload");
+  revealView($("memo-upload").closest(".card"));
 }
 
 function memoLoadImage(file) {
@@ -1087,15 +1015,23 @@ async function memoHandleFile(file) {
   const recognitionToken = ++memo.recognitionToken;
   let enc;
   try { enc = await memoPrepareUpload(file); }
-  catch (e) { memoStatus("err", "无法读取该图片,请换一张(JPG/PNG/HEIC)。"); return; }
+  catch (e) {
+    memoStatus("err", "无法读取图片，请换一张常见格式的照片。");
+    setMemoStage("error", { reason: "decode" });
+    return;
+  }
 
   $("memo-upload").closest(".card").hidden = true;
   $("memo-detail").hidden = true;
   const view = $("memo-view"); view.hidden = false;
+  appStore.patch({ memoView: "recognition" });
+  setMemoStage("analyzing", { filename: file.name });
+  revealView(view);
   const img = $("memo-img");
   if (memo.previewUrl) URL.revokeObjectURL(memo.previewUrl);
   memo.previewUrl = URL.createObjectURL(enc.previewBlob);
   img.src = memo.previewUrl;
+  img.addEventListener("load", () => revealImage(img), { once: true });
   memo.imgEl = img;
   memo.imgW = enc.w; memo.imgH = enc.h;
   $("memo-hotspots").innerHTML = "";
@@ -1110,8 +1046,7 @@ async function memoHandleFile(file) {
     const res = await memoFetch("/memorize/analyze", {
       method: "POST", body: form, headers: authHeaders(),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "识别失败");
+    const data = await readJson(res, "识别失败");
     if (data.preprocessing !== MEMO_PREPROCESSING_CONTRACT) {
       throw new Error("后端图像预处理版本不匹配，请重新打开应用。");
     }
@@ -1124,9 +1059,11 @@ async function memoHandleFile(file) {
     }
     memo.objects = data.objects || [];
     memoRenderHotspots();
+    setMemoStage("photo", { objects: memo.objects.length });
   } catch (e) {
     if (recognitionToken !== memo.recognitionToken) return;
-    memoStatus("err", "识别失败:" + e.message);
+    memoStatus("err", `识别失败：${e.message} 请重试或换张照片。`);
+    setMemoStage("error", { reason: "recognition" });
   } finally {
     // CSS explicitly honors the hidden attribute, and the token means an
     // earlier upload cannot hide the spinner belonging to a newer one.
@@ -1149,15 +1086,34 @@ function memoRenderHotspots() {
   memoStatus("", "");  // clear any prior warn
   // Vocabulary surfaces deliberately stay English-only. Chinese is reserved
   // for complete scenario-sentence translations, avoiding a translation bridge.
-  const counts = new Map();
-  memo.objects.forEach((object) => {
-    counts.set(object.label_en, (counts.get(object.label_en) || 0) + 1);
+  const counts = countObjectLabels(memo.objects);
+  summary.replaceChildren();
+  summary.classList.remove("is-overflowing");
+  const ribbon = document.createElement("div");
+  ribbon.className = "object-ribbon";
+  [...counts.entries()].forEach(([label, count]) => {
+    const word = document.createElement("button");
+    word.type = "button";
+    word.className = "object-word";
+    word.textContent = `${label}${count > 1 ? ` ×${count}` : ""}`;
+    word.addEventListener("click", () => {
+      const object = memo.objects.find((item) => item.label_en === label);
+      if (object) memoOpenDetail(object);
+    });
+    ribbon.appendChild(word);
   });
-  summary.textContent = `识别到 ${memo.objects.length} 个：` +
-    [...counts.entries()].map(([label, count]) =>
-      `${label}${count > 1 ? ` ×${count}` : ""}`,
-    ).join(" · ");
+  summary.appendChild(ribbon);
   summary.hidden = false;
+  window.requestAnimationFrame(() => {
+    if (ribbon.scrollWidth <= summary.clientWidth) return;
+    [...ribbon.children].forEach((word) => {
+      const clone = word.cloneNode(true);
+      clone.setAttribute("aria-hidden", "true");
+      clone.tabIndex = -1;
+      ribbon.appendChild(clone);
+    });
+    summary.classList.add("is-overflowing");
+  });
 
   // Large container boxes go below their contained objects. This keeps a
   // cabinet/showcase from covering a plaque, book or trophy hotspot.
@@ -1197,6 +1153,7 @@ function memoRenderHotspots() {
     });
     hs.appendChild(dot);
   });
+  revealHotspots(hs);
 }
 
 function memoContextCropBox(obj) {
@@ -1297,6 +1254,9 @@ async function memoOpenDetail(obj) {
   $("memo-pronounce-record").disabled = false;
   const detail = $("memo-detail");
   detail.hidden = false;
+  appStore.patch({ memoView: "detail" });
+  setMemoStage("detail", { object: obj.label_en });
+  revealView(detail);
   detail.scrollIntoView({ behavior: "smooth" });
 
   // Match the backend's +10% context crop. Florence's part boxes are xyxy
@@ -1329,8 +1289,7 @@ async function memoOpenDetail(obj) {
         photo_id: memo.photoId, object_id: obj.id,
       }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "部件识别失败");
+    const data = await readJson(res, "部件识别失败");
     if (detailToken !== memo.detailToken) return;
     analyzedParts = (data.parts || []).map((part) => ({ ...part, kind: "part" }));
     analyzedContents = (data.contents || []).map((item) => ({
@@ -1347,7 +1306,7 @@ async function memoOpenDetail(obj) {
     }
   } catch (e) {
     if (detailToken !== memo.detailToken) return;
-    setStatus($("memo-parts-status"), "", "部件识别失败:" + e.message);
+    setStatus($("memo-parts-status"), "", `部件识别失败：${e.message} 请重试。`);
   } finally {
     if (detailToken === memo.detailToken) $("memo-parts-analyzing").hidden = true;
   }
@@ -1376,16 +1335,13 @@ async function memoOpenDetail(obj) {
     chip.addEventListener("click", () => selectPart(part));
     chip.addEventListener("mouseenter", () => hotspotByPart.get(part)?.classList.add("preview"));
     chip.addEventListener("mouseleave", () => hotspotByPart.get(part)?.classList.remove("preview"));
-    // FR-17: adjacent 🔊 play button for the standard pronunciation.
     const wrapper = document.createElement("span");
     wrapper.className = "part-chip-wrap";
     wrapper.appendChild(chip);
     const playBtn = document.createElement("button");
     playBtn.type = "button";
     playBtn.className = "pronounce-play-btn";
-    playBtn.title = "播放标准发音";
-    playBtn.setAttribute("aria-label", `播放 ${part.label_en} 的标准发音`);
-    playBtn.textContent = "🔊";
+    setIconButton(playBtn, "play", `播放 ${part.label_en} 的标准发音`);
     playBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       memoPronouncePlay(part.label_en);
@@ -1400,7 +1356,7 @@ async function memoOpenDetail(obj) {
     whole: true,
     kind: "whole",
   };
-  addChip(whole, partsEl, `整件 · ${obj.label_en}`, true);
+  addChip(whole, partsEl, obj.label_en, true);
   analyzedParts.forEach((part) => addChip(part, partsEl, part.label_en));
   analyzedContents.forEach((item) => addChip(item, contentsEl, item.label_en));
 
@@ -1410,32 +1366,19 @@ async function memoOpenDetail(obj) {
     selectPart,
     chipByPart,
   );
-  const locatedCount = hotspotByPart.size;
-  const detailCount = analyzedParts.length + analyzedContents.length;
-  if (detailCount && locatedCount) {
-    setStatus(
-      $("memo-parts-status"), "",
-      `识别到 ${analyzedContents.length} 个内容物、${analyzedParts.length} 个部件，` +
-      `${locatedCount} 个已在图中标注。`,
-    );
-  } else if (detailCount) {
-    setStatus(
-      $("memo-parts-status"), "",
-      `识别到 ${detailCount} 个可见细节，但当前没有可靠位置框。`,
-    );
-  } else {
-    setStatus($("memo-parts-status"), "", "");
-  }
+  revealImage($("memo-detail-img"));
+  revealHotspots($("memo-part-hotspots"));
+  setStatus($("memo-parts-status"), "", "");
   if (!analyzedParts.length) {
     const hint = document.createElement("span");
-    hint.className = "hint";
-    hint.textContent = "未识别到可靠部件,仍可为整件物品生成情景。";
+    hint.className = "empty-inline";
+    hint.textContent = "没有找到可靠部件，仍可使用整件物品练习。";
     partsEl.appendChild(hint);
   }
   if (isContainer && !analyzedContents.length) {
     const hint = document.createElement("span");
-    hint.className = "hint";
-    hint.textContent = "未识别到同时具有描述证据和可靠位置框的内容物。";
+    hint.className = "empty-inline";
+    hint.textContent = "没有找到位置可靠的内容物。";
     contentsEl.appendChild(hint);
   }
 
@@ -1456,24 +1399,8 @@ async function memoGenerateScenario(obj, part) {
         part_en: part ? part.label_en : "",
       }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "情景生成失败");
+    const data = await readJson(res, "情景生成失败");
     if (scenarioToken !== memo.scenarioToken) return;
-    const speakerStyles = [
-      // fg uses --primary-deep (theme-adaptive green) so the chip text stays
-      // readable on the soft background in both light and dark themes.
-      { bg: "var(--primary-soft)", fg: "var(--primary-deep)", border: "var(--primary)" },
-      { bg: "var(--accent-soft)", fg: "var(--accent-dark)", border: "var(--accent)" },
-      { bg: "var(--purple-soft)", fg: "var(--purple)", border: "var(--purple)" },
-      { bg: "var(--amber-soft)", fg: "var(--amber-dark)", border: "var(--fair)" },
-    ];
-    const speakerStyle = new Map();
-    const styleFor = (sp) => {
-      if (!speakerStyle.has(sp)) {
-        speakerStyle.set(sp, speakerStyles[speakerStyle.size % speakerStyles.length]);
-      }
-      return speakerStyle.get(sp);
-    };
     if (data.scene) {
       const scene = document.createElement("div");
       scene.className = "dialogue-scene";
@@ -1483,14 +1410,9 @@ async function memoGenerateScenario(obj, part) {
     (data.turns || []).forEach((t) => {
       const turn = document.createElement("div");
       turn.className = "dialogue-turn";
-      const st = styleFor(t.speaker || "?");
-      turn.style.borderLeftColor = st.border;
       const chip = document.createElement("span");
       chip.className = "speaker-chip";
       chip.textContent = t.speaker || "?";
-      chip.style.background = st.bg;
-      chip.style.color = st.fg;
-      chip.style.borderColor = st.border;
       turn.appendChild(chip);
       const en = document.createElement("div");
       en.className = "en";
@@ -1507,7 +1429,8 @@ async function memoGenerateScenario(obj, part) {
     setStatus($("memo-scenario-status"), "", "");
   } catch (e) {
     if (scenarioToken !== memo.scenarioToken) return;
-    setStatus($("memo-scenario-status"), "", "情景生成失败:" + e.message);
+    setStatus($("memo-scenario-status"), "", `情景生成失败：${e.message} 请重试。`);
+    setMemoStage("error", { reason: "scenario" });
   }
 }
 
@@ -1534,12 +1457,12 @@ async function memoPronouncePlay(text) {
   if (!text) return;
   const playToken = ++memoPronouncePlayToken;
   const tok = BACKEND_TOKEN ? `&token=${encodeURIComponent(BACKEND_TOKEN)}` : "";
-  const url = `${BACKEND_URL}/memorize/tts?text=${encodeURIComponent(text)}${tok}`;
+  const path = `/memorize/tts?text=${encodeURIComponent(text)}${tok}`;
   try {
     // Fetch once so backend errors remain readable, then play that same
     // response. Assigning the endpoint to player.src would issue a second TTS
     // request and synthesize the same word again.
-    const response = await fetch(url);
+    const response = await apiFetch(path);
     if (!response.ok) {
       let detail = "HTTP " + response.status;
       try {
@@ -1561,7 +1484,7 @@ async function memoPronouncePlay(text) {
     await player.play();
   } catch (e) {
     if (playToken !== memoPronouncePlayToken) return;
-    setStatus($("memo-parts-status"), "", "发音加载失败:" + (e && e.message));
+    setStatus($("memo-parts-status"), "", "发音加载失败：" + (e && e.message));
     clientLog("pronounce play failed: " + (e && e.message));
   }
 }
@@ -1569,9 +1492,7 @@ async function memoPronouncePlay(text) {
 function memoPronounceHint(text) {
   const hint = $("memo-pronounce-hint");
   if (hint) {
-    hint.textContent = text
-      ? `当前练习目标: “${text}”。点击 🔊 听标准发音，再录音跟读对比打分。`
-      : "点击上方 🔊 听标准发音，再录音跟读，AI 对比打分。";
+    hint.textContent = text || "选择一个词开始跟读";
   }
 }
 
@@ -1581,7 +1502,10 @@ function memoPronounceReset() {
   if (memoPronounceRecorder.recording) memoPronounceRecorder.stop();
   memoPronounceTimer.stop();
   const btn = $("memo-pronounce-record");
-  if (btn) btn.textContent = "🎤 开始录音";
+  if (btn) {
+    setIconButton(btn, "record", "开始录音");
+    btn.classList.remove("recording");
+  }
   const score = $("memo-pronounce-score");
   if (score) { score.hidden = true; score.replaceChildren(); }
   memoPronounceClearAudio();
@@ -1599,9 +1523,9 @@ async function memoPronounceSubmit(blob) {
   const btn = $("memo-pronounce-record");
   const scoreEl = $("memo-pronounce-score");
   btn.disabled = true;
-  btn.textContent = "检查中…";
+  setIconButton(btn, "record", "正在检查评分服务");
   scoreEl.hidden = false;
-  scoreEl.innerHTML = `<p class="hint">正在检查本地评分服务…</p>`;
+  scoreEl.innerHTML = `<p class="score-note">正在检查评分服务</p>`;
   try {
     const healthRes = await memoFetch(
       "/memorize/pronounce/status",
@@ -1614,10 +1538,10 @@ async function memoPronounceSubmit(blob) {
     }
     if (token !== memo.pronounceToken) return;
 
-    btn.textContent = "评分中…";
+    setIconButton(btn, "record", "正在评分");
     scoreEl.innerHTML = health.ready
-      ? `<p class="hint">评分服务正常，正在对比参考音…</p>`
-      : `<p class="hint">评分模型正在准备，首次评分可能稍慢（最多15秒）…</p>`;
+      ? `<p class="score-note">正在对比参考音</p>`
+      : `<p class="score-note">评分模型正在准备</p>`;
     const form = new FormData();
     form.append("text", word);
     form.append("learner", blob, "learner.webm");
@@ -1626,22 +1550,25 @@ async function memoPronounceSubmit(blob) {
       { method: "POST", body: form },
       MEMO_PRONOUNCE_TIMEOUT_MS,
     );
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.detail || "发音评分失败");
+    const data = await readJson(res, "发音评分失败");
     if (token !== memo.pronounceToken) return;
     scoreEl.innerHTML =
       `<div class="score-row">` +
       memoPronounceScoreBadge("准确度", data.accuracy) +
       memoPronounceScoreBadge("流畅度", data.fluency) +
       `</div>` +
-      `<p class="hint">发音评分基于本地 SSL+DTW 对比，供练习参考。</p>`;
+      `<p class="score-note">本地声学对比结果</p>`;
   } catch (e) {
     if (token !== memo.pronounceToken) return;
-    scoreEl.innerHTML = `<p class="hint">发音评分失败:${e.message}</p>`;
+    scoreEl.replaceChildren();
+    const error = document.createElement("p");
+    error.className = "score-note error";
+    error.textContent = `评分失败：${e.message}`;
+    scoreEl.appendChild(error);
   } finally {
     if (token === memo.pronounceToken) {
       btn.disabled = false;
-      btn.textContent = "🎤 重新录音";
+      setIconButton(btn, "record", "重新录音");
     }
   }
 }
@@ -1652,10 +1579,10 @@ function memoPronounceToggleRecord() {
   const onStop = (blob) => {
     if (!blob || blob.size === 0) {
       btn.disabled = false;
-      btn.textContent = "🎤 重新录音";
+      setIconButton(btn, "record", "重新录音");
       const scoreEl = $("memo-pronounce-score");
       scoreEl.hidden = false;
-      scoreEl.innerHTML = `<p class="hint">没有录到有效声音，请检查麦克风后重新录音。</p>`;
+      scoreEl.innerHTML = `<p class="score-note error">没有录到声音，请检查麦克风后重试。</p>`;
       clientLog("pronounce: empty recording");
       return;
     }
@@ -1670,14 +1597,17 @@ function memoPronounceToggleRecord() {
     memoPronounceRecorder.stop();
     memoPronounceTimer.stop();
     btn.disabled = true;
-    btn.textContent = "正在整理录音…";
+    setIconButton(btn, "record", "正在整理录音");
+    btn.classList.remove("recording");
   } else {
+    setMemoStage("practicing", { word: memo.pronounceWord });
     memoPronounceRecorder.prepare(onStop).then(() => {
       memoPronounceRecorder.begin();
       memoPronounceTimer.start();
-      btn.textContent = "⏹ 停止录音";
+      setIconButton(btn, "stop", "停止录音");
+      btn.classList.add("recording");
     }).catch((err) => {
-      memoPronounceHint("无法访问麦克风: " + (err && err.message ? err.message : err));
+      memoPronounceHint("无法访问麦克风：" + (err && err.message ? err.message : err));
     });
   }
   if (timer) timer.style.display = "inline";
@@ -1695,8 +1625,10 @@ async function init() {
     // Frozen backend cold-starts in ~1-3 min every launch (torch/numba/transformers
     // import + model load). Show an explicit "starting" state rather than the
     // misleading "无法连接", and wait long enough to cover slower Macs.
-    $("backend-status").textContent = "后端启动中(约 1-3 分钟,正在加载模型)…";
+    $("backend-status").textContent = UI_COPY.backendStarting;
     $("backend-status").className = "status status-pending";
+    $("backend-status").dataset.tooltip = UI_COPY.backendStarting;
+    $("backend-detail").textContent = UI_COPY.backendStarting;
     await new Promise((r) => setTimeout(r, 2000));
     ready = await checkBackend();
     attempts += 1;
@@ -1707,4 +1639,6 @@ async function init() {
   memoWireUpload();
 }
 
+wireEditorialShell();
+wireTheme();
 init();

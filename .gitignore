@@ -31,6 +31,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .vite/
+desktop/test-results/
+desktop/playwright-report/
 
 # ── Rust / Tauri ──
 desktop/src-tauri/target/
