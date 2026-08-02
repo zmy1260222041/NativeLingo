@@ -22,8 +22,8 @@ YOLO_SOURCE_FILENAME = "yoloe-26s-seg-pf.pt"
 YOLO_SOURCE_SIZE = 32_696_887
 YOLO_SOURCE_SHA256 = "9f0cefea64c48103a917dbc8ea4baf581aaf6ffa286675861dafd6fd04826f50"
 YOLO_FILENAME = "yoloe-26s-pf.onnx"
-YOLO_SIZE = 45_190_231
-YOLO_SHA256 = "b54b75dfdc803038c5dbbd510898c99fad0cc17e2a7577f33406af135c73028d"
+YOLO_SIZE = 45_190_233
+YOLO_SHA256 = "32866f4bb407805e4e94a7bc37634fd4e64e0d8349e69e7af3e93008f916a492"
 
 # Native Transformers conversion of Microsoft's Florence-2-base-ft weights.
 # This avoids executing the original repository's legacy remote Python code,
@@ -34,6 +34,21 @@ FLORENCE_REVISION = "0b03b6f15a4a211370fb204aee4e7dd48887ea37"
 FLORENCE_FILENAME = "model.safetensors"
 FLORENCE_SIZE = 463_178_864
 FLORENCE_SHA256 = "ab06dea66b16d5e54513256d64854be2194443452fd0d84353b40a278bf87d42"
+
+# Piper VITS neural TTS voice for offline word pronunciation (FR-17).
+# en_US-libritts_r-medium, CC-BY 4.0, hosted under rhasspy/piper-voices.
+# Chosen by listening: libritts_r keeps BOTH the word-initial /s/ fricative and
+# the /t/ stop burst in /st-/ clusters (lessac swallows /s/ → "tatue"; amy
+# keeps /s/ but blurs the /t/ → "satue"). libritts_r sounds slightly more
+# "read-aloud" than amy but is clearly articulated.
+# The .onnx.json config (few KB) rides in the same snapshot; we verify only the
+# large weight file's size + SHA-256 (mirroring the other Memorizing models).
+PIPER_REPO = "rhasspy/piper-voices"
+PIPER_REVISION = "9f967d15e9ccdf43078586d1476ee70f314401bd"
+PIPER_FILENAME = "en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx"
+PIPER_SIZE = 78_580_914
+PIPER_SHA256 = "10bb85e071d616fcf4071f369f1799d0491492ab3c5d552ec19fb548fac13195"
+PIPER_CONFIG_FILENAME = "en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx.json"
 
 
 class ModelIntegrityError(RuntimeError):

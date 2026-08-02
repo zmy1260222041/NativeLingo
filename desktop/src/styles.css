@@ -444,6 +444,33 @@ code { background: var(--surface-2); padding: 2px 7px; border-radius: var(--radi
   background: var(--primary-soft); color: var(--primary-dark);
   border-color: var(--primary);
 }
+.part-chip-wrap { display: inline-flex; align-items: center; gap: 6px; }
+.pronounce-play-btn {
+  width: 26px; height: 26px; flex-shrink: 0;
+  border: 2px solid var(--border); border-radius: 50%;
+  background: transparent; color: var(--text-strong);
+  font-size: 11px; line-height: 1; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color .15s, background .15s, transform .15s;
+}
+.pronounce-play-btn:hover {
+  border-color: var(--primary); background: var(--primary-soft); transform: scale(1.08);
+}
+
+.memo-pronounce { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.memo-pronounce .timer { font-size: 14px; font-weight: 700; color: var(--muted); }
+.memo-pronounce-score { margin: 10px 0 4px; }
+.memo-pronounce-score .score-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.memo-pronounce-score .score-badge {
+  border: 2px solid transparent; border-radius: var(--radius-md);
+  padding: 10px 16px; min-width: 92px; text-align: center;
+  background: var(--surface-2);
+}
+.memo-pronounce-score .score-badge .score-value { font-size: 26px; font-weight: 800; }
+.memo-pronounce-score .score-badge.good .score-value { color: var(--primary); }
+.memo-pronounce-score .score-badge.weak .score-value { color: var(--amber-dark); }
+.memo-pronounce-score .score-badge.bad .score-value { color: var(--record-dark); }
+.memo-pronounce-score .hint { margin-top: 8px; }
 
 .memo-scenario { display: flex; flex-direction: column; gap: 10px; }
 .dialogue-scene {

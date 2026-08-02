@@ -44,5 +44,6 @@ def test_release_cancels_an_inflight_generation(monkeypatch):
         "yolo_ready": False,
         "llm_ready": False,
         "florence_ready": False,
+        "piper_ready": False,
         "error": None,
     }

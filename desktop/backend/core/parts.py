@@ -26,17 +26,63 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _DETAIL_TASK = "<MORE_DETAILED_CAPTION>"
 _DENSE_TASK = "<DENSE_REGION_CAPTION>"
 _GROUND_TASK = "<CAPTION_TO_PHRASE_GROUNDING>"
+# "inside" = contents live inside the container; "on" = contents rest on it.
+# Bowls/plates/cups are containers too: clicking one lets Florence name the
+# food or drink it holds. Kept deliberately broad — a container that yields no
+# independent contents simply shows the existing "no contents" hint.
 _CONTAINER_RELATIONS = {
+    # furniture / storage
     "bookcase": "inside",
     "bookshelf": "on",
     "cabinet": "inside",
     "closet": "inside",
-    "cupboard": "inside",
-    "filing cabinet": "inside",
+    "file cabinet": "inside",
     "shelf": "on",
     "showcase": "inside",
     "supermarket shelf": "on",
-    "wardrobe": "inside",
+    "drawer": "inside",
+    "chest": "inside",
+    "locker": "inside",
+    "safe": "inside",
+    "fridge": "inside",
+    "microwave": "inside",
+    "oven": "inside",
+    "washing machine": "inside",
+    # tableware: bowls / plates / cups are the classic "food container"
+    "bowl": "inside",
+    "soup bowl": "inside",
+    "salad bowl": "inside",
+    "plate": "on",
+    "cup": "inside",
+    "mug": "inside",
+    "wine glass": "inside",
+    "coffee cup": "inside",
+    # cooking / serving vessels
+    "pot": "inside",
+    "pan": "inside",
+    "casserole": "inside",
+    "thermos": "inside",
+    "flask": "inside",
+    "jar": "inside",
+    "bottle": "inside",
+    "jug": "inside",
+    "pitcher": "inside",
+    "can": "inside",
+    "tin": "inside",
+    # containers / carry
+    "box": "inside",
+    "tray": "on",
+    "bag": "inside",
+    "basket": "inside",
+    "cart": "inside",
+    "trolley": "inside",
+    "backpack": "inside",
+    "handbag": "inside",
+    "briefcase": "inside",
+    "luggage": "inside",
+    "hamper": "inside",
+    "bin": "inside",
+    "waste container": "inside",
 }
 _CONTENT_STRUCTURE_LABELS = set(_CONTAINER_RELATIONS) | {
     "background",

@@ -9,6 +9,7 @@ backend can call ``analyze`` per request.
 """
 from __future__ import annotations
 
+import threading
 from dataclasses import asdict
 
 import numpy as np
@@ -27,13 +28,24 @@ from .detail import compute_sentence_details
 from dataclasses import asdict as _asdict
 
 _encoder: SSLEncoder | None = None
+_encoder_lock = threading.Lock()
+
+
+def is_encoder_loaded() -> bool:
+    """Return scorer readiness without triggering the expensive lazy load."""
+    return _encoder is not None
 
 
 def get_encoder() -> SSLEncoder:
-    """Lazily construct and reuse a single encoder (weights load once)."""
+    """Lazily construct and reuse a single encoder (weights load once).
+
+    Locked so concurrent warmers (Speaking warmup + Memorizing FR-17
+    pronunciation warm-up) can't double-construct the ~360 MB model."""
     global _encoder
     if _encoder is None:
-        _encoder = SSLEncoder()
+        with _encoder_lock:
+            if _encoder is None:
+                _encoder = SSLEncoder()
     return _encoder
 
 

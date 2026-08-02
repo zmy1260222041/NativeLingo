@@ -9,6 +9,12 @@
 >
 > **v0.6.x 变更(2026-07-31,容器内容物)**:FR-14 在普通物品的部件分析之外，增加**容器感知的一层内容物增强**。YOLOE 仍是唯一整图检测器；用户点击 `cabinet` / `shelf` / `showcase` 等容器后，Florence 先从裁剪图生成详细描述，Qwen 只提取描述中明确可见的独立实体（Qwen 空结果时，仅从同一描述按实体词表确定性回退），再由 Florence phrase grounding 为全部候选联合定位。只有同时被描述和定位、且通过实体词表/几何/去重门控的候选才展示为 `contents`。内容物记录父容器关系但不得继续下钻，最大深度固定为 1；结构部件与内容物分区展示，防止把 `shelf` / `door` 当内容物或形成递归嵌套。
 >
+> **v0.6.x 变更(2026-08-01,容器扩展+标签对齐)**:FR-14 容器关系从 10 个扩展到 **48 个**——碗碟杯等餐具(bowl/plate/cup/mug/wine glass/coffee cup/soup bowl/salad bowl)、烹饪盛放(pot/pan/casserole/thermos/flask/jar/bottle/jug/pitcher/can/tin/box/tray/bag/basket)、储物(fridge/microwave/oven/washing machine/drawer/chest/locker/safe/luggage/backpack/handbag/briefcase/hamper/bin/waste container/cart/trolley)均为容器,点击后 Florence 识别其中独立可见内容物。**标签与模型词表直接对齐**(用户选定方案):`yoloe_labels.json` 死标签改名/删除、模型拼写标签按需新增(plane/jet/airliner、tub、smartphone、writing desk、file cabinet、toilet seat、ski、teddy),允许词表 157→**208 全部命中 YOLOE 4585 词表**(`vision.py` 不再有拼写别名映射);COCO 80 类保留保守覆盖,其拼写与模型不同的标签(airplane/cell phone/dining table/fire hydrant/refrigerator/skis/suitcase/teddy bear/toilet/tv)由模型词表等价标签(plane/smartphone/table/hydrant/fridge/ski/luggage/teddy/toilet seat/television)覆盖检出。
+>
+> **v0.6.x 变更(2026-08-01,餐桌食物词)**:FR-13 整图检测的实体 allowlist(`yoloe_labels.json`)从 157 扩到 **204 标签**,新增 **47 个常见餐桌食物词**(海鲜: squid/shrimp/crab/lobster/oyster/clam/scallop/octopus/abalone;蔬菜: tomato/onion/garlic/lettuce/mushroom/cucumber/corn/carrot/broccoli/potato/eggplant/cabbage/spinach/bell pepper/ginger/pumpkin;主食: rice/noodle/dumpling/bread/pizza/hamburger/hot dog/French fries/soup/salad/egg/tofu/steak/sausage/bacon/ham;调味: cheese/butter/salt/sugar/mustard/vinegar),全部经校验在 YOLOE 模型 4585 词表内,min_score 按同类小物体阈值设 0.35–0.50。香菜(cilantro/coriander)不在模型词表,FR-13 整图识别不了;FR-14 内容物词表可后续扩展。
+>
+> **v0.6.x 变更(2026-07-31,单词发音)**:新增 **FR-17 单词发音**(Memorizing)—— 识别物品的英文标签旁提供 🔊 播放按钮，用开源 **Piper 神经 TTS**(`en_US-libritts_r-medium`, CC-BY 4.0, ONNX ~79MB,全离线)合成词典式标准发音;用户可选录音跟读，后端用现有 SSL+DTW Track B 管线把 TTS 参考音与学习录音对比出分(accuracy/fluency)。Piper 合成在词汇学习场景作为单词参考音，**不违反 FR-M1**(FR-M1 范围限定为 Speaking 模块句子级真实人声跟读，单词词汇学习场景独立；详见 §6 追踪矩阵 FR-17 行)。Piper 模型由 `memorize_warmup` 纳入第 4 阶段下载/加载，离开模块时释放。发音模型经听感对比选定 `libritts_r`：lessac 吞词首 `/s/`+塞音簇(statue→tatue)、amy 保留 /s/ 但模糊 /t/(→satue)、libritts_r 两者都清晰。
+>
 > **v0.1 变更(2026-07-25)**:平台扩为 macOS + Android(NFR-2 重写);新增 NFR-4(Android 移动端约束);FR-12 学习记录转 in-scope 并写验收。Android 迁移方案见 `docs/android-migration.md`,Phase-0 符合性评审计划 R-5..R-9 见 §7。
 >
 > **v0.2 变更(2026-07-26)**:落地四项 Android 决策 —— FR-M2 Android 导入面去掉 `.avi`(R-9,平台对 AVI 无保证);FR-2 预置素材的切分随包提供、导入素材仍走端侧转写;NFR-4① 明确**仅发 arm64-v8a**(32 位地址空间装不下 NFR-4③ 的内存预算);NFR-4② 包体按实测改为 **~897MB**、四模型统一走安装时 asset pack,`tiny.en` 降为低端设备降级档(R-11)。新增评审记录 R-9 / R-10 / R-11。
@@ -64,8 +70,9 @@
 | FR-12 | P2 | 学习记录/进度 | 本地存储历史成绩(按素材/句),可看进步曲线;纯端侧,无云 | 🚧 待实现(Android 版起 in-scope,见 `docs/android-migration.md`) |
 | FR-13 | P0 | 看图识物·整件识别与定位(Memorizing) | 用户上传日常照片,端侧识别图中整件物品并以**目标语言(英语)单语标注**;返回每个物品的可点击定位(box),点击可进入该物品详情。验收:常见物品(家具/餐具/电子/交通工具等)整件识别 precision ≥0.80、recall ≥0.60(R-13 实测);整图框、图片下方汇总、详情标题、悬停提示和无障碍词汇均不显示中文释义;全程无网络调用(NFR-5) | 🚧 功能已实现，正式手标质量门待完成 |
 | FR-14 | P1 | 部件与容器内容物·微观(Memorizing) | 点击普通整件物品 → Florence 详细描述/密集区域描述 → 以**目标语言(英语)单语**展示可见结构部件；点击 `cabinet` / `shelf` / `showcase` 等容器 → 详细描述 + Qwen 独立实体提取 + Florence phrase grounding → 分区展示可见内容物。内容物须同时出现在描述候选和有效定位框中，记录 `parent_id` / `relation` / `depth=1`，不允许再次触发微观分析；结构部件与内容物不得互相混入。验收:所有框、按钮、悬停提示和无障碍词汇不显示中文释义；部件/内容物人工相关性 ≥0.75、不可见项幻觉率≤0.15；容器内容物去重后最多 8 项、最大层级深度固定为 1；不依赖 Apple Vision/Foundation Models | 🚧 待实现 |
-| FR-15 | P1 | 情景例句·记忆强化(Memorizing) | 固定用 `Qwen2.5-0.5B-Instruct-GGUF` Q4_K_M 在本机实时生成**一段简短多角色日常对话**(固定 2 位说话人 A/B、2–3 轮,每轮英文 + 中文翻译),场景取自当前照片、整件物品/所选部件与同图物体,所点击的目标词自然出现在至少一轮,贴近生活口语而非陈述句,用于加深记忆;**不读取预制例句、纯文字、不参与发音评分、不与 Speaking 模块的跟读参考混用**(故不触 FR-M1)。验收:对话流畅度(人工 1–5)≥4.0、图片/部件情境贴切度 ≥3.5、对话自然度(人工 1–5)≥3.5、中英匹配 ≥0.95、明显臆造图片事实率 ≤0.10(R-13) | 🚧 待实现 |
+| FR-15 | P1 | 情景例句·记忆强化(Memorizing) | 固定用 `Qwen2.5-0.5B-Instruct-GGUF` Q4_K_M 在本机实时生成**一段简短多角色日常对话**(固定 2 位说话人 A/B、2–3 轮,每轮英文 + 中文翻译),场景取自当前照片、整件物品/所选部件与同图物体,所点击的目标词自然出现在至少一轮,贴近生活口语而非陈述句,用于加深记忆;**不读取预制例句、纯文字、不参与发音评分(单词发音评分走独立 FR-17 端点)、不与 Speaking 模块的跟读参考混用**(故不触 FR-M1)。验收:对话流畅度(人工 1–5)≥4.0、图片/部件情境贴切度 ≥3.5、对话自然度(人工 1–5)≥3.5、中英匹配 ≥0.95、明显臆造图片事实率 ≤0.10(R-13) | 🚧 待实现 |
 | FR-16 | P1 | 双模块信息架构 | App 顶层划分为 **Speaking**(口语跟读评估,含原视频跟读/上传音频)与 **Memorizing**(看图识物 + 情景例句)两大模块,各自独立流程、互不干扰。验收:模块切换清晰;Memorizing 模型的加载/释放不影响 Speaking 评分;视觉为 Duolingo 风高级感(NFR-UX) | 🚧 待实现 |
+| FR-17 | P1 | 单词发音(Memorizing) | 识别出的物品英文标签旁有 🔊 按钮,点击播放内置词典式标准发音(Piper 开源神经 TTS,`en_US-libritts_r-medium` CC-BY 4.0,ONNX ~79MB,全离线;经听感对比选定,lessac 吞词首 `/s/`+塞音簇、amy 模糊 /t/、libritts_r 两者清晰);用户可选录音跟读,系统用现有 SSL+DTW 管线对比 TTS 参考音出分。Piper 合成音在本模块作为单词参考音**不违反 FR-M1**(FR-M1 范围限定为 Speaking 模块句子级真实人声跟读,单词词汇学习场景独立)。验收:播放延迟 <1s;评分与 Speaking 同容差(accuracy ±2.0);Piper 模型纳入 Memorizing warmup 第 4 阶段、离开模块时释放 | 🚧 待实现 |
 
 ## 5. 非功能性需求与约束
 
@@ -79,7 +86,7 @@
   - **⑤ 数值对齐**:Android 端评分须与 macOS 同语料在容差内一致(accuracy ±2.0 / fluency ±3.0 / DTW cost ±0.02),由 R-5 把关。**转写文本不在对等目标内**(R-10 决定 2):两个 int8 base.en 解码器在难音频上以 ~4% 的比例各自出错且不可消除,参考切分不同只是给出另一个同样有效的练习单元。
 - **NFR-3 性能**:单句分析秒级出结果;视频首次转写可后台进行并缓存。
 - **NFR-Q1 评分质量指标**:校准映射留出验证 PCC — accuracy ≥ 0.55(当前 0.60),fluency ≥ 0.40(当前 0.43);说话人不变性测试必须通过。**且校准必须对 FR-M1 的真实人声参考成立**(R-1 已实测验证:真人参考下分数不降反略升;新参考音品类须用 `scripts/ref_swap_experiment.py` 复验)。
-- **NFR-5 端侧智能(Memorizing 模块)**:看图识物与情景例句的全部推理在设备本地完成(YOLOE-26S-PF 检测 + Florence-2-base-ft 部件分析 + Qwen2.5-0.5B-Instruct Q4_K_M),**无云调用、无 API key;联网仅用于首次下载固定 revision 的模型,缓存后可离线**,用户照片与提示不出设备。YOLOE 为 45,190,231 bytes 的 detection-only 动态 ONNX，导出图在 Top-K 前固化 177 个实体类别过滤，运行时再做逐标签阈值与同框去重；Florence 不参与整图检测，只在用户点击物品后分析裁剪图。Florence 权重 463,178,864 bytes;GGUF 文件 `qwen2.5-0.5b-instruct-q4_k_m.gguf` 为 491,400,032 bytes,由 llama.cpp/Metal 运行。模型由 `memorize_warmup` 分阶段准备,离开模块时释放内存。**不采用 Apple Vision/Foundation Models,不保留 1.5B/3B 升档路线。**
+- **NFR-5 端侧智能(Memorizing 模块)**:看图识物、情景例句与单词发音的全部推理在设备本地完成(YOLOE-26S-PF 检测 + Florence-2-base-ft 部件分析 + Qwen2.5-0.5B-Instruct Q4_K_M + Piper VITS 语音合成),**无云调用、无 API key;联网仅用于首次下载固定 revision 的模型,缓存后可离线**,用户照片与提示不出设备。YOLOE 为 45,190,231 bytes 的 detection-only 动态 ONNX，导出图在 Top-K 前固化 177 个实体类别过滤，运行时再做逐标签阈值与同框去重；Florence 不参与整图检测，只在用户点击物品后分析裁剪图。Florence 权重 463,178,864 bytes;GGUF 文件 `qwen2.5-0.5b-instruct-q4_k_m.gguf` 为 491,400,032 bytes,由 llama.cpp/Metal 运行;Piper 语音模型 `en_US-libritts_r-medium.onnx` 为 78,580,914 bytes(CC-BY 4.0,可再分发;经听感对比选定——lessac 吞词首 `/s/`+塞音簇、amy 模糊 /t/、libritts_r 两者清晰)。模型由 `memorize_warmup` 分阶段准备(yolo → llm → florence → piper),离开模块时释放内存。**不采用 Apple Vision/Foundation Models,不保留 1.5B/3B 升档路线。**
 - **NFR-UX 高级感视觉**:全 App 视觉升级为 Duolingo 风高级感(亮色主调、大圆角、3D 立体按键、友好),并承载 FR-16 的双模块顶层导航。Memorizing 的整件识别、部件识别与情景生成请求均有 **15 秒** 前端 AbortController 与后端 504 deadline:超时立刻清除加载态、显示可读错误并允许重试,不得无限“识别中”;每个 App 实例使用随机本地端口,不得连接到另一实例的旧后端。设计令牌见 `desktop/src/styles.css`。
 - **已知限制**:MMS 模型体积 1.18GB;首次转写慢(有缓存);超长连续选段(>5 分钟)wav2vec2 编码在 MPS 上有内存风险(P2,待分块编码);Memorizing 的 Florence + GGUF 首次下载合计约 0.95GB、首轮推理含加载延迟(分阶段进度 UI 缓冲)。
 - **风险**:素材版权(BBC 等)——产品形态必须停留在"用户自备素材",不得分发成片;技术调研不得引入需联网调用的评分服务(违反 NFR-1)。
@@ -100,6 +107,7 @@
 | FR-14 部件与容器内容物微观 | `core/parts.py`(Florence 详细描述/密集区域/phrase grounding + Qwen/显式描述词表实体过滤,最大深度 1)+ `/memorize/parts` | 🚧(待 R-13) |
 | FR-15 情景例句 | `core/scenario.py`(Qwen2.5-0.5B-Instruct Q4_K_M,llama.cpp Metal/CPU)+ `/memorize/scenario` | 🚧(待 R-13) |
 | FR-16 双模块 IA | `desktop/src/{index.html,main.js,styles.css}` | 🚧 |
+| FR-17 单词发音 | `core/piper_tts.py`(Piper VITS ONNX,确定性合成)+ `/memorize/tts`(播放)+ `/memorize/pronounce`(复用 `pipeline.analyze_arrays` SSL+DTW)+ 前端 🔊/录音评分 | 🚧 |
 
 > **Android 平台映射**:同一张表的需求在 Android 上由对应 Kotlin Gradle 模块满足 —— FR-4/5 → `:core-scoring`,FR-2 → `:core-asr` + `:core-align`,FR-11 → `:core-mdd`,FR-8 → `:app` RecordingsRepository + Media3,FR-12 → `:app` Room。完整需求→模块矩阵见 `docs/android-migration.md`。
 >

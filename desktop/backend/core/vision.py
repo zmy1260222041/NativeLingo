@@ -15,6 +15,11 @@ language-learning UI, so ``yoloe_labels.json`` is both:
 Unknown labels are discarded.  A conservative COCO vocabulary is merged in so
 common objects remain available, while ``person`` is deliberately omitted to
 avoid covering a photo with human hotspots.
+
+Large photos are evaluated globally at two effective scales: one whole-image
+pass for scene context, followed by overlapping high-resolution tiles for
+small objects and ingredients.  Tile ownership regions make every image point
+belong to exactly one tile, avoiding duplicate and clipped edge predictions.
 """
 from __future__ import annotations
 
@@ -30,10 +35,10 @@ import numpy as np
 from backend.core import model_assets
 
 _IN_SIZE = 640
-_DETAIL_IN_SIZE = 1280
-_DETAIL_MIN_LONG_SIDE = 960
-_DETAIL_LABELS = frozenset({"plaque"})
-_DETAIL_CONTEXT_LABELS = frozenset({"clock", "cabinet", "showcase"})
+_MULTISCALE_IN_SIZE = 1280
+_MULTISCALE_MIN_LONG_SIDE = 1280
+_MULTISCALE_TILE_RATIO = 0.5
+_MULTISCALE_OVERLAP = 0.5
 _STRIDE = 32
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _MODEL_FILENAME = model_assets.YOLO_FILENAME
@@ -68,6 +73,10 @@ def _load_label_specs(model_names: dict[int, str]) -> dict[str, dict]:
         coco_zh = json.load(handle)
     with open(os.path.join(_HERE, "yoloe_labels.json"), encoding="utf-8") as handle:
         config = json.load(handle)
+    with open(
+        os.path.join(_HERE, "yoloe_everyday_labels.json"), encoding="utf-8"
+    ) as handle:
+        everyday_config = json.load(handle)
 
     available = set(model_names.values())
     default_score = float(config["_default_coco_min_score"])
@@ -77,7 +86,21 @@ def _load_label_specs(model_names: dict[int, str]) -> dict[str, dict]:
             continue
         specs[label_en] = {"zh": label_zh, "min_score": default_score}
 
-    for label_en, spec in config["labels"].items():
+    configured_labels = {}
+    category_floors = everyday_config["_category_min_score_floors"]
+    for category_name, category in everyday_config["categories"].items():
+        floor = float(category_floors[category_name])
+        configured_labels.update(
+            {
+                label: {
+                    **spec,
+                    "min_score": max(float(spec["min_score"]), floor),
+                }
+                for label, spec in category.items()
+            }
+        )
+    configured_labels.update(config["labels"])
+    for label_en, spec in configured_labels.items():
         if label_en not in available:
             continue
         specs[label_en] = {
@@ -106,13 +129,8 @@ def _load():
         )
     if metadata.get("native_lingo_proposal_conf") != "0.10":
         raise model_assets.ModelIntegrityError("unexpected YOLOE proposal threshold")
-    if metadata.get("native_lingo_max_det") != "50":
+    if metadata.get("native_lingo_max_det") != "100":
         raise model_assets.ModelIntegrityError("unexpected YOLOE candidate limit")
-    if metadata.get("native_lingo_pre_topk_label_count") != "177":
-        raise model_assets.ModelIntegrityError(
-            "YOLOE ONNX is missing the curated pre-top-k vocabulary filter"
-        )
-
     try:
         raw_names = ast.literal_eval(metadata["names"])
         names = {int(index): str(label) for index, label in raw_names.items()}
@@ -125,7 +143,16 @@ def _load():
             f"YOLOE vocabulary is unexpectedly small ({len(names)} labels)"
         )
 
-    return session, names, _load_label_specs(names)
+    label_specs = _load_label_specs(names)
+    expected_count = str(len(label_specs))
+    if metadata.get("native_lingo_pre_topk_label_count") != expected_count:
+        raise model_assets.ModelIntegrityError(
+            "YOLOE ONNX curated vocabulary is out of sync with "
+            f"yoloe_labels.json ({metadata.get('native_lingo_pre_topk_label_count')} "
+            f"exported, expected {expected_count}); re-export the model"
+        )
+
+    return session, names, label_specs
 
 
 def is_available() -> bool:
@@ -218,13 +245,107 @@ def _labels_are_nested_aliases(first: str, second: str) -> bool:
     return first_words <= second_words or second_words <= first_words
 
 
-def _detail_detection_is_usable(detection: dict) -> bool:
-    """Apply geometry checks only to labels recovered by the detail pass."""
+def _multiscale_detection_is_usable(detection: dict) -> bool:
+    """Apply geometry checks only to labels recovered from magnified tiles."""
     if detection["label_en"] == "plaque":
         _, _, width, height = detection["box"]
         aspect_ratio = width / max(height, 1e-9)
         return 1.6 <= aspect_ratio <= 2.5
     return True
+
+
+def _deduplicate_detections(candidates, *, dedupe_iou=0.72, max_det=40):
+    """Return the best cross-label/cross-scale boxes and assign stable IDs."""
+    candidates = sorted(candidates, key=lambda item: item["score"], reverse=True)
+    kept = []
+    for candidate in candidates:
+        # Prompt-free vocabulary often emits synonyms for exactly the same
+        # region (mug/cup, sofa/couch).  Keep only the highest-confidence term.
+        if any(
+            _box_iou(candidate["box"], prior["box"]) >= dedupe_iou
+            or (
+                _labels_are_nested_aliases(
+                    candidate["label_en"], prior["label_en"]
+                )
+                and _box_containment(candidate["box"], prior["box"]) >= 0.88
+            )
+            for prior in kept
+        ):
+            continue
+        kept.append(candidate)
+        if len(kept) >= max_det:
+            break
+
+    for index, item in enumerate(kept):
+        item["id"] = index
+    return kept
+
+
+def _tile_axis(length: int, tile_length: int):
+    """Return ``(start, end, owned_start, owned_end)`` for one image axis.
+
+    Adjacent tiles overlap, while their ownership boundary is halfway between
+    their centres.  A prediction is accepted only from the tile that owns its
+    centre, so an object in an overlap is emitted once from its least-clipped
+    view.
+    """
+    tile_length = min(length, tile_length)
+    if tile_length >= length:
+        return [(0, length, 0.0, float(length))]
+
+    step = max(1, int(round(tile_length * (1.0 - _MULTISCALE_OVERLAP))))
+    last_start = length - tile_length
+    starts = list(range(0, last_start + 1, step))
+    if starts[-1] != last_start:
+        starts.append(last_start)
+
+    centres = [start + tile_length / 2.0 for start in starts]
+    boundaries = [0.0]
+    boundaries.extend(
+        (centres[index - 1] + centres[index]) / 2.0
+        for index in range(1, len(centres))
+    )
+    boundaries.append(float(length))
+    return [
+        (start, start + tile_length, boundaries[index], boundaries[index + 1])
+        for index, start in enumerate(starts)
+    ]
+
+
+def _multiscale_tiles(image_size):
+    """Return full-image crop boxes paired with non-overlapping ownership."""
+    width, height = image_size
+    tile_length = max(1, int(round(max(width, height) * _MULTISCALE_TILE_RATIO)))
+    x_tiles = _tile_axis(width, tile_length)
+    y_tiles = _tile_axis(height, tile_length)
+    return [
+        (
+            (x_start, y_start, x_end, y_end),
+            (owned_x_start, owned_y_start, owned_x_end, owned_y_end),
+        )
+        for x_start, x_end, owned_x_start, owned_x_end in x_tiles
+        for y_start, y_end, owned_y_start, owned_y_end in y_tiles
+    ]
+
+
+def _offset_owned_detection(detection, *, offset_xy, ownership_box) -> dict | None:
+    """Map a tile prediction to the image if its centre belongs to that tile."""
+    offset_x, offset_y = offset_xy
+    x, y, width, height = detection["box"]
+    global_x = x + offset_x
+    global_y = y + offset_y
+    centre_x = global_x + width / 2.0
+    centre_y = global_y + height / 2.0
+    owned_x1, owned_y1, owned_x2, owned_y2 = ownership_box
+    if not (
+        owned_x1 <= centre_x < owned_x2
+        and owned_y1 <= centre_y < owned_y2
+    ):
+        return None
+    return {
+        **detection,
+        "box": [round(global_x, 1), round(global_y, 1), width, height],
+    }
 
 
 def _parse_output(
@@ -281,29 +402,11 @@ def _parse_output(
             }
         )
 
-    candidates.sort(key=lambda item: item["score"], reverse=True)
-    kept = []
-    for candidate in candidates:
-        # Prompt-free vocabulary often emits synonyms for exactly the same
-        # region (mug/cup, sofa/couch).  Keep only the highest-confidence term.
-        if any(
-            _box_iou(candidate["box"], prior["box"]) >= dedupe_iou
-            or (
-                _labels_are_nested_aliases(
-                    candidate["label_en"], prior["label_en"]
-                )
-                and _box_containment(candidate["box"], prior["box"]) >= 0.88
-            )
-            for prior in kept
-        ):
-            continue
-        kept.append(candidate)
-        if len(kept) >= max_det:
-            break
-
-    for index, item in enumerate(kept):
-        item["id"] = index
-    return kept
+    return _deduplicate_detections(
+        candidates,
+        dedupe_iou=dedupe_iou,
+        max_det=max_det,
+    )
 
 
 def detect(
@@ -314,10 +417,10 @@ def detect(
 ):
     """Return curated open-vocabulary objects with original-image boxes.
 
-    The 640px pass preserves large-scene recall and speed. On sufficiently
-    large photos, a second dynamic 1280px pass contributes only explicitly
-    approved small-detail labels. This retains city-name plaques without
-    importing the noisier high-resolution predictions for every class.
+    The 640px whole-image pass preserves scene context and large-object recall.
+    On sufficiently large photos, overlapping tiles cover the entire image at
+    1280px, making small objects several times larger to the model without
+    depending on a plate proposal or a user click.
     """
     session, names, label_specs = _load()
     raw, ratio, pad_x, pad_y = _run(session, pil_img)
@@ -334,44 +437,38 @@ def detect(
         max_det=max_det,
     )
 
-    detail_context_found = any(
-        detection["label_en"] in _DETAIL_CONTEXT_LABELS
-        for detection in detections
-    )
-    if max(pil_img.size) >= _DETAIL_MIN_LONG_SIDE and detail_context_found:
-        detail_specs = {
-            label: label_specs[label]
-            for label in _DETAIL_LABELS
-            if label in label_specs
-        }
-        if detail_specs:
-            detail_raw, detail_ratio, detail_pad_x, detail_pad_y = _run(
-                session, pil_img, new_size=_DETAIL_IN_SIZE
+    if max(pil_img.size) >= _MULTISCALE_MIN_LONG_SIDE:
+        for crop_box, ownership_box in _multiscale_tiles(pil_img.size):
+            x1, y1, x2, y2 = crop_box
+            tile = pil_img.crop(crop_box)
+            tile_raw, tile_ratio, tile_pad_x, tile_pad_y = _run(
+                session, tile, new_size=_MULTISCALE_IN_SIZE
             )
-            details = _parse_output(
-                detail_raw,
-                ratio=detail_ratio,
-                pad_x=detail_pad_x,
-                pad_y=detail_pad_y,
-                orig_wh=pil_img.size,
+            tile_detections = _parse_output(
+                tile_raw,
+                ratio=tile_ratio,
+                pad_x=tile_pad_x,
+                pad_y=tile_pad_y,
+                orig_wh=tile.size,
                 names=names,
-                label_specs=detail_specs,
+                label_specs=label_specs,
                 confidence_floor=confidence_floor,
                 dedupe_iou=dedupe_iou,
                 max_det=max_det,
             )
-            for detail in details:
-                if not _detail_detection_is_usable(detail):
+            for tile_detection in tile_detections:
+                if not _multiscale_detection_is_usable(tile_detection):
                     continue
-                if not any(
-                    detail["label_en"] == prior["label_en"]
-                    and _box_iou(detail["box"], prior["box"]) >= dedupe_iou
-                    for prior in detections
-                ):
-                    detections.append(detail)
+                mapped = _offset_owned_detection(
+                    tile_detection,
+                    offset_xy=(x1, y1),
+                    ownership_box=ownership_box,
+                )
+                if mapped is not None:
+                    detections.append(mapped)
 
-    detections.sort(key=lambda item: item["score"], reverse=True)
-    detections = detections[:max_det]
-    for index, item in enumerate(detections):
-        item["id"] = index
-    return detections
+    return _deduplicate_detections(
+        detections,
+        dedupe_iou=dedupe_iou,
+        max_det=max_det,
+    )

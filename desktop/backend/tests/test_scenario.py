@@ -17,7 +17,7 @@ def test_fixed_qwen_artifact_manifest():
     assert model_assets.FLORENCE_REPO == "florence-community/Florence-2-base-ft"
     assert model_assets.YOLO_REPO == "ultralytics/assets"
     assert model_assets.YOLO_SOURCE_FILENAME == "yoloe-26s-seg-pf.pt"
-    assert model_assets.YOLO_SIZE == 45_190_231
+    assert model_assets.YOLO_SIZE == 45_190_233
     assert len(model_assets.YOLO_SHA256) == 64
 
 

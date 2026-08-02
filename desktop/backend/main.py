@@ -17,6 +17,8 @@ Exposes:
 * POST /recordings          -> store the learner recording, returns an id
 * GET  /recordings/{id}/clip -> exact WAV slice of the learner recording
                                (FR-8: sample-accurate "my" word/sentence replay)
+* GET  /memorize/tts        -> Piper TTS WAV of a word/phrase (FR-17 playback)
+* POST /memorize/pronounce  -> score a learner's word recording vs Piper ref
 """
 from __future__ import annotations
 
@@ -684,6 +686,183 @@ def memorize_release(_=Depends(require_token)):
     from backend.core import memorize_warmup
     memorize_warmup.release()
     return {"released": True}
+
+
+# ---------------------------------------------------------------------------
+# FR-17: word pronunciation — Piper TTS playback + optional shadow scoring.
+# Reference audio is synthesized on-device (never uploaded); the learner
+# recording is scored with the same SSL+DTW Track B pipeline as Speaking.
+# ---------------------------------------------------------------------------
+_MAX_TTS_TEXT = 200
+_TTS_TEXT_RE = re.compile(r"^[A-Za-z0-9 .,'!?&:/()-]+$")
+
+
+def _valid_tts_text(text: str) -> str:
+    """Normalize + validate a pronunciation target word/phrase."""
+    text = text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="text is required")
+    if len(text) > _MAX_TTS_TEXT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"text too long (max {_MAX_TTS_TEXT} characters)",
+        )
+    if not _TTS_TEXT_RE.match(text):
+        raise HTTPException(
+            status_code=400,
+            detail="text contains unsupported characters",
+        )
+    return text
+
+
+_PIPER_LAZY_LOCK = threading.Lock()
+
+
+def _ensure_piper_ready() -> None:
+    """Best-effort lazy-load Piper if warmup didn't complete the piper stage.
+
+    The model is already in the HF cache once any warmup attempt has been made;
+    this just verifies + loads (~1 s), protected by a lock so concurrent TTS /
+    pronounce requests can't double-construct the ONNX session.
+    """
+    from backend.core import piper_tts
+
+    if piper_tts.is_loaded():
+        return
+    with _PIPER_LAZY_LOCK:
+        if piper_tts.is_loaded():
+            return
+        if piper_tts.uses_system_voice():
+            piper_tts.load("")
+            return
+        from backend.core import model_assets
+
+        onnx = model_assets.download_verified(
+            model_assets.PIPER_REPO,
+            model_assets.PIPER_FILENAME,
+            model_assets.PIPER_REVISION,
+            model_assets.PIPER_SIZE,
+            model_assets.PIPER_SHA256,
+        )
+        import os
+
+        if not os.path.exists(onnx + ".json"):
+            from huggingface_hub import hf_hub_download
+
+            hf_hub_download(
+                model_assets.PIPER_REPO,
+                model_assets.PIPER_CONFIG_FILENAME,
+                revision=model_assets.PIPER_REVISION,
+            )
+        piper_tts.load(onnx)
+
+
+@app.get("/memorize/tts")
+def memorize_tts(text: str, token: str | None = None):
+    """FR-17: return a 16 kHz PCM_16 WAV of ``text`` spoken by Piper neural TTS.
+
+    Token via query param since an <audio> element can't set an Authorization
+    header (same pattern as the Speaking clip endpoints)."""
+    check_token_value(token)
+    text = _valid_tts_text(text)
+    from backend.core import piper_tts
+
+    try:
+        _ensure_piper_ready()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"pronunciation model still preparing: {exc}",
+        )
+    try:
+        wav = _within_memorize_deadline(lambda: piper_tts.synth_wav(text))
+    except _MemorizeRequestTimedOut:
+        raise HTTPException(
+            status_code=504,
+            detail="语音合成等待超过15秒，已停止本次请求。请重试。",
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail=f"speech synthesis unavailable: {exc}")
+    if wav.size == 0:
+        raise HTTPException(status_code=400, detail="synthesis produced no audio")
+    buf = io.BytesIO()
+    sf.write(buf, wav, 16000, format="WAV", subtype="PCM_16")
+    return Response(content=buf.getvalue(), media_type="audio/wav")
+
+
+@app.get("/memorize/pronounce/status")
+def memorize_pronounce_status(_=Depends(require_token)):
+    """Lightweight liveness/readiness check for pronunciation scoring.
+
+    Unlike the general /health endpoint, this never lazy-loads the SSL encoder,
+    so the UI can use it with a short timeout before uploading a recording.
+    """
+    from backend.core import memorize_warmup, piper_tts, pipeline
+
+    warmup = memorize_warmup.status()
+    tts_ready = piper_tts.is_loaded()
+    scorer_ready = pipeline.is_encoder_loaded()
+    return {
+        "status": "ok",
+        "ready": tts_ready and scorer_ready,
+        "tts_ready": tts_ready,
+        "scorer_ready": scorer_ready,
+        "warmup_stage": warmup.get("stage", "idle"),
+    }
+
+
+@app.post("/memorize/pronounce")
+async def memorize_pronounce(
+    text: str = Form(...),
+    learner: UploadFile = File(...),
+    _=Depends(require_token),
+):
+    """FR-17: score a learner's pronunciation of a single word/phrase.
+
+    The reference is synthesized on-device with Piper; the learner recording is
+    decoded, trimmed, and scored via the existing Track B pipeline. Word-level
+    input needs no sentence/word segmentation, so the result is just the score
+    triplet."""
+    text = _valid_tts_text(text)
+    raw = learner.file.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="empty audio upload")
+
+    from backend.core import piper_tts, pipeline
+
+    try:
+        _ensure_piper_ready()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"pronunciation model still preparing: {exc}",
+        )
+
+    def _score():
+        ref_wav = trim_silence(piper_tts.synth_wav(text))
+        if ref_wav.size == 0:
+            raise ValueError("synthesis produced no audio")
+        learner_wav = trim_silence(_decode_upload(raw))
+        if learner_wav.size == 0:
+            raise ValueError("learner audio contained no speech")
+        return pipeline.analyze_arrays(ref_wav, learner_wav)
+
+    try:
+        result = _within_memorize_deadline(_score)
+    except _MemorizeRequestTimedOut:
+        raise HTTPException(
+            status_code=504,
+            detail="发音评分等待超过15秒，已停止本次请求。请重试。",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail=f"pronunciation scoring unavailable: {exc}")
+    return {
+        "accuracy": round(float(result.accuracy), 1),
+        "fluency": round(float(result.fluency), 1),
+        "speech_rate_ratio": round(float(result.speech_rate_ratio), 3),
+    }
 
 
 def main():

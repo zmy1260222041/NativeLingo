@@ -10,6 +10,9 @@ scipy==1.18.0
 
 # Image (Memorizing module: photo decode/crop for 看图识物)
 Pillow>=10.4
+# Offline word pronunciation (Memorizing FR-17). Piper VITS neural TTS;
+# voice models are separate ONNX files downloaded at warmup.
+piper-tts>=1.2
 # Local Qwen2.5-0.5B Q4_K_M inference. Build with GGML_METAL=on on macOS.
 llama-cpp-python==0.3.34
 

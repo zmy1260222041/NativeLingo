@@ -4,10 +4,12 @@ from __future__ import annotations
 import io
 import time
 
+import numpy as np
+import soundfile as sf
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from backend.core import parts, scenario, vision
+from backend.core import parts, scenario, vision, piper_tts, pipeline, model_assets
 from backend import main
 from backend.main import app
 
@@ -18,6 +20,17 @@ def _photo_bytes() -> bytes:
     output = io.BytesIO()
     Image.new("RGB", (120, 80), "white").save(output, format="JPEG")
     return output.getvalue()
+
+
+def _audio_bytes(duration_s: float = 0.5, sr: int = 16000) -> bytes:
+    output = io.BytesIO()
+    sf.write(output, _sine(duration_s, sr), sr, format="WAV", subtype="PCM_16")
+    return output.getvalue()
+
+
+def _sine(duration_s: float, sr: int = 16000) -> np.ndarray:
+    t = np.arange(int(sr * duration_s), dtype=np.float32) / sr
+    return (0.3 * np.sin(2 * np.pi * 220 * t)).astype(np.float32)
 
 
 def test_parts_and_scenario_use_server_owned_detection_context(monkeypatch):
@@ -231,3 +244,119 @@ def test_analyze_returns_final_yoloe_result_without_background_enrichment(monkey
     assert "enrichment" not in payload
     assert [item["label_en"] for item in payload["objects"]] == ["clock"]
     assert client.get(f"/memorize/enrichment/{payload['photo_id']}").status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# FR-17: word pronunciation — /memorize/tts + /memorize/pronounce
+# ---------------------------------------------------------------------------
+def test_tts_requires_text_param():
+    assert client.get("/memorize/tts").status_code == 422
+    assert client.get("/memorize/tts", params={"text": "  "}).status_code == 400
+    assert client.get("/memorize/tts", params={"text": "mug<svg>"}).status_code == 400
+
+
+def test_tts_returns_503_when_piper_not_loadable(monkeypatch):
+    monkeypatch.setattr(piper_tts, "is_loaded", lambda: False)
+    monkeypatch.setattr(model_assets, "download_verified", lambda *a, **k: 1 / 0)
+    response = client.get("/memorize/tts", params={"text": "mug"})
+    assert response.status_code == 503
+
+
+def test_tts_returns_wav(monkeypatch):
+    monkeypatch.setattr(piper_tts, "is_loaded", lambda: True)
+    monkeypatch.setattr(piper_tts, "synth_wav", lambda text: _sine(0.4))
+    response = client.get("/memorize/tts", params={"text": "mug"})
+    assert response.status_code == 200, response.text
+    assert response.headers["content-type"] == "audio/wav"
+    assert len(response.content) > 0
+    # round-trip: bytes decode as a 16 kHz WAV
+    wav, sr = sf.read(io.BytesIO(response.content), dtype="float32")
+    assert sr == 16000
+    assert wav.size > 0
+
+
+def test_tts_handles_missing_token_via_query_param(monkeypatch):
+    monkeypatch.setattr(piper_tts, "is_loaded", lambda: True)
+    monkeypatch.setattr(piper_tts, "synth_wav", lambda text: _sine(0.2))
+    # no token configured in CI -> query token is not required
+    response = client.get("/memorize/tts", params={"text": "mug", "token": "whatever"})
+    assert response.status_code == 200
+
+
+def test_pronounce_requires_text_and_audio(monkeypatch):
+    monkeypatch.setattr(piper_tts, "is_loaded", lambda: True)
+    monkeypatch.setattr(piper_tts, "synth_wav", lambda text: _sine(0.4))
+    assert (
+        client.post("/memorize/pronounce", files={"learner": ("l.wav", b"", "audio/wav")})
+        .status_code == 422
+    )
+    assert (
+        client.post(
+            "/memorize/pronounce",
+            data={"text": "mug"},
+            files={"learner": ("l.wav", b"", "audio/wav")},
+        ).status_code == 400
+    )
+
+
+def test_pronounce_status_is_lightweight_and_reports_readiness(monkeypatch):
+    monkeypatch.setattr(piper_tts, "is_loaded", lambda: True)
+    monkeypatch.setattr(pipeline, "is_encoder_loaded", lambda: False)
+    response = client.get("/memorize/pronounce/status")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
+    assert response.json()["ready"] is False
+    assert response.json()["tts_ready"] is True
+    assert response.json()["scorer_ready"] is False
+
+
+def test_pronounce_status_requires_configured_bearer_token(monkeypatch):
+    monkeypatch.setattr(main, "_TOKEN", "test-secret")
+    assert client.get("/memorize/pronounce/status").status_code == 401
+    response = client.get(
+        "/memorize/pronounce/status",
+        headers={"Authorization": "Bearer test-secret"},
+    )
+    assert response.status_code == 200
+
+
+def test_pronounce_scores_with_mocked_models(monkeypatch):
+    monkeypatch.setattr(piper_tts, "is_loaded", lambda: True)
+    monkeypatch.setattr(piper_tts, "synth_wav", lambda text: _sine(0.5))
+    captured = {}
+
+    class _Result:
+        accuracy = 87.5
+        fluency = 92.0
+        speech_rate_ratio = 1.03
+
+    def fake_analyze(ref, learner):
+        captured["ref_len"] = len(ref)
+        captured["learner_len"] = len(learner)
+        return _Result()
+
+    monkeypatch.setattr(pipeline, "analyze_arrays", fake_analyze)
+    response = client.post(
+        "/memorize/pronounce",
+        data={"text": "mug"},
+        files={"learner": ("l.wav", _audio_bytes(), "audio/wav")},
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["accuracy"] == 87.5
+    assert payload["fluency"] == 92.0
+    assert payload["speech_rate_ratio"] == 1.03
+    assert captured["learner_len"] > 0
+    assert captured["ref_len"] > 0
+
+
+def test_pronounce_empty_learner_rejected(monkeypatch):
+    monkeypatch.setattr(piper_tts, "is_loaded", lambda: True)
+    monkeypatch.setattr(piper_tts, "synth_wav", lambda text: _sine(0.4))
+    response = client.post(
+        "/memorize/pronounce",
+        data={"text": "mug"},
+        files={"learner": ("l.wav", b"", "audio/wav")},
+    )
+    assert response.status_code == 400
+    assert "empty" in response.json()["detail"]

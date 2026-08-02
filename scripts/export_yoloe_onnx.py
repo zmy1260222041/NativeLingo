@@ -7,7 +7,7 @@ Build-time requirements (not shipped in the app):
 
 The official PF checkpoint is a segmentation model.  NativeLingo only needs
 hotspot boxes, so this export binds the detection forward path, bakes in the
-LRPC proposal threshold, limits candidates to 50, and exports dynamic
+LRPC proposal threshold, limits candidates to 100, and exports dynamic
 rectangular inputs.  The resulting app still runs with onnxruntime alone.
 """
 from __future__ import annotations
@@ -23,7 +23,7 @@ SOURCE_SIZE = 32_696_887
 SOURCE_SHA256 = "9f0cefea64c48103a917dbc8ea4baf581aaf6ffa286675861dafd6fd04826f50"
 ULTRALYTICS_VERSION = "8.4.110"
 PROPOSAL_CONFIDENCE = 0.10
-MAX_DETECTIONS = 50
+MAX_DETECTIONS = 100
 _REPO = Path(__file__).resolve().parent.parent
 
 
@@ -49,7 +49,17 @@ def _allowed_labels() -> set[str]:
         if line.strip()
     }
     coco.discard("person")
-    return coco | set(config["labels"])
+    everyday = json.loads(
+        (_REPO / "desktop/backend/core/yoloe_everyday_labels.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    everyday_labels = {
+        label
+        for category in everyday["categories"].values()
+        for label in category
+    }
+    return coco | set(config["labels"]) | everyday_labels
 
 
 def main() -> None:
@@ -89,7 +99,7 @@ def main() -> None:
 
     # Remove segmentation output while retaining the PF classification head.
     # Filtering the 4,585-class score tensor before global top-k prevents noisy
-    # action/scene labels from crowding tangible objects out of the 50 outputs.
+    # action/scene labels from crowding tangible objects out of the outputs.
     YOLOESegment26.forward = YOLOEDetect.forward
     YOLOESegment26.forward_lrpc = YOLOEDetect.forward_lrpc
     YOLOESegment26._inference = YOLOEDetect._inference
@@ -134,7 +144,8 @@ def main() -> None:
             "description": (
                 "NativeLingo YOLOE-26S-PF tangible-object detector; "
                 "curated pre-top-k vocabulary, dynamic rectangular input, "
-                f"proposal confidence {PROPOSAL_CONFIDENCE:.2f}, max_det 50"
+                f"proposal confidence {PROPOSAL_CONFIDENCE:.2f}, "
+                f"max_det {MAX_DETECTIONS}"
             ),
             "native_lingo_proposal_conf": f"{PROPOSAL_CONFIDENCE:.2f}",
             "native_lingo_max_det": str(MAX_DETECTIONS),

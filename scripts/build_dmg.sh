@@ -53,7 +53,7 @@ fi
 # fetched as a stock ONNX file, so require the pinned artifact produced by
 # scripts/export_yoloe_onnx.py before freezing.
 YOLOE_MODEL="$ROOT/models/yoloe-26s-pf/yoloe-26s-pf.onnx"
-YOLOE_SHA256="b54b75dfdc803038c5dbbd510898c99fad0cc17e2a7577f33406af135c73028d"
+YOLOE_SHA256="32866f4bb407805e4e94a7bc37634fd4e64e0d8349e69e7af3e93008f916a492"
 [[ -f "$YOLOE_MODEL" ]] \
     || die "YOLOE model missing. Run scripts/export_yoloe_onnx.py with the official yoloe-26s-seg-pf.pt checkpoint."
 [[ "$(shasum -a 256 "$YOLOE_MODEL" | cut -d' ' -f1)" == "$YOLOE_SHA256" ]] \

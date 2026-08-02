@@ -31,6 +31,46 @@ def test_expanded_everyday_vocabulary_is_runtime_visible():
     assert specs["tree"] == {"zh": "树", "min_score": 0.11}
 
 
+def test_teapot_vocabulary_is_runtime_visible():
+    specs = vision._load_label_specs({0: "tea pot"})
+
+    assert specs == {"tea pot": {"zh": "茶壶", "min_score": 0.35}}
+
+
+def test_plant_vocabulary_is_runtime_visible():
+    labels = {"bamboo", "cactus", "fern", "herb", "houseplant", "leaf", "vine"}
+    names = {index: label for index, label in enumerate(sorted(labels))}
+
+    specs = vision._load_label_specs(names)
+
+    assert specs["herb"] == {"zh": "香草", "min_score": 0.10}
+    assert specs["houseplant"] == {"zh": "盆栽植物", "min_score": 0.40}
+    assert set(specs) == labels
+
+
+def test_everyday_vocabulary_is_runtime_visible():
+    labels = {
+        "chopstick",
+        "hanger",
+        "key",
+        "liner",
+        "napkin",
+        "paper",
+        "paper towel",
+        "parchment",
+        "rice cooker",
+        "toothpaste",
+    }
+    names = {index: label for index, label in enumerate(sorted(labels))}
+
+    specs = vision._load_label_specs(names)
+
+    assert set(specs) == labels
+    assert specs["parchment"] == {"zh": "烘焙纸", "min_score": 0.40}
+    assert specs["chopstick"] == {"zh": "筷子", "min_score": 0.60}
+    assert specs["key"] == {"zh": "钥匙", "min_score": 0.60}
+
+
 def test_gallery_driven_vocabulary_is_runtime_visible():
     gallery_labels = {
         "bedside lamp",
@@ -160,21 +200,107 @@ def test_parse_output_deduplicates_nested_alias_box():
     assert [item["label_en"] for item in detections] == ["fan"]
 
 
-def test_detail_plaque_geometry_keeps_nameplate_and_rejects_noise():
+def test_multiscale_plaque_geometry_keeps_nameplate_and_rejects_noise():
     base = {
         "label_en": "plaque",
         "label_zh": "牌匾",
         "score": 0.4,
     }
-    assert vision._detail_detection_is_usable(
+    assert vision._multiscale_detection_is_usable(
         {**base, "box": [10.0, 10.0, 80.0, 42.0]}
     )
-    assert not vision._detail_detection_is_usable(
+    assert not vision._multiscale_detection_is_usable(
         {**base, "box": [10.0, 10.0, 70.0, 47.0]}
     )
-    assert not vision._detail_detection_is_usable(
+    assert not vision._multiscale_detection_is_usable(
         {**base, "box": [10.0, 10.0, 185.0, 69.0]}
     )
+
+
+def test_multiscale_tiles_cover_image_with_non_overlapping_ownership():
+    tiles = vision._multiscale_tiles((1440, 1920))
+
+    assert len(tiles) == 6
+    assert {crop for crop, _ownership in tiles} == {
+        (0, 0, 960, 960),
+        (0, 480, 960, 1440),
+        (0, 960, 960, 1920),
+        (480, 0, 1440, 960),
+        (480, 480, 1440, 1440),
+        (480, 960, 1440, 1920),
+    }
+    for point in [(0, 0), (719, 719), (720, 720), (1439, 1919)]:
+        x, y = point
+        owners = [
+            ownership
+            for _crop, ownership in tiles
+            if ownership[0] <= x < ownership[2]
+            and ownership[1] <= y < ownership[3]
+        ]
+        assert len(owners) == 1
+
+
+def test_tile_detection_is_offset_only_from_its_ownership_region():
+    detection = {
+        "id": 0,
+        "label_en": "squid",
+        "label_zh": "鱿鱼",
+        "score": 0.508,
+        "box": [274.0, 427.0, 279.0, 112.0],
+    }
+
+    mapped = vision._offset_owned_detection(
+        detection,
+        offset_xy=(0, 480),
+        ownership_box=(0.0, 720.0, 720.0, 1200.0),
+    )
+    rejected = vision._offset_owned_detection(
+        {**detection, "box": [274.0, 20.0, 279.0, 112.0]},
+        offset_xy=(0, 480),
+        ownership_box=(0.0, 720.0, 720.0, 1200.0),
+    )
+
+    assert mapped["box"] == [274.0, 907.0, 279.0, 112.0]
+    assert rejected is None
+
+
+def test_cross_scale_deduplication_keeps_stronger_box():
+    weak = {
+        "id": 0,
+        "label_en": "herb",
+        "label_zh": "香草",
+        "score": 0.177,
+        "box": [279.0, 829.0, 265.0, 184.0],
+    }
+    strong = {
+        "id": 0,
+        "label_en": "herb",
+        "label_zh": "香草",
+        "score": 0.769,
+        "box": [307.0, 819.0, 219.0, 116.0],
+    }
+
+    detections = vision._deduplicate_detections([weak, strong])
+
+    assert detections == [{**strong, "id": 0}]
+
+
+def test_detect_runs_whole_image_plus_every_global_tile(monkeypatch):
+    run_calls = []
+
+    monkeypatch.setattr(vision, "_load", lambda: (object(), {}, {}))
+
+    def fake_run(_session, image, *, new_size=vision._IN_SIZE):
+        run_calls.append((image.size, new_size))
+        return np.empty((1, 0, 6), dtype=np.float32), 1.0, 0, 0
+
+    monkeypatch.setattr(vision, "_run", fake_run)
+
+    detections = vision.detect(Image.new("RGB", (1440, 1920)))
+
+    assert detections == []
+    assert run_calls[0] == ((1440, 1920), 640)
+    assert run_calls[1:] == [((960, 960), 1280)] * 6
 
 
 def test_memorize_analyze_rejects_non_image():

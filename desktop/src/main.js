@@ -12,7 +12,7 @@ const BACKEND_TOKEN = window.__NATIVELINGO_TOKEN__ || null;
 // once the backend responds, so the marker is reliable across cold starts (the
 // load-time ping otherwise fails silently while the backend is still spinning
 // up and never reaches the log).
-const BOOT_TAG = "v19";
+const BOOT_TAG = "v21";
 let _bootMarked = false;
 function markBoot() {
   if (_bootMarked) return;
@@ -46,14 +46,25 @@ const tokenQS = () => (BACKEND_TOKEN ? `?token=${encodeURIComponent(BACKEND_TOKE
 // spinner. The backend mirrors this deadline, but AbortController gives the
 // UI a prompt, deterministic recovery path even if a local process wedges.
 const MEMO_REQUEST_TIMEOUT_MS = 15_000;
-async function memoFetch(path, options = {}) {
+const MEMO_HEALTH_TIMEOUT_MS = 3_000;
+const MEMO_PRONOUNCE_TIMEOUT_MS = 18_000;
+async function memoFetch(path, options = {}, timeoutMs = MEMO_REQUEST_TIMEOUT_MS) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), MEMO_REQUEST_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const headers = new Headers(options.headers || {});
+  if (BACKEND_TOKEN && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${BACKEND_TOKEN}`);
+  }
   try {
-    return await fetch(`${BACKEND_URL}${path}`, { ...options, signal: controller.signal });
+    return await fetch(`${BACKEND_URL}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
   } catch (error) {
     if (controller.signal.aborted) {
-      const timeout = new Error("等待超过15秒，已停止本次请求。请重试；若持续发生，请重新打开应用。");
+      const seconds = Math.ceil(timeoutMs / 1000);
+      const timeout = new Error(`等待超过${seconds}秒，已停止本次请求。请重试；若持续发生，请重新打开应用。`);
       timeout.name = "MemoTimeoutError";
       throw timeout;
     }
@@ -876,12 +887,16 @@ const memo = {
   recognitionToken: 0,
   detailToken: 0,
   scenarioToken: 0,
+  pronounceToken: 0,
+  pronounceWord: "",       // FR-17: word/phrase currently targeted for practice
+  pronounceRecorder: null,
 };
 const MEMO_MAX_DIM = 1920;
 const _MEMO_STAGE_LABEL = {
   yolo: "YOLO 检测模型",
   llm: "Qwen Q4_K_M 情景模型 ~491MB",
   florence: "Florence 视觉增强模型 ~463MB",
+  piper: "Piper 发音模型 ~63MB",
 };
 
 function memoStatus(cls, msg) {
@@ -943,12 +958,14 @@ function memoWireUpload() {
   });
   $("memo-reupload").addEventListener("click", memoResetToUpload);
   $("memo-back").addEventListener("click", () => {
+    memoPronounceReset();
     $("memo-detail").hidden = true;
     $("memo-view").scrollIntoView({ behavior: "smooth" });
   });
 }
 
 function memoResetToUpload() {
+  memoPronounceReset();
   $("memo-view").hidden = true;
   $("memo-detail").hidden = true;
   $("memo-upload").closest(".card").hidden = false;
@@ -1159,6 +1176,10 @@ function memoRenderPartHotspots(parts, cropSize, onSelect, chipByPart) {
 async function memoOpenDetail(obj) {
   const detailToken = ++memo.detailToken;
   memo.scenarioToken += 1;
+  memoPronounceReset();            // FR-17: clear previous scores/recording
+  memo.pronounceWord = obj.label_en;
+  memoPronounceHint(obj.label_en);
+  $("memo-pronounce-record").disabled = false;
   const detail = $("memo-detail");
   detail.hidden = false;
   detail.scrollIntoView({ behavior: "smooth" });
@@ -1226,6 +1247,8 @@ async function memoOpenDetail(obj) {
     $("memo-part-hotspots").querySelectorAll(".part-hotspot").forEach((item) => {
       item.classList.toggle("active", item === hotspotByPart.get(part));
     });
+    memo.pronounceWord = part.label_en;   // FR-17: practice follows the selection
+    memoPronounceHint(part.label_en);
     memoGenerateScenario(obj, part.whole ? null : part);
   };
   const addChip = (part, parent, label, active = false) => {
@@ -1238,7 +1261,22 @@ async function memoOpenDetail(obj) {
     chip.addEventListener("click", () => selectPart(part));
     chip.addEventListener("mouseenter", () => hotspotByPart.get(part)?.classList.add("preview"));
     chip.addEventListener("mouseleave", () => hotspotByPart.get(part)?.classList.remove("preview"));
-    parent.appendChild(chip);
+    // FR-17: adjacent 🔊 play button for the standard pronunciation.
+    const wrapper = document.createElement("span");
+    wrapper.className = "part-chip-wrap";
+    wrapper.appendChild(chip);
+    const playBtn = document.createElement("button");
+    playBtn.type = "button";
+    playBtn.className = "pronounce-play-btn";
+    playBtn.title = "播放标准发音";
+    playBtn.setAttribute("aria-label", `播放 ${part.label_en} 的标准发音`);
+    playBtn.textContent = "🔊";
+    playBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      memoPronouncePlay(part.label_en);
+    });
+    wrapper.appendChild(playBtn);
+    parent.appendChild(wrapper);
     chipByPart.set(part, chip);
   };
   const whole = {
@@ -1355,6 +1393,180 @@ async function memoGenerateScenario(obj, part) {
     setStatus($("memo-scenario-status"), "", "情景生成失败:" + e.message);
   }
 }
+
+// ---- FR-17: word pronunciation (playback + optional shadow score) ----
+const memoPronounceRecorder = createRecorder();
+const memoPronounceTimer = makeTimer("memo-pronounce-timer");
+let memoPronounceAudioUrl = "";
+let memoPronouncePlayToken = 0;
+
+function memoPronounceClearAudio() {
+  const player = $("memo-pronounce-player");
+  if (player) {
+    player.pause();
+    player.removeAttribute("src");
+    player.load();
+  }
+  if (memoPronounceAudioUrl) {
+    URL.revokeObjectURL(memoPronounceAudioUrl);
+    memoPronounceAudioUrl = "";
+  }
+}
+
+async function memoPronouncePlay(text) {
+  if (!text) return;
+  const playToken = ++memoPronouncePlayToken;
+  const tok = BACKEND_TOKEN ? `&token=${encodeURIComponent(BACKEND_TOKEN)}` : "";
+  const url = `${BACKEND_URL}/memorize/tts?text=${encodeURIComponent(text)}${tok}`;
+  try {
+    // Fetch once so backend errors remain readable, then play that same
+    // response. Assigning the endpoint to player.src would issue a second TTS
+    // request and synthesize the same word again.
+    const response = await fetch(url);
+    if (!response.ok) {
+      let detail = "HTTP " + response.status;
+      try {
+        const data = await response.json();
+        if (data && data.detail) detail = data.detail;
+      } catch (_) {
+        // Keep the HTTP status when the error response is not JSON.
+      }
+      throw new Error(detail);
+    }
+    const blob = await response.blob();
+    if (playToken !== memoPronouncePlayToken) return;
+    if (!blob.size) throw new Error("语音合成返回了空音频");
+
+    memoPronounceClearAudio();
+    const player = $("memo-pronounce-player");
+    memoPronounceAudioUrl = URL.createObjectURL(blob);
+    player.src = memoPronounceAudioUrl;
+    await player.play();
+  } catch (e) {
+    if (playToken !== memoPronouncePlayToken) return;
+    setStatus($("memo-parts-status"), "", "发音加载失败:" + (e && e.message));
+    clientLog("pronounce play failed: " + (e && e.message));
+  }
+}
+
+function memoPronounceHint(text) {
+  const hint = $("memo-pronounce-hint");
+  if (hint) {
+    hint.textContent = text
+      ? `当前练习目标: “${text}”。点击 🔊 听标准发音，再录音跟读对比打分。`
+      : "点击上方 🔊 听标准发音，再录音跟读，AI 对比打分。";
+  }
+}
+
+function memoPronounceReset() {
+  memoPronouncePlayToken += 1;
+  memo.pronounceToken += 1;
+  if (memoPronounceRecorder.recording) memoPronounceRecorder.stop();
+  memoPronounceTimer.stop();
+  const btn = $("memo-pronounce-record");
+  if (btn) btn.textContent = "🎤 开始录音";
+  const score = $("memo-pronounce-score");
+  if (score) { score.hidden = true; score.replaceChildren(); }
+  memoPronounceClearAudio();
+}
+
+function memoPronounceScoreBadge(label, value) {
+  const cls = value >= 75 ? "good" : value >= 60 ? "weak" : "bad";
+  return `<div class="score-badge ${cls}"><div class="score-label">${label}</div>` +
+         `<div class="score-value">${value.toFixed(0)}</div></div>`;
+}
+
+async function memoPronounceSubmit(blob) {
+  const token = ++memo.pronounceToken;
+  const word = memo.pronounceWord;
+  const btn = $("memo-pronounce-record");
+  const scoreEl = $("memo-pronounce-score");
+  btn.disabled = true;
+  btn.textContent = "检查中…";
+  scoreEl.hidden = false;
+  scoreEl.innerHTML = `<p class="hint">正在检查本地评分服务…</p>`;
+  try {
+    const healthRes = await memoFetch(
+      "/memorize/pronounce/status",
+      {},
+      MEMO_HEALTH_TIMEOUT_MS,
+    );
+    const health = await healthRes.json().catch(() => ({}));
+    if (!healthRes.ok || health.status !== "ok") {
+      throw new Error(health.detail || "本地评分服务未就绪");
+    }
+    if (token !== memo.pronounceToken) return;
+
+    btn.textContent = "评分中…";
+    scoreEl.innerHTML = health.ready
+      ? `<p class="hint">评分服务正常，正在对比参考音…</p>`
+      : `<p class="hint">评分模型正在准备，首次评分可能稍慢（最多15秒）…</p>`;
+    const form = new FormData();
+    form.append("text", word);
+    form.append("learner", blob, "learner.webm");
+    const res = await memoFetch(
+      "/memorize/pronounce",
+      { method: "POST", body: form },
+      MEMO_PRONOUNCE_TIMEOUT_MS,
+    );
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || "发音评分失败");
+    if (token !== memo.pronounceToken) return;
+    scoreEl.innerHTML =
+      `<div class="score-row">` +
+      memoPronounceScoreBadge("准确度", data.accuracy) +
+      memoPronounceScoreBadge("流畅度", data.fluency) +
+      `</div>` +
+      `<p class="hint">发音评分基于本地 SSL+DTW 对比，供练习参考。</p>`;
+  } catch (e) {
+    if (token !== memo.pronounceToken) return;
+    scoreEl.innerHTML = `<p class="hint">发音评分失败:${e.message}</p>`;
+  } finally {
+    if (token === memo.pronounceToken) {
+      btn.disabled = false;
+      btn.textContent = "🎤 重新录音";
+    }
+  }
+}
+
+function memoPronounceToggleRecord() {
+  const btn = $("memo-pronounce-record");
+  const timer = $("memo-pronounce-timer");
+  const onStop = (blob) => {
+    if (!blob || blob.size === 0) {
+      btn.disabled = false;
+      btn.textContent = "🎤 重新录音";
+      const scoreEl = $("memo-pronounce-score");
+      scoreEl.hidden = false;
+      scoreEl.innerHTML = `<p class="hint">没有录到有效声音，请检查麦克风后重新录音。</p>`;
+      clientLog("pronounce: empty recording");
+      return;
+    }
+    const player = $("memo-pronounce-player");
+    memoPronounceClearAudio();
+    memoPronounceAudioUrl = URL.createObjectURL(blob);
+    player.src = memoPronounceAudioUrl;
+    player.hidden = false;
+    memoPronounceSubmit(blob);
+  };
+  if (memoPronounceRecorder.recording) {
+    memoPronounceRecorder.stop();
+    memoPronounceTimer.stop();
+    btn.disabled = true;
+    btn.textContent = "正在整理录音…";
+  } else {
+    memoPronounceRecorder.prepare(onStop).then(() => {
+      memoPronounceRecorder.begin();
+      memoPronounceTimer.start();
+      btn.textContent = "⏹ 停止录音";
+    }).catch((err) => {
+      memoPronounceHint("无法访问麦克风: " + (err && err.message ? err.message : err));
+    });
+  }
+  if (timer) timer.style.display = "inline";
+}
+
+$("memo-pronounce-record").addEventListener("click", memoPronounceToggleRecord);
 
 // =====================================================================
 // Init

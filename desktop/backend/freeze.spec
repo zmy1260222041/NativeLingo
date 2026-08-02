@@ -17,7 +17,7 @@ inherits the same NATIVELINGO_TOKEN/PORT/HOST env-var contract as
 """
 import os
 
-from PyInstaller.utils.hooks import collect_all
+from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_dynamic_libs
 
 SPECPATH = os.path.dirname(os.path.abspath(SPEC))   # .../backend
 PROJROOT = os.path.dirname(SPECPATH)                 # project root (parent of backend/)
@@ -47,6 +47,15 @@ for pkg in [
     binaries += b
     hiddenimports += h
 
+# Piper must stay lazy: collect_all("piper") adds every submodule as a hidden
+# import, which makes the frozen backend load espeakbridge.so before
+# piper_tts.py can select the bundled espeak-ng-data directory.  The macOS
+# wheel then locks in its CI machine's baked absolute path and exits the whole
+# backend on first synthesis.  Normal dependency analysis already includes
+# the runtime modules; only copy Piper's data files and native libraries here.
+datas += collect_data_files("piper")
+binaries += collect_dynamic_libs("piper")
+
 # faster-whisper / CTranslate2 backends + tokenizers are imported lazily.
 hiddenimports += ["ctranslate2", "ctranslate2.convertors", "tokenizers"]
 
@@ -57,7 +66,13 @@ datas += [(os.path.join(PROJROOT, "backend", "core", "calibration.json"),
            os.path.join("backend", "core"))]
 # Curated YOLOE labels plus COCO translations and Florence part translations.
 # The ONNX weight is staged separately below.
-for _coco in ("coco_names.txt", "coco_zh.json", "yoloe_labels.json", "parts_zh.json"):
+for _coco in (
+    "coco_names.txt",
+    "coco_zh.json",
+    "yoloe_labels.json",
+    "yoloe_everyday_labels.json",
+    "parts_zh.json",
+):
     datas += [(os.path.join(PROJROOT, "backend", "core", _coco),
                os.path.join("backend", "core"))]
 

@@ -75,7 +75,7 @@ def main() -> None:
                 f"{len(vision._load()[2])}-label pre-top-k vocabulary "
                 "at proposal confidence 0.10 "
                 "+ per-label minimum score + class-agnostic IoU 0.72 "
-                "+ contextual 1280px plaque detail pass"
+                "+ global 640px pass + overlapping 1280px multiscale tiles"
             ),
         },
         "results": results,
