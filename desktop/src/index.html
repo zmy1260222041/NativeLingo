@@ -7,11 +7,23 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>NativeLingo — Speaking · Memorizing</title>
-  <link rel="stylesheet" href="styles.css?v=18" />
+  <script>
+    // Set the theme class before first paint so a saved dark preference doesn't
+    // flash the light theme. The toggle in main.js keeps it in sync.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("nl-theme"); } catch (_) {}
+      var dark = saved ? saved === "dark"
+                       : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.classList.toggle("dark", dark);
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css?v=19" />
 </head>
 <body>
   <div class="app">
     <header>
+      <button id="theme-toggle" class="theme-toggle" type="button" title="切换浅色/深色主题" aria-label="切换浅色/深色主题">🌙</button>
       <div class="brand">
         <h1>Native<span class="leaf">Lingo</span></h1>
         <p class="subtitle">Speaking · 口语跟读评估　|　Memorizing · 看图识物</p>
@@ -107,7 +119,7 @@
         <!-- recognition view: photo + clickable object hotspots -->
         <section id="memo-view" class="card" hidden>
           <div class="memo-stage">
-            <img id="memo-img" class="memo-img" alt="uploaded photo" />
+            <img id="memo-img" class="memo-img" alt="上传的照片" />
             <div id="memo-hotspots" class="memo-hotspots"></div>
             <div id="memo-analyzing" class="memo-overlay" hidden>
               <div class="spinner"></div><div>正在识别物品…</div>
@@ -124,7 +136,7 @@
           <button id="memo-back" class="btn btn-record memo-back">← 返回整图</button>
           <div class="memo-detail-head">
             <div id="memo-detail-stage" class="memo-detail-stage">
-              <img id="memo-detail-img" class="memo-detail-img" alt="object crop" />
+              <img id="memo-detail-img" class="memo-detail-img" alt="物品放大图" />
               <div id="memo-part-hotspots" class="memo-part-hotspots"></div>
               <div id="memo-parts-analyzing" class="memo-detail-overlay">
                 <div class="spinner"></div><div>正在分析可见细节…</div>
@@ -196,6 +208,6 @@
       </section>
     </main>
   </div>
-  <script type="module" src="main.js?v=22"></script>
+  <script type="module" src="main.js?v=23"></script>
 </body>
 </html>
