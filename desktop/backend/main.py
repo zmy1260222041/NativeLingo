@@ -17,6 +17,8 @@ Exposes:
 * POST /recordings          -> store the learner recording, returns an id
 * GET  /recordings/{id}/clip -> exact WAV slice of the learner recording
                                (FR-8: sample-accurate "my" word/sentence replay)
+* GET  /memorize/tts        -> Piper TTS WAV of a word/phrase (FR-17 playback)
+* POST /memorize/pronounce  -> score a learner's word recording vs Piper ref
 """
 from __future__ import annotations
 
@@ -24,6 +26,7 @@ import io
 import os
 import re
 import tempfile
+import threading
 import uuid
 
 import numpy as np
@@ -31,6 +34,7 @@ import soundfile as sf
 from fastapi import FastAPI, File, UploadFile, Form, Header, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, Response
+from pydantic import BaseModel
 
 from backend.core.audio_io import load_audio_from_array, trim_silence
 from backend.core.pipeline import analyze_full, analyze_detailed, get_encoder
@@ -47,7 +51,14 @@ async def _lifespan(_app):
     # is exposed via /warmup. Best-effort; analyze still works if it fails.
     from backend.core import warmup
     warmup.start()
-    yield
+    try:
+        yield
+    finally:
+        # llama.cpp Metal must be released before interpreter/dylib teardown;
+        # otherwise an exceptional request followed by app exit can trip a
+        # ggml-metal resource-set assertion.
+        from backend.core import memorize_warmup
+        memorize_warmup.release()
 
 
 app = FastAPI(title="NativeLingo Backend", version="0.1.0", lifespan=_lifespan)
@@ -380,10 +391,490 @@ def recording_clip(rid: str, start: float, end: float, token: str | None = None)
     return Response(content=buf.getvalue(), media_type="audio/wav")
 
 
+# --------------------------------------------------------------------------- #
+# Memorizing module (FR-13..15): photo recognition + one-level detail + dialogue
+# --------------------------------------------------------------------------- #
+# The frontend uploads a photo, gets back whole-object boxes (clickable
+# hotspots), then per-click asks for that object's parts, optional container
+# contents, and a scenario. Container contents remain server-owned leaf
+# selections and can never become recursively analyzable whole objects. The
+# photo is stored server-side under a UUID (mirrors /recordings) so each click
+# doesn't re-upload the multi-MB image. All handlers are plain `def` (not async)
+# so FastAPI runs blocking model inference in the threadpool without stalling
+# the event loop. Intelligence is fully on-device (NFR-5): no media is served
+# back, only JSON (boxes + text).
+_MEMORIZES_DIR = tempfile.mkdtemp(prefix="nativelingo_photos_")
+_MID_RE = re.compile(r"^[0-9a-f]{32}$")
+_MEMORIZE_META: dict[str, dict] = {}
+_MEMORIZE_META_LOCK = threading.Lock()
+_MEMORIZE_REQUEST_TIMEOUT_S = 15.0
+
+
+class _MemorizeRequestTimedOut(TimeoutError):
+    """A local model call exceeded the learner-facing responsiveness budget."""
+
+
+def _within_memorize_deadline(operation):
+    """Return an operation result or fail the HTTP request after 15 seconds.
+
+    Python cannot safely kill a thread inside ONNX/Torch native code, so a
+    timed-out worker is daemonized and allowed to finish in the background.
+    Crucially, the request and UI are released immediately; future clicks get a
+    deterministic retry path rather than an unbounded spinner.
+    """
+    completed = threading.Event()
+    result: dict[str, object] = {}
+
+    def run() -> None:
+        try:
+            result["value"] = operation()
+        except BaseException as exc:  # preserve model-library failures
+            result["error"] = exc
+        finally:
+            completed.set()
+
+    worker = threading.Thread(target=run, daemon=True, name="nl-memorize-request")
+    worker.start()
+    if not completed.wait(_MEMORIZE_REQUEST_TIMEOUT_S):
+        raise _MemorizeRequestTimedOut()
+    if "error" in result:
+        raise result["error"]  # type: ignore[misc]
+    return result.get("value")
+
+
+def _photo_path(mid: str) -> str:
+    if not _MID_RE.match(mid):
+        raise HTTPException(status_code=400, detail="invalid photo id")
+    path = os.path.join(_MEMORIZES_DIR, f"{mid}.img")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="photo not found")
+    return path
+
+
+def _load_image(path: str):
+    from PIL import Image
+    return Image.open(path).convert("RGB")
+
+
+class PartsReq(BaseModel):
+    photo_id: str
+    object_id: int
+
+
+class ScenarioReq(BaseModel):
+    photo_id: str
+    object_id: int
+    part_en: str = ""
+
+
+def _object_for(photo_id: str, object_id: int) -> dict:
+    """Return one server-owned detection; never trust client boxes/labels."""
+    _photo_path(photo_id)
+    with _MEMORIZE_META_LOCK:
+        meta = _MEMORIZE_META.get(photo_id)
+        if meta is None:
+            raise HTTPException(status_code=404, detail="photo context not found")
+        for item in meta["objects"]:
+            if item["id"] == object_id:
+                return dict(item)
+    raise HTTPException(status_code=404, detail="object not found")
+
+
+@app.post("/memorize/analyze")
+def memorize_analyze(photo: UploadFile = File(...), _=Depends(require_token)):
+    """FR-13: detect whole objects in an uploaded photo. Stores the photo under
+    a UUID and returns each object's label (en + zh) + box [x,y,w,h]."""
+    raw = photo.file.read()
+    from backend.core import memorize_image
+    try:
+        img, canonical_bytes = memorize_image.canonicalize_upload(raw)
+    except memorize_image.ImageUploadError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    mid = uuid.uuid4().hex
+    with open(os.path.join(_MEMORIZES_DIR, f"{mid}.img"), "wb") as f:
+        f.write(canonical_bytes)
+
+    from backend.core import vision
+    try:
+        objects = _within_memorize_deadline(lambda: vision.detect(img))
+    except _MemorizeRequestTimedOut:
+        try:
+            os.remove(os.path.join(_MEMORIZES_DIR, f"{mid}.img"))
+        except OSError:
+            pass
+        raise HTTPException(
+            status_code=504,
+            detail="图片识别等待超过15秒，已停止本次请求。请重试。",
+        )
+    except Exception as exc:  # noqa: BLE001  (model not staged / downloading)
+        try:
+            os.remove(os.path.join(_MEMORIZES_DIR, f"{mid}.img"))
+        except OSError:
+            pass
+        raise HTTPException(status_code=503, detail=f"object detection unavailable: {exc}")
+    with _MEMORIZE_META_LOCK:
+        _MEMORIZE_META[mid] = {
+            "objects": objects,
+            "contexts": {},
+        }
+    return {
+        "photo_id": mid,
+        "image_size": list(img.size),
+        "preprocessing": memorize_image.CONTRACT_VERSION,
+        "objects": objects,
+    }
+
+
+@app.post("/memorize/parts")
+def memorize_parts(req: PartsReq, _=Depends(require_token)):
+    """FR-14: name visible parts and one-level contents of a clicked object."""
+    path = _photo_path(req.photo_id)
+    obj = _object_for(req.photo_id, req.object_id)
+    img = _load_image(path)
+    x, y, w, h = (float(v) for v in obj["box"])
+    iw, ih = img.size
+    cx, cy = x + w / 2.0, y + h / 2.0
+    sw, sh = w * 1.2, h * 1.2  # +10% context each side so edges aren't clipped
+    left = max(0, int(cx - sw / 2.0))
+    top = max(0, int(cy - sh / 2.0))
+    right = min(iw, int(cx + sw / 2.0))
+    bottom = min(ih, int(cy + sh / 2.0))
+    if right <= left or bottom <= top:
+        raise HTTPException(status_code=400, detail="invalid object box")
+    crop = img.crop((left, top, right, bottom))
+    object_box = [
+        round(x - left, 1),
+        round(y - top, 1),
+        round(x + w - left, 1),
+        round(y + h - top, 1),
+    ]
+
+    from backend.core import parts, memorize_warmup
+    st = memorize_warmup.status()
+    if st["running"] and not st["florence_ready"]:
+        raise HTTPException(status_code=503, detail="parts model still preparing; see /memorize/status")
+    try:
+        result = _within_memorize_deadline(
+            lambda: parts.analyze_parts(
+                crop,
+                obj["label_en"],
+                obj["label_zh"],
+                object_box=object_box,
+            )
+        )
+    except _MemorizeRequestTimedOut:
+        raise HTTPException(
+            status_code=504,
+            detail="部件识别等待超过15秒，已停止本次请求。请重试。",
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail=f"part naming unavailable: {exc}")
+    result = dict(result)
+    relation = parts.container_relation(obj["label_en"])
+    result["contents"] = [
+        {
+            **item,
+            "kind": "content",
+            "parent_id": req.object_id,
+            "relation": relation,
+            "depth": 1,
+        }
+        for item in result.get("contents", [])
+    ]
+    with _MEMORIZE_META_LOCK:
+        meta = _MEMORIZE_META.get(req.photo_id)
+        if meta is not None:
+            meta["contexts"][req.object_id] = {
+                "crop_context": result["crop_context"],
+                "parts": result["parts"],
+                "contents": result["contents"],
+            }
+    # Florence boxes are xyxy coordinates relative to this context-expanded
+    # crop. Return its exact geometry so the frontend can display the same
+    # pixels and place part labels without guessing or coordinate drift.
+    return {
+        **result,
+        "crop_box": [left, top, right - left, bottom - top],
+        "crop_size": [right - left, bottom - top],
+    }
+
+
+@app.post("/memorize/scenario")
+def memorize_scenario(req: ScenarioReq, _=Depends(require_token)):
+    """FR-15: generate a short everyday multi-role dialogue placing the object in
+    a memorable real-world situation (text-only memory aid, no audio)."""
+    obj = _object_for(req.photo_id, req.object_id)
+    with _MEMORIZE_META_LOCK:
+        meta = _MEMORIZE_META.get(req.photo_id) or {"objects": [], "contexts": {}}
+        context = dict(meta["contexts"].get(req.object_id) or {})
+        scene_objects = [
+            item["label_en"]
+            for item in meta["objects"]
+            if item["id"] != req.object_id
+        ]
+
+    part_en = ""
+    part_zh = ""
+    if req.part_en.strip():
+        selectable = [
+            *context.get("parts", []),
+            *context.get("contents", []),
+        ]
+        selected = next(
+            (
+                item
+                for item in selectable
+                if item["label_en"].casefold() == req.part_en.strip().casefold()
+            ),
+            None,
+        )
+        if selected is None:
+            raise HTTPException(
+                status_code=400,
+                detail="selected detail is not in the analyzed crop",
+            )
+        part_en = selected["label_en"]
+        part_zh = selected.get("label_zh", "")
+
+    from backend.core import scenario, memorize_warmup
+    st = memorize_warmup.status()
+    if st["running"] and not st["llm_ready"]:
+        raise HTTPException(status_code=503, detail="scenario model still preparing; see /memorize/status")
+    try:
+        dialogue = _within_memorize_deadline(
+            lambda: scenario.generate(
+                obj["label_en"],
+                obj["label_zh"],
+                photo_context=context.get("crop_context", ""),
+                scene_objects=scene_objects,
+                part_en=part_en,
+                part_zh=part_zh,
+            )
+        )
+    except _MemorizeRequestTimedOut:
+        raise HTTPException(
+            status_code=504,
+            detail="情景生成等待超过15秒，已停止本次请求。请重试。",
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail=f"scenario generation unavailable: {exc}")
+    return dialogue
+
+
+@app.get("/memorize/status")
+def memorize_status(_=Depends(require_token)):
+    """Memorize-model prefetch progress (yolo -> llm -> florence). The frontend polls
+    this on tab-enter to show staged download progress instead of a blind wait."""
+    from backend.core import memorize_warmup
+    return memorize_warmup.status()
+
+
+@app.post("/memorize/warmup")
+def memorize_warmup_start(_=Depends(require_token)):
+    """Kick the on-demand model prefetch (called when the user enters the
+    Memorize tab). Idempotent."""
+    from backend.core import memorize_warmup
+    memorize_warmup.start()
+    return memorize_warmup.status()
+
+
+@app.post("/memorize/release")
+def memorize_release(_=Depends(require_token)):
+    """Cancel warmup and free Florence + Qwen when the user leaves the tab.
+    YOLO stays resident (tiny + bundled). First model-unload mechanism in the
+    codebase."""
+    from backend.core import memorize_warmup
+    memorize_warmup.release()
+    return {"released": True}
+
+
+# ---------------------------------------------------------------------------
+# FR-17: word pronunciation — Piper TTS playback + optional shadow scoring.
+# Reference audio is synthesized on-device (never uploaded); the learner
+# recording is scored with the same SSL+DTW Track B pipeline as Speaking.
+# ---------------------------------------------------------------------------
+_MAX_TTS_TEXT = 200
+_TTS_TEXT_RE = re.compile(r"^[A-Za-z0-9 .,'!?&:/()-]+$")
+
+
+def _valid_tts_text(text: str) -> str:
+    """Normalize + validate a pronunciation target word/phrase."""
+    text = text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="text is required")
+    if len(text) > _MAX_TTS_TEXT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"text too long (max {_MAX_TTS_TEXT} characters)",
+        )
+    if not _TTS_TEXT_RE.match(text):
+        raise HTTPException(
+            status_code=400,
+            detail="text contains unsupported characters",
+        )
+    return text
+
+
+_PIPER_LAZY_LOCK = threading.Lock()
+
+
+def _ensure_piper_ready() -> None:
+    """Best-effort lazy-load Piper if warmup didn't complete the piper stage.
+
+    The model is already in the HF cache once any warmup attempt has been made;
+    this just verifies + loads (~1 s), protected by a lock so concurrent TTS /
+    pronounce requests can't double-construct the ONNX session.
+    """
+    from backend.core import piper_tts
+
+    if piper_tts.is_loaded():
+        return
+    with _PIPER_LAZY_LOCK:
+        if piper_tts.is_loaded():
+            return
+        if piper_tts.uses_system_voice():
+            piper_tts.load("")
+            return
+        from backend.core import model_assets
+
+        onnx = model_assets.download_verified(
+            model_assets.PIPER_REPO,
+            model_assets.PIPER_FILENAME,
+            model_assets.PIPER_REVISION,
+            model_assets.PIPER_SIZE,
+            model_assets.PIPER_SHA256,
+        )
+        import os
+
+        if not os.path.exists(onnx + ".json"):
+            from huggingface_hub import hf_hub_download
+
+            hf_hub_download(
+                model_assets.PIPER_REPO,
+                model_assets.PIPER_CONFIG_FILENAME,
+                revision=model_assets.PIPER_REVISION,
+            )
+        piper_tts.load(onnx)
+
+
+@app.get("/memorize/tts")
+def memorize_tts(text: str, token: str | None = None):
+    """FR-17: return a 16 kHz PCM_16 WAV of ``text`` spoken by Piper neural TTS.
+
+    Token via query param since an <audio> element can't set an Authorization
+    header (same pattern as the Speaking clip endpoints)."""
+    check_token_value(token)
+    text = _valid_tts_text(text)
+    from backend.core import piper_tts
+
+    try:
+        _ensure_piper_ready()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"pronunciation model still preparing: {exc}",
+        )
+    try:
+        wav = _within_memorize_deadline(lambda: piper_tts.synth_wav(text))
+    except _MemorizeRequestTimedOut:
+        raise HTTPException(
+            status_code=504,
+            detail="语音合成等待超过15秒，已停止本次请求。请重试。",
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail=f"speech synthesis unavailable: {exc}")
+    if wav.size == 0:
+        raise HTTPException(status_code=400, detail="synthesis produced no audio")
+    buf = io.BytesIO()
+    sf.write(buf, wav, 16000, format="WAV", subtype="PCM_16")
+    return Response(content=buf.getvalue(), media_type="audio/wav")
+
+
+@app.get("/memorize/pronounce/status")
+def memorize_pronounce_status(_=Depends(require_token)):
+    """Lightweight liveness/readiness check for pronunciation scoring.
+
+    Unlike the general /health endpoint, this never lazy-loads the SSL encoder,
+    so the UI can use it with a short timeout before uploading a recording.
+    """
+    from backend.core import memorize_warmup, piper_tts, pipeline
+
+    warmup = memorize_warmup.status()
+    tts_ready = piper_tts.is_loaded()
+    scorer_ready = pipeline.is_encoder_loaded()
+    return {
+        "status": "ok",
+        "ready": tts_ready and scorer_ready,
+        "tts_ready": tts_ready,
+        "scorer_ready": scorer_ready,
+        "warmup_stage": warmup.get("stage", "idle"),
+    }
+
+
+@app.post("/memorize/pronounce")
+async def memorize_pronounce(
+    text: str = Form(...),
+    learner: UploadFile = File(...),
+    _=Depends(require_token),
+):
+    """FR-17: score a learner's pronunciation of a single word/phrase.
+
+    The reference is synthesized on-device with Piper; the learner recording is
+    decoded, trimmed, and scored via the existing Track B pipeline. Word-level
+    input needs no sentence/word segmentation, so the result is just the score
+    triplet."""
+    text = _valid_tts_text(text)
+    raw = learner.file.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="empty audio upload")
+
+    from backend.core import piper_tts, pipeline
+
+    try:
+        _ensure_piper_ready()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"pronunciation model still preparing: {exc}",
+        )
+
+    def _score():
+        ref_wav = trim_silence(piper_tts.synth_wav(text))
+        if ref_wav.size == 0:
+            raise ValueError("synthesis produced no audio")
+        learner_wav = trim_silence(_decode_upload(raw))
+        if learner_wav.size == 0:
+            raise ValueError("learner audio contained no speech")
+        return pipeline.analyze_arrays(ref_wav, learner_wav)
+
+    try:
+        result = _within_memorize_deadline(_score)
+    except _MemorizeRequestTimedOut:
+        raise HTTPException(
+            status_code=504,
+            detail="发音评分等待超过15秒，已停止本次请求。请重试。",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail=f"pronunciation scoring unavailable: {exc}")
+    return {
+        "accuracy": round(float(result.accuracy), 1),
+        "fluency": round(float(result.fluency), 1),
+        "speech_rate_ratio": round(float(result.speech_rate_ratio), 3),
+    }
+
+
 def main():
     """Entry point for running the sidecar standalone."""
+    # Required by PyInstaller on macOS: model libraries may use multiprocessing
+    # during warmup. Without this, a spawned child re-enters main() and briefly
+    # tries to bind a second Uvicorn server on the same port.
+    import multiprocessing
     import uvicorn
 
+    multiprocessing.freeze_support()
     host = os.environ.get("NATIVELINGO_HOST", "127.0.0.1")
     port = int(os.environ.get("NATIVELINGO_PORT", "8756"))
     uvicorn.run(app, host=host, port=port, log_level="info")

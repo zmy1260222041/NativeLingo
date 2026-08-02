@@ -17,7 +17,7 @@ inherits the same NATIVELINGO_TOKEN/PORT/HOST env-var contract as
 """
 import os
 
-from PyInstaller.utils.hooks import collect_all
+from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_dynamic_libs
 
 SPECPATH = os.path.dirname(os.path.abspath(SPEC))   # .../backend
 PROJROOT = os.path.dirname(SPECPATH)                 # project root (parent of backend/)
@@ -34,6 +34,11 @@ for pkg in [
     "uvicorn", "anyio", "h11",
     # video.py decodes via PyAV directly (replaces the ffmpeg CLI subprocess):
     "av",
+    # Memorizing module: photo decode/crop (vision.py). PIL's native JPEG/PNG
+    # codec plugins must be collected or image decode silently fails post-freeze.
+    "PIL",
+    # Qwen GGUF runtime, including libllama + Metal dylibs/resources.
+    "llama_cpp",
     # librosa transitively needs these at runtime (audio decode path):
     "sklearn", "numba", "llvmlite",
 ]:
@@ -41,6 +46,15 @@ for pkg in [
     datas += d
     binaries += b
     hiddenimports += h
+
+# Piper must stay lazy: collect_all("piper") adds every submodule as a hidden
+# import, which makes the frozen backend load espeakbridge.so before
+# piper_tts.py can select the bundled espeak-ng-data directory.  The macOS
+# wheel then locks in its CI machine's baked absolute path and exits the whole
+# backend on first synthesis.  Normal dependency analysis already includes
+# the runtime modules; only copy Piper's data files and native libraries here.
+datas += collect_data_files("piper")
+binaries += collect_dynamic_libs("piper")
 
 # faster-whisper / CTranslate2 backends + tokenizers are imported lazily.
 hiddenimports += ["ctranslate2", "ctranslate2.convertors", "tokenizers"]
@@ -50,6 +64,17 @@ hiddenimports += ["ctranslate2", "ctranslate2.convertors", "tokenizers"]
 # data files. Without this the frozen app silently falls back to the manual map.
 datas += [(os.path.join(PROJROOT, "backend", "core", "calibration.json"),
            os.path.join("backend", "core"))]
+# Curated YOLOE labels plus COCO translations and Florence part translations.
+# The ONNX weight is staged separately below.
+for _coco in (
+    "coco_names.txt",
+    "coco_zh.json",
+    "yoloe_labels.json",
+    "yoloe_everyday_labels.json",
+    "parts_zh.json",
+):
+    datas += [(os.path.join(PROJROOT, "backend", "core", _coco),
+               os.path.join("backend", "core"))]
 
 # Pre-bundle the Whisper base.en model (141MB) so transcription runs offline —
 # no first-run download. transcribe.py resolves it via a __file__-relative path.
@@ -59,6 +84,13 @@ datas += [(os.path.join(PROJROOT, "backend", "core", "calibration.json"),
 _whisper_model = os.path.join(os.path.dirname(PROJROOT), "models", "whisper-base.en")
 if os.path.isdir(_whisper_model):
     datas += [(_whisper_model, "models/whisper-base.en")]
+
+# Pre-bundle the detection-only YOLOE-26S-PF ONNX export (FR-13) so broad
+# object recognition runs offline. vision.py resolves it via a __file__-
+# relative path; models/ is one level above PROJROOT (== desktop/).
+_yolo_model = os.path.join(os.path.dirname(PROJROOT), "models", "yoloe-26s-pf")
+if os.path.isdir(_yolo_model):
+    datas += [(_yolo_model, "models/yoloe-26s-pf")]
 
 a = Analysis(
     [os.path.join(SPECPATH, "main.py")],

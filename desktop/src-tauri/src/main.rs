@@ -6,6 +6,7 @@
 // is killed when the app exits.
 
 use std::fs::OpenOptions;
+use std::net::TcpListener;
 use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use tauri::{Manager, RunEvent};
@@ -23,6 +24,16 @@ fn generate_token() -> String {
     format!("{:x}{:x}", nanos, std::process::id())
 }
 
+fn allocate_backend_port() -> u16 {
+    // A fixed 8756 lets a stale/other NativeLingo instance hijack the new
+    // window's API calls. Ask the OS for a free loopback port on every launch;
+    // the tiny bind-to-spawn race is preferable to a deterministic collision.
+    TcpListener::bind("127.0.0.1:0")
+        .and_then(|listener| listener.local_addr())
+        .map(|addr| addr.port())
+        .unwrap_or(8756)
+}
+
 fn spawn_backend(
     token: &str,
     port: u16,
@@ -32,11 +43,17 @@ fn spawn_backend(
 ) -> Option<Child> {
     // Bundled mode: the PyInstaller-frozen backend onedir lives under
     // Resources/resources/nativeLingoBackend/ (Tauri preserves the glob's
-    // `resources/` prefix). In dev (no frozen binary present) we fall through
-    // to running the venv python against the backend module.
+    // `resources/` prefix). Dev/debug builds skip the frozen sidecar and run
+    // the live .venv backend instead, so backend edits (e.g. new endpoints)
+    // take effect without manually re-syncing a stale frozen binary into
+    // target/debug/resources/. Set NATIVELINGO_USE_BUNDLED=1 to force the
+    // frozen sidecar in a debug build (e.g. to reproduce a freeze bug).
     let resources = resource_dir.join("resources");
     let bundled_exe = resources.join("nativeLingoBackend").join("nativeLingoBackend");
-    if bundled_exe.exists() {
+    let use_bundled =
+        (std::env::var("NATIVELINGO_USE_BUNDLED").is_ok() || !cfg!(debug_assertions))
+            && bundled_exe.exists();
+    if use_bundled {
         // A bundled app has no parent terminal; capture backend stdout/stderr to
         // a log file so "backend won't start" is diagnosable on user machines.
         // (Video/audio decode uses PyAV in-process — no PATH/ffmpeg setup needed.)
@@ -89,7 +106,7 @@ fn spawn_backend(
 
 fn main() {
     let token = generate_token();
-    let port: u16 = 8756;
+    let port = allocate_backend_port();
     let backend_url = format!("http://127.0.0.1:{}", port);
 
     let init_script = format!(

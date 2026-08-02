@@ -17,6 +17,9 @@ soundfile==0.14.0
 praat-parselmouth==0.4.7
 numpy==2.4.6
 scipy==1.18.0
+Pillow>=10.4  # Memorizing module: photo decode/crop (Pillow >=10.1 = numpy 2.x compat)
+llama-cpp-python==0.3.34  # Qwen2.5-0.5B Q4_K_M; build with GGML_METAL=on
+piper-tts>=1.2  # Memorizing FR-17: offline word pronunciation (VITS ONNX voices)
 fastapi==0.138.2
 uvicorn[standard]==0.49.0
 python-multipart==0.0.32
