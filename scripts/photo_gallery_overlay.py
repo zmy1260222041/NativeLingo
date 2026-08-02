@@ -6,7 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 PANEL = (640, 430)
 GRID = (2, 5)
@@ -22,7 +22,7 @@ def _font(size: int):
 
 def _panel(gallery: Path, result: dict) -> Image.Image:
     with Image.open(gallery / result["file"]) as source:
-        image = source.convert("RGB")
+        image = ImageOps.exif_transpose(source).convert("RGB")
     source_width, source_height = image.size
     scale = min(PANEL[0] / source_width, (PANEL[1] - 30) / source_height)
     resized = image.resize(
@@ -32,6 +32,11 @@ def _panel(gallery: Path, result: dict) -> Image.Image:
     panel = Image.new("RGB", PANEL, "#15181e")
     offset_x = (PANEL[0] - resized.width) // 2
     offset_y = 30 + (PANEL[1] - 30 - resized.height) // 2
+    detection_width, detection_height = result.get(
+        "size", [source_width, source_height]
+    )
+    box_scale_x = resized.width / detection_width
+    box_scale_y = resized.height / detection_height
     panel.paste(resized, (offset_x, offset_y))
     draw = ImageDraw.Draw(panel)
     draw.text((8, 5), result["file"], fill="white", font=_font(17))
@@ -39,10 +44,10 @@ def _panel(gallery: Path, result: dict) -> Image.Image:
     for item in result["objects"]:
         x, y, width, height = item["box"]
         box = (
-            offset_x + x * scale,
-            offset_y + y * scale,
-            offset_x + (x + width) * scale,
-            offset_y + (y + height) * scale,
+            offset_x + x * box_scale_x,
+            offset_y + y * box_scale_y,
+            offset_x + (x + width) * box_scale_x,
+            offset_y + (y + height) * box_scale_y,
         )
         draw.rectangle(box, outline="#55e000", width=3)
         label = f'{item["label_en"]} {item["score"]:.2f}'

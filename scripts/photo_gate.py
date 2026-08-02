@@ -36,7 +36,12 @@ _DESKTOP = os.path.join(_REPO, "desktop")
 if os.path.isdir(_DESKTOP):
     sys.path.insert(0, _DESKTOP)
 
-from PIL import Image  # noqa: E402
+from backend.core import memorize_image  # noqa: E402
+
+
+def _canonical_photo(path):
+    with open(path, "rb") as handle:
+        return memorize_image.canonicalize_upload(handle.read())[0]
 
 
 def _iou(a, b):
@@ -55,11 +60,14 @@ def run_macro(photos, labels, vision):
     latencies = []
     tp = fp = fn = 0
     for ph in photos:
-        img = Image.open(ph).convert("RGB")
+        img = _canonical_photo(ph)
         t0 = time.time()
         dets = vision.detect(img)
         lat = (time.time() - t0) * 1000
-        latencies.append(lat)
+        latencies.append({
+            "ms": lat,
+            "multiscale": max(img.size) >= vision._MULTISCALE_MIN_LONG_SIDE,
+        })
         gts = []
         if labels:
             entry = labels.get(os.path.basename(ph), {})
@@ -93,7 +101,7 @@ def run_micro(photos, labels, parts, out_csv):
         if not labels:
             continue
         entry = labels.get(os.path.basename(ph), {})
-        img = Image.open(ph).convert("RGB")
+        img = _canonical_photo(ph)
         for object_index, g in enumerate(entry.get("objects", [])):
             x, y, w, h = g["box"]
             crop = img.crop((int(x), int(y), int(x + w), int(y + h)))
@@ -292,10 +300,30 @@ def main():
     if macro_latencies:
         import numpy as np
 
+        all_ms = [sample["ms"] for sample in macro_latencies]
         print(
-            f"latency   = median {np.median(macro_latencies):.0f} ms / "
-            f"p95 {np.percentile(macro_latencies, 95):.0f} ms   (gate <= 200 ms)"
+            f"latency   = median {np.median(all_ms):.0f} ms / "
+            f"p95 {np.percentile(all_ms, 95):.0f} ms"
         )
+        small_ms = [
+            sample["ms"] for sample in macro_latencies
+            if not sample["multiscale"]
+        ]
+        large_ms = [
+            sample["ms"] for sample in macro_latencies
+            if sample["multiscale"]
+        ]
+        if small_ms:
+            print(
+                f"small     = p95 {np.percentile(small_ms, 95):.0f} ms "
+                "(gate <= 200 ms)"
+            )
+        if large_ms:
+            print(
+                f"multiscale= p95 {np.percentile(large_ms, 95):.0f} ms / "
+                f"max {np.max(large_ms):.0f} ms "
+                "(gates p95 <= 8000 ms, max < 12000 ms)"
+            )
 
     contexts = {}
     if not args.skip_florence:

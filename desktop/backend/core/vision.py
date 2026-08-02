@@ -18,8 +18,9 @@ avoid covering a photo with human hotspots.
 
 Large photos are evaluated globally at two effective scales: one whole-image
 pass for scene context, followed by overlapping high-resolution tiles for
-small objects and ingredients.  Tile ownership regions make every image point
-belong to exactly one tile, avoiding duplicate and clipped edge predictions.
+small objects and ingredients.  Complete candidates from every overlapping
+tile are merged globally, while boxes clipped by internal tile edges are
+discarded.
 """
 from __future__ import annotations
 
@@ -37,8 +38,10 @@ from backend.core import model_assets
 _IN_SIZE = 640
 _MULTISCALE_IN_SIZE = 1280
 _MULTISCALE_MIN_LONG_SIDE = 1280
-_MULTISCALE_TILE_RATIO = 0.5
+_MULTISCALE_TILE_RATIO = 5 / 12
 _MULTISCALE_OVERLAP = 0.5
+_MULTISCALE_EDGE_MARGIN_RATIO = 0.005
+_ALIAS_CONTAINMENT_THRESHOLD = 0.82
 _STRIDE = 32
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _MODEL_FILENAME = model_assets.YOLO_FILENAME
@@ -267,7 +270,8 @@ def _deduplicate_detections(candidates, *, dedupe_iou=0.72, max_det=40):
                 _labels_are_nested_aliases(
                     candidate["label_en"], prior["label_en"]
                 )
-                and _box_containment(candidate["box"], prior["box"]) >= 0.88
+                and _box_containment(candidate["box"], prior["box"])
+                >= _ALIAS_CONTAINMENT_THRESHOLD
             )
             for prior in kept
         ):
@@ -282,16 +286,10 @@ def _deduplicate_detections(candidates, *, dedupe_iou=0.72, max_det=40):
 
 
 def _tile_axis(length: int, tile_length: int):
-    """Return ``(start, end, owned_start, owned_end)`` for one image axis.
-
-    Adjacent tiles overlap, while their ownership boundary is halfway between
-    their centres.  A prediction is accepted only from the tile that owns its
-    centre, so an object in an overlap is emitted once from its least-clipped
-    view.
-    """
+    """Return overlapping ``(start, end)`` intervals covering one image axis."""
     tile_length = min(length, tile_length)
     if tile_length >= length:
-        return [(0, length, 0.0, float(length))]
+        return [(0, length)]
 
     step = max(1, int(round(tile_length * (1.0 - _MULTISCALE_OVERLAP))))
     last_start = length - tile_length
@@ -299,52 +297,53 @@ def _tile_axis(length: int, tile_length: int):
     if starts[-1] != last_start:
         starts.append(last_start)
 
-    centres = [start + tile_length / 2.0 for start in starts]
-    boundaries = [0.0]
-    boundaries.extend(
-        (centres[index - 1] + centres[index]) / 2.0
-        for index in range(1, len(centres))
-    )
-    boundaries.append(float(length))
-    return [
-        (start, start + tile_length, boundaries[index], boundaries[index + 1])
-        for index, start in enumerate(starts)
-    ]
+    return [(start, start + tile_length) for start in starts]
 
 
 def _multiscale_tiles(image_size):
-    """Return full-image crop boxes paired with non-overlapping ownership."""
+    """Return overlapping square crop boxes covering the full image."""
     width, height = image_size
     tile_length = max(1, int(round(max(width, height) * _MULTISCALE_TILE_RATIO)))
     x_tiles = _tile_axis(width, tile_length)
     y_tiles = _tile_axis(height, tile_length)
     return [
-        (
-            (x_start, y_start, x_end, y_end),
-            (owned_x_start, owned_y_start, owned_x_end, owned_y_end),
-        )
-        for x_start, x_end, owned_x_start, owned_x_end in x_tiles
-        for y_start, y_end, owned_y_start, owned_y_end in y_tiles
+        (x_start, y_start, x_end, y_end)
+        for x_start, x_end in x_tiles
+        for y_start, y_end in y_tiles
     ]
 
 
-def _offset_owned_detection(detection, *, offset_xy, ownership_box) -> dict | None:
-    """Map a tile prediction to the image if its centre belongs to that tile."""
-    offset_x, offset_y = offset_xy
+def _offset_complete_detection(
+    detection: dict,
+    *,
+    crop_box,
+    image_size,
+) -> dict | None:
+    """Map a complete tile prediction back to the full image.
+
+    Every overlapping tile may contribute candidates, then global
+    deduplication keeps the strongest view.  A box touching an internal crop
+    edge is rejected as likely clipped; source-image edges remain eligible.
+    """
+    crop_x1, crop_y1, crop_x2, crop_y2 = crop_box
+    crop_width = crop_x2 - crop_x1
+    crop_height = crop_y2 - crop_y1
+    image_width, image_height = image_size
     x, y, width, height = detection["box"]
-    global_x = x + offset_x
-    global_y = y + offset_y
-    centre_x = global_x + width / 2.0
-    centre_y = global_y + height / 2.0
-    owned_x1, owned_y1, owned_x2, owned_y2 = ownership_box
-    if not (
-        owned_x1 <= centre_x < owned_x2
-        and owned_y1 <= centre_y < owned_y2
+    margin = max(
+        2.0,
+        max(crop_width, crop_height) * _MULTISCALE_EDGE_MARGIN_RATIO,
+    )
+    if (
+        (crop_x1 > 0 and x <= margin)
+        or (crop_y1 > 0 and y <= margin)
+        or (crop_x2 < image_width and x + width >= crop_width - margin)
+        or (crop_y2 < image_height and y + height >= crop_height - margin)
     ):
         return None
     return {
         **detection,
-        "box": [round(global_x, 1), round(global_y, 1), width, height],
+        "box": [round(x + crop_x1, 1), round(y + crop_y1, 1), width, height],
     }
 
 
@@ -438,7 +437,7 @@ def detect(
     )
 
     if max(pil_img.size) >= _MULTISCALE_MIN_LONG_SIDE:
-        for crop_box, ownership_box in _multiscale_tiles(pil_img.size):
+        for crop_box in _multiscale_tiles(pil_img.size):
             x1, y1, x2, y2 = crop_box
             tile = pil_img.crop(crop_box)
             tile_raw, tile_ratio, tile_pad_x, tile_pad_y = _run(
@@ -459,10 +458,10 @@ def detect(
             for tile_detection in tile_detections:
                 if not _multiscale_detection_is_usable(tile_detection):
                     continue
-                mapped = _offset_owned_detection(
+                mapped = _offset_complete_detection(
                     tile_detection,
-                    offset_xy=(x1, y1),
-                    ownership_box=ownership_box,
+                    crop_box=crop_box,
+                    image_size=pil_img.size,
                 )
                 if mapped is not None:
                     detections.append(mapped)

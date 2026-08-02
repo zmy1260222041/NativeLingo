@@ -12,7 +12,7 @@ const BACKEND_TOKEN = window.__NATIVELINGO_TOKEN__ || null;
 // once the backend responds, so the marker is reliable across cold starts (the
 // load-time ping otherwise fails silently while the backend is still spinning
 // up and never reaches the log).
-const BOOT_TAG = "v21";
+const BOOT_TAG = "v22";
 let _bootMarked = false;
 function markBoot() {
   if (_bootMarked) return;
@@ -874,14 +874,17 @@ async function uploadLearnerRecording(blob) {
 // =====================================================================
 // Upload a photo -> whole-object detection with clickable hotspots (FR-13) ->
 // click an object -> zoom into its parts (FR-14) + scenario example sentences
-// (FR-15). All recognition is on-device (NFR-5). Photos are re-encoded to JPEG
-// via <canvas> before upload so iOS HEIC (which Pillow can't decode) and huge
-// files are handled, and the displayed image dims match what the backend saw.
+// (FR-15). All recognition is on-device (NFR-5). Decodable image files are
+// uploaded unchanged: the backend owns EXIF correction, resize and JPEG
+// canonicalization so production and tests see identical model pixels. Canvas
+// is only a format/oversize adapter (for example HEIC), never the model-input
+// specification.
 const memo = {
   entered: false,
   warmupTimer: null,
   imgEl: null,
-  imgW: 0, imgH: 0,        // pixel dims of the uploaded (canvas-reencoded) image
+  imgW: 0, imgH: 0,        // authoritative backend-canonical pixel dimensions
+  previewUrl: null,
   photoId: null,
   objects: [],
   recognitionToken: 0,
@@ -892,6 +895,11 @@ const memo = {
   pronounceRecorder: null,
 };
 const MEMO_MAX_DIM = 1920;
+const MEMO_MAX_DIRECT_UPLOAD_BYTES = 50_000_000;
+const MEMO_PREPROCESSING_CONTRACT = "memorize-image-v1";
+const MEMO_BACKEND_IMAGE_TYPES = new Set([
+  "image/jpeg", "image/png", "image/webp",
+]);
 const _MEMO_STAGE_LABEL = {
   yolo: "YOLO 检测模型",
   llm: "Qwen Q4_K_M 情景模型 ~491MB",
@@ -973,44 +981,90 @@ function memoResetToUpload() {
   memo.recognitionToken += 1;
   memo.detailToken += 1;
   memo.scenarioToken += 1;
+  if (memo.previewUrl) URL.revokeObjectURL(memo.previewUrl);
+  memo.previewUrl = null;
   $("memo-hotspots").innerHTML = "";
   $("memo-object-summary").hidden = true;
   $("memo-object-summary").textContent = "";
 }
 
-// Re-encode any decodable image (incl. iOS HEIC if the system decodes it) to a
-// size-capped JPEG via <canvas>. Returns {blob, w, h}.
-function memoReencode(file) {
+function memoLoadImage(file) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const im = new Image();
     im.onload = () => {
       URL.revokeObjectURL(url);
-      let w = im.naturalWidth, h = im.naturalHeight;
-      const scale = Math.min(1, MEMO_MAX_DIM / Math.max(w, h));
-      w = Math.max(1, Math.round(w * scale)); h = Math.max(1, Math.round(h * scale));
-      const c = document.createElement("canvas");
-      c.width = w; c.height = h;
-      c.getContext("2d").drawImage(im, 0, 0, w, h);
-      c.toBlob((b) => (b ? resolve({ blob: b, w, h }) : reject(new Error("encode"))),
-               "image/jpeg", 0.9);
+      resolve(im);
     };
     im.onerror = () => { URL.revokeObjectURL(url); reject(new Error("decode")); };
     im.src = url;
   });
 }
 
+function memoBackendCanDecode(file) {
+  const type = String(file.type || "").toLowerCase();
+  const name = String(file.name || "").toLowerCase();
+  return MEMO_BACKEND_IMAGE_TYPES.has(type) || /\.(jpe?g|png|webp)$/.test(name);
+}
+
+// Keep ordinary photos byte-for-byte intact until the backend canonicalizer.
+// Canvas is only used when Pillow cannot decode the format or the original is
+// above the local upload cap. Its output still goes through the same backend
+// canonicalizer before detection.
+async function memoPrepareUpload(file) {
+  const im = await memoLoadImage(file);
+  if (file.size <= MEMO_MAX_DIRECT_UPLOAD_BYTES && memoBackendCanDecode(file)) {
+    return {
+      blob: file,
+      previewBlob: file,
+      filename: file.name || "photo",
+      transport: "original",
+      w: im.naturalWidth,
+      h: im.naturalHeight,
+    };
+  }
+
+  let w = im.naturalWidth, h = im.naturalHeight;
+  const scale = Math.min(1, MEMO_MAX_DIM / Math.max(w, h));
+  w = Math.max(1, Math.round(w * scale));
+  h = Math.max(1, Math.round(h * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const context = canvas.getContext("2d");
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(im, 0, 0, w, h);
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (value) => (value ? resolve(value) : reject(new Error("encode"))),
+      "image/jpeg",
+      0.9,
+    );
+  });
+  return {
+    blob,
+    previewBlob: blob,
+    filename: "photo.jpg",
+    transport: "browser-adapter",
+    w,
+    h,
+  };
+}
+
 async function memoHandleFile(file) {
   const recognitionToken = ++memo.recognitionToken;
   let enc;
-  try { enc = await memoReencode(file); }
+  try { enc = await memoPrepareUpload(file); }
   catch (e) { memoStatus("err", "无法读取该图片,请换一张(JPG/PNG/HEIC)。"); return; }
 
   $("memo-upload").closest(".card").hidden = true;
   $("memo-detail").hidden = true;
   const view = $("memo-view"); view.hidden = false;
   const img = $("memo-img");
-  img.src = URL.createObjectURL(enc.blob);
+  if (memo.previewUrl) URL.revokeObjectURL(memo.previewUrl);
+  memo.previewUrl = URL.createObjectURL(enc.previewBlob);
+  img.src = memo.previewUrl;
   memo.imgEl = img;
   memo.imgW = enc.w; memo.imgH = enc.h;
   $("memo-hotspots").innerHTML = "";
@@ -1020,14 +1074,23 @@ async function memoHandleFile(file) {
 
   try {
     const form = new FormData();
-    form.append("photo", enc.blob, "photo.jpg");
+    form.append("photo", enc.blob, enc.filename);
+    clientLog(`memorize photo transport=${enc.transport} bytes=${enc.blob.size}`);
     const res = await memoFetch("/memorize/analyze", {
       method: "POST", body: form, headers: authHeaders(),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "识别失败");
+    if (data.preprocessing !== MEMO_PREPROCESSING_CONTRACT) {
+      throw new Error("后端图像预处理版本不匹配，请重新打开应用。");
+    }
     if (recognitionToken !== memo.recognitionToken) return;
     memo.photoId = data.photo_id;
+    if (Array.isArray(data.image_size) && data.image_size.length === 2 &&
+        data.image_size.every((value) => Number.isFinite(Number(value)) && Number(value) > 0)) {
+      memo.imgW = Number(data.image_size[0]);
+      memo.imgH = Number(data.image_size[1]);
+    }
     memo.objects = data.objects || [];
     memoRenderHotspots();
   } catch (e) {
@@ -1112,8 +1175,18 @@ function memoDrawDetailCrop(cropBox) {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, w);
   canvas.height = Math.max(1, h);
+  const sourceScaleX = memo.imgEl.naturalWidth / Math.max(1, memo.imgW);
+  const sourceScaleY = memo.imgEl.naturalHeight / Math.max(1, memo.imgH);
   canvas.getContext("2d").drawImage(
-    memo.imgEl, x, y, w, h, 0, 0, canvas.width, canvas.height,
+    memo.imgEl,
+    x * sourceScaleX,
+    y * sourceScaleY,
+    w * sourceScaleX,
+    h * sourceScaleY,
+    0,
+    0,
+    canvas.width,
+    canvas.height,
   );
   $("memo-detail-img").src = canvas.toDataURL("image/jpeg", 0.9);
   return [canvas.width, canvas.height];

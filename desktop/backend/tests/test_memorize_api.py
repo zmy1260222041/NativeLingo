@@ -9,7 +9,15 @@ import soundfile as sf
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from backend.core import parts, scenario, vision, piper_tts, pipeline, model_assets
+from backend.core import (
+    memorize_image,
+    model_assets,
+    parts,
+    pipeline,
+    piper_tts,
+    scenario,
+    vision,
+)
 from backend import main
 from backend.main import app
 
@@ -31,6 +39,39 @@ def _audio_bytes(duration_s: float = 0.5, sr: int = 16000) -> bytes:
 def _sine(duration_s: float, sr: int = 16000) -> np.ndarray:
     t = np.arange(int(sr * duration_s), dtype=np.float32) / sr
     return (0.3 * np.sin(2 * np.pi * 220 * t)).astype(np.float32)
+
+
+def test_analyze_uses_production_canonicalizer_and_returns_its_size(monkeypatch):
+    model_image = Image.new("RGB", (1440, 1920), "navy")
+    canonical_bytes = b"canonical-model-jpeg"
+    captured = {}
+
+    def fake_canonicalize(raw):
+        captured["raw"] = raw
+        return model_image, canonical_bytes
+
+    def fake_detect(image):
+        captured["model_size"] = image.size
+        return []
+
+    monkeypatch.setattr(memorize_image, "canonicalize_upload", fake_canonicalize)
+    monkeypatch.setattr(vision, "detect", fake_detect)
+
+    response = client.post(
+        "/memorize/analyze",
+        files={"photo": ("photo.jpg", b"original-upload", "image/jpeg")},
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert captured == {
+        "raw": b"original-upload",
+        "model_size": (1440, 1920),
+    }
+    assert payload["image_size"] == [1440, 1920]
+    assert payload["preprocessing"] == "memorize-image-v1"
+    with open(main._photo_path(payload["photo_id"]), "rb") as stored:
+        assert stored.read() == canonical_bytes
 
 
 def test_parts_and_scenario_use_server_owned_detection_context(monkeypatch):

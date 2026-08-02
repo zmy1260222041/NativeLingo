@@ -54,6 +54,9 @@
 
 ## 运行
 
+开发和发布前请先阅读 [开发规范](docs/DEVELOPMENT.md)，尤其是模型输入预处理必须由
+生产代码单一来源定义，测试不得另写近似实现。
+
 ```bash
 # 1. Python 环境(留在仓库根,与 scripts/ 共用)
 python3 -m venv .venv

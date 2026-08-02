@@ -5,7 +5,7 @@
 - `indoor/`：30 张室内日常场景
 - `outdoor/`：30 张室外日常场景
 - `manifest.json`：下载地址、来源页、许可和场景说明
-- `baseline-current.json`：当前 60 图、177 类 YOLOE 配置的逐图结果
+- `baseline-current.json`：当前 60 图、546 类 YOLOE 配置的逐图结果，含小图与全局切片大图的独立延迟统计
 - `baseline-current-20.json`：扩图前 20 图结果
 - `baseline-yoloe-26s-pf.json`：YOLOE-26S-PF 临时 POC 的原始结果
 - `baseline-yoloe-filtered.json`：扩图前直接 YOLOE 路径的历史结果

@@ -37,6 +37,12 @@ def test_teapot_vocabulary_is_runtime_visible():
     assert specs == {"tea pot": {"zh": "茶壶", "min_score": 0.35}}
 
 
+def test_squid_threshold_remains_unchanged():
+    specs = vision._load_label_specs({0: "squid"})
+
+    assert specs == {"squid": {"zh": "鱿鱼", "min_score": 0.40}}
+
+
 def test_plant_vocabulary_is_runtime_visible():
     labels = {"bamboo", "cactus", "fern", "herb", "houseplant", "leaf", "vine"}
     names = {index: label for index, label in enumerate(sorted(labels))}
@@ -217,51 +223,120 @@ def test_multiscale_plaque_geometry_keeps_nameplate_and_rejects_noise():
     )
 
 
-def test_multiscale_tiles_cover_image_with_non_overlapping_ownership():
+def test_multiscale_tiles_cover_image_with_800px_overlapping_crops():
     tiles = vision._multiscale_tiles((1440, 1920))
 
-    assert len(tiles) == 6
-    assert {crop for crop, _ownership in tiles} == {
-        (0, 0, 960, 960),
-        (0, 480, 960, 1440),
-        (0, 960, 960, 1920),
-        (480, 0, 1440, 960),
-        (480, 480, 1440, 1440),
-        (480, 960, 1440, 1920),
+    assert len(tiles) == 12
+    assert set(tiles) == {
+        (0, 0, 800, 800),
+        (0, 400, 800, 1200),
+        (0, 800, 800, 1600),
+        (0, 1120, 800, 1920),
+        (400, 0, 1200, 800),
+        (400, 400, 1200, 1200),
+        (400, 800, 1200, 1600),
+        (400, 1120, 1200, 1920),
+        (640, 0, 1440, 800),
+        (640, 400, 1440, 1200),
+        (640, 800, 1440, 1600),
+        (640, 1120, 1440, 1920),
     }
     for point in [(0, 0), (719, 719), (720, 720), (1439, 1919)]:
         x, y = point
-        owners = [
-            ownership
-            for _crop, ownership in tiles
-            if ownership[0] <= x < ownership[2]
-            and ownership[1] <= y < ownership[3]
+        covering_tiles = [
+            crop
+            for crop in tiles
+            if crop[0] <= x < crop[2] and crop[1] <= y < crop[3]
         ]
-        assert len(owners) == 1
+        assert covering_tiles
 
 
-def test_tile_detection_is_offset_only_from_its_ownership_region():
+def test_complete_detection_from_any_overlap_is_offset_to_the_full_image():
     detection = {
         "id": 0,
         "label_en": "squid",
         "label_zh": "鱿鱼",
-        "score": 0.508,
-        "box": [274.0, 427.0, 279.0, 112.0],
+        "score": 0.54,
+        "box": [282.0, 108.0, 275.0, 112.0],
     }
 
-    mapped = vision._offset_owned_detection(
+    mapped = vision._offset_complete_detection(
         detection,
-        offset_xy=(0, 480),
-        ownership_box=(0.0, 720.0, 720.0, 1200.0),
+        crop_box=(0, 800, 800, 1600),
+        image_size=(1440, 1920),
     )
-    rejected = vision._offset_owned_detection(
-        {**detection, "box": [274.0, 20.0, 279.0, 112.0]},
-        offset_xy=(0, 480),
-        ownership_box=(0.0, 720.0, 720.0, 1200.0),
+    assert mapped["box"] == [282.0, 908.0, 275.0, 112.0]
+
+
+def test_internal_edge_clips_are_rejected_but_source_edges_are_allowed():
+    detection = {
+        "id": 0,
+        "label_en": "squid",
+        "label_zh": "鱿鱼",
+        "score": 0.54,
+        "box": [0.0, 0.0, 275.0, 112.0],
+    }
+
+    rejected = vision._offset_complete_detection(
+        detection,
+        crop_box=(400, 800, 1200, 1600),
+        image_size=(1440, 1920),
+    )
+    source_edge = vision._offset_complete_detection(
+        detection,
+        crop_box=(0, 0, 800, 800),
+        image_size=(1440, 1920),
     )
 
-    assert mapped["box"] == [274.0, 907.0, 279.0, 112.0]
     assert rejected is None
+    assert source_edge["box"] == [0.0, 0.0, 275.0, 112.0]
+
+
+def test_overlapping_complete_views_keep_the_highest_score():
+    weak = vision._offset_complete_detection(
+        {
+            "label_en": "squid",
+            "label_zh": "鱿鱼",
+            "score": 0.41,
+            "box": [280.0, 509.0, 273.0, 111.0],
+        },
+        crop_box=(0, 400, 800, 1200),
+        image_size=(1440, 1920),
+    )
+    strong = vision._offset_complete_detection(
+        {
+            "label_en": "squid",
+            "label_zh": "鱿鱼",
+            "score": 0.54,
+            "box": [282.0, 108.0, 275.0, 112.0],
+        },
+        crop_box=(0, 800, 800, 1600),
+        image_size=(1440, 1920),
+    )
+
+    assert vision._deduplicate_detections([weak, strong]) == [
+        {**strong, "id": 0}
+    ]
+
+
+def test_jittered_same_label_tile_boxes_keep_the_highest_score():
+    strong = {
+        "label_en": "microwave",
+        "label_zh": "微波炉",
+        "score": 0.612,
+        "box": [765.8, 296.2, 280.9, 289.4],
+    }
+    weak = {
+        "label_en": "microwave",
+        "label_zh": "微波炉",
+        "score": 0.591,
+        "box": [723.7, 322.0, 305.3, 294.1],
+    }
+
+    assert vision._box_iou(strong["box"], weak["box"]) < 0.72
+    assert vision._deduplicate_detections([weak, strong]) == [
+        {**strong, "id": 0}
+    ]
 
 
 def test_cross_scale_deduplication_keeps_stronger_box():
@@ -300,7 +375,7 @@ def test_detect_runs_whole_image_plus_every_global_tile(monkeypatch):
 
     assert detections == []
     assert run_calls[0] == ((1440, 1920), 640)
-    assert run_calls[1:] == [((960, 960), 1280)] * 6
+    assert run_calls[1:] == [((800, 800), 1280)] * 12
 
 
 def test_memorize_analyze_rejects_non_image():

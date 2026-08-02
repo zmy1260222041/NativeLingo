@@ -485,19 +485,15 @@ def memorize_analyze(photo: UploadFile = File(...), _=Depends(require_token)):
     """FR-13: detect whole objects in an uploaded photo. Stores the photo under
     a UUID and returns each object's label (en + zh) + box [x,y,w,h]."""
     raw = photo.file.read()
-    if not raw:
-        raise HTTPException(status_code=400, detail="empty image upload")
-    if len(raw) > 15_000_000:
-        raise HTTPException(status_code=400, detail="image too large (>15MB)")
-    from PIL import Image
+    from backend.core import memorize_image
     try:
-        img = Image.open(io.BytesIO(raw)).convert("RGB")
-    except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=400, detail=f"could not decode image: {exc}")
+        img, canonical_bytes = memorize_image.canonicalize_upload(raw)
+    except memorize_image.ImageUploadError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     mid = uuid.uuid4().hex
     with open(os.path.join(_MEMORIZES_DIR, f"{mid}.img"), "wb") as f:
-        f.write(raw)
+        f.write(canonical_bytes)
 
     from backend.core import vision
     try:
@@ -522,7 +518,12 @@ def memorize_analyze(photo: UploadFile = File(...), _=Depends(require_token)):
             "objects": objects,
             "contexts": {},
         }
-    return {"photo_id": mid, "objects": objects}
+    return {
+        "photo_id": mid,
+        "image_size": list(img.size),
+        "preprocessing": memorize_image.CONTRACT_VERSION,
+        "objects": objects,
+    }
 
 
 @app.post("/memorize/parts")
