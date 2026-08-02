@@ -1,213 +1,255 @@
-<!DOCTYPE html>
-<html lang="zh">
+<!doctype html>
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>NativeLingo — Speaking · Memorizing</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NativeLingo 本地英语跟读与看图学习工具">
+  <meta name="theme-color" content="#f2f0ea">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>NativeLingo</title>
+  <link rel="icon" href="%BASE_URL%Goza-LOGO-icon.png">
   <script>
-    // Set the theme class before first paint so a saved dark preference doesn't
-    // flash the light theme. The toggle in main.js keeps it in sync.
     (function () {
       var saved = null;
       try { saved = localStorage.getItem("nl-theme"); } catch (_) {}
-      var dark = saved ? saved === "dark"
-                       : window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.classList.toggle("dark", dark);
+      document.documentElement.classList.toggle("dark", saved === "dark");
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=19" />
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="app">
-    <header>
-      <button id="theme-toggle" class="theme-toggle" type="button" title="切换浅色/深色主题" aria-label="切换浅色/深色主题">🌙</button>
-      <div class="brand">
-        <h1>Native<span class="leaf">Lingo</span></h1>
-        <p class="subtitle">Speaking · 口语跟读评估　|　Memorizing · 看图识物</p>
-      </div>
-      <span id="backend-status" class="status status-pending">连接后端中…</span>
-      <nav class="modules">
-        <button class="module module-active" data-module="speaking">
-          <span class="module-emoji">🗣️</span> Speaking
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#main-content" aria-label="NativeLingo 首页">
+        <img src="%BASE_URL%Goza-LOGO-icon.png" alt="" width="34" height="34">
+        <span>NativeLingo</span>
+      </a>
+
+      <nav class="modules" aria-label="学习模块">
+        <button class="module module-active" type="button" data-module="speaking" aria-pressed="true">
+          <span>跟读</span>
         </button>
-        <button class="module" data-module="memorize">
-          <span class="module-emoji">📸</span> Memorizing
+        <button class="module" type="button" data-module="memorize" aria-pressed="false">
+          <span>识物</span>
         </button>
       </nav>
+
+      <div class="topbar-actions">
+        <button id="backend-status" class="status status-pending" type="button" data-tooltip="正在启动本地服务" aria-controls="system-panel" aria-expanded="false">正在启动本地服务</button>
+        <button id="theme-toggle" class="icon-button" type="button" aria-label="切换主题"></button>
+        <button id="info-toggle" class="icon-button" type="button" aria-label="应用信息" aria-controls="system-panel" aria-expanded="false"></button>
+      </div>
     </header>
 
-    <main>
-      <!-- ============ SPEAKING MODULE ============ -->
-      <div id="module-speaking" class="module-pane">
-        <nav class="tabs">
-          <button class="tab tab-active" data-mode="video">视频跟读</button>
-          <button class="tab" data-mode="audio">上传音频</button>
+    <aside id="system-panel" class="system-panel" hidden>
+      <div>
+        <strong id="backend-detail">正在启动本地服务</strong>
+        <span>识别、发音与照片均在本机处理</span>
+      </div>
+      <button id="system-panel-close" class="icon-button compact" type="button" aria-label="关闭应用信息"></button>
+    </aside>
+
+    <main id="main-content" class="app-main">
+      <section id="module-speaking" class="module-pane" aria-label="英语跟读">
+        <nav class="tabs mode-accordion" aria-label="素材类型">
+          <button class="tab tab-active" type="button" data-mode="video" aria-pressed="true"><span>视频</span></button>
+          <button class="tab" type="button" data-mode="audio" aria-pressed="false"><span>音频</span></button>
         </nav>
 
-        <!-- VIDEO MODE -->
-        <div id="mode-video" class="mode">
-          <section class="card">
-            <h2>1. 选择参考视频</h2>
-            <p class="hint">从 <code>videos/</code> 目录选择一个视频。首次选择会自动转写并按句子切分。</p>
-            <div id="video-list" class="video-list">加载视频列表…</div>
-          </section>
-
-          <section id="sentence-section" class="card" hidden>
-            <h2>2. 选择跟读句子范围</h2>
-            <p class="hint">点击一句设为<strong>起始</strong>,再点另一句设为<strong>结束</strong>(可只选一句)。</p>
-            <div id="range-info" class="range-info">尚未选择</div>
-            <div id="sentence-list" class="sentence-list"></div>
-          </section>
-
-          <section id="shadow-section" class="card" hidden>
-            <h2>3. 跟读录制</h2>
-            <p class="hint">点击开始后,画面会<strong>无声</strong>播放所选片段(带字幕),请对着字幕模仿跟读。</p>
-            <video id="shadow-video" class="shadow-video" muted playsinline></video>
-            <div class="record-row">
-              <button id="shadow-record-btn" class="btn btn-record">● 开始跟读</button>
-              <button id="shadow-replay-btn" class="btn btn-record" title="重放画面">↺ 重放画面</button>
-              <span id="shadow-timer" class="timer">00:00</span>
+        <div id="mode-video" class="mode speaking-workbench">
+          <aside class="source-rail">
+            <div class="rail-heading">
+              <h1>选择素材</h1>
+              <button class="info-button" type="button" aria-label="素材说明" data-tooltip="首次打开素材时会在本机完成转写和切句">i</button>
             </div>
-            <audio id="shadow-learner-player" controls hidden></audio>
-            <button id="shadow-analyze-btn" class="btn btn-primary" disabled>分析我的发音</button>
-            <span id="shadow-analyze-status" class="analyze-status"></span>
+            <div id="video-list" class="video-list" aria-live="polite">
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line short"></div>
+            </div>
+          </aside>
+
+          <section class="practice-canvas" aria-label="跟读工作区">
+            <div id="speaking-empty" class="canvas-empty">
+              <span class="empty-glyph" aria-hidden="true"></span>
+              <strong>从左侧选一段素材</strong>
+              <span>字幕与录音控件会在这里出现</span>
+            </div>
+
+            <section id="sentence-section" class="transcript-panel" hidden>
+              <div class="panel-heading">
+                <h2>选取句子</h2>
+                <span id="range-info" class="range-info" aria-live="polite">点按一句开始</span>
+              </div>
+              <div id="sentence-list" class="sentence-list"></div>
+            </section>
+
+            <section id="shadow-section" class="recording-stage" hidden>
+              <div class="video-frame">
+                <video id="shadow-video" class="shadow-video" muted playsinline></video>
+              </div>
+              <div class="record-dock">
+                <button id="shadow-replay-btn" class="icon-button dock-secondary" type="button" aria-label="重放画面"></button>
+                <button id="shadow-record-btn" class="record-control" type="button" aria-label="开始跟读"></button>
+                <span id="shadow-timer" class="timer">00:00</span>
+                <button id="shadow-analyze-btn" class="btn btn-primary" type="button" disabled>开始分析</button>
+              </div>
+              <audio id="shadow-learner-player" controls hidden></audio>
+              <span id="shadow-analyze-status" class="analyze-status" role="status" aria-live="polite"></span>
+            </section>
           </section>
         </div>
 
-        <!-- AUDIO MODE -->
-        <div id="mode-audio" class="mode" hidden>
-          <section class="card">
-            <h2>1. 参考音频</h2>
-            <p class="hint">选择一段标准英语音频作为模仿对象。</p>
-            <input type="file" id="ref-file" accept="audio/*" />
+        <div id="mode-audio" class="mode speaking-workbench" hidden>
+          <aside class="source-rail audio-source">
+            <div class="rail-heading"><h1>参考音频</h1></div>
+            <label class="file-picker" for="ref-file">
+              <span class="file-picker-icon" aria-hidden="true"></span>
+              <strong>选择音频</strong>
+              <span>常见音频格式均可</span>
+            </label>
+            <input type="file" id="ref-file" accept="audio/*">
             <audio id="ref-player" controls hidden></audio>
-          </section>
-          <section class="card">
-            <h2>2. 录制你的跟读</h2>
-            <p class="hint">听完参考音频后,点击录音并模仿跟读。</p>
-            <div class="record-row">
-              <button id="record-btn" class="btn btn-record" disabled>● 开始录音</button>
+          </aside>
+          <section class="practice-canvas audio-canvas">
+            <div class="audio-orbit" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+            <strong class="audio-target">听完参考音频后开始跟读</strong>
+            <div class="record-dock audio-dock">
+              <button id="record-btn" class="record-control" type="button" disabled aria-label="开始录音"></button>
               <span id="record-timer" class="timer">00:00</span>
+              <button id="analyze-btn" class="btn btn-primary" type="button" disabled>开始分析</button>
             </div>
             <audio id="learner-player" controls hidden></audio>
-          </section>
-          <section class="card">
-            <h2>3. 分析</h2>
-            <button id="analyze-btn" class="btn btn-primary" disabled>分析我的发音</button>
-            <span id="analyze-status" class="analyze-status"></span>
+            <span id="analyze-status" class="analyze-status" role="status" aria-live="polite"></span>
           </section>
         </div>
-      </div>
 
-      <!-- ============ MEMORIZE MODULE (看图识物) ============ -->
-      <div id="module-memorize" class="module-pane" hidden>
-        <div id="memo-status" class="memo-status"></div>
-        <section class="card">
-          <h2>📸 看图识物</h2>
-          <p class="hint">上传一张日常照片,NativeLingo 用英语标出物品。点击普通物品可查看部件；点击柜子、书架等容器还会定位其中可见的内容物，再由本机 Qwen 实时生成个性化记忆情景。首次进入约下载 0.95GB 固定模型,缓存后可离线;照片不出设备。</p>
+        <section id="results" class="results" hidden aria-label="发音结果">
+          <div class="result-overview">
+            <div class="overall-block">
+              <span>本次表现</span>
+              <strong id="overall-score" class="score-value">–</strong>
+            </div>
+            <div class="score-tracks">
+              <div class="score-track" id="accuracy-track">
+                <div><span>准确度</span><strong id="accuracy-score">–</strong></div>
+                <span class="track"><i></i></span>
+              </div>
+              <div class="score-track" id="fluency-track">
+                <div><span>流畅度</span><strong id="fluency-score">–</strong></div>
+                <span class="track"><i></i></span>
+              </div>
+            </div>
+          </div>
+          <div id="reference-text" class="reference-text" hidden></div>
+          <div id="rate-info" class="rate-info"></div>
+
+          <div id="detail-block" class="result-detail" hidden>
+            <div class="result-tools">
+              <span>逐句反馈</span>
+              <span class="result-key" aria-label="颜色越接近红色越需要练习"><i></i><i></i><i></i></span>
+            </div>
+            <div id="sentence-details" class="sentence-details"></div>
+            <audio id="ref-clip-player" hidden></audio>
+            <audio id="my-clip-player" hidden></audio>
+          </div>
+
+          <aside class="next-focus">
+            <ul id="tips-list" class="tips"></ul>
+            <div id="prosody-info" class="prosody"></div>
+          </aside>
+        </section>
+      </section>
+
+      <section id="module-memorize" class="module-pane" hidden aria-label="看图识物">
+        <div id="memo-status" class="memo-status" role="status" aria-live="polite"></div>
+
+        <section class="memo-entry card">
+          <div class="memo-intro">
+            <h1>把眼前事物<br>变成英语</h1>
+            <p>拖入一张日常照片，点选物品开始探索。</p>
+            <span class="local-note"><span aria-hidden="true" class="local-note-icon"></span>全程在本机处理</span>
+          </div>
           <div id="memo-upload" class="memo-upload-zone">
-            <input type="file" id="memo-file" accept="image/*" hidden />
-            <div class="memo-upload-emoji">🖼️</div>
-            <div class="memo-upload-text">点击或拖放一张照片</div>
-            <div class="hint">JPG / PNG / HEIC · 本机统一纠正方向并优化尺寸</div>
+            <input type="file" id="memo-file" accept="image/*">
+            <label class="memo-upload-action" for="memo-file">
+              <span class="upload-glyph" aria-hidden="true"></span>
+              <strong>拖入一张照片</strong>
+            </label>
+            <button class="info-button" type="button" aria-label="支持的照片格式" data-tooltip="支持 JPG、PNG 与 HEIC，照片不会离开设备">i</button>
           </div>
         </section>
 
-        <!-- recognition view: photo + clickable object hotspots -->
-        <section id="memo-view" class="card" hidden>
+        <section id="memo-view" class="media-workspace card" hidden>
           <div class="memo-stage">
-            <img id="memo-img" class="memo-img" alt="上传的照片" />
+            <img id="memo-img" class="memo-img" alt="待识别的日常照片">
             <div id="memo-hotspots" class="memo-hotspots"></div>
             <div id="memo-analyzing" class="memo-overlay" hidden>
-              <div class="spinner"></div><div>正在识别物品…</div>
+              <span class="scan-line" aria-hidden="true"></span>
+              <strong>正在识别</strong>
             </div>
           </div>
           <div id="memo-object-summary" class="memo-object-summary" hidden></div>
           <div class="memo-actions">
-            <button id="memo-reupload" class="btn btn-record">换一张照片</button>
+            <button id="memo-reupload" class="btn btn-secondary" type="button">换张照片</button>
           </div>
         </section>
 
-        <!-- object detail (zoom): parts + scenario sentences -->
-        <section id="memo-detail" class="card" hidden>
-          <button id="memo-back" class="btn btn-record memo-back">← 返回整图</button>
+        <section id="memo-detail" class="object-inspector card" hidden>
+          <div class="inspector-topbar">
+            <button id="memo-back" class="icon-button" type="button" aria-label="返回整图"></button>
+            <div id="memo-detail-label" class="memo-detail-label"></div>
+            <div id="memo-parts-status" class="analyze-status" role="status" aria-live="polite"></div>
+          </div>
+
           <div class="memo-detail-head">
             <div id="memo-detail-stage" class="memo-detail-stage">
-              <img id="memo-detail-img" class="memo-detail-img" alt="物品放大图" />
+              <img id="memo-detail-img" class="memo-detail-img" alt="选中物品的局部照片">
               <div id="memo-part-hotspots" class="memo-part-hotspots"></div>
               <div id="memo-parts-analyzing" class="memo-detail-overlay">
-                <div class="spinner"></div><div>正在分析可见细节…</div>
+                <span class="scan-line" aria-hidden="true"></span>
+                <strong>正在分析细节</strong>
               </div>
             </div>
-            <div class="memo-detail-meta">
-              <div id="memo-detail-label" class="memo-detail-label"></div>
-              <div id="memo-parts-status" class="analyze-status"></div>
-            </div>
           </div>
-          <div id="memo-contents-section" hidden>
-            <h3>内容物 · Contents</h3>
-            <div id="memo-contents" class="memo-chips"></div>
+
+          <nav class="inspector-tabs" aria-label="物品学习方式">
+            <button type="button" class="inspector-tab active" data-inspector-view="explore" aria-pressed="true">探索</button>
+            <button type="button" class="inspector-tab" data-inspector-view="practice" aria-pressed="false">跟读</button>
+            <button type="button" class="inspector-tab" data-inspector-view="context" aria-pressed="false">情景</button>
+          </nav>
+
+          <div class="inspector-panels">
+            <section class="inspector-panel" data-inspector-panel="explore">
+              <div id="memo-contents-section" hidden>
+                <h2 class="sr-only">内容物</h2>
+                <div id="memo-contents" class="memo-chips"></div>
+              </div>
+              <h2 class="sr-only">部件</h2>
+              <div id="memo-parts" class="memo-chips"></div>
+            </section>
+
+            <section class="inspector-panel practice-panel" data-inspector-panel="practice" hidden>
+              <p id="memo-pronounce-hint" class="practice-target">选择一个词开始跟读</p>
+              <div id="memo-pronounce" class="memo-pronounce">
+                <button id="memo-pronounce-record" class="record-control" type="button" disabled aria-label="开始录音"></button>
+                <span id="memo-pronounce-timer" class="timer">00:00</span>
+                <audio id="memo-pronounce-player" hidden></audio>
+              </div>
+              <div id="memo-pronounce-score" class="memo-pronounce-score" hidden></div>
+            </section>
+
+            <section class="inspector-panel context-panel" data-inspector-panel="context" hidden>
+              <div id="memo-scenario-status" class="analyze-status" role="status" aria-live="polite"></div>
+              <div id="memo-scenario" class="memo-scenario"></div>
+            </section>
           </div>
-          <h3>部件 · Parts</h3>
-          <div id="memo-parts" class="memo-chips"></div>
-          <h3>发音练习 · Practice</h3>
-          <p id="memo-pronounce-hint" class="hint">点击上方 🔊 听标准发音，再录音跟读，AI 对比打分。</p>
-          <div id="memo-pronounce" class="memo-pronounce">
-            <button id="memo-pronounce-record" class="btn btn-record" disabled>🎤 开始录音</button>
-            <span id="memo-pronounce-timer" class="timer">00:00</span>
-            <audio id="memo-pronounce-player" hidden></audio>
-          </div>
-          <div id="memo-pronounce-score" class="memo-pronounce-score" hidden></div>
-          <h3>情景对话 · In context</h3>
-          <p class="hint">点击放大图中的框或下方名称，会根据当前照片重新生成。柜内物品固定为一层，不会继续展开子层级。</p>
-          <div id="memo-scenario-status" class="analyze-status"></div>
-          <div id="memo-scenario" class="memo-scenario"></div>
         </section>
-      </div>
-
-      <!-- ============ SHARED RESULTS (Speaking) ============ -->
-      <section id="results" class="card results" hidden>
-        <h2>评估结果</h2>
-        <div id="reference-text" class="reference-text" hidden></div>
-        <div class="scores">
-          <div class="score-card">
-            <div class="score-value" id="overall-score">–</div>
-            <div class="score-label">综合</div>
-          </div>
-          <div class="score-card">
-            <div class="score-value" id="accuracy-score">–</div>
-            <div class="score-label">准确度</div>
-          </div>
-          <div class="score-card">
-            <div class="score-value" id="fluency-score">–</div>
-            <div class="score-label">流畅度</div>
-          </div>
-        </div>
-        <div id="rate-info" class="rate-info"></div>
-
-        <div id="detail-block" hidden>
-          <h3>逐句 · 逐词明细</h3>
-          <p class="legend">
-            <span class="w-chip w-good">达标</span>
-            <span class="w-chip w-weak">偏弱</span>
-            <span class="w-chip w-bad">明显不准</span>
-            <span class="w-chip w-missed">疑似漏读/读错</span>
-          </p>
-          <div id="sentence-details"></div>
-          <!-- in-place clip playback (no video, no scroll) -->
-          <audio id="ref-clip-player" hidden></audio>
-          <audio id="my-clip-player" hidden></audio>
-        </div>
-
-        <h3>改进建议</h3>
-        <ul id="tips-list" class="tips"></ul>
-        <div id="prosody-info" class="prosody"></div>
       </section>
     </main>
   </div>
-  <script type="module" src="main.js?v=23"></script>
+
+  <script type="module" src="./main.js"></script>
 </body>
 </html>

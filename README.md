@@ -10,6 +10,9 @@
 >
 > 完整版本演进与技术特点见 [CHANGELOG.md](CHANGELOG.md)。
 
+当前 `main` 已完成编辑式学习工作台重构。前端的视觉原则、交互状态、工程边界与验收门槛
+统一记录在 [前端设计与实现规范](docs/FRONTEND_DESIGN.md)。
+
 ## 下载与安装
 
 > 面向**普通用户**。开发者从源码运行见下方[运行](#运行);从源码构建 .dmg 见[打包](#打包构建-dmg)。
@@ -49,13 +52,14 @@
 
 - 桌面壳:Tauri v2(Rust)
 - 后端:Python + FastAPI,作为本地 sidecar(绑定 `127.0.0.1` + 每次启动随机 token)
-- 前端:原生 HTML/JS + Web Audio 录音
+- 前端:原生 HTML/JS + Vite + GSAP + Web Audio 录音，Geist Variable 随应用打包
 - 语音/ML:torch · torchaudio(MMS 强制对齐) · transformers(wav2vec2 编码 + espeak-cv-ft 音素 MDD) · faster-whisper(转写) · librosa · praat-parselmouth
 
 ## 运行
 
-开发和发布前请先阅读 [开发规范](docs/DEVELOPMENT.md)，尤其是模型输入预处理必须由
-生产代码单一来源定义，测试不得另写近似实现。
+开发和发布前请先阅读 [开发规范](docs/DEVELOPMENT.md) 与
+[前端设计与实现规范](docs/FRONTEND_DESIGN.md)。模型输入预处理必须由生产代码单一来源
+定义，测试不得另写近似实现；前端变更也必须遵守文案、状态、响应式和可访问性门槛。
 
 ```bash
 # 1. Python 环境(留在仓库根,与 scripts/ 共用)
@@ -65,10 +69,13 @@ python3 -m venv .venv
 # 2. 后端 / 桌面应用(Mac 源码位于 desktop/,从该目录运行)
 cd desktop
 ../.venv/bin/python -m backend.main      # 后端单独验证 → http://127.0.0.1:8756
-npx tauri dev                            # 桌面应用(自动拉起后端)
+npm install
+npm run tauri -- dev                     # Vite + Tauri，自动拉起后端
 
 # 测试
 ../.venv/bin/python -m pytest backend/tests/ -v
+npm test
+npm run test:e2e
 ```
 
 ## 打包(构建 .dmg)
