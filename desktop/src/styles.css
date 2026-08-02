@@ -33,6 +33,7 @@
   /* ---- semantic ---- */
   --record: #ff4b4b;
   --record-dark: #d83232;
+  --record-text: #d83232;    /* red text on soft-red surfaces (== record-dark in light) */
   --red-soft: #ffe0e0;
   --good: #58cc02;
   --fair: #f5a623;           /* gold / amber */
@@ -53,7 +54,62 @@
   --shadow-card: 0 2px 10px rgba(35, 37, 46, 0.05);
 }
 
+/* ============================================================
+   Dark theme — toggled via `.dark` on <html>. Same brand accent
+   (Duolingo green/blue/purple) on deep cool-charcoal surfaces.
+   Soft backgrounds invert to dark tints; text-on-soft tokens
+   lighten to keep AA contrast. The 3D button shadow tokens stay
+   dark so the raised effect survives.
+   ============================================================ */
+.dark {
+  /* ---- surfaces ---- */
+  --bg: #14151c;
+  --bg-alt: #1e202a;
+  --surface-2: #262936;
+  --surface-3: #303341;
+  --border: #313441;
+  --border-strong: #3f4351;
+
+  /* ---- text ---- */
+  --text: #c6c9d4;
+  --text-strong: #eef0f6;
+  --muted: #8b8fa1;
+  --muted-2: #5f6373;
+
+  /* ---- brand ---- */
+  --primary: #58cc02;
+  --primary-dark: #4caf00;   /* 3D shadow — stays dark */
+  --primary-deep: #7dd13e;   /* text on green-soft — lightened */
+  --primary-soft: #1e2f12;
+  --accent: #1cb0f6;
+  --accent-dark: #6cc7f5;    /* text on blue-soft — lightened */
+  --accent-soft: #0e2a3d;
+  --purple: #ce82ff;
+  --purple-soft: #2b1b3e;
+
+  /* ---- semantic ---- */
+  --record: #ff4b4b;
+  --record-dark: #d83232;    /* 3D shadow — stays dark */
+  --record-text: #ff9a9a;    /* red text on soft-red — lightened */
+  --red-soft: #3a1c1f;
+  --good: #58cc02;
+  --fair: #f5a623;
+  --amber-soft: #382c13;
+  --amber-dark: #ffce6b;     /* text on amber-soft — lightened */
+  --bad: #ff4b4b;
+  --weak: #ff9600;
+
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* Hard-coded light fills inside component rules need explicit dark swaps. */
+.dark .part-chip.preview { background: #16374d; }
+.dark .part-chip.content-chip:hover,
+.dark .part-chip.content-chip.preview { background: #382350; }
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font);
@@ -66,7 +122,18 @@ body {
 .app { max-width: 720px; margin: 0 auto; padding: 36px 22px 84px; }
 
 /* ---------- header ---------- */
-header { text-align: center; margin-bottom: 26px; }
+header { text-align: center; margin-bottom: 26px; position: relative; }
+.theme-toggle {
+  position: absolute; top: 4px; right: 0;
+  width: 38px; height: 38px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 2px solid var(--border-strong); border-radius: 50%;
+  background: var(--bg-alt); color: var(--text-strong); font-size: 16px;
+  cursor: pointer; box-shadow: var(--shadow-card);
+  transition: transform .06s ease, border-color .15s, background .15s;
+}
+.theme-toggle:hover { border-color: var(--accent); }
+.theme-toggle:active { transform: translateY(1px); }
 .brand h1 {
   font-size: 32px; font-weight: 800; letter-spacing: -0.6px;
   color: var(--text-strong);
@@ -80,7 +147,7 @@ header { text-align: center; margin-bottom: 26px; }
 }
 .status-pending { background: var(--accent-soft); color: var(--accent-dark); }
 .status-ok { background: var(--primary-soft); color: var(--primary-deep); }
-.status-error { background: var(--red-soft); color: var(--record-dark); }
+.status-error { background: var(--red-soft); color: var(--record-text); }
 
 /* ---------- top-level module nav ---------- */
 .modules {
@@ -111,7 +178,7 @@ header { text-align: center; margin-bottom: 26px; }
   border-radius: var(--radius); padding: 22px 24px; margin-bottom: 16px;
   box-shadow: var(--shadow-card);
 }
-.card h2 { font-size: 18px; font-weight: 800; margin-bottom: 6px; color: var(--text-strong); }
+.card h2 { font-size: 18px; font-weight: 800; margin-bottom: 6px; color: var(--text-strong); text-wrap: balance; }
 .card h3 { font-size: 14px; font-weight: 700; margin: 20px 0 8px; color: var(--muted); }
 .hint { color: var(--muted); font-size: 13px; margin-bottom: 14px; font-weight: 500; }
 .card-hero { text-align: center; padding: 40px 24px; }
@@ -164,7 +231,7 @@ audio { width: 100%; margin-top: 12px; }
   font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums;
   padding: 0 16px; line-height: 1.15;
 }
-.analyze-status.rec { background: var(--red-soft); color: var(--record-dark); font-size: 14px; font-weight: 800; }
+.analyze-status.rec { background: var(--red-soft); color: var(--record-text); font-size: 14px; font-weight: 800; }
 .analyze-status.rec::before {
   content: ""; display: inline-block; width: 9px; height: 9px;
   border-radius: 50%; background: var(--record); margin-right: 7px;
@@ -181,10 +248,10 @@ audio { width: 100%; margin-top: 12px; }
   flex: 1; text-align: center; background: var(--surface-2);
   border: 2px solid transparent; border-radius: var(--radius-md); padding: 18px 8px;
 }
-.score-value { font-size: 34px; font-weight: 800; }
+.score-value { font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .score-label { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 700; letter-spacing: .6px; }
 
-.rate-info { font-size: 13px; color: var(--muted); margin-top: 14px; font-weight: 600; }
+.rate-info { font-size: 13px; color: var(--muted); margin-top: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* ---------- tips ---------- */
 .tips { list-style: none; }
@@ -193,8 +260,12 @@ audio { width: 100%; margin-top: 12px; }
   padding: 12px 16px; margin-bottom: 8px; border-radius: var(--radius-sm);
   font-size: 14px; font-weight: 500;
 }
+.tips li.tips-empty {
+  border-left-color: transparent; color: var(--muted);
+  font-weight: 600; text-align: center;
+}
 
-.prosody { font-size: 13px; color: var(--muted); margin-top: 14px; font-weight: 600; }
+.prosody { font-size: 13px; color: var(--muted); margin-top: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .prosody span { color: var(--text-strong); font-weight: 800; }
 
 /* ---------- speaking sub-tabs ---------- */
@@ -260,11 +331,11 @@ code { background: var(--surface-2); padding: 2px 7px; border-radius: var(--radi
 .w-chip { padding: 2px 9px; border-radius: var(--radius-pill); font-size: 11px; }
 .w-chip.w-good { background: var(--primary-soft); color: var(--primary-deep); }
 .w-chip.w-weak { background: var(--amber-soft); color: var(--amber-dark); }
-.w-chip.w-bad { background: var(--red-soft); color: var(--record-dark); }
-.w-chip.w-missed { background: var(--red-soft); color: var(--record-dark); }
+.w-chip.w-bad { background: var(--red-soft); color: var(--record-text); }
+.w-chip.w-missed { background: var(--red-soft); color: var(--record-text); }
 .sent-detail { background: var(--surface-2); border: 2px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 10px; }
 .sent-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--muted); font-weight: 700; }
-.sent-scores span { color: var(--text-strong); font-weight: 800; }
+.sent-scores span { color: var(--text-strong); font-weight: 800; font-variant-numeric: tabular-nums; }
 .sent-btns { display: inline-flex; gap: 6px; }
 .sent-play {
   background: var(--bg-alt); border: 2px solid var(--border-strong); color: var(--muted);
@@ -277,8 +348,8 @@ code { background: var(--surface-2); padding: 2px 7px; border-radius: var(--radi
 .word { padding: 1px 4px; border-radius: 6px; cursor: default; font-weight: 600; }
 .w-good { background: var(--primary-soft); color: var(--primary-deep); }
 .w-weak { background: var(--amber-soft); color: var(--amber-dark); }
-.w-bad { background: var(--red-soft); color: var(--record-dark); }
-.w-missed { background: var(--red-soft); color: var(--record-dark); text-decoration: line-through; }
+.w-bad { background: var(--red-soft); color: var(--record-text); }
+.w-missed { background: var(--red-soft); color: var(--record-text); text-decoration: line-through; }
 .word.has-tip { text-decoration: underline dotted; text-underline-offset: 3px; cursor: help; }
 
 /* ---------- per-word improvement directions ---------- */
@@ -307,7 +378,7 @@ code { background: var(--surface-2); padding: 2px 7px; border-radius: var(--radi
 }
 .memo-status.show { display: block; }
 .memo-status.warn { background: var(--amber-soft); color: var(--amber-dark); }
-.memo-status.err { background: var(--red-soft); color: var(--record-dark); }
+.memo-status.err { background: var(--red-soft); color: var(--record-text); }
 
 .memo-upload-zone {
   border: 2px dashed var(--border-strong); border-radius: var(--radius);
@@ -401,7 +472,7 @@ code { background: var(--surface-2); padding: 2px 7px; border-radius: var(--radi
   position: absolute; left: -3px; top: -25px;
   max-width: min(240px, 72vw); padding: 3px 8px;
   border-radius: 7px; overflow: hidden; text-overflow: ellipsis;
-  background: var(--accent-dark); color: #fff;
+  background: var(--accent); color: #fff;
   font-size: 11px; font-weight: 850; line-height: 1.35; white-space: nowrap;
   box-shadow: 0 1px 3px rgba(0,0,0,.25);
 }
@@ -432,7 +503,7 @@ code { background: var(--surface-2); padding: 2px 7px; border-radius: var(--radi
 }
 .part-chip:hover { transform: translateY(-1px); border-color: var(--accent); }
 .part-chip.preview { border-color: var(--accent); background: #c9edff; }
-.part-chip.active { background: var(--primary-soft); color: var(--primary-dark); border-color: var(--primary); }
+.part-chip.active { background: var(--primary-soft); color: var(--primary-deep); border-color: var(--primary); }
 .part-chip.content-chip {
   background: var(--purple-soft); color: var(--purple);
 }
@@ -441,7 +512,7 @@ code { background: var(--surface-2); padding: 2px 7px; border-radius: var(--radi
   border-color: var(--purple); background: #efd9ff;
 }
 .part-chip.content-chip.active {
-  background: var(--primary-soft); color: var(--primary-dark);
+  background: var(--primary-soft); color: var(--primary-deep);
   border-color: var(--primary);
 }
 .part-chip-wrap { display: inline-flex; align-items: center; gap: 6px; }
@@ -469,7 +540,7 @@ code { background: var(--surface-2); padding: 2px 7px; border-radius: var(--radi
 .memo-pronounce-score .score-badge .score-value { font-size: 26px; font-weight: 800; }
 .memo-pronounce-score .score-badge.good .score-value { color: var(--primary); }
 .memo-pronounce-score .score-badge.weak .score-value { color: var(--amber-dark); }
-.memo-pronounce-score .score-badge.bad .score-value { color: var(--record-dark); }
+.memo-pronounce-score .score-badge.bad .score-value { color: var(--record-text); }
 .memo-pronounce-score .hint { margin-top: 8px; }
 
 .memo-scenario { display: flex; flex-direction: column; gap: 10px; }
@@ -489,3 +560,21 @@ code { background: var(--surface-2); padding: 2px 7px; border-radius: var(--radi
 }
 .dialogue-turn .en { font-size: 15px; font-weight: 700; color: var(--text-strong); }
 .dialogue-turn .zh { font-size: 13px; color: var(--muted); }
+
+/* ---------- keyboard focus (a11y) ---------- */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.hotspot:focus-visible { outline-color: #fff; outline-offset: -3px; }
+.part-hotspot:focus-visible { outline-color: #fff; outline-offset: -3px; }
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .analyze-status.rec::before,
+  .spinner { animation: none; }
+  .btn, .tab, .module, .video-item, .sentence-item, .hotspot,
+  .part-hotspot, .part-chip, .pronounce-play-btn, .theme-toggle,
+  .memo-upload-zone { transition: none; }
+}

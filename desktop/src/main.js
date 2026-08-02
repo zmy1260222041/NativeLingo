@@ -12,7 +12,7 @@ const BACKEND_TOKEN = window.__NATIVELINGO_TOKEN__ || null;
 // once the backend responds, so the marker is reliable across cold starts (the
 // load-time ping otherwise fails silently while the backend is still spinning
 // up and never reaches the log).
-const BOOT_TAG = "v22";
+const BOOT_TAG = "v23";
 let _bootMarked = false;
 function markBoot() {
   if (_bootMarked) return;
@@ -41,6 +41,31 @@ const $ = (id) => document.getElementById(id);
 const authHeaders = () =>
   BACKEND_TOKEN ? { Authorization: `Bearer ${BACKEND_TOKEN}` } : {};
 const tokenQS = () => (BACKEND_TOKEN ? `?token=${encodeURIComponent(BACKEND_TOKEN)}` : "");
+
+// =====================================================================
+// Theme (light / dark)
+// =====================================================================
+// The no-flash initial class was set by an inline script in <head>; here we
+// wire the toggle button and persist the choice. Defaults to the system
+// preference until the user picks one.
+const themeToggle = $("theme-toggle");
+function applyTheme(dark) {
+  document.documentElement.classList.toggle("dark", dark);
+  if (themeToggle) {
+    themeToggle.textContent = dark ? "☀️" : "🌙";
+    const label = dark ? "切换到浅色主题" : "切换到深色主题";
+    themeToggle.title = label;
+    themeToggle.setAttribute("aria-label", label);
+  }
+}
+if (themeToggle) {
+  themeToggle.addEventListener("click", () => {
+    const nextDark = !document.documentElement.classList.contains("dark");
+    applyTheme(nextDark);
+    try { localStorage.setItem("nl-theme", nextDark ? "dark" : "light"); } catch (_) {}
+  });
+}
+applyTheme(document.documentElement.classList.contains("dark"));
 
 // Memorizing actions should never leave a learner staring at an infinite
 // spinner. The backend mirrors this deadline, but AbortController gives the
@@ -663,6 +688,12 @@ function renderResults(data) {
     li.textContent = tip;
     tipsList.appendChild(li);
   });
+  if (!(data.tips || []).length) {
+    const li = document.createElement("li");
+    li.className = "tips-empty";
+    li.textContent = "本次没有明显的改进点，继续保持当前发音。";
+    tipsList.appendChild(li);
+  }
 
   const prosody = data.prosody;
   if (prosody) {
@@ -1152,7 +1183,18 @@ function memoRenderHotspots() {
     tag.textContent = o.label_en;
     tag.title = o.label_en;
     dot.appendChild(tag);
+    // Hotspots are clickable overlays; make them keyboard-accessible like the
+    // part buttons (Tab to focus, Enter/Space to open the object detail).
+    dot.tabIndex = 0;
+    dot.setAttribute("role", "button");
+    dot.setAttribute("aria-label", `查看物品 ${o.label_en}`);
     dot.addEventListener("click", () => memoOpenDetail(o));
+    dot.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        memoOpenDetail(o);
+      }
+    });
     hs.appendChild(dot);
   });
 }
@@ -1418,7 +1460,9 @@ async function memoGenerateScenario(obj, part) {
     if (!res.ok) throw new Error(data.detail || "情景生成失败");
     if (scenarioToken !== memo.scenarioToken) return;
     const speakerStyles = [
-      { bg: "var(--primary-soft)", fg: "var(--primary-dark)", border: "var(--primary)" },
+      // fg uses --primary-deep (theme-adaptive green) so the chip text stays
+      // readable on the soft background in both light and dark themes.
+      { bg: "var(--primary-soft)", fg: "var(--primary-deep)", border: "var(--primary)" },
       { bg: "var(--accent-soft)", fg: "var(--accent-dark)", border: "var(--accent)" },
       { bg: "var(--purple-soft)", fg: "var(--purple)", border: "var(--purple)" },
       { bg: "var(--amber-soft)", fg: "var(--amber-dark)", border: "var(--fair)" },
