@@ -112,7 +112,7 @@ private fun SentencePicker(vm: PracticeViewModel, state: PracticeViewModel.UiSta
                 val bg = when {
                     endpoint -> brand.accent.copy(alpha = 0.18f)
                     inRange -> brand.accent.copy(alpha = 0.08f)
-                    else -> brand.card
+                    else -> brand.surface
                 }
                 Column(
                     Modifier.fillMaxWidth().clickable { vm.pickSentence(idx) }
@@ -120,14 +120,14 @@ private fun SentencePicker(vm: PracticeViewModel, state: PracticeViewModel.UiSta
                 ) {
                     Text("${idx + 1}.  %d:%02d".format((s.start / 60).toInt(), (s.start % 60).toInt()),
                         color = brand.muted, style = MaterialTheme.typography.bodyMedium)
-                    Text(s.text, color = brand.text, style = MaterialTheme.typography.bodyLarge)
+                    Text(s.text, color = brand.ink, style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }
         // Sticky action bar — the "去跟读" button is always on screen, not buried
         // at the end of a long list.
-        androidx.compose.material3.HorizontalDivider(color = brand.cardBorder)
-        Column(Modifier.fillMaxWidth().background(brand.card).padding(16.dp)) {
+        androidx.compose.material3.HorizontalDivider(color = brand.line)
+        Column(Modifier.fillMaxWidth().background(brand.surface).padding(16.dp)) {
             Button(
                 onClick = vm::enterStudio,
                 enabled = state.rangeStart != null,
@@ -196,7 +196,7 @@ private fun RecordStudio(container: AppContainer, vm: PracticeViewModel, state: 
         )
         val refText = range?.let { state.sentences.subList(it.first, it.last + 1).joinToString(" ") { s -> s.text } }
             ?: ""
-        Text(refText, color = brand.text, style = MaterialTheme.typography.bodyLarge)
+        Text(refText, color = brand.ink, style = MaterialTheme.typography.bodyLarge)
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(onClick = vm::backToPick) { Text("重选句子") }
@@ -250,15 +250,15 @@ private fun ResultsView(vm: PracticeViewModel, state: PracticeViewModel.UiState)
             Text("语速比(你/参考):%.2f×".format(res.speechRateRatio), color = brand.muted)
         }
         if (res.tips.isNotEmpty()) {
-            item { Text("改进建议", style = MaterialTheme.typography.titleLarge, color = brand.text) }
+            item { Text("改进建议", style = MaterialTheme.typography.titleLarge, color = brand.ink) }
             items(res.tips) { tip ->
-                Column(Modifier.fillMaxWidth().background(brand.card, RoundedCornerShape(8.dp))
+                Column(Modifier.fillMaxWidth().background(brand.surface, RoundedCornerShape(8.dp))
                     .border(1.dp, brand.accent, RoundedCornerShape(8.dp)).padding(12.dp)) {
-                    Text(tip, color = brand.text)
+                    Text(tip, color = brand.ink)
                 }
             }
         }
-        item { Text("逐句", style = MaterialTheme.typography.titleLarge, color = brand.text) }
+        item { Text("逐句", style = MaterialTheme.typography.titleLarge, color = brand.ink) }
         items(res.sentences) { sd -> SentenceCard(vm, sd, brand) }
         item {
             OutlinedButton(onClick = vm::resetResult) { Text("再练一遍") }
@@ -269,8 +269,8 @@ private fun ResultsView(vm: PracticeViewModel, state: PracticeViewModel.UiState)
 @Composable
 private fun ScoreCard(label: String, score: Float, modifier: Modifier, brand: com.nativelingo.app.ui.theme.NativeLingoColors) {
     val color = bandColor(score, brand)
-    Column(modifier.fillMaxWidth().background(brand.card, RoundedCornerShape(10.dp))
-        .border(1.dp, brand.cardBorder, RoundedCornerShape(10.dp)).padding(12.dp),
+    Column(modifier.fillMaxWidth().background(brand.surface, RoundedCornerShape(10.dp))
+        .border(1.dp, brand.line, RoundedCornerShape(10.dp)).padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
         Text("%.0f".format(score), color = color, style = MaterialTheme.typography.headlineLarge)
         Text(label, color = brand.muted, style = MaterialTheme.typography.bodyMedium)
@@ -279,8 +279,8 @@ private fun ScoreCard(label: String, score: Float, modifier: Modifier, brand: co
 
 @Composable
 private fun SentenceCard(vm: PracticeViewModel, s: AnalyzedSentence, brand: com.nativelingo.app.ui.theme.NativeLingoColors) {
-    Column(Modifier.fillMaxWidth().background(brand.card, RoundedCornerShape(10.dp))
-        .border(1.dp, brand.cardBorder, RoundedCornerShape(10.dp)).padding(12.dp)) {
+    Column(Modifier.fillMaxWidth().background(brand.surface, RoundedCornerShape(10.dp))
+        .border(1.dp, brand.line, RoundedCornerShape(10.dp)).padding(12.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("准确 %.0f  流畅 %.0f".format(s.accuracy, s.fluency),
                 color = bandColor(s.accuracy, brand))
@@ -299,7 +299,7 @@ private fun SentenceCard(vm: PracticeViewModel, s: AnalyzedSentence, brand: com.
                 tipped.forEach { w ->
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(w.word, color = bandColor(w.accuracy, brand), style = MaterialTheme.typography.labelLarge)
-                        if (w.tip.isNotEmpty()) Text("— " + w.tip, color = brand.text, modifier = Modifier.weight(1f))
+                        if (w.tip.isNotEmpty()) Text("— " + w.tip, color = brand.ink, modifier = Modifier.weight(1f))
                         OutlinedButton(onClick = { vm.playReference(w.start, w.end) }) { Text("原声") }
                         if (w.learnerEnd > w.learnerStart) {
                             OutlinedButton(onClick = { vm.playLearner(w.learnerStart, w.learnerEnd) }) { Text("我的") }
@@ -318,7 +318,7 @@ private fun wordChips(s: AnalyzedSentence, brand: com.nativelingo.app.ui.theme.N
             if (i > 0) append(" ")
             val (fg, strike) = when (w.status) {
                 "good" -> brand.good to false
-                "weak" -> brand.fair to false
+                "weak" -> brand.weak to false
                 "missed" -> brand.bad to true
                 else -> brand.bad to false
             }
@@ -330,7 +330,7 @@ private fun wordChips(s: AnalyzedSentence, brand: com.nativelingo.app.ui.theme.N
 
 private fun bandColor(score: Float, brand: com.nativelingo.app.ui.theme.NativeLingoColors): Color = when {
     score >= 75f -> brand.good
-    score >= 60f -> brand.fair
+    score >= 60f -> brand.weak
     else -> brand.bad
 }
 
