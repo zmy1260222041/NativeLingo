@@ -31,11 +31,9 @@ private const val TAG_SMOKE = "NLSmoke"
  * score high — the cloud twin of the pre-migration AnalyzePipelineDeviceTest,
  * and the same trick the studio's "调试:用原声当跟读" uses.
  *
- * v0.7.1: the APK ships with no credential — the test registers a device
- * with a one-time code injected at build time
- * (`-PNATIVELINGO_SERVER_REG_CODE=...`, issued on the server with
- * `python -m backend.core.devices code`), then exercises the same token the
- * app would use.
+ * v0.7.2: the APK ships with no credential at all — the test registers a
+ * throwaway account (random username, so it never collides) and logs in,
+ * exactly the app's own flow. Nothing is injected into the test APK.
  *
  * REQUIRES a reachable backend at BuildConfig.SERVER_URL and fails hard when
  * it is unreachable (gate-suite convention — a self-skipping smoke is worse
@@ -43,8 +41,7 @@ private const val TAG_SMOKE = "NLSmoke"
  * rebuild with an override:
  *   cd /tmp/nl-backend-server && .venv/bin/uvicorn backend.main:app --port 8757
  *   ./gradlew :app:assembleDebugAndroidTest \
- *     -PNATIVELINGO_SERVER_URL=http://10.0.2.2:8757 \
- *     -PNATIVELINGO_SERVER_REG_CODE=<code>
+ *     -PNATIVELINGO_SERVER_URL=http://10.0.2.2:8757
  */
 @RunWith(AndroidJUnit4::class)
 class CloudSpeakingDeviceTest {
@@ -57,15 +54,16 @@ class CloudSpeakingDeviceTest {
         CloudClient(tokenProvider = container.tokenStore::loadToken),
     )
 
-    /** Register this device once per run (the injected code is one-time). */
+    /** Register a throwaway account + log in, once per run (v0.7.2 flow). */
     private fun ensureActivated() {
         if (container.tokenStore.loadToken() != null) return
-        val code = BuildConfig.SERVER_REG_CODE
-        assertTrue(code.isNotEmpty(), "test APK has no registration code — pass -PNATIVELINGO_SERVER_REG_CODE=...")
-        val token = runBlocking {
-            api.register(container.tokenStore.deviceId(), code)
+        val user = "gate_${java.util.UUID.randomUUID().toString().take(8)}"
+        val pw = "gatepass${java.util.UUID.randomUUID().toString().take(8)}"
+        runBlocking {
+            api.registerUser(user, pw)
+            val token = api.login(user, pw, container.tokenStore.deviceId())
+            container.tokenStore.saveToken(token)
         }
-        container.tokenStore.saveToken(token)
     }
 
     // ── pure parsing + remapping (no server needed) ──────────────────────────

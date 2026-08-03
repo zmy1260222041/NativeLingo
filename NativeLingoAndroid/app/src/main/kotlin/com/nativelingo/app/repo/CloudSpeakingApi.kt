@@ -112,6 +112,39 @@ class CloudSpeakingApi(private val client: CloudClient) {
             json.getString("token")
         }
 
+    /**
+     * POST /auth/register — create an account (v0.7.2). Passwords are
+     * scrypt-hashed server-side; plaintext never leaves the TLS-less link
+     * except as the form field itself. Throws [CloudApiException] with the
+     * server's message ("用户名已存在", …) on validation failures.
+     */
+    suspend fun registerUser(username: String, password: String) {
+        withContext(Dispatchers.IO) {
+            client.postMultipart(
+                "/auth/register",
+                fields = mapOf("username" to username, "password" to password),
+            )
+        }
+    }
+
+    /**
+     * POST /auth/login — verify the password and receive a per-device token
+     * (bound to [deviceId], revocable server-side). The caller stores it in
+     * [TokenStore]; the APK itself carries no credential.
+     */
+    suspend fun login(username: String, password: String, deviceId: String): String =
+        withContext(Dispatchers.IO) {
+            val json = client.postMultipart(
+                "/auth/login",
+                fields = mapOf(
+                    "username" to username,
+                    "password" to password,
+                    "device_id" to deviceId,
+                ),
+            )
+            json.getString("token")
+        }
+
     /** GET /health — connectivity + model readiness probe. */
     suspend fun health(): Boolean = withContext(Dispatchers.IO) {
         runCatching { client.getJson("/health").optString("status") == "ok" }.getOrDefault(false)

@@ -28,7 +28,7 @@ android {
         minSdk = 28          // NFR-4①: Android 9+ / API 28+
         targetSdk = 35
         versionCode = 1
-        versionName = "0.7.1"
+        versionName = "0.7.2"
 
         // The device-side gate harness lives in this module's androidTest source
         // set (src/androidTest) rather than in each core module's, for one reason:
@@ -47,19 +47,14 @@ android {
 
         // Cloud Speaking backend (Duolingo-style server-side scoring). The
         // server URL is a build property; the AUTH token is deliberately NOT
-        // here — the APK ships with no credential (OWASP M1): the app registers
-        // per-device via POST /register with an operator-issued code (v0.7.1).
+        // here — the APK ships with no credential (OWASP M1): the user logs
+        // in with an account and the server issues a per-device token
+        // (v0.7.2).
         //  -PNATIVELINGO_SERVER_URL=http://10.0.2.2:8756
         // The default URL points at the self-hosted production server.
         val serverUrl = (project.findProperty("NATIVELINGO_SERVER_URL") as? String)
             ?: "http://124.220.234.178:8756"
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
-        // Test-only: a one-time registration code injected into the test APK
-        // (expires in 24 h, burned on use) so the device-gate suite can
-        // register without a UI. Always empty in release builds.
-        val serverRegCode = (project.findProperty("NATIVELINGO_SERVER_REG_CODE") as? String)
-            ?: ""
-        buildConfigField("String", "SERVER_REG_CODE", "\"$serverRegCode\"")
     }
 
     signingConfigs {
