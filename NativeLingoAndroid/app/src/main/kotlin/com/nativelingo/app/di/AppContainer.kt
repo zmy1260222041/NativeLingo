@@ -4,6 +4,7 @@ import android.content.Context
 import com.nativelingo.app.repo.AssetsModelSource
 import com.nativelingo.app.audio.ClipPlayer
 import com.nativelingo.app.audio.LearnerRecorder
+import com.nativelingo.app.memorize.MemorizePipeline
 import com.nativelingo.app.pipeline.AnalyzePipeline
 import com.nativelingo.app.repo.ImportRepository
 import com.nativelingo.app.repo.RecordingsRepository
@@ -18,6 +19,7 @@ import com.nativelingo.models.DirectoryModelSource
 import com.nativelingo.models.ModelId
 import com.nativelingo.models.ModelRegistry
 import com.nativelingo.models.WhisperTier
+import com.nativelingo.vision.YoloDetector
 import com.nativelingo.scoring.score.Calibration
 import com.nativelingo.scoring.score.CalibrationLoader
 import kotlinx.coroutines.CoroutineScope
@@ -101,6 +103,14 @@ class AppContainer(context: Context) {
 
     /** One audio-clip player for FR-8 — the muted-video player is per-screen. */
     val clipPlayer: ClipPlayer by lazy { ClipPlayer(appContext) }
+
+    // ── Memorizing (识物) module — FR-13 detection (Phase 1). The detector is
+    // resident once loaded (45 MB, like Whisper's VAD). Parts/scenario/pronounce
+    // (Qwen, Piper) join here in later phases, all fed from one MemorizeStore. ──
+    val yoloDetector: YoloDetector by lazy {
+        YoloDetector(registry.resolve(ModelId.YOLOE_DETECT).absolutePath)
+    }
+    val memorizePipeline: MemorizePipeline by lazy { MemorizePipeline(yoloDetector) }
 
     val warmup: Warmup by lazy { Warmup(registry, assetsModelSource, appScope) }
 }

@@ -39,6 +39,11 @@ include(":core-align")
 // Phase 2: sherpa-onnx Whisper transcription + Silero VAD (FR-2 reference text).
 include(":core-asr")
 
+// Memorizing (识物) module — YOLOE-26S-PF macro object detection (FR-13).
+// A Kotlin port of desktop/backend/core/vision.py on onnxruntime-android; the
+// same curated label table and 640px + overlapping 1280px tile pipeline.
+include(":core-vision")
+
 // Phase 2: MediaExtractor/MediaCodec audio decode + :core-scoring resampling.
 include(":core-audio")
 
