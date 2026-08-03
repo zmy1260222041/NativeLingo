@@ -90,3 +90,8 @@ NativeLingoAndroid/.tools/
 .idea/
 *.swp
 *~
+
+# Cloud server variant (server/) — the ONNX weights are staged at deploy time
+# from the same exports the Android build syncs (build/onnx + models/); not source.
+/server/models/
+/server/videos/
