@@ -3,8 +3,6 @@ package com.nativelingo.app.gates
 import android.os.SystemClock
 import android.util.Log
 import com.nativelingo.models.ModelCatalog
-import com.nativelingo.models.ModelId
-import com.nativelingo.models.WhisperTier
 import org.junit.Test
 import org.junit.runner.RunWith
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -21,6 +19,10 @@ import kotlin.test.assertTrue
  * second is by far the more likely. It also produces the first real NFR-3
  * datapoint for the warmup path: how long a full-set checksum actually takes on
  * device storage.
+ *
+ * Cloud architecture (v0.7): the set is 2 models now — the Speaking track's
+ * whisper/VAD/MMS/espeak moved to the server, so their absence here is the
+ * *desired* state, asserted as such.
  */
 @RunWith(AndroidJUnit4::class)
 class ModelIntegrityDeviceTest {
@@ -39,7 +41,7 @@ class ModelIntegrityDeviceTest {
         // the marker directory and the models survive a harness run — that is the
         // whole point of scripts/run_device_gates.sh not uninstalling. So on every
         // run after the first, `verifyAll` returned from the marker and this test
-        // logged `SHA-256 over 935.1 MiB took 0 ms (Infinity MiB/s)`: a hash rate
+        // logged `SHA-256 over 182.8 MiB took 0 ms (Infinity MiB/s)`: a hash rate
         // for a hash that never ran, stated as the NFR-3 warmup datapoint it is
         // supposed to produce. The `Infinity` was the only visible tell, and
         // `assertTrue(ms > 0)` was one scheduling accident away from catching it.
@@ -67,7 +69,7 @@ class ModelIntegrityDeviceTest {
             }
         }
         val ms = SystemClock.elapsedRealtime() - t0
-        val mib = ModelCatalog.INSTALL_TIME_BYTES / 1048576.0
+        val mib = ModelCatalog.TOTAL_BYTES / 1048576.0
         Log.i(
             DeviceFixtures.TAG,
             "cold SHA-256 over %.1f MiB took %d ms (%.1f MiB/s), %d marker(s) cleared first".format(
@@ -77,7 +79,7 @@ class ModelIntegrityDeviceTest {
 
         // Not a timing gate, and specifically not usable as one: 460 ms / 2033 MiB/s
         // on this emulator is host-page-cache speed, not phone-storage speed. A real
-        // first launch reads 935 MiB off UFS or eMMC cold, which is seconds. The
+        // first launch reads 183 MiB off UFS or eMMC cold, which is seconds. The
         // reason to record it at all is the warmup design question — verify on every
         // launch, or trust the marker after the first — and that question needs a
         // number from real hardware before it can be answered. Flagged for the
@@ -95,28 +97,35 @@ class ModelIntegrityDeviceTest {
         val ms = SystemClock.elapsedRealtime() - t0
         Log.i(DeviceFixtures.TAG, "cached verifyAll took $ms ms")
 
-        // The marker exists so that launch #2 does not re-hash 935 MiB. If it is
-        // not dramatically faster the memoisation is not working, whatever the
-        // JVM unit test says about a 4 KiB temp file.
+        // The marker exists so that launch #2 does not re-hash the model set. If
+        // it is not dramatically faster the memoisation is not working, whatever
+        // the JVM unit test says about a 4 KiB temp file.
         assertTrue(ms < 2_000, "cached verifyAll took ${ms}ms — markers are not being honoured")
     }
 
     @Test
-    fun the_tiny_tier_is_absent_and_that_is_not_an_error() {
-        // R-11: tiny.en is a runtime downgrade candidate, not part of the shipped
-        // pack. hasTier() must answer "no" calmly — the app decides whether to
-        // offer the downgrade from this, so it cannot be allowed to throw.
-        assertTrue(DeviceFixtures.registry.hasTier(WhisperTier.BASE_EN), "release tier missing")
-        val tiny = DeviceFixtures.registry.hasTier(WhisperTier.TINY_EN)
-        Log.i(DeviceFixtures.TAG, "tiny.en tier present on this device: $tiny")
-        assertEquals(WhisperTier.BASE_EN, WhisperTier.DEFAULT)
-    }
-
-    @Test
-    fun espeak_is_delivered_at_install_time_even_though_it_loads_lazily() {
-        // FR-11's model is the one most likely to be mistaken for a download-later
-        // item because it is loaded lazily. Lazily loaded ≠ lazily fetched: a
-        // learner who hits a weak word offline must still get a diagnosis.
-        DeviceFixtures.requireModel(ModelId.ESPEAK_MDD)
+    fun the_catalog_is_exactly_the_on_device_识物_set() {
+        // Cloud migration (v0.7): the Speaking track's models (whisper, VAD, MMS,
+        // espeak) moved to the server, so the catalog must NOT grow them back and
+        // they must NOT be delivered to the device — a stale push or a re-added
+        // spec would silently re-inflate the APK the size optimisation just cut.
+        assertEquals(2, ModelCatalog.all.size, "catalog drifted from the 2-model 识物 set")
+        val names = ModelCatalog.all.map { it.fileName }
+        assertEquals(
+            setOf("w2v2_base_69_fp16.onnx", "yoloe-26s-pf.onnx"),
+            names.toSet(),
+        )
+        // The four Speaking files, if any are present on the device, are dead
+        // weight from a pre-migration push — flag rather than silently carry them.
+        val stale = listOf(
+            "mms_fa_int8_transformer.onnx",
+            "espeak_cv_ft_int8.onnx",
+            "silero_vad.onnx",
+            "base.en-encoder.int8.onnx",
+        ).filter { File(DeviceFixtures.modelDir, it).isFile }
+        assertTrue(
+            stale.isEmpty(),
+            "pre-cloud Speaking models still pushed: ${stale.joinToString()}",
+        )
     }
 }

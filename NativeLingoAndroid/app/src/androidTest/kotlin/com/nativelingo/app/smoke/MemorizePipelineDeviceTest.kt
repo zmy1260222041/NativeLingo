@@ -12,7 +12,9 @@ import kotlin.test.assertTrue
 
 /**
  * End-to-end smoke for the Memorizing pipeline (FR-13) on a real photo — the
- * counterpart of `AnalyzePipelineDeviceTest` for the Speaking track.
+ * on-device counterpart of the Speaking track's cloud smoke
+ * (`CloudSpeakingDeviceTest`). 识物 never uploads; this is the one pipeline
+ * that still runs fully locally (v0.7).
  *
  * Loads the canonicalized YOLOE model, runs a real photo of a cat through the
  * full `MemorizeImageCodec.canonicalizeUpload → YoloDetector.detect` path, and
