@@ -91,7 +91,9 @@ class AppContainer(context: Context) {
     // code, and the token lives encrypted in the Android Keystore. The 识物
     // module stays fully on-device — its sessions are untouched above.
     val tokenStore: TokenStore by lazy { TokenStore(appContext) }
-    val cloudClient: CloudClient by lazy { CloudClient(tokenProvider = tokenStore::loadToken) }
+    val cloudClient: CloudClient by lazy {
+        CloudClient(appContext, tokenProvider = tokenStore::loadToken)
+    }
     val cloudSpeakingApi: CloudSpeakingApi by lazy { CloudSpeakingApi(cloudClient) }
 
     /** One audio-clip player for FR-8 — the muted-video player is per-screen. */

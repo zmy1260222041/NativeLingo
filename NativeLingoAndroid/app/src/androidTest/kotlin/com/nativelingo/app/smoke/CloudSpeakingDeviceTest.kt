@@ -51,7 +51,10 @@ class CloudSpeakingDeviceTest {
     private val container get() = app.container
 
     private val api = CloudSpeakingApi(
-        CloudClient(tokenProvider = container.tokenStore::loadToken),
+        CloudClient(
+            appContext = InstrumentationRegistry.getInstrumentation().targetContext,
+            tokenProvider = container.tokenStore::loadToken,
+        ),
     )
 
     /** Register a throwaway account + log in, once per run (v0.7.2 flow). */
