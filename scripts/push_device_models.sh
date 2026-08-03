@@ -87,6 +87,10 @@ FILES=(
     "$SHERPA/sherpa-onnx-whisper-base.en/base.en-encoder.int8.onnx"
     "$SHERPA/sherpa-onnx-whisper-base.en/base.en-decoder.int8.onnx"
     "$SHERPA/sherpa-onnx-whisper-base.en/base.en-tokens.txt"
+    # FR-13 (识物) — YOLOE-26S-PF detection export. Sourced from models/ (an
+    # Ultralytics export, not one of our quantized re-exports — see
+    # ModelCatalog.YOLOE_DETECT for the pin).
+    "$ROOT/models/yoloe-26s-pf/yoloe-26s-pf.onnx"
 )
 if [[ $WITH_TINY -eq 1 ]]; then
     # The latency fallback tier (R-11): shipped-tier candidate rejected, kept as
