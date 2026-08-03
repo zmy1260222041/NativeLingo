@@ -25,8 +25,10 @@ from __future__ import annotations
 import io
 import os
 import re
+import shutil
 import tempfile
 import threading
+import time
 import uuid
 
 import numpy as np
@@ -44,12 +46,68 @@ from backend.core.transcribe import transcribe_sentences
 from contextlib import asynccontextmanager
 
 
+# ── upload / abuse guards (cloud variant) ───────────────────────────────────
+# The deploy box has 40 GB disk (94% used) and 4 CPU cores — a single oversized
+# upload or a burst of analyses can take it down. These are simple, in-process
+# limits: fine for one server, replace with nginx/Caddy-level limits if the
+# box ever fronts more than a handful of devices.
+_MAX_VIDEO_BYTES = 1_500_000_000   # 1.5 GB — a course video is ~90 MB
+_MAX_LEARNER_BYTES = 100_000_000   # 100 MB — a take is seconds of 16 kHz wav
+_MIN_FREE_DISK_BYTES = 1_000_000_000  # refuse uploads when < 1 GB free
+
+_RATE_WINDOW_S = 60.0
+_RATE_BUDGETS = {  # requests per window per client IP
+    "/analyze_video": 10,
+    "/videos": 3,
+    "/register": 5,
+    "/default": 60,
+}
+_RATE_HITS: dict[str, list[float]] = {}
+_RATE_LOCK = threading.Lock()
+
+
+def _rate_limit(request: Request, budget_key: str = "/default") -> None:
+    """Sliding-window in-memory rate limit keyed by client IP."""
+    key = request.client.host if request.client else "?"
+    budget = _RATE_BUDGETS.get(budget_key, _RATE_BUDGETS["/default"])
+    now = time.time()
+    with _RATE_LOCK:
+        hits = _RATE_HITS.setdefault(key, [])
+        hits[:] = [t for t in hits if t > now - _RATE_WINDOW_S]
+        if len(hits) >= budget:
+            raise HTTPException(status_code=429, detail="请求过于频繁，请稍后再试")
+        hits.append(now)
+
+
+def _disk_ok() -> None:
+    """Refuse uploads when the disk is nearly full (39/40 GB used already)."""
+    free = shutil.disk_usage(videomod.videos_dir()).free
+    if free < _MIN_FREE_DISK_BYTES:
+        raise HTTPException(
+            status_code=507,
+            detail=f"服务器磁盘空间不足（剩余 {free // (1024**3)} GB），请稍后再试",
+        )
+
+
+def _check_upload_size(file: UploadFile, limit: int) -> None:
+    """Reject an upload whose declared size exceeds [limit]."""
+    if file.size is not None and file.size > limit:
+        raise HTTPException(status_code=413, detail="上传文件过大")
+
+
 @asynccontextmanager
 async def _lifespan(_app):
     # Prefetch the heavy analysis models (MMS ~1.2GB + phoneme ~2.4GB) in the
     # background so the first /analyze_video doesn't block on download. Progress
     # is exposed via /warmup. Best-effort; analyze still works if it fails.
     from backend.core import warmup
+
+    # Stale scratch dirs from earlier runs (the desktop's /recordings store was
+    # removed in the cloud variant; anything left behind is dead biometric
+    # data with no retention policy — delete on boot).
+    _clean_stale_scratch("nativelingo_recordings_")
+    _clean_stale_scratch("nativelingo_photos_")
+
     warmup.start()
     try:
         yield
@@ -61,12 +119,37 @@ async def _lifespan(_app):
         memorize_warmup.release()
 
 
+def _clean_stale_scratch(prefix: str, max_age_s: float = 7 * 24 * 3600) -> None:
+    """Delete scratch dirs from previous processes older than [max_age_s].
+
+    tempfile.mkdtemp() creates a NEW directory per process and never reuses
+    old ones — without this, every restart of the old desktop stack leaked a
+    recordings/ photos directory forever."""
+    tmp = tempfile.gettempdir()
+    now = time.time()
+    try:
+        for name in os.listdir(tmp):
+            if not name.startswith(prefix):
+                continue
+            p = os.path.join(tmp, name)
+            try:
+                if now - os.path.getmtime(p) > max_age_s:
+                    shutil.rmtree(p, ignore_errors=True)
+            except OSError:
+                pass
+    except OSError:
+        pass
+
+
 app = FastAPI(title="NativeLingo Backend", version="0.1.0", lifespan=_lifespan)
 
-# Tauri webview origins; tightened since the API is local-only anyway.
+# Desktop Tauri webview origins. The Android client is a native HTTP client
+# (no Origin header) — the wildcard used to sit here for it, but CORS only
+# matters for browsers, and a wildcard would let any website call the API
+# once it has a token, so it is gone.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:1420", "tauri://localhost", "*"],
+    allow_origins=["http://localhost:1420", "tauri://localhost"],
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
@@ -75,22 +158,64 @@ _TOKEN = os.environ.get("NATIVELINGO_TOKEN")
 
 
 def require_token(authorization: str | None = Header(default=None)):
-    """Enforce the shared bearer token when one is configured. If no token is
-    set (e.g. local dev), auth is skipped."""
-    if _TOKEN is None:
+    """Enforce authentication. Accepts either the operator token
+    (NATIVELINGO_TOKEN — the server-side admin credential, never shipped in
+    any APK) or a registered device token (per-device, revocable; see
+    backend/core/devices.py). If no operator token is configured (local dev),
+    auth is skipped."""
+    from backend.core import devices
+
+    if devices.admin_token() is None:
         return
-    expected = f"Bearer {_TOKEN}"
-    if authorization != expected:
-        raise HTTPException(status_code=401, detail="invalid or missing token")
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="missing token")
+    raw = authorization.removeprefix("Bearer ").strip()
+    if devices.is_admin_token(raw) or devices.is_device_token(raw) is not None:
+        return
+    raise HTTPException(
+        status_code=401,
+        detail="令牌无效或已失效，请在应用中重新激活设备",
+    )
+
+
+def require_admin_token(authorization: str | None = Header(default=None)):
+    """Operator-only: endpoints the Android app never calls (desktop web
+    frontend features — recordings store, Memorizing, clientlog). A leaked
+    device token must not be able to grow the server's disk or burn CPU."""
+    from backend.core import devices
+
+    if devices.admin_token() is None:
+        return
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="missing token")
+    raw = authorization.removeprefix("Bearer ").strip()
+    if devices.is_admin_token(raw):
+        return
+    raise HTTPException(status_code=401, detail="需要管理员令牌")
+
+
+def check_admin_token_value(token: str | None):
+    """Operator-only variant for query-param endpoints (streams, TTS)."""
+    from backend.core import devices
+
+    if devices.admin_token() is None:
+        return
+    if not token or not devices.is_admin_token(token):
+        raise HTTPException(status_code=401, detail="需要管理员令牌")
 
 
 def check_token_value(token: str | None):
     """Token check for endpoints that can't send an Authorization header (e.g.
     a <video src> stream), which pass the token as a query parameter instead."""
-    if _TOKEN is None:
+    from backend.core import devices
+
+    if devices.admin_token() is None:
         return
-    if token != _TOKEN:
-        raise HTTPException(status_code=401, detail="invalid or missing token")
+    if not token:
+        raise HTTPException(status_code=401, detail="missing token")
+    if devices.is_admin_token(token) or devices.is_device_token(token) is not None:
+        return
+    raise HTTPException(status_code=401, detail="invalid or missing token")
 
 
 def _decode_upload(raw: bytes) -> np.ndarray:
@@ -107,6 +232,45 @@ def _decode_upload(raw: bytes) -> np.ndarray:
         return videomod.decode_audio_bytes(raw)
 
 
+@app.post("/register")
+def register_device(
+    request: Request,
+    device_id: str = Form(...),
+    code: str = Form(...),
+):
+    """Device activation: exchange a one-time registration code (issued on the
+    server, valid 24 h, burned on use) for a per-device token.
+
+    Public by design — the code IS the credential, which is exactly why the
+    APK can ship with no key baked in (OWASP Mobile Top 10 M1). The operator
+    issues codes with ``python -m backend.core.devices code``."""
+    _rate_limit(request, "/register")
+    from backend.core import devices
+
+    token = devices.register(device_id.strip(), code.strip())
+    if token is None:
+        raise HTTPException(status_code=401, detail="无效或已过期的激活码")
+    return {"token": token, "device_id": device_id.strip()}
+
+
+@app.get("/devices")
+def list_devices(_=Depends(require_admin_token)):
+    """Operator-only: registered devices + last-seen audit trail."""
+    from backend.core import devices
+
+    return {"devices": devices.list_devices()}
+
+
+@app.post("/devices/{device_id}/revoke")
+def revoke_device(device_id: str, _=Depends(require_admin_token)):
+    """Operator-only: revoke a device's token immediately."""
+    from backend.core import devices
+
+    if not devices.revoke(device_id):
+        raise HTTPException(status_code=404, detail="unknown device")
+    return {"revoked": device_id}
+
+
 @app.get("/health")
 def health():
     return {"status": "ok", "model_loaded": get_encoder() is not None}
@@ -121,7 +285,7 @@ def warmup():
 
 
 @app.post("/clientlog")
-async def clientlog(request: Request):
+async def clientlog(request: Request, _=Depends(require_admin_token)):
     """Debug channel: the frontend posts client-side messages/errors here so
     they surface in the backend log (the webview has no visible console)."""
     try:
@@ -168,7 +332,12 @@ def list_videos(_=Depends(require_token)):
 
 
 @app.post("/videos")
-def upload_video(name: str = Form(...), file: UploadFile = File(...), _=Depends(require_token)):
+def upload_video(
+    request: Request,
+    name: str = Form(...),
+    file: UploadFile = File(...),
+    _=Depends(require_token),
+):
     """Upload a reference video to the server's videos/ dir (cloud Speaking track).
 
     The Android thin client pushes its local video here so /analyze_video can
@@ -179,7 +348,11 @@ def upload_video(name: str = Form(...), file: UploadFile = File(...), _=Depends(
 
     Security: the name is sanitized through ``videomod.resolve_video``'s
     traversal guard on the next read; here we also reject path separators.
+    Uploads are size-limited and refused when the disk is nearly full.
     """
+    _rate_limit(request, "/videos")
+    _disk_ok()
+    _check_upload_size(file, _MAX_VIDEO_BYTES)
     if "/" in name or "\\" in name or name in (".", ".."):
         raise HTTPException(status_code=400, detail="invalid video name")
     d = videomod.videos_dir()
@@ -217,7 +390,7 @@ def stream_video(name: str, request: Request, token: str | None = None):
     """Serve a video with HTTP Range support so the <video> element can seek to
     an arbitrary sentence start. Token passed as a query param since a media
     element can't set an Authorization header."""
-    check_token_value(token)
+    check_admin_token_value(token)
     try:
         path = videomod.resolve_video(name)
     except FileNotFoundError as exc:
@@ -270,7 +443,7 @@ def clip_audio(name: str, start: float, end: float, token: str | None = None):
     Lets the frontend replay a single sentence's *original* audio in place,
     without touching the (muted) video player. Token via query param since an
     <audio> element can't set an Authorization header."""
-    check_token_value(token)
+    check_admin_token_value(token)
     try:
         path = videomod.resolve_video(name)
     except FileNotFoundError as exc:
@@ -289,6 +462,7 @@ def clip_audio(name: str, start: float, end: float, token: str | None = None):
 
 @app.post("/analyze_video")
 async def analyze_video(
+    request: Request,
     video: str = Form(...),
     start_index: int = Form(...),
     end_index: int = Form(...),
@@ -299,7 +473,13 @@ async def analyze_video(
 
     We clip the reference audio for that range straight from the video, decode
     the learner recording, and run the full analysis pipeline.
+
+    Privacy: the learner recording is decoded in memory and never written to
+    disk — the analysis is immediate and the bytes die with the request
+    (this server deliberately has no recordings store).
     """
+    _rate_limit(request, "/analyze_video")
+    _check_upload_size(learner, _MAX_LEARNER_BYTES)
     try:
         data = transcribe_sentences(video)
     except FileNotFoundError as exc:
@@ -364,62 +544,16 @@ async def analyze_video(
 
 
 # --------------------------------------------------------------------------- #
-# Learner recording store (FR-8: sample-accurate replay of "my" clips)
+# Learner recording store — REMOVED in the cloud variant.
 # --------------------------------------------------------------------------- #
-# The frontend holds the learner recording as a blob; replaying a word/sentence
-# from it via HTML currentTime seek + timeupdate only gives ~250 ms granularity
-# and truncates word tails. Instead we keep the decoded recording server-side
-# and cut exact WAV slices — the same mechanism as reference /videos/{n}/clip.
-_RECORDINGS_DIR = tempfile.mkdtemp(prefix="nativelingo_recordings_")
-_RID_RE = re.compile(r"^[0-9a-f]{32}$")
-
-
-def _recording_path(rid: str) -> str:
-    if not _RID_RE.match(rid):
-        raise HTTPException(status_code=400, detail="invalid recording id")
-    path = os.path.join(_RECORDINGS_DIR, f"{rid}.wav")
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="recording not found")
-    return path
-
-
-@app.post("/recordings")
-async def store_recording(
-    learner: UploadFile = File(...),
-    _=Depends(require_token),
-):
-    """Store a learner recording (decoded to 16 kHz mono WAV) for later
-    exact-slice replay. Returns {"recording_id": ...}."""
-    raw = await learner.read()
-    if not raw:
-        raise HTTPException(status_code=400, detail="empty audio upload")
-    try:
-        wav = _decode_upload(raw)
-    except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=400, detail=f"could not decode audio: {exc}")
-    if wav.size == 0:
-        raise HTTPException(status_code=400, detail="audio contained no speech")
-    rid = uuid.uuid4().hex
-    sf.write(os.path.join(_RECORDINGS_DIR, f"{rid}.wav"), wav, 16000,
-             format="WAV", subtype="PCM_16")
-    return {"recording_id": rid, "duration_s": round(wav.size / 16000.0, 3)}
-
-
-@app.get("/recordings/{rid}/clip")
-def recording_clip(rid: str, start: float, end: float, token: str | None = None):
-    """Return [start, end] seconds of a stored learner recording as a WAV.
-    Token via query param (an <audio> element can't set headers)."""
-    check_token_value(token)
-    if end <= start:
-        raise HTTPException(status_code=400, detail="end must be greater than start")
-    wav, sr = sf.read(_recording_path(rid), dtype="float32")
-    a = max(0, int(round(start * sr)))
-    b = min(wav.size, int(round(end * sr)))
-    if b <= a:
-        raise HTTPException(status_code=400, detail="clip range outside recording")
-    buf = io.BytesIO()
-    sf.write(buf, wav[a:b], sr, format="WAV", subtype="PCM_16")
-    return Response(content=buf.getvalue(), media_type="audio/wav")
+# The desktop's /recordings store kept learner takes as WAV files for
+# sample-accurate replay. The cloud server deliberately has NO recordings
+# store: /analyze_video decodes the learner upload in memory and returns the
+# result, and the Android app replays A/B clips from its own local samples
+# (FR-8). Persisting voice recordings here would create biometric data with
+# no retention policy (PIPL Art. 19/47) — the absence is the feature.
+# The desktop frontend talks to its own local sidecar, so nothing depends on
+# these endpoints on this server.
 
 
 # --------------------------------------------------------------------------- #
@@ -512,7 +646,7 @@ def _object_for(photo_id: str, object_id: int) -> dict:
 
 
 @app.post("/memorize/analyze")
-def memorize_analyze(photo: UploadFile = File(...), _=Depends(require_token)):
+def memorize_analyze(photo: UploadFile = File(...), _=Depends(require_admin_token)):
     """FR-13: detect whole objects in an uploaded photo. Stores the photo under
     a UUID and returns each object's label (en + zh) + box [x,y,w,h]."""
     raw = photo.file.read()
@@ -558,7 +692,7 @@ def memorize_analyze(photo: UploadFile = File(...), _=Depends(require_token)):
 
 
 @app.post("/memorize/parts")
-def memorize_parts(req: PartsReq, _=Depends(require_token)):
+def memorize_parts(req: PartsReq, _=Depends(require_admin_token)):
     """FR-14: name visible parts and one-level contents of a clicked object."""
     path = _photo_path(req.photo_id)
     obj = _object_for(req.photo_id, req.object_id)
@@ -632,7 +766,7 @@ def memorize_parts(req: PartsReq, _=Depends(require_token)):
 
 
 @app.post("/memorize/scenario")
-def memorize_scenario(req: ScenarioReq, _=Depends(require_token)):
+def memorize_scenario(req: ScenarioReq, _=Depends(require_admin_token)):
     """FR-15: generate a short everyday multi-role dialogue placing the object in
     a memorable real-world situation (text-only memory aid, no audio)."""
     obj = _object_for(req.photo_id, req.object_id)
@@ -694,7 +828,7 @@ def memorize_scenario(req: ScenarioReq, _=Depends(require_token)):
 
 
 @app.get("/memorize/status")
-def memorize_status(_=Depends(require_token)):
+def memorize_status(_=Depends(require_admin_token)):
     """Memorize-model prefetch progress (yolo -> llm -> florence). The frontend polls
     this on tab-enter to show staged download progress instead of a blind wait."""
     from backend.core import memorize_warmup
@@ -702,7 +836,7 @@ def memorize_status(_=Depends(require_token)):
 
 
 @app.post("/memorize/warmup")
-def memorize_warmup_start(_=Depends(require_token)):
+def memorize_warmup_start(_=Depends(require_admin_token)):
     """Kick the on-demand model prefetch (called when the user enters the
     Memorize tab). Idempotent."""
     from backend.core import memorize_warmup
@@ -711,7 +845,7 @@ def memorize_warmup_start(_=Depends(require_token)):
 
 
 @app.post("/memorize/release")
-def memorize_release(_=Depends(require_token)):
+def memorize_release(_=Depends(require_admin_token)):
     """Cancel warmup and free Florence + Qwen when the user leaves the tab.
     YOLO stays resident (tiny + bundled). First model-unload mechanism in the
     codebase."""
@@ -795,7 +929,7 @@ def memorize_tts(text: str, token: str | None = None):
 
     Token via query param since an <audio> element can't set an Authorization
     header (same pattern as the Speaking clip endpoints)."""
-    check_token_value(token)
+    check_admin_token_value(token)
     text = _valid_tts_text(text)
     from backend.core import piper_tts
 
@@ -823,7 +957,7 @@ def memorize_tts(text: str, token: str | None = None):
 
 
 @app.get("/memorize/pronounce/status")
-def memorize_pronounce_status(_=Depends(require_token)):
+def memorize_pronounce_status(_=Depends(require_admin_token)):
     """Lightweight liveness/readiness check for pronunciation scoring.
 
     Unlike the general /health endpoint, this never lazy-loads the SSL encoder,
@@ -847,7 +981,7 @@ def memorize_pronounce_status(_=Depends(require_token)):
 async def memorize_pronounce(
     text: str = Form(...),
     learner: UploadFile = File(...),
-    _=Depends(require_token),
+    _=Depends(require_admin_token),
 ):
     """FR-17: score a learner's pronunciation of a single word/phrase.
 
