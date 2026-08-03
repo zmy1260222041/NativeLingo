@@ -52,28 +52,26 @@ class CloudClient(
         path: String,
         fields: Map<String, String> = emptyMap(),
         files: List<Pair<String, File>> = emptyList(),
+        byteFiles: List<Pair<String, ByteArray>> = emptyList(),
     ): JSONObject {
+        require(fields.isNotEmpty() || files.isNotEmpty() || byteFiles.isNotEmpty()) {
+            "multipart body must have at least one part — use postEmpty() for bare POSTs"
+        }
         val body = MultipartBody.Builder().setType(MultipartBody.FORM).apply {
             for ((k, v) in fields) addFormDataPart(k, v)
             for ((k, f) in files) {
                 addFormDataPart(k, f.name, f.asRequestBody("application/octet-stream".toMediaType()))
             }
+            for ((k, bytes) in byteFiles) {
+                addFormDataPart(k, "upload.wav", bytes.toRequestBody("audio/wav".toMediaType()))
+            }
         }.build()
         return call(request(path).post(body).build())
     }
 
-    /** POST raw bytes (e.g. a WAV) as a form file part. */
-    fun postBytes(
-        path: String,
-        field: String,
-        fileName: String,
-        bytes: ByteArray,
-    ): JSONObject {
-        val body = MultipartBody.Builder().setType(MultipartBody.FORM)
-            .addFormDataPart(field, fileName, bytes.toRequestBody("audio/wav".toMediaType()))
-            .build()
-        return call(request(path).post(body).build())
-    }
+    /** POST with an empty body (endpoints that take no payload) and parse JSON. */
+    fun postEmpty(path: String): JSONObject =
+        call(request(path).post("".toRequestBody()).build())
 
     // ── internals ──────────────────────────────────────────────────────────
 

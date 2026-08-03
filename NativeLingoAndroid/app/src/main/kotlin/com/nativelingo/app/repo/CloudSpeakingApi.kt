@@ -47,7 +47,7 @@ class CloudSpeakingApi(private val client: CloudClient) {
      */
     suspend fun videoSentences(videoName: String): SentenceGrid =
         withContext(Dispatchers.IO) {
-            parseGrid(client.postMultipart("/videos/$videoName.mp4/process"))
+            parseGrid(client.postEmpty("/videos/$videoName.mp4/process"))
         }
 
     /**
@@ -81,6 +81,7 @@ class CloudSpeakingApi(private val client: CloudClient) {
                 "start_index" to startIndex.toString(),
                 "end_index" to endIndex.toString(),
             ),
+            byteFiles = listOf("learner" to learnerWav),
         )
         parseAnalysis(json)
     }
