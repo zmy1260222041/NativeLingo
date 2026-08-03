@@ -127,8 +127,11 @@ class CloudClient(
         val resp = try {
             http.newCall(request).execute()
         } catch (e: IOException) {
+            // 不把 baseUrl / e.message 拼进用户可见提示（避免暴露服务器公网 IP；
+            // e.message 常含 "Failed to connect to /124.220.234.178:8756" 等）。
+            // 完整堆栈仍进 logcat 便于排查。
             throw CloudApiException(
-                "无法连接云端服务器（$baseUrl）：${e.message ?: e.javaClass.simpleName}", e,
+                "无法连接云端服务器，请检查网络连接后重试", e,
             )
         }
         resp.use {
