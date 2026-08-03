@@ -15,8 +15,8 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
@@ -42,19 +41,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nativelingo.app.audio.ClipPlayer
+import com.nativelingo.app.audio.LearnerRecorder
 import com.nativelingo.app.di.AppContainer
 import com.nativelingo.app.ui.theme.LocalNativeLingoColors
 import com.nativelingo.vision.YoloDetector
 import kotlin.math.roundToInt
 
 /**
- * The Memorizing (识物) screen — phase-1 slice: upload → YOLOE recognition →
- * clickable object hotspots + a count ribbon. The desktop workbench's editorial
- * split becomes a single-column flow on mobile: the photo fills the width and
- * the detection overlay sits on top of it.
- *
- * The detail inspector (parts / 跟读 / 情景) is staged for later phases; tapping
- * a hotspot in phase 1 is a no-op confirmation that the box is tappable.
+ * The Memorizing (识物) screen. Phase 1: upload → YOLOE → hotspots + count ribbon.
+ * Phase 2: tap an object → hear the Piper reference (FR-17) → record → Track B
+ * score. The detail inspector's parts (探索) and scenario (情景) tabs are staged
+ * for phase 4 (Qwen); this screen focuses on 跟读.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +61,10 @@ fun MemorizeScreen(container: AppContainer) {
     val state by vm.state.collectAsStateWithLifecycle()
     val brand = LocalNativeLingoColors.current
     val ctx = LocalContext.current
+
+    // One player/recorder for the screen — reused across object selections.
+    val clipPlayer = remember { ClipPlayer(ctx) }
+    val learnerRecorder = remember { LearnerRecorder() }
 
     val pickImage = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent(),
@@ -79,7 +81,7 @@ fun MemorizeScreen(container: AppContainer) {
         ) {
             Text("把眼前事物变成英语", style = MaterialTheme.typography.titleLarge, color = brand.text)
             Text(
-                "选一张照片 → 离线识别物体 → 看英文。点击物体进入跟读（即将上线）。",
+                "选一张照片 → 离线识别物体 → 点物体听发音并跟读。",
                 color = brand.muted,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
@@ -91,7 +93,19 @@ fun MemorizeScreen(container: AppContainer) {
                 is MemorizeViewModel.Stage.Photo -> PhotoStage(
                     brand = brand,
                     stage = stage,
+                    onSelectObject = vm::selectObject,
                     onReset = vm::reset,
+                    onPlayReference = { text -> vm.synthesizeReference(text) },
+                    onPlaySamples = { samples, sr -> clipPlayer.playClip(samples, 0f, Float.MAX_VALUE, sr) },
+                    onRecordToggle = {
+                        if (learnerRecorder.isRecording) {
+                            val samples = learnerRecorder.stop()
+                            vm.scoreRecording(samples)
+                        } else {
+                            learnerRecorder.start()
+                        }
+                    },
+                    isRecording = learnerRecorder.isRecording,
                 )
             }
 
@@ -138,35 +152,127 @@ private fun AnalyzingCard(brand: com.nativelingo.app.ui.theme.NativeLingoColors)
 private fun PhotoStage(
     brand: com.nativelingo.app.ui.theme.NativeLingoColors,
     stage: MemorizeViewModel.Stage.Photo,
+    onSelectObject: (Int) -> Unit,
     onReset: () -> Unit,
+    onPlayReference: (String) -> Unit,
+    onPlaySamples: (FloatArray, Int) -> Unit,
+    onRecordToggle: () -> Unit,
+    isRecording: Boolean,
 ) {
-    // The object-count ribbon: {label_en: count}, desktop `countObjectLabels`.
     val counts = remember(stage.objects) {
         stage.objects.groupingBy { it.labelEn }.eachCount().entries.sortedByDescending { it.value }
     }
+    val selected = stage.objects.firstOrNull { it.id == stage.selectedObjectId }
 
-    // Detection overlay needs the bitmap's actual rendered box (ContentScale.Fit
-    // letterboxes the image inside the composable). Computed in the layout below
-    // and passed to the overlay via the remembered mapping closure.
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        DetectionCanvas(brand, stage.bitmap, stage.objects)
+        DetectionCanvas(brand, stage.bitmap, stage.objects, stage.selectedObjectId, onSelectObject)
 
         if (counts.isNotEmpty()) {
             Text(
-                "识别到 ${stage.objects.size} 个物体",
+                "识别到 ${stage.objects.size} 个物体 · 点框选词跟读",
                 color = brand.text,
                 style = MaterialTheme.typography.titleSmall,
             )
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                counts.forEach { (label, count) ->
-                    ObjectChip(brand, labelEn = label, count = count)
-                }
+                counts.forEach { (label, count) -> ObjectChip(brand, labelEn = label, count = count) }
             }
         } else {
             Text("没有识别到物体。换一张照片试试。", color = brand.muted)
         }
 
+        if (selected != null) {
+            PronouncePanel(
+                brand = brand,
+                detection = selected,
+                pronounce = stage.pronounce,
+                onPlayReference = { onPlayReference(selected.labelEn) },
+                onPlaySamples = onPlaySamples,
+                onRecordToggle = onRecordToggle,
+                isRecording = isRecording,
+                onClear = { /* selection cleared by tapping another or back */ },
+            )
+        }
+
         OutlinedButton(onClick = onReset) { Text("换张照片") }
+    }
+}
+
+/** The selected object's pronunciation panel (FR-17): hear → record → score. */
+@Composable
+private fun PronouncePanel(
+    brand: com.nativelingo.app.ui.theme.NativeLingoColors,
+    detection: YoloDetector.Detection,
+    pronounce: MemorizeViewModel.PronounceState,
+    onPlayReference: () -> Unit,
+    onPlaySamples: (FloatArray, Int) -> Unit,
+    onRecordToggle: () -> Unit,
+    isRecording: Boolean,
+    onClear: () -> Unit,
+) {
+    Column(
+        Modifier.fillMaxWidth().drawCard(brand).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(detection.labelEn, style = MaterialTheme.typography.titleLarge, color = brand.text)
+        Text(detection.labelZh, color = brand.muted, style = MaterialTheme.typography.bodyMedium)
+
+        if (pronounce.isSynthesizing) {
+            Text("合成参考音频…", color = brand.muted)
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        } else {
+            // First tap synthesizes; subsequent taps replay the stored reference.
+            val ref = pronounce.referenceSamples
+            Button(
+                onClick = {
+                    if (ref != null) onPlaySamples(ref, pronounce.referenceSampleRate) else onPlayReference()
+                },
+                enabled = !pronounce.isScoring && !isRecording,
+            ) { Text(if (ref == null) "生成并播放参考" else "播放参考") }
+        }
+
+        Button(
+            onClick = onRecordToggle,
+            enabled = !pronounce.isScoring && !pronounce.isSynthesizing && pronounce.referenceSamples != null,
+            modifier = Modifier.background(brand.record, RoundedCornerShape(14.dp)),
+        ) {
+            Text(if (isRecording) "■ 停止并评分" else "● 录音跟读", color = brand.text)
+        }
+        if (pronounce.isScoring) {
+            Text("评分中…", color = brand.muted)
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+
+        pronounce.score?.let { s ->
+            ScoreReadout(brand, s)
+        }
+    }
+}
+
+@Composable
+private fun ScoreReadout(brand: com.nativelingo.app.ui.theme.NativeLingoColors, s: com.nativelingo.app.memorize.PronouncePipeline.Score) {
+    Column(Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        ScoreLine(brand, "准确度", s.accuracy)
+        ScoreLine(brand, "流畅度", s.fluency)
+        Text(
+            "语速比 %.2f（1.0 = 与参考一致）".format(s.speechRateRatio),
+            color = brand.muted, style = MaterialTheme.typography.bodySmall,
+        )
+    }
+}
+
+@Composable
+private fun ScoreLine(brand: com.nativelingo.app.ui.theme.NativeLingoColors, label: String, value: Float) {
+    val color = when {
+        value >= 75 -> brand.good
+        value >= 60 -> brand.fair
+        else -> brand.bad
+    }
+    androidx.compose.foundation.layout.Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(label, color = brand.text, style = MaterialTheme.typography.bodyMedium)
+        Text("%.1f".format(value), color = color, fontWeight = FontWeight.Bold, fontSize = 20.sp)
     }
 }
 
@@ -175,11 +281,14 @@ private fun DetectionCanvas(
     brand: com.nativelingo.app.ui.theme.NativeLingoColors,
     bitmap: Bitmap,
     objects: List<YoloDetector.Detection>,
+    selectedObjectId: Int?,
+    onSelectObject: (Int) -> Unit,
 ) {
     val imageBmp = remember(bitmap) { bitmap.asImageBitmap() }
     val imgW = bitmap.width.toFloat()
     val imgH = bitmap.height.toFloat()
     val accent = brand.accent
+    val selectedColor = brand.good
     val dashed = remember { PathEffect.dashPathEffect(floatArrayOf(12f, 8f)) }
 
     Box(
@@ -188,9 +297,6 @@ private fun DetectionCanvas(
             .aspectRatio(imgW / imgH)
             .drawCard(brand),
     ) {
-        // The image is rendered Fit into a Box whose aspect ratio already matches
-        // the bitmap's, so it fills the box edge-to-edge — the box-to-canvas
-        // mapping is a single uniform scale, no letterbox offset to undo.
         androidx.compose.foundation.Image(
             bitmap = imageBmp,
             contentDescription = "待识别照片",
@@ -202,29 +308,29 @@ private fun DetectionCanvas(
                 .fillMaxSize()
                 .pointerInput(objects) {
                     detectTapGestures { offset ->
-                        // Phase-1: tap confirms hit-testing wiring; the inspector
-                        // opens in a later phase. Kept so the gesture plumbing is real.
-                        val (sx, sy) = size.width / imgW to size.height / imgH
+                        val sx = size.width / imgW
+                        val sy = size.height / imgH
                         objects.firstOrNull { d ->
                             val x = d.box[0] * sx; val y = d.box[1] * sy
                             val w = d.box[2] * sx; val h = d.box[3] * sy
                             offset.x in x..(x + w) && offset.y in y..(y + h)
-                        }
+                        }?.let { onSelectObject(it.id) }
                     }
                 },
         ) {
             val sx = size.width / imgW
             val sy = size.height / imgH
-            objects.forEachIndexed { i, d ->
+            objects.forEach { d ->
                 val x = d.box[0] * sx
                 val y = d.box[1] * sy
                 val w = d.box[2] * sx
                 val h = d.box[3] * sy
+                val isSelected = d.id == selectedObjectId
                 drawRect(
-                    color = accent,
+                    color = if (isSelected) selectedColor else accent,
                     topLeft = Offset(x, y),
                     size = Size(w, h),
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3f, pathEffect = dashed),
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = if (isSelected) 5f else 3f, pathEffect = dashed),
                 )
             }
         }

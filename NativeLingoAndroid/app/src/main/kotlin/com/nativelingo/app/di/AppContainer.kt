@@ -5,9 +5,11 @@ import com.nativelingo.app.repo.AssetsModelSource
 import com.nativelingo.app.audio.ClipPlayer
 import com.nativelingo.app.audio.LearnerRecorder
 import com.nativelingo.app.memorize.MemorizePipeline
+import com.nativelingo.app.memorize.PronouncePipeline
 import com.nativelingo.app.pipeline.AnalyzePipeline
 import com.nativelingo.app.repo.ImportRepository
 import com.nativelingo.app.repo.RecordingsRepository
+import com.nativelingo.app.repo.ReferenceClipSource
 import com.nativelingo.app.repo.VideoRepository
 import com.nativelingo.app.warmup.Warmup
 import com.nativelingo.align.ForcedAligner
@@ -104,13 +106,22 @@ class AppContainer(context: Context) {
     /** One audio-clip player for FR-8 — the muted-video player is per-screen. */
     val clipPlayer: ClipPlayer by lazy { ClipPlayer(appContext) }
 
-    // ── Memorizing (识物) module — FR-13 detection (Phase 1). The detector is
-    // resident once loaded (45 MB, like Whisper's VAD). Parts/scenario/pronounce
-    // (Qwen, Piper) join here in later phases, all fed from one MemorizeStore. ──
+    // ── Memorizing (识物) module — FR-13 detection + FR-17 pronunciation. The
+    // detector is resident once loaded (45 MB, like Whisper's VAD). Parts/
+    // scenario (Qwen) join in phase 4. Pronunciation uses pre-rendered Piper
+    // reference clips (Option D — sherpa OfflineTts crashes on reuse, issue #3675
+    // class), scored by PronouncePipeline reusing the SSL encoder + DTW. ──
     val yoloDetector: YoloDetector by lazy {
         YoloDetector(registry.resolve(ModelId.YOLOE_DETECT).absolutePath)
     }
     val memorizePipeline: MemorizePipeline by lazy { MemorizePipeline(yoloDetector) }
+
+    /** Pre-rendered Piper reference clips (FR-17). Reads wavs from APK assets —
+     *  no runtime TTS, no native crash surface. 16 kHz mono PCM16. */
+    val referenceClipSource: ReferenceClipSource by lazy { ReferenceClipSource(appContext) }
+
+    /** Word/phrase pronunciation scoring (FR-17) — reuses the SSL encoder + DTW. */
+    val pronouncePipeline: PronouncePipeline by lazy { PronouncePipeline(sslEncoder, calibration) }
 
     val warmup: Warmup by lazy { Warmup(registry, assetsModelSource, appScope) }
 }

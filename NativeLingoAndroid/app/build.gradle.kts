@@ -160,6 +160,22 @@ val syncModelsToAssets = tasks.register<Sync>("syncModelsToAssets") {
     into(modelAssets)
 }
 
+// FR-17 (识物 跟读) — pre-rendered Piper reference clips (Option D). Runtime TTS
+// is blocked by sherpa-onnx OfflineTts's reuse crash (issue #3675 class), so the
+// curated label vocabulary is rendered once offline (scripts/render_pronounce_refs.py)
+// and shipped as 16 kHz mono PCM16 wavs. Sourced from models/pronounce-refs/.
+val pronounceRefAssets = layout.projectDirectory.dir("src/main/assets/models/pronounce-refs")
+val syncPronounceRefs = tasks.register<Sync>("syncPronounceRefs") {
+    from(rootProject.layout.projectDirectory.dir("../models/pronounce-refs"))
+    into(pronounceRefAssets)
+}
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
+    .configureEach { dependsOn(syncPronounceRefs) }
+tasks.matching {
+    val n = it.name
+    n.startsWith("generate") && n.contains("Lint") || n.startsWith("lint")
+}.configureEach { dependsOn(syncPronounceRefs) }
+
 // mergeAssets runs before packaging; making it depend on both syncs covers
 // debug and release variants without touching the incubating applicationVariants API.
 tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
