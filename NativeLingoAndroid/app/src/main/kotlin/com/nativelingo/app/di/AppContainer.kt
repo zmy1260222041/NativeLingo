@@ -7,6 +7,8 @@ import com.nativelingo.app.audio.LearnerRecorder
 import com.nativelingo.app.memorize.MemorizePipeline
 import com.nativelingo.app.memorize.PronouncePipeline
 import com.nativelingo.app.pipeline.AnalyzePipeline
+import com.nativelingo.app.repo.CloudClient
+import com.nativelingo.app.repo.CloudSpeakingApi
 import com.nativelingo.app.repo.ImportRepository
 import com.nativelingo.app.repo.RecordingsRepository
 import com.nativelingo.app.repo.ReferenceClipSource
@@ -95,13 +97,20 @@ class AppContainer(context: Context) {
         )
     }
     val importRepository: ImportRepository by lazy {
-        ImportRepository(appContext, whisperTranscriber, speechDetector, aligner)
+        ImportRepository(appContext, cloudSpeakingApi)
     }
 
     // ── repos / hardware ──────────────────────────────────────────────────────
     val videoRepository: VideoRepository by lazy { VideoRepository(appContext) }
     val recordingsRepository: RecordingsRepository by lazy { RecordingsRepository(appContext) }
     val learnerRecorder: LearnerRecorder by lazy { LearnerRecorder() }
+
+    // ── Cloud Speaking backend (Duolingo-style) ───────────────────────────────
+    // Transcription, alignment, SSL scoring and FR-11 phoneme diagnosis run on
+    // the self-hosted server (URL + token from BuildConfig). The 识物 module
+    // stays fully on-device — its sessions are untouched above.
+    val cloudClient: CloudClient by lazy { CloudClient() }
+    val cloudSpeakingApi: CloudSpeakingApi by lazy { CloudSpeakingApi(cloudClient) }
 
     /** One audio-clip player for FR-8 — the muted-video player is per-screen. */
     val clipPlayer: ClipPlayer by lazy { ClipPlayer(appContext) }
