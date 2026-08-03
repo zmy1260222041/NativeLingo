@@ -91,14 +91,10 @@ def _consume_code(code: str) -> bool:
 
 # ── device tokens ───────────────────────────────────────────────────────────
 
-def register(device_id: str, code: str) -> str | None:
-    """Bind a device id to a fresh token. Returns None on bad/expired code.
-
-    ``device_id`` is client-generated (UUID); re-registering the same id
-    rotates the token (the old one stops working immediately).
-    """
-    if not _consume_code(code):
-        return None
+def issue_token(device_id: str) -> str:
+    """Create/rotate the token for a device (used by both the activation-code
+    path and the account-login path). Re-registering the same id rotates the
+    token — the old one stops working immediately."""
     token = secrets.token_hex(_TOKEN_BYTES)
     with _LOCK:
         data = _load(_devices_path())
@@ -109,6 +105,14 @@ def register(device_id: str, code: str) -> str | None:
         }
         _save(_devices_path(), data)
     return token
+
+
+def register(device_id: str, code: str) -> str | None:
+    """Bind a device id to a fresh token via a one-time activation code.
+    Returns None on bad/expired code."""
+    if not _consume_code(code):
+        return None
+    return issue_token(device_id)
 
 
 def is_device_token(token: str) -> str | None:

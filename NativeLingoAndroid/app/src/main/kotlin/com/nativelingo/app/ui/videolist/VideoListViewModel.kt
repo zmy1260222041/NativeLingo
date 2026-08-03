@@ -26,7 +26,7 @@ class VideoListViewModel(private val container: AppContainer) : ViewModel() {
         val videos: List<VideoRepository.CorpusVideo> = emptyList(),
         val import: ImportState = ImportState(),
         val listError: String? = null,
-        /** Cloud device activation (v0.7.1): true until a device token exists. */
+        /** Cloud account state (v0.7.2): true until a device token exists. */
         val needsActivation: Boolean = false,
         val isActivating: Boolean = false,
         val activationError: String? = null,
@@ -39,27 +39,34 @@ class VideoListViewModel(private val container: AppContainer) : ViewModel() {
     init {
         container.warmup.start()
         // The cloud speaking track needs a registered device token; the APK
-        // ships with no credential, so a fresh install starts unactivated.
+        // ships with no credential, so a fresh install starts unauthenticated.
         if (container.tokenStore.loadToken() == null) {
             _state.update { it.copy(needsActivation = true) }
         }
         refreshList()
     }
 
-    /** POST /register with an operator-issued one-time code; stores the token. */
-    fun activate(code: String) {
-        if (code.isBlank() || _state.value.isActivating) return
+    /**
+     * Log in with an existing account (or register a new one, then log in):
+     * the server verifies the password and issues this device's token.
+     */
+    fun activate(username: String, password: String, register: Boolean) {
+        if (username.isBlank() || password.isBlank() || _state.value.isActivating) return
         _state.update { it.copy(isActivating = true, activationError = null) }
         viewModelScope.launch(Dispatchers.Default) {
             val outcome = runCatching {
-                val token = container.cloudSpeakingApi.register(
+                if (register) {
+                    container.cloudSpeakingApi.registerUser(username.trim(), password)
+                }
+                container.cloudSpeakingApi.login(
+                    username.trim(),
+                    password,
                     container.tokenStore.deviceId(),
-                    code.trim(),
                 )
-                container.tokenStore.saveToken(token)
             }
             outcome.fold(
-                onSuccess = {
+                onSuccess = { token ->
+                    container.tokenStore.saveToken(token)
                     _state.update { it.copy(isActivating = false, needsActivation = false) }
                     refreshList()
                 },
@@ -72,7 +79,7 @@ class VideoListViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
-    /** A revoked/expired device token surfaces as 401s — drop it and re-activate. */
+    /** A revoked/expired device token surfaces as 401s — drop it and re-login. */
     fun handleAuthError() {
         container.tokenStore.clear()
         _state.update { it.copy(needsActivation = true, listError = null) }

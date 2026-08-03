@@ -232,6 +232,50 @@ def _decode_upload(raw: bytes) -> np.ndarray:
         return videomod.decode_audio_bytes(raw)
 
 
+@app.post("/auth/register")
+def auth_register(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+):
+    """Create a user account (v0.7.2). Passwords are scrypt-hashed with a
+    per-user salt; plaintext never reaches disk. Rate-limited per IP."""
+    _rate_limit(request, "/register")
+    from backend.core import users
+
+    err = users.register(username.strip(), password)
+    if err:
+        raise HTTPException(status_code=400, detail=err)
+    return {"ok": True, "username": username.strip()}
+
+
+@app.post("/auth/login")
+def auth_login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    device_id: str = Form(...),
+):
+    """Log in on a device: verify the password, then issue (or rotate) that
+    device's token — the same per-device, revocable token the activation-code
+    path produces, so a lost device can be revoked without touching the
+    account."""
+    _rate_limit(request, "/auth/login")
+    from backend.core import devices, users
+
+    if not users.verify(username.strip(), password):
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+    return {"token": devices.issue_token(device_id.strip()), "device_id": device_id.strip()}
+
+
+@app.get("/users")
+def list_users(_=Depends(require_admin_token)):
+    """Operator-only: registered accounts + last-login audit trail."""
+    from backend.core import users
+
+    return {"users": users.list_users()}
+
+
 @app.post("/register")
 def register_device(
     request: Request,

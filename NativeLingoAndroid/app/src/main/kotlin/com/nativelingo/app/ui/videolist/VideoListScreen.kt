@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -155,18 +156,20 @@ private fun Modifier.drawCard(brand: com.nativelingo.app.ui.theme.NativeLingoCol
         .border(1.dp, brand.line, RoundedCornerShape(14.dp))
 
 /**
- * Cloud device activation (v0.7.1): the APK ships with no server credential,
- * so the first run (or a revoked token) needs a one-time registration code —
- * issued on the server with `python -m backend.core.devices code`.
+ * Cloud account sign-in (v0.7.2): the APK ships with no server credential,
+ * so the first run (or a revoked token) asks for an account. The user logs
+ * in with an existing account or registers a new one — the server verifies
+ * the password and issues this device's token.
  */
 @Composable
 private fun ActivationCard(
     isActivating: Boolean,
     error: String?,
-    onActivate: (String) -> Unit,
+    onActivate: (username: String, password: String, register: Boolean) -> Unit,
 ) {
     val brand = LocalNativeLingoColors.current
-    var code by remember { androidx.compose.runtime.mutableStateOf("") }
+    var username by remember { androidx.compose.runtime.mutableStateOf("") }
+    var password by remember { androidx.compose.runtime.mutableStateOf("") }
     Column(
         Modifier
             .fillMaxWidth()
@@ -174,30 +177,44 @@ private fun ActivationCard(
             .drawCard(brand)
             .padding(14.dp),
     ) {
-        Text("云端跟读需要激活", style = MaterialTheme.typography.titleMedium, color = brand.ink)
+        Text("登录云端账号", style = MaterialTheme.typography.titleMedium, color = brand.ink)
         Text(
-            "评分服务在你自己的服务器上。在服务器运行 " +
-                "python -m backend.core.devices code 获取一次性激活码，粘贴到下面。",
+            "评分服务在你自己的服务器上。注册一次账号，以后所有设备用同一账号登录即可。",
             color = brand.muted, style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 4.dp, bottom = 10.dp),
         )
         androidx.compose.material3.OutlinedTextField(
-            value = code,
-            onValueChange = { code = it },
-            label = { Text("激活码") },
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("用户名") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+        )
+        androidx.compose.material3.OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("密码") },
+            singleLine = true,
+            visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         )
         if (error != null) {
             Text(error, color = brand.danger, style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 6.dp))
         }
-        OutlinedButton(
-            onClick = { onActivate(code) },
-            enabled = !isActivating && code.isNotBlank(),
-            modifier = Modifier.padding(top = 10.dp),
-        ) {
-            Text(if (isActivating) "激活中…" else "激活")
+        Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(
+                onClick = { onActivate(username, password, false) },
+                enabled = !isActivating && username.isNotBlank() && password.isNotBlank(),
+            ) {
+                Text(if (isActivating) "登录中…" else "登录")
+            }
+            OutlinedButton(
+                onClick = { onActivate(username, password, true) },
+                enabled = !isActivating && username.isNotBlank() && password.isNotBlank(),
+            ) {
+                Text("注册新账号")
+            }
         }
     }
 }
