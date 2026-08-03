@@ -70,22 +70,10 @@ class ModelRegistry(
         throw MissingModelException(spec, searched)
     }
 
-    /** The three files of a whisper tier, in encoder/decoder/tokens order. */
-    fun resolveTier(tier: WhisperTier): List<File> = tier.ids.map(::resolve)
-
-    /** True when every file of [tier] is present at the right length. */
-    fun hasTier(tier: WhisperTier): Boolean = try {
-        resolveTier(tier); true
-    } catch (_: MissingModelException) {
-        false
-    } catch (_: CorruptModelException) {
-        false
-    }
-
     /**
      * Full SHA-256 check, memoised per file.
      *
-     * Hashing 891 MiB is seconds of I/O, so it belongs in warmup (the macOS
+     * Hashing 183 MiB is seconds of I/O, so it belongs in warmup (the macOS
      * `/warmup` analogue), not in the analyse path — but it belongs *somewhere*,
      * because length alone cannot distinguish "asset pack delivered intact" from
      * "flipped a bit on a failing eMMC", and the latter reaches the learner as a

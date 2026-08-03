@@ -3,8 +3,8 @@
 #
 # Why this exists instead of `./gradlew :app:connectedDebugAndroidTest`:
 # that task uninstalls both APKs when it finishes, and uninstalling an app
-# deletes /sdcard/Android/data/<pkg>/ with it — including the ~891 MiB of pushed
-# weights. So the very first Gradle run wipes the models the *next* one needs,
+# deletes /sdcard/Android/data/<pkg>/ with it — including the pushed weights.
+# So the very first Gradle run wipes the models the *next* one needs,
 # and the failure reads as "模型未就绪" no matter how many times you push.
 #
 # Order here is install → push → instrument, with no uninstall, which is also

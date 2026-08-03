@@ -6,7 +6,6 @@ import com.nativelingo.app.audio.ClipPlayer
 import com.nativelingo.app.audio.LearnerRecorder
 import com.nativelingo.app.memorize.MemorizePipeline
 import com.nativelingo.app.memorize.PronouncePipeline
-import com.nativelingo.app.pipeline.AnalyzePipeline
 import com.nativelingo.app.repo.CloudClient
 import com.nativelingo.app.repo.CloudSpeakingApi
 import com.nativelingo.app.repo.ImportRepository
@@ -14,15 +13,10 @@ import com.nativelingo.app.repo.RecordingsRepository
 import com.nativelingo.app.repo.ReferenceClipSource
 import com.nativelingo.app.repo.VideoRepository
 import com.nativelingo.app.warmup.Warmup
-import com.nativelingo.align.ForcedAligner
-import com.nativelingo.align.MmsEmitter
-import com.nativelingo.asr.SpeechDetector
-import com.nativelingo.asr.WhisperTranscriber
 import com.nativelingo.embed.Wav2Vec2Encoder
 import com.nativelingo.models.DirectoryModelSource
 import com.nativelingo.models.ModelId
 import com.nativelingo.models.ModelRegistry
-import com.nativelingo.models.WhisperTier
 import com.nativelingo.vision.YoloDetector
 import com.nativelingo.scoring.score.Calibration
 import com.nativelingo.scoring.score.CalibrationLoader
@@ -75,26 +69,10 @@ class AppContainer(context: Context) {
     val calibration: Calibration by lazy { CalibrationLoader.loadDefault() }
 
     // ── heavy ML sessions (lazy, process-singleton) ───────────────────────────
+    // Only the 识物 module's sessions remain on-device; the Speaking track's
+    // encoder/aligner/whisper lived here before the cloud migration (v0.7).
     val sslEncoder: Wav2Vec2Encoder by lazy {
         Wav2Vec2Encoder(registry.resolve(ModelId.SSL_ENCODER).absolutePath)
-    }
-    val mmsEmitter: MmsEmitter by lazy {
-        MmsEmitter(registry.resolve(ModelId.MMS_ALIGNER).absolutePath)
-    }
-    val aligner: ForcedAligner by lazy { ForcedAligner(mmsEmitter) }
-
-    val pipeline: AnalyzePipeline by lazy { AnalyzePipeline(sslEncoder, aligner, calibration) }
-
-    // ── M2 import path (Whisper + VAD — only loaded when the user imports) ────
-    val speechDetector: SpeechDetector by lazy {
-        SpeechDetector(registry.resolve(ModelId.VAD).absolutePath)
-    }
-    val whisperTranscriber: WhisperTranscriber by lazy {
-        WhisperTranscriber(
-            registry.resolve(WhisperTier.DEFAULT.encoder).absolutePath,
-            registry.resolve(WhisperTier.DEFAULT.decoder).absolutePath,
-            registry.resolve(WhisperTier.DEFAULT.tokens).absolutePath,
-        )
     }
     val importRepository: ImportRepository by lazy {
         ImportRepository(appContext, cloudSpeakingApi)

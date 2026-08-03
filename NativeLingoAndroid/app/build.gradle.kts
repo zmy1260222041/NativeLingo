@@ -141,8 +141,10 @@ val syncCorpus = tasks.register<Sync>("syncCorpus") {
     into(corpusAssets)
 }
 // Stage model weights into the APK's assets/models/ so AssetsModelSource can
-// extract them to filesDir on first launch. The same 7 files (935 MiB) that the
-// asset-pack module staged; sourced from the same host directories.
+// extract them to filesDir on first launch. Cloud migration (v0.7) cut the list
+// from 7 files (935 MiB) to 2 (183 MiB): whisper/VAD/MMS/espeak moved to the
+// server; only the 识物 stack ships — the SSL encoder (FR-17 pronunciation) and
+// YOLOE (FR-13 detection).
 // For Play Store distribution comment this block and uncomment assetPacks above.
 val modelAssets = layout.projectDirectory.dir("src/main/assets/models")
 val syncModelsToAssets = tasks.register<Sync>("syncModelsToAssets") {
@@ -150,22 +152,7 @@ val syncModelsToAssets = tasks.register<Sync>("syncModelsToAssets") {
     from(rootProject.layout.projectDirectory.dir("../build/onnx").asFile.absolutePath) {
         include(
             "w2v2_base_69_fp16.onnx",
-            "mms_fa_int8_transformer.onnx",
-            "espeak_cv_ft_int8.onnx",
         )
-    }
-    val sherpaDir = providers.gradleProperty("sherpaModelsDir")
-        .orElse(providers.environmentVariable("SHERPA_MODELS").orElse("/tmp/sherpa-models"))
-        .get()
-    from(sherpaDir) {
-        includeEmptyDirs = false
-        include(
-            "silero_vad.onnx",
-            "sherpa-onnx-whisper-base.en/base.en-encoder.int8.onnx",
-            "sherpa-onnx-whisper-base.en/base.en-decoder.int8.onnx",
-            "sherpa-onnx-whisper-base.en/base.en-tokens.txt",
-        )
-        eachFile { path = name }
     }
     // FR-13 (识物) — YOLOE-26S-PF. Sourced from models/yoloe-26s-pf/ (an Ultralytics
     // export, gitignored like the other large weights) rather than build/onnx/.
@@ -243,8 +230,6 @@ dependencies {
     // sessions must be loaded the way the app will load them.
     implementation(project(":core-scoring"))
     implementation(project(":core-embed"))
-    implementation(project(":core-align"))
-    implementation(project(":core-asr"))
     implementation(project(":core-audio"))
     implementation(project(":core-models"))
     implementation(project(":core-vision"))

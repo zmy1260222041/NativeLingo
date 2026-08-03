@@ -12,8 +12,10 @@ import kotlin.math.roundToLong
 
 /**
  * Word/phrase pronunciation scoring for the Memorizing module (FR-17) — the
- * slice of `AnalyzePipeline.analyzeDetailed` that is independent of the video
- * sentence grid: embed → CMVN pair → DTW → Track B score.
+ * slice of the desktop pipeline's `analyze_detailed` that is independent of the
+ * video sentence grid: embed → CMVN pair → DTW → Track B score. It stayed
+ * on-device when the Speaking track moved to the cloud (v0.7) — 识物 never
+ * uploads.
  *
  * The reference is the Piper-synthesized audio of the target word/phrase (what
  * the user just heard via `/memorize/tts`), and the learner is their recording.

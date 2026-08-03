@@ -26,7 +26,7 @@
 # So: adb push to /data/local/tmp (mode 0771 shell:shell — the app UID *can*
 # traverse it, and pushed files are 0666), then `run-as` the app to copy each
 # file into its own filesDir and delete the staged copy immediately, so peak disk
-# use is 935 MiB + one model rather than 1.9 GiB. Requires a debuggable build,
+# use is 183 MiB + one model rather than 366 MiB. Requires a debuggable build,
 # which is exactly what the harness runs against.
 #
 # Byte lengths and SHA-256s are pinned in core-models ModelCatalog.kt; this
@@ -35,8 +35,7 @@
 # which step lost the bytes.
 #
 # Usage:
-#   scripts/push_device_models.sh                 # install-time set (7 files, 935 MiB)
-#   scripts/push_device_models.sh --with-tiny     # + tiny.en tier (1034 MiB)
+#   scripts/push_device_models.sh                 # install-time set (2 files, 183 MiB)
 #   scripts/push_device_models.sh --with-int8     # + rejected int8 SSL encoder (probe only)
 #   scripts/push_device_models.sh -s emulator-5554
 set -euo pipefail
@@ -47,14 +46,11 @@ DEST="/data/data/$PKG/files/models"
 STAGE="/data/local/tmp/nl-models"
 
 ONNX="$ROOT/build/onnx"
-SHERPA="${SHERPA_MODELS:-/tmp/sherpa-models}"
 
-WITH_TINY=0
 WITH_INT8=0
 SERIAL=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --with-tiny) WITH_TINY=1; shift ;;
         --with-int8) WITH_INT8=1; shift ;;
         -s) SERIAL=(-s "$2"); shift 2 ;;
         -h|--help) sed -n '2,46p' "${BASH_SOURCE[0]}"; exit 0 ;;
@@ -78,29 +74,16 @@ adb() { "$ADB" "${SERIAL[@]+${SERIAL[@]}}" "$@"; }
 as_app() { adb shell "run-as $PKG sh -c '$1'"; }
 
 # Names on the device must match ModelSpec.fileName exactly — the registry looks
-# files up by name, not by glob.
+# files up by name, not by glob. Cloud migration (v0.7) cut the Speaking track's
+# models (whisper/VAD/MMS/espeak) out of the APK; the harness pushes the same
+# two-model 识物 set the app ships.
 FILES=(
-    "$ONNX/w2v2_base_69_fp16.onnx"                      # R-5  SSL encoder
-    "$ONNX/mms_fa_int8_transformer.onnx"                # R-6  forced aligner
-    "$ONNX/espeak_cv_ft_int8.onnx"                      # R-7  phoneme MDD (FR-11)
-    "$SHERPA/silero_vad.onnx"                           # VAD
-    "$SHERPA/sherpa-onnx-whisper-base.en/base.en-encoder.int8.onnx"
-    "$SHERPA/sherpa-onnx-whisper-base.en/base.en-decoder.int8.onnx"
-    "$SHERPA/sherpa-onnx-whisper-base.en/base.en-tokens.txt"
+    "$ONNX/w2v2_base_69_fp16.onnx"                      # R-5  SSL encoder (识物 FR-17)
     # FR-13 (识物) — YOLOE-26S-PF detection export. Sourced from models/ (an
     # Ultralytics export, not one of our quantized re-exports — see
     # ModelCatalog.YOLOE_DETECT for the pin).
     "$ROOT/models/yoloe-26s-pf/yoloe-26s-pf.onnx"
 )
-if [[ $WITH_TINY -eq 1 ]]; then
-    # The latency fallback tier (R-11): shipped-tier candidate rejected, kept as
-    # a runtime downgrade for slow devices. Only needed when a gate measures it.
-    FILES+=(
-        "$SHERPA/sherpa-onnx-whisper-tiny.en/tiny.en-encoder.int8.onnx"
-        "$SHERPA/sherpa-onnx-whisper-tiny.en/tiny.en-decoder.int8.onnx"
-        "$SHERPA/sherpa-onnx-whisper-tiny.en/tiny.en-tokens.txt"
-    )
-fi
 if [[ $WITH_INT8 -eq 1 ]]; then
     # The *rejected* candidate, deliberately not in ModelCatalog. It was the
     # shipped export through the desktop gates and lost the SSL encoder slot on
@@ -119,8 +102,6 @@ if [[ ${#missing[@]} -gt 0 ]]; then
     printf '  %s\n' "${missing[@]}"
     echo
     echo "ONNX exports come from scripts/onnx_export_spike.py and scripts/onnx_export_mms.py."
-    echo "Whisper/VAD come from the k2-fsa releases (see docs/reviews R-10); set"
-    echo "SHERPA_MODELS=<dir> if they live somewhere other than $SHERPA."
     exit 1
 fi
 
