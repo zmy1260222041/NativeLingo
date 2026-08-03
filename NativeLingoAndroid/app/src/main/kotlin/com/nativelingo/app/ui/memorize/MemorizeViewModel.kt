@@ -75,7 +75,12 @@ class MemorizeViewModel(private val container: AppContainer) : ViewModel() {
                     context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
                         ?: error("无法读取所选图片")
                 }
-                container.memorizePipeline.analyze(bytes)
+                // YOLOE inference is CPU-bound (the multiscale path on a large
+                // photo runs several ONNX passes) — must NOT run on the Main
+                // dispatcher, or the app ANRs. Default is the CPU-bound pool.
+                withContext(Dispatchers.Default) {
+                    container.memorizePipeline.analyze(bytes)
+                }
             }
             outcome.fold(
                 onSuccess = { result ->
