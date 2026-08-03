@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nativelingo.app.di.AppContainer
 import com.nativelingo.app.model.AnalysisResult
 import com.nativelingo.app.repo.VideoRepository
+import com.nativelingo.app.repo.WavEncoder
 import com.nativelingo.audio.DecodedAudio
 import com.nativelingo.scoring.detail.SentenceSpan
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +69,17 @@ class PracticeViewModel(
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            val outcome = runCatching { container.videoRepository.loadSentences(video) }
+            // Cloud source of truth: the server owns transcription, so the picker
+            // must show ITS grid — the indices we pass to /analyze_video refer to
+            // it. ensureVideo uploads the video first if the server doesn't have
+            // it (fresh deploy), which also keeps bundled corpus + imports on the
+            // same path.
+            val outcome = runCatching {
+                container.cloudSpeakingApi.ensureVideo(
+                    video.name,
+                    container.videoRepository.decodePath(video),
+                ).sentences
+            }
             outcome.fold(
                 onSuccess = { sents -> _state.update { it.copy(sentences = sents) } },
                 onFailure = { e -> _state.update { it.copy(error = e.message ?: e.toString()) } },
@@ -105,12 +116,6 @@ class PracticeViewModel(
         return start to end
     }
 
-    fun selectedSentences(): List<SentenceSpan>? {
-        val s = _state.value
-        val r = s.range ?: return null
-        return s.sentences.subList(r.first, r.last + 1)
-    }
-
     fun startRecording() {
         if (_state.value.isRecording) return
         container.learnerRecorder.start()
@@ -125,13 +130,12 @@ class PracticeViewModel(
 
     fun analyze() {
         val span = selectedSpan() ?: return
-        val sentences = selectedSentences() ?: return
+        val range = _state.value.range ?: return
         if (learnerSamples.isEmpty()) return
         _state.update { it.copy(isAnalyzing = true, error = null) }
         viewModelScope.launch(Dispatchers.Default) {
             val outcome = runCatching {
-                val ref: DecodedAudio = container.videoRepository.decodeReferenceSegment(video, span.first, span.second)
-                container.pipeline.analyzeDetailed(ref, learnerSamples, sentences)
+                analyzeCloud(span, range, learnerSamples)
             }
             outcome.fold(
                 onSuccess = { res -> _state.update { it.copy(isAnalyzing = false, result = res) } },
@@ -145,19 +149,53 @@ class PracticeViewModel(
      *  the microphone delivers clipped garbage (CaptureProbeDeviceTest). */
     fun demoAnalyze() {
         val span = selectedSpan() ?: return
-        val sentences = selectedSentences() ?: return
+        val range = _state.value.range ?: return
         _state.update { it.copy(isAnalyzing = true, error = null) }
         viewModelScope.launch(Dispatchers.Default) {
             val outcome = runCatching {
-                val ref: DecodedAudio = container.videoRepository.decodeReferenceSegment(video, span.first, span.second)
+                val ref = container.videoRepository.decodeReferenceSegment(video, span.first, span.second)
                 learnerSamples = ref.samples
-                container.pipeline.analyzeDetailed(ref, learnerSamples.copyOf(), sentences)
+                analyzeCloud(span, range, ref.samples)
             }
             outcome.fold(
                 onSuccess = { res -> _state.update { it.copy(isAnalyzing = false, result = res, hasTake = true) } },
                 onFailure = { e -> _state.update { it.copy(isAnalyzing = false, error = e.message ?: e.toString()) } },
             )
         }
+    }
+
+    /**
+     * The cloud path (shared by [analyze] and [demoAnalyze]): upload the take as
+     * 16 kHz PCM16 WAV, let the server score + align + run FR-11 phoneme
+     * diagnosis, then decode the reference locally (the video is on-device) for
+     * A/B replay and map the server's clip-relative times onto the pre-rolled
+     * decode. Learner spans come back relative to the uploaded take, so they
+     * index [take] directly.
+     */
+    private suspend fun analyzeCloud(
+        span: Pair<Double, Double>,
+        range: IntRange,
+        take: FloatArray,
+    ): AnalysisResult {
+        val cloud = container.cloudSpeakingApi.analyzeRange(
+            videoName = video.name,
+            startIndex = range.first,
+            endIndex = range.last,
+            learnerWav = WavEncoder.encodePcm16(take),
+        )
+        val ref: DecodedAudio = container.videoRepository.decodeReferenceSegment(video, span.first, span.second)
+        val mapped = cloud.remapToLocalReference(span.first, ref.startS)
+        return AnalysisResult(
+            overallScore = mapped.overallScore,
+            overallBand = mapped.overallBand,
+            accuracy = mapped.accuracy,
+            fluency = mapped.fluency,
+            speechRateRatio = mapped.speechRateRatio,
+            tips = mapped.tips,
+            sentences = mapped.sentences,
+            refSamples = ref.samples,
+            learnerSamples = take,
+        )
     }
 
     fun resetResult() {

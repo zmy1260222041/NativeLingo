@@ -17,8 +17,10 @@ import org.json.JSONObject
  * writes their `.sentences.json` to filesDir.
  *
  * Sentence/word times in [loadSentences] are **video-relative seconds**, exactly
- * the macOS `videos/<base>.sentences.json` schema. [AnalyzePipeline] converts
- * them to clip-relative against the decoded reference's `startS`.
+ * the macOS `videos/<base>.sentences.json` schema. In the cloud architecture
+ * (v0.7) the picker grid comes from the server instead ([CloudSpeakingApi.ensureVideo]),
+ * and the cloud response's clip-relative times are mapped onto the local decode
+ * by [CloudAnalysis.remapToLocalReference].
  */
 class VideoRepository(private val appContext: Context) {
 
@@ -88,7 +90,8 @@ class VideoRepository(private val appContext: Context) {
     /**
      * Decode the reference audio for `[segStart, segEnd]` (video-relative) to
      * 16 kHz mono float. Returns [DecodedAudio] whose `startS <= segStart`
-     * (MediaCodec pre-roll); [AnalyzePipeline] reconciles sentence times to it.
+     * (MediaCodec pre-roll); the A/B replay slices samples by it, and the cloud
+     * analysis maps its clip-relative times onto this same decode.
      * For bundled videos the asset needs an AssetFileDescriptor (in-APK entries
      * have no plain path). Imported videos are regular files.
      */

@@ -28,7 +28,7 @@ android {
         minSdk = 28          // NFR-4①: Android 9+ / API 28+
         targetSdk = 35
         versionCode = 1
-        versionName = "0.5.0"
+        versionName = "0.7.0"
 
         // The device-side gate harness lives in this module's androidTest source
         // set (src/androidTest) rather than in each core module's, for one reason:
@@ -44,6 +44,19 @@ android {
         // because :core-asr statically links its own copy of ONNX Runtime
         // (~19MB/ABI) to avoid a silent .so collision — see core-asr/build.gradle.kts.
         ndk { abiFilters += "arm64-v8a" }
+
+        // Cloud Speaking backend (Duolingo-style server-side scoring). The server
+        // URL + bearer token are build properties so the APK has no hardcoded
+        // secrets:  -PNATIVELINGO_SERVER_URL=http://10.0.2.2:8756
+        //            -PNATIVELINGO_SERVER_TOKEN=...
+        // The default URL points at the self-hosted production server; an empty
+        // token matches a no-token local dev server.
+        val serverUrl = (project.findProperty("NATIVELINGO_SERVER_URL") as? String)
+            ?: "http://124.220.234.178:8756"
+        val serverToken = (project.findProperty("NATIVELINGO_SERVER_TOKEN") as? String)
+            ?: ""
+        buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
+        buildConfigField("String", "SERVER_TOKEN", "\"$serverToken\"")
     }
 
     signingConfigs {
@@ -70,6 +83,8 @@ android {
 
     buildFeatures {
         compose = true
+        // Cloud Speaking backend address/token are injected at build time.
+        buildConfig = true
     }
 
     // Models ship inside the APK's assets/models/ for GitHub releases (extracted to
@@ -126,8 +141,10 @@ val syncCorpus = tasks.register<Sync>("syncCorpus") {
     into(corpusAssets)
 }
 // Stage model weights into the APK's assets/models/ so AssetsModelSource can
-// extract them to filesDir on first launch. The same 7 files (935 MiB) that the
-// asset-pack module staged; sourced from the same host directories.
+// extract them to filesDir on first launch. Cloud migration (v0.7) cut the list
+// from 7 files (935 MiB) to 2 (183 MiB): whisper/VAD/MMS/espeak moved to the
+// server; only the 识物 stack ships — the SSL encoder (FR-17 pronunciation) and
+// YOLOE (FR-13 detection).
 // For Play Store distribution comment this block and uncomment assetPacks above.
 val modelAssets = layout.projectDirectory.dir("src/main/assets/models")
 val syncModelsToAssets = tasks.register<Sync>("syncModelsToAssets") {
@@ -135,25 +152,31 @@ val syncModelsToAssets = tasks.register<Sync>("syncModelsToAssets") {
     from(rootProject.layout.projectDirectory.dir("../build/onnx").asFile.absolutePath) {
         include(
             "w2v2_base_69_fp16.onnx",
-            "mms_fa_int8_transformer.onnx",
-            "espeak_cv_ft_int8.onnx",
         )
     }
-    val sherpaDir = providers.gradleProperty("sherpaModelsDir")
-        .orElse(providers.environmentVariable("SHERPA_MODELS").orElse("/tmp/sherpa-models"))
-        .get()
-    from(sherpaDir) {
-        includeEmptyDirs = false
-        include(
-            "silero_vad.onnx",
-            "sherpa-onnx-whisper-base.en/base.en-encoder.int8.onnx",
-            "sherpa-onnx-whisper-base.en/base.en-decoder.int8.onnx",
-            "sherpa-onnx-whisper-base.en/base.en-tokens.txt",
-        )
-        eachFile { path = name }
+    // FR-13 (识物) — YOLOE-26S-PF. Sourced from models/yoloe-26s-pf/ (an Ultralytics
+    // export, gitignored like the other large weights) rather than build/onnx/.
+    from(rootProject.layout.projectDirectory.dir("../models/yoloe-26s-pf")) {
+        include("yoloe-26s-pf.onnx")
     }
     into(modelAssets)
 }
+
+// FR-17 (识物 跟读) — pre-rendered Piper reference clips (Option D). Runtime TTS
+// is blocked by sherpa-onnx OfflineTts's reuse crash (issue #3675 class), so the
+// curated label vocabulary is rendered once offline (scripts/render_pronounce_refs.py)
+// and shipped as 16 kHz mono PCM16 wavs. Sourced from models/pronounce-refs/.
+val pronounceRefAssets = layout.projectDirectory.dir("src/main/assets/models/pronounce-refs")
+val syncPronounceRefs = tasks.register<Sync>("syncPronounceRefs") {
+    from(rootProject.layout.projectDirectory.dir("../models/pronounce-refs"))
+    into(pronounceRefAssets)
+}
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
+    .configureEach { dependsOn(syncPronounceRefs) }
+tasks.matching {
+    val n = it.name
+    n.startsWith("generate") && n.contains("Lint") || n.startsWith("lint")
+}.configureEach { dependsOn(syncPronounceRefs) }
 
 // mergeAssets runs before packaging; making it depend on both syncs covers
 // debug and release variants without touching the incubating applicationVariants API.
@@ -207,11 +230,13 @@ dependencies {
     // sessions must be loaded the way the app will load them.
     implementation(project(":core-scoring"))
     implementation(project(":core-embed"))
-    implementation(project(":core-align"))
-    implementation(project(":core-asr"))
     implementation(project(":core-audio"))
     implementation(project(":core-models"))
+    implementation(project(":core-vision"))
     implementation(libs.onnxruntime.android)
+
+    // Cloud Speaking backend — OkHttp multipart uploads (video import, learner take).
+    implementation(libs.okhttp)
 
     // Test-only: golden-fixture helpers and the runner.
     androidTestImplementation(testFixtures(project(":core-scoring")))

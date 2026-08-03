@@ -18,7 +18,7 @@ import java.nio.ByteOrder
  * never clean speech. That is the emulator's audio backend, not this code, and
  * not fixable from the app (AudioRecord can't trim the emulator's preamp gain).
  * Real devices capture cleanly; the analyze path itself is verified end-to-end
- * by `AnalyzePipelineDeviceTest` (95.0, same-voice identity). On the emulator,
+ * by the cloud speaking tests (same-voice identity ≈ 95.0). On the emulator,
  * use the studio's "调试:用原声当跟读" affordance to exercise the results UI
  * without the mic.
  *

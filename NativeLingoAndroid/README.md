@@ -1,21 +1,32 @@
 # NativeLingoAndroid
 
-Android 移动端实现 —— **原生 Kotlin + Jetpack Compose + 全端侧推理**(守 PRD NFR-1:录音不出设备、全离线)。完整迁移方案见 [`../docs/android-migration.md`](../docs/android-migration.md),需求追溯见 [`../docs/PRD.md`](../docs/PRD.md) v0.1。
+Android 移动端实现 —— **原生 Kotlin + Jetpack Compose**。完整迁移方案见 [`../docs/android-migration.md`](../docs/android-migration.md),需求追溯见 [`../docs/PRD.md`](../docs/PRD.md) v0.1。
 
-> 这是 v2.0 级重写,不是 macOS 版的移植。Python 后端 + PyInstaller + Tauri-sidecar 架构在 Android 不可行;4 个模型用 ONNX Runtime Mobile / sherpa-onnx int8 重写。**macOS 版继续维护,作为本端数值对齐的金标准源。**
+> 这是 v2.0 级重写,不是 macOS 版的移植。Python 后端 + PyInstaller + Tauri-sidecar 架构在 Android 不可行。**macOS 版继续维护,作为本端数值对齐的金标准源。**
+
+## v0.7 — 云端跟读架构(2026-08)
+
+参照 Duolingo 的云端评分模式,跟读模块迁移到自建服务器(`server/`,部署于 `124.220.234.178:8756`):
+
+- **服务器负责**:视频转写(whisper)、MMS 词对齐、SSL 评分、**FR-11 音素级诊断**(`/θ/ 读成了 /s/` 中文提示)。
+- **App 变瘦客户端**:上传录音 WAV → `POST /analyze_video`;视频本身仍在设备端,本地解码用于 A/B 回放。
+- **识物模块(FR-13/FR-17)保持全本地**(用户决策):照片不出设备,YOLOE + 发音评分不变。
+- **删除的本地推理**:`core-align`(MMS)、`core-asr`(whisper/VAD)、espeak。APK 从 ~1 GB 缩到 **~270 MB**(w2v2 146MB + YOLOE 45MB + Piper 片段 + 语料)。
+- 服务器地址/令牌由 gradle 属性注入(`-PNATIVELINGO_SERVER_URL=... -PNATIVELINGO_SERVER_TOKEN=...`),明文 HTTP + bearer token(TLS 为后续项)。
+- 服务器端 `server/` 是桌面 torch 后端的 **ONNX Runtime 变体**(同安卓已验证的 int8 导出,3.7GB RAM 部署机装得下 torch 原版;奇偶校验:嵌入余弦 1.000000,评分输出一致)。
+
+**需要联网**:跟读必须连服务器;识物仍离线可用。
 
 ## 模块结构
 
 | 模块 | 阶段 | 职责 | 状态 |
 |---|---|---|---|
-| `:core-scoring` | **1** | 纯 JVM 评分核心(DTW / CMVN / 校准 / detail / word_diff / feedback / **CtcViterbi**)+ 金标准测试 | 🚧 骨架 + golden 测试 |
-| `:core-embed` | 2 | ONNX wav2vec2-base-960h(6–9 层自定义图输出) | ⬜ 待建 |
-| `:core-asr` | 2 | sherpa-onnx Whisper + Silero VAD | ⬜ 待建 |
-| `:core-audio` | 2 | WAV I/O / 静音裁剪 / FFmpeg JNI | ⬜ 待建 |
-| `:core-align` | 2 | ONNX MMS CTC + ForcedAligner(用 core-scoring 的 CtcViterbi) | ⬜ 待建 |
-| `:core-mdd` | 3 | ONNX espeak-cv-ft int8 + PhonemeMdd(惰性加载) | ⬜ 待建 |
-| `:core-models` | 4 | ModelRegistry(whisper 打包 APK;余首启下载) | ⬜ 待建 |
-| `:app` | **4** | Compose UI / ViewModel / DI / AudioRecord / Media3 / Repo / Warmup / FR-12 Room | 🚧 骨架 |
+| `:core-scoring` | **1** | 纯 JVM 评分核心(DTW / CMVN / 校准 / detail / word_diff / feedback / **CtcViterbi**)+ 金标准测试 | ✅ 金标准对齐 |
+| `:core-embed` | 2 | ONNX wav2vec2-base-960h(6–9 层自定义图输出)——识物 FR-17 发音评分复用 | ✅ |
+| `:core-audio` | 2 | MediaExtractor/MediaCodec 音频解码 + 重采样 | ✅ |
+| `:core-models` | 4 | ModelRegistry + AssetsModelSource(APK 内模型首启解压) | ✅ |
+| `:core-vision` | 4 | YOLOE-26S-PF 识物(FR-13) | ✅ |
+| `:app` | **4** | Compose UI / ViewModel / DI / AudioRecord / Media3 / Repo / Warmup + **云端跟读**(v0.7) | ✅ v0.7.0 |
 
 **不变量**:`:core-scoring` 零 Android 依赖(纯 Kotlin stdlib),可在 JVM CI 用 macOS 金标准文件单测 —— 评分保真的所有逻辑都在这里。
 

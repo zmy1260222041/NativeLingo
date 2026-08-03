@@ -10,18 +10,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-
-        // sherpa-onnx (:core-asr) is published only as a GitHub release asset —
-        // k2-fsa has no Maven Central group, and the `sherpa-onnx` hits there are
-        // third-party repackages. An ivy repo over the release URLs makes it a
-        // real module dependency instead of a local .aar file, which matters:
-        // AGP refuses to build a library AAR that has direct local .aar deps.
-        // The download is pinned by sha256 in :core-asr (`verifySherpaAar`).
-        ivy("https://github.com/k2-fsa/sherpa-onnx/releases/download") {
-            patternLayout { artifact("v[revision]/[artifact]-[revision].[ext]") }
-            metadataSources { artifact() }   // no POM/ivy.xml published
-            content { includeGroup("com.k2fsa.sherpa.onnx") }
-        }
     }
 }
 
@@ -33,16 +21,15 @@ include(":core-scoring")
 // Phase 2: ONNX wav2vec2-base-960h (6-9 layers mean) SSL encoder.
 include(":core-embed")
 
-// Phase 2: MMS CTC forced alignment — word boundaries (FR-2) + replay spans (FR-8).
-include(":core-align")
-
-// Phase 2: sherpa-onnx Whisper transcription + Silero VAD (FR-2 reference text).
-include(":core-asr")
+// Memorizing (识物) module — YOLOE-26S-PF macro object detection (FR-13).
+// A Kotlin port of desktop/backend/core/vision.py on onnxruntime-android; the
+// same curated label table and 640px + overlapping 1280px tile pipeline.
+include(":core-vision")
 
 // Phase 2: MediaExtractor/MediaCodec audio decode + :core-scoring resampling.
 include(":core-audio")
 
-// Where the ~891 MiB of int8 weights come from at runtime (NFR-4② asset pack).
+// Where the model weights come from at runtime (NFR-4② asset pack).
 // Landed ahead of its planned Phase-4 slot: the device-side gate harness cannot
 // run without a way to locate models on a device, and "locate + verify" is the
 // same problem for a pushed fixture directory and for a Play asset pack.
@@ -51,9 +38,14 @@ include(":core-models")
 // Phase 4: application shell (Compose UI, repos, audio, warmup). Stub for now.
 include(":app")
 
-// Phase 4 / M3: the 935 MiB install-time asset pack (NFR-4②). Delivered by Play
+// v0.7 cloud migration removed the Speaking track's on-device modules
+// (`:core-align` MMS + `:core-asr` whisper/VAD — transcription, alignment and
+// phoneme diagnosis now run server-side). The sherpa-onnx ivy repo was their
+// dependency and is gone with them.
+
+// Phase 4 / M3: the install-time asset pack (NFR-4②). Delivered by Play
 // at install, unpacked to an app-private directory `AssetPackLocation.assetsPath()`
-// points at — which is why a model can be a File for ONNX/sherpa path args without
+// points at — which is why a model can be a File for ONNX path args without
 // a copy-out (see core-models/.../ModelSource.kt).
 //
 // COMMENTED OUT for GitHub APK releases: models are bundled in :app's assets/models/

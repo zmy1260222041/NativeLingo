@@ -58,9 +58,8 @@ class VideoListViewModel(private val container: AppContainer) : ViewModel() {
             val outcome = repo.importVideo(uri) { prog ->
                 val label = when (prog) {
                     is ImportProgress.Copying -> "复制中…"
-                    is ImportProgress.Decoding -> "解码音频…"
-                    is ImportProgress.Transcribing -> "转写中…"
-                    is ImportProgress.Aligning -> "对齐词边界…"
+                    is ImportProgress.Uploading -> "上传到云端…"
+                    is ImportProgress.Transcribing -> "云端转写中…"
                     is ImportProgress.Segmenting -> "切句…"
                 }
                 _state.update { it.copy(import = ImportState(isImporting = true, stage = label)) }

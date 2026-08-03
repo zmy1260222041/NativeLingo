@@ -5,12 +5,20 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- WorkManager transcription notifications (M2, import path); harmless until then. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Cloud Speaking backend (Duolingo-style server-side scoring): the learner
+         take + imported videos are uploaded to the self-hosted server. First
+         network permission in the app; 识物 stays fully on-device. -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- usesCleartextTraffic: the self-hosted server speaks plain HTTP (no TLS
+         cert yet). Scoped network-security-config / TLS is a documented follow-up;
+         the bearer token is the current protection. -->
     <application
         android:name=".NativeLingoApp"
         android:allowBackup="false"
         android:label="NativeLingo"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.NativeLingo">
 
         <activity

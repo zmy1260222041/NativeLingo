@@ -22,8 +22,9 @@ import java.io.File
  * goldens come from `InstrumentationRegistry.getInstrumentation().context` and
  * model files from `.targetContext`.
  *
- * Models are not in either APK — they are ~891 MiB and arrive via an asset pack
- * in production (NFR-4②). For the harness they are delivered by:
+ * Models are not in either APK — they are ~183 MiB (the 识物 set only, since the
+ * v0.7 cloud migration) and arrive via an asset pack in production (NFR-4②).
+ * For the harness they are delivered by:
  *
  * ```
  * scripts/run_device_gates.sh      # installs, delivers models, instruments

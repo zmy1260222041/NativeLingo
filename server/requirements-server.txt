@@ -1,0 +1,22 @@
+# Runtime dependencies for the cloud server variant (124.220.234.178).
+#
+# Differs from requirements-runtime.txt (desktop): NO torch / torchaudio /
+# transformers — the three inference modules (ssl_encoder, forced_align,
+# phoneme) run the int8/fp16 ONNX exports via onnxruntime instead (see
+# backend/core/onnx_runtime.py). That cuts the venv from ~2.5 GB to ~1.3 GB
+# and the resident models from ~4 GB to ~0.8 GB, which is what the 3.7 GB
+# RAM / 40 GB disk deploy box can actually host.
+#
+# faster-whisper still needs onnxruntime for its Silero VAD (vad_filter=True).
+onnxruntime==1.27.0
+faster-whisper==1.2.1
+av==18.0.0
+librosa==0.11.0
+soundfile==0.14.0
+praat-parselmouth==0.4.7
+numpy==2.4.6
+scipy==1.18.0
+fastapi==0.138.2
+uvicorn[standard]==0.49.0
+python-multipart==0.0.32
+huggingface_hub
