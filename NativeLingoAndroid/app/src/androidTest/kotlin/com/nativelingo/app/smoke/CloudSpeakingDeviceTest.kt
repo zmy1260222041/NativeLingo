@@ -31,12 +31,20 @@ private const val TAG_SMOKE = "NLSmoke"
  * score high — the cloud twin of the pre-migration AnalyzePipelineDeviceTest,
  * and the same trick the studio's "调试:用原声当跟读" uses.
  *
+ * v0.7.1: the APK ships with no credential — the test registers a device
+ * with a one-time code injected at build time
+ * (`-PNATIVELINGO_SERVER_REG_CODE=...`, issued on the server with
+ * `python -m backend.core.devices code`), then exercises the same token the
+ * app would use.
+ *
  * REQUIRES a reachable backend at BuildConfig.SERVER_URL and fails hard when
  * it is unreachable (gate-suite convention — a self-skipping smoke is worse
  * than none). Local development: run the staging backend on the host and
  * rebuild with an override:
- *   cd /tmp/nl-backend-stage && .venv/bin/uvicorn backend.main:app --port 8756
- *   ./gradlew :app:assembleDebugAndroidTest -PNATIVELINGO_SERVER_URL=http://10.0.2.2:8756
+ *   cd /tmp/nl-backend-server && .venv/bin/uvicorn backend.main:app --port 8757
+ *   ./gradlew :app:assembleDebugAndroidTest \
+ *     -PNATIVELINGO_SERVER_URL=http://10.0.2.2:8757 \
+ *     -PNATIVELINGO_SERVER_REG_CODE=<code>
  */
 @RunWith(AndroidJUnit4::class)
 class CloudSpeakingDeviceTest {
@@ -45,7 +53,20 @@ class CloudSpeakingDeviceTest {
         InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as NativeLingoApp
     private val container get() = app.container
 
-    private val api = CloudSpeakingApi(CloudClient())
+    private val api = CloudSpeakingApi(
+        CloudClient(tokenProvider = container.tokenStore::loadToken),
+    )
+
+    /** Register this device once per run (the injected code is one-time). */
+    private fun ensureActivated() {
+        if (container.tokenStore.loadToken() != null) return
+        val code = BuildConfig.SERVER_REG_CODE
+        assertTrue(code.isNotEmpty(), "test APK has no registration code — pass -PNATIVELINGO_SERVER_REG_CODE=...")
+        val token = runBlocking {
+            api.register(container.tokenStore.deviceId(), code)
+        }
+        container.tokenStore.saveToken(token)
+    }
 
     // ── pure parsing + remapping (no server needed) ──────────────────────────
 
@@ -123,6 +144,7 @@ class CloudSpeakingDeviceTest {
 
     @Test
     fun ensure_video_and_analyze_same_voice_identity() = runBlocking {
+        ensureActivated()
         val video = container.videoRepository.listBundled().first { it.name == "7.1" }
 
         // The picker grid must be the server's (its indices drive /analyze_video).

@@ -93,6 +93,25 @@ class CloudSpeakingApi(private val client: CloudClient) {
         List(arr.length()) { arr.optJSONObject(it).optString("name", "") }
     }
 
+    /**
+     * POST /register — device activation (v0.7.1). Exchange a one-time
+     * registration code (issued by the operator on the server) for a
+     * per-device token. The code is the credential, NOT the APK — the app
+     * ships with no key baked in (OWASP Mobile Top 10 M1). The caller stores
+     * the token in [TokenStore].
+     *
+     * Public endpoint by design; [CloudClient] may or may not have a token
+     * yet when this is called.
+     */
+    suspend fun register(deviceId: String, code: String): String =
+        withContext(Dispatchers.IO) {
+            val json = client.postMultipart(
+                "/register",
+                fields = mapOf("device_id" to deviceId, "code" to code),
+            )
+            json.getString("token")
+        }
+
     /** GET /health — connectivity + model readiness probe. */
     suspend fun health(): Boolean = withContext(Dispatchers.IO) {
         runCatching { client.getJson("/health").optString("status") == "ok" }.getOrDefault(false)

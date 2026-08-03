@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nativelingo.app.di.AppContainer
 import com.nativelingo.app.model.AnalysisResult
+import com.nativelingo.app.repo.CloudApiException
 import com.nativelingo.app.repo.VideoRepository
 import com.nativelingo.app.repo.WavEncoder
 import com.nativelingo.audio.DecodedAudio
@@ -128,19 +129,32 @@ class PracticeViewModel(
         _state.update { it.copy(isRecording = false, hasTake = learnerSamples.isNotEmpty()) }
     }
 
+    /** Fold a cloud call result: a 401 clears the (revoked) device token so
+     * the next visit to the video list shows the activation card. */
+    private fun foldCloud(
+        outcome: Result<AnalysisResult>,
+        onSuccess: (AnalysisResult) -> Unit,
+    ) {
+        outcome.fold(
+            onSuccess = onSuccess,
+            onFailure = { e ->
+                if (e is CloudApiException && e.authError) {
+                    container.tokenStore.clear()
+                }
+                _state.update { it.copy(isAnalyzing = false, error = e.message ?: e.toString()) }
+            },
+        )
+    }
+
     fun analyze() {
         val span = selectedSpan() ?: return
         val range = _state.value.range ?: return
         if (learnerSamples.isEmpty()) return
         _state.update { it.copy(isAnalyzing = true, error = null) }
         viewModelScope.launch(Dispatchers.Default) {
-            val outcome = runCatching {
-                analyzeCloud(span, range, learnerSamples)
+            foldCloud(runCatching { analyzeCloud(span, range, learnerSamples) }) { res ->
+                _state.update { it.copy(isAnalyzing = false, result = res) }
             }
-            outcome.fold(
-                onSuccess = { res -> _state.update { it.copy(isAnalyzing = false, result = res) } },
-                onFailure = { e -> _state.update { it.copy(isAnalyzing = false, error = e.message ?: e.toString()) } },
-            )
         }
     }
 
@@ -157,10 +171,9 @@ class PracticeViewModel(
                 learnerSamples = ref.samples
                 analyzeCloud(span, range, ref.samples)
             }
-            outcome.fold(
-                onSuccess = { res -> _state.update { it.copy(isAnalyzing = false, result = res, hasTake = true) } },
-                onFailure = { e -> _state.update { it.copy(isAnalyzing = false, error = e.message ?: e.toString()) } },
-            )
+            foldCloud(outcome) { res ->
+                _state.update { it.copy(isAnalyzing = false, result = res, hasTake = true) }
+            }
         }
     }
 

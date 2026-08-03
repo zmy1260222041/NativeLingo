@@ -64,9 +64,20 @@ ExecStart=/opt/nativelingo/.venv/bin/uvicorn backend.main:app --host 0.0.0.0 --p
 Restart=always
 ```
 
-Security: static bearer token (`NATIVELINGO_TOKEN`) on every endpoint except
-`/health`; plain HTTP for now (TLS via Caddy/nginx is a documented follow-up —
-the Tencent Cloud security group must open TCP 8756).
+Security: **per-device registration** (v0.7.1) — the APK ships with no
+credential at all. The operator issues one-time registration codes
+(`python -m backend.core.devices code`, valid 24 h, burned on use); the app
+exchanges one for a per-device token via `POST /register`. Tokens are stored
+SHA-256-hashed and individually revocable (`POST /devices/{id}/revoke`,
+`GET /devices` for the audit trail). `NATIVELINGO_TOKEN` is the operator
+(admin) credential and never leaves the server; the Memorizing / stream /
+devices endpoints are admin-only. `/analyze_video` decodes the learner
+upload in memory — there is deliberately no recordings store (voice data
+with no retention policy would violate PIPL Art. 19/47). Uploads are
+size-capped (video 1.5 GB, learner 100 MB) with a disk-waterline check, and
+per-IP rate limits guard the 4-core CPU. Plain HTTP for now (TLS via
+Caddy/nginx is a documented follow-up — the Tencent Cloud security group
+must open TCP 8756).
 
 ## Keeping in sync
 

@@ -28,7 +28,7 @@ android {
         minSdk = 28          // NFR-4①: Android 9+ / API 28+
         targetSdk = 35
         versionCode = 1
-        versionName = "0.7.0"
+        versionName = "0.7.1"
 
         // The device-side gate harness lives in this module's androidTest source
         // set (src/androidTest) rather than in each core module's, for one reason:
@@ -45,18 +45,21 @@ android {
         // (~19MB/ABI) to avoid a silent .so collision — see core-asr/build.gradle.kts.
         ndk { abiFilters += "arm64-v8a" }
 
-        // Cloud Speaking backend (Duolingo-style server-side scoring). The server
-        // URL + bearer token are build properties so the APK has no hardcoded
-        // secrets:  -PNATIVELINGO_SERVER_URL=http://10.0.2.2:8756
-        //            -PNATIVELINGO_SERVER_TOKEN=...
-        // The default URL points at the self-hosted production server; an empty
-        // token matches a no-token local dev server.
+        // Cloud Speaking backend (Duolingo-style server-side scoring). The
+        // server URL is a build property; the AUTH token is deliberately NOT
+        // here — the APK ships with no credential (OWASP M1): the app registers
+        // per-device via POST /register with an operator-issued code (v0.7.1).
+        //  -PNATIVELINGO_SERVER_URL=http://10.0.2.2:8756
+        // The default URL points at the self-hosted production server.
         val serverUrl = (project.findProperty("NATIVELINGO_SERVER_URL") as? String)
             ?: "http://124.220.234.178:8756"
-        val serverToken = (project.findProperty("NATIVELINGO_SERVER_TOKEN") as? String)
-            ?: ""
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
-        buildConfigField("String", "SERVER_TOKEN", "\"$serverToken\"")
+        // Test-only: a one-time registration code injected into the test APK
+        // (expires in 24 h, burned on use) so the device-gate suite can
+        // register without a UI. Always empty in release builds.
+        val serverRegCode = (project.findProperty("NATIVELINGO_SERVER_REG_CODE") as? String)
+            ?: ""
+        buildConfigField("String", "SERVER_REG_CODE", "\"$serverRegCode\"")
     }
 
     signingConfigs {

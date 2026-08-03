@@ -9,6 +9,7 @@ import com.nativelingo.app.memorize.PronouncePipeline
 import com.nativelingo.app.repo.CloudClient
 import com.nativelingo.app.repo.CloudSpeakingApi
 import com.nativelingo.app.repo.ImportRepository
+import com.nativelingo.app.repo.TokenStore
 import com.nativelingo.app.repo.RecordingsRepository
 import com.nativelingo.app.repo.ReferenceClipSource
 import com.nativelingo.app.repo.VideoRepository
@@ -85,9 +86,12 @@ class AppContainer(context: Context) {
 
     // ── Cloud Speaking backend (Duolingo-style) ───────────────────────────────
     // Transcription, alignment, SSL scoring and FR-11 phoneme diagnosis run on
-    // the self-hosted server (URL + token from BuildConfig). The 识物 module
-    // stays fully on-device — its sessions are untouched above.
-    val cloudClient: CloudClient by lazy { CloudClient() }
+    // the self-hosted server. Auth is a per-device token (v0.7.1) — never baked
+    // into the APK: the app registers on first use with an operator-issued
+    // code, and the token lives encrypted in the Android Keystore. The 识物
+    // module stays fully on-device — its sessions are untouched above.
+    val tokenStore: TokenStore by lazy { TokenStore(appContext) }
+    val cloudClient: CloudClient by lazy { CloudClient(tokenProvider = tokenStore::loadToken) }
     val cloudSpeakingApi: CloudSpeakingApi by lazy { CloudSpeakingApi(cloudClient) }
 
     /** One audio-clip player for FR-8 — the muted-video player is per-screen. */
