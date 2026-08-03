@@ -95,3 +95,4 @@ NativeLingoAndroid/.tools/
 # from the same exports the Android build syncs (build/onnx + models/); not source.
 /server/models/
 /server/videos/
+server/uvicorn.log
