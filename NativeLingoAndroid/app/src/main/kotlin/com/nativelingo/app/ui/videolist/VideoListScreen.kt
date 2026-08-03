@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +62,14 @@ fun VideoListScreen(container: AppContainer, onPick: (VideoRepository.CorpusVide
             modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
         )
         WarmupStatus(warmup)
+
+        if (state.needsActivation) {
+            ActivationCard(
+                isActivating = state.isActivating,
+                error = state.activationError,
+                onActivate = vm::activate,
+            )
+        }
 
         if (state.import.isImporting) {
             Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
@@ -144,3 +153,51 @@ private fun WarmupStatus(state: Warmup.State) {
 private fun Modifier.drawCard(brand: com.nativelingo.app.ui.theme.NativeLingoColors): Modifier =
     this.background(brand.surface, RoundedCornerShape(14.dp))
         .border(1.dp, brand.line, RoundedCornerShape(14.dp))
+
+/**
+ * Cloud device activation (v0.7.1): the APK ships with no server credential,
+ * so the first run (or a revoked token) needs a one-time registration code —
+ * issued on the server with `python -m backend.core.devices code`.
+ */
+@Composable
+private fun ActivationCard(
+    isActivating: Boolean,
+    error: String?,
+    onActivate: (String) -> Unit,
+) {
+    val brand = LocalNativeLingoColors.current
+    var code by remember { androidx.compose.runtime.mutableStateOf("") }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp)
+            .drawCard(brand)
+            .padding(14.dp),
+    ) {
+        Text("云端跟读需要激活", style = MaterialTheme.typography.titleMedium, color = brand.ink)
+        Text(
+            "评分服务在你自己的服务器上。在服务器运行 " +
+                "python -m backend.core.devices code 获取一次性激活码，粘贴到下面。",
+            color = brand.muted, style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 4.dp, bottom = 10.dp),
+        )
+        androidx.compose.material3.OutlinedTextField(
+            value = code,
+            onValueChange = { code = it },
+            label = { Text("激活码") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (error != null) {
+            Text(error, color = brand.danger, style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 6.dp))
+        }
+        OutlinedButton(
+            onClick = { onActivate(code) },
+            enabled = !isActivating && code.isNotBlank(),
+            modifier = Modifier.padding(top = 10.dp),
+        ) {
+            Text(if (isActivating) "激活中…" else "激活")
+        }
+    }
+}

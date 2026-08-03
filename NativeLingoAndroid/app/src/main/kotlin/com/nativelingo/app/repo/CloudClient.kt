@@ -14,26 +14,37 @@ import java.util.concurrent.TimeUnit
 
 /** Raised for every cloud-call failure the UI should surface (network down,
  * wrong token, server-side 4xx/5xx). The server's `detail` message is kept
- * verbatim so its diagnostics ("audio contained no speech", …) reach the user. */
-class CloudApiException(message: String, cause: Throwable? = null) : Exception(message, cause)
+ * verbatim so its diagnostics ("audio contained no speech", …) reach the user.
+ *
+ * [authError] is true for 401s — the UI turns that into the activation card
+ * instead of an error toast (the device token was revoked or the server was
+ * reset). */
+class CloudApiException(
+    message: String,
+    cause: Throwable? = null,
+    val authError: Boolean = false,
+) : Exception(message, cause)
 
 /**
  * Thin OkHttp wrapper for the NativeLingo cloud Speaking backend — the
  * Duolingo-style architecture where transcription, forced alignment, SSL
  * scoring and FR-11 phoneme diagnosis run server-side.
  *
- * One client for the whole app: the bearer token rides every request, and the
- * timeouts are sized for a cold server — the first /analyze_video after deploy
- * can pull multi-GB models (MMS + phoneme) before the warmup has finished, so
- * reads are allowed minutes, not the usual 30 s. (Warmup prefetches these at
- * startup; steady-state analysis is well under a minute.)
+ * One client for the whole app: the per-device token (v0.7.1 — never baked
+ * into the APK, issued by POST /register) rides every request via
+ * [tokenProvider], which is consulted per call so an activation mid-session
+ * takes effect without recreating the client. The timeouts are sized for a
+ * cold server — the first /analyze_video after deploy can pull multi-GB
+ * models (MMS + phoneme) before the warmup has finished, so reads are allowed
+ * minutes, not the usual 30 s. (Warmup prefetches these at startup;
+ * steady-state analysis is well under a minute.)
  *
- * [baseUrl]/[token] default to BuildConfig (gradle properties); tests and
- * local dev override both.
+ * [baseUrl] defaults to BuildConfig (gradle property); tests and local dev
+ * override both.
  */
 class CloudClient(
     private val baseUrl: String = BuildConfig.SERVER_URL,
-    private val token: String = BuildConfig.SERVER_TOKEN,
+    private val tokenProvider: () -> String? = { null },
 ) {
 
     private val http = OkHttpClient.Builder()
@@ -78,7 +89,9 @@ class CloudClient(
     private fun request(path: String): Request.Builder =
         Request.Builder()
             .url(baseUrl.trimEnd('/') + path)
-            .header("Authorization", "Bearer $token")
+            .apply {
+                tokenProvider()?.let { header("Authorization", "Bearer $it") }
+            }
 
     private fun call(request: Request): JSONObject {
         val resp = try {
@@ -94,7 +107,7 @@ class CloudClient(
                 val detail = runCatching { JSONObject(bodyText).optString("detail") }
                     .getOrDefault("")
                 val msg = detail.ifBlank { "HTTP ${it.code}" }
-                throw CloudApiException(msg)
+                throw CloudApiException(msg, authError = it.code == 401)
             }
             return try {
                 JSONObject(bodyText)

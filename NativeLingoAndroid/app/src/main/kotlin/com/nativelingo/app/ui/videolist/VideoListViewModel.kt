@@ -26,6 +26,10 @@ class VideoListViewModel(private val container: AppContainer) : ViewModel() {
         val videos: List<VideoRepository.CorpusVideo> = emptyList(),
         val import: ImportState = ImportState(),
         val listError: String? = null,
+        /** Cloud device activation (v0.7.1): true until a device token exists. */
+        val needsActivation: Boolean = false,
+        val isActivating: Boolean = false,
+        val activationError: String? = null,
     )
 
     private val _state = MutableStateFlow(UiState())
@@ -34,7 +38,44 @@ class VideoListViewModel(private val container: AppContainer) : ViewModel() {
 
     init {
         container.warmup.start()
+        // The cloud speaking track needs a registered device token; the APK
+        // ships with no credential, so a fresh install starts unactivated.
+        if (container.tokenStore.loadToken() == null) {
+            _state.update { it.copy(needsActivation = true) }
+        }
         refreshList()
+    }
+
+    /** POST /register with an operator-issued one-time code; stores the token. */
+    fun activate(code: String) {
+        if (code.isBlank() || _state.value.isActivating) return
+        _state.update { it.copy(isActivating = true, activationError = null) }
+        viewModelScope.launch(Dispatchers.Default) {
+            val outcome = runCatching {
+                val token = container.cloudSpeakingApi.register(
+                    container.tokenStore.deviceId(),
+                    code.trim(),
+                )
+                container.tokenStore.saveToken(token)
+            }
+            outcome.fold(
+                onSuccess = {
+                    _state.update { it.copy(isActivating = false, needsActivation = false) }
+                    refreshList()
+                },
+                onFailure = { e ->
+                    _state.update {
+                        it.copy(isActivating = false, activationError = e.message ?: e.toString())
+                    }
+                },
+            )
+        }
+    }
+
+    /** A revoked/expired device token surfaces as 401s — drop it and re-activate. */
+    fun handleAuthError() {
+        container.tokenStore.clear()
+        _state.update { it.copy(needsActivation = true, listError = null) }
     }
 
     fun refreshList() {
