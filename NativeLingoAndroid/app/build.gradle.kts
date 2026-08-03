@@ -44,6 +44,19 @@ android {
         // because :core-asr statically links its own copy of ONNX Runtime
         // (~19MB/ABI) to avoid a silent .so collision — see core-asr/build.gradle.kts.
         ndk { abiFilters += "arm64-v8a" }
+
+        // Cloud Speaking backend (Duolingo-style server-side scoring). The server
+        // URL + bearer token are build properties so the APK has no hardcoded
+        // secrets:  -PNATIVELINGO_SERVER_URL=http://10.0.2.2:8756
+        //            -PNATIVELINGO_SERVER_TOKEN=...
+        // The default URL points at the self-hosted production server; an empty
+        // token matches a no-token local dev server.
+        val serverUrl = (project.findProperty("NATIVELINGO_SERVER_URL") as? String)
+            ?: "http://124.220.234.178:8756"
+        val serverToken = (project.findProperty("NATIVELINGO_SERVER_TOKEN") as? String)
+            ?: ""
+        buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
+        buildConfigField("String", "SERVER_TOKEN", "\"$serverToken\"")
     }
 
     signingConfigs {
@@ -70,6 +83,8 @@ android {
 
     buildFeatures {
         compose = true
+        // Cloud Speaking backend address/token are injected at build time.
+        buildConfig = true
     }
 
     // Models ship inside the APK's assets/models/ for GitHub releases (extracted to
@@ -234,6 +249,9 @@ dependencies {
     implementation(project(":core-models"))
     implementation(project(":core-vision"))
     implementation(libs.onnxruntime.android)
+
+    // Cloud Speaking backend — OkHttp multipart uploads (video import, learner take).
+    implementation(libs.okhttp)
 
     // Test-only: golden-fixture helpers and the runner.
     androidTestImplementation(testFixtures(project(":core-scoring")))
