@@ -53,6 +53,15 @@ enum class ModelId {
     WHISPER_TINY_EN_ENCODER,
     WHISPER_TINY_EN_DECODER,
     WHISPER_TINY_EN_TOKENS,
+
+    /**
+     * YOLOE-26S-PF prompt-free detection export (detection-only; mask branch
+     * stripped). The same ONNX bytes macOS uses for FR-13 — the Kotlin port in
+     * `:core-vision` reads the identical file, so detection parity is a property
+     * of the model artifact, not a re-export. Bundled and resident (45 MB; it
+     * loads on first analyze and stays loaded — tiny, like Whisper's VAD).
+     */
+    YOLOE_DETECT,
 }
 
 /**
@@ -190,6 +199,17 @@ object ModelCatalog {
             835_554L,
             "306cd27f03c1a714eca7108e03d66b7dc042abe8c258b44c199a7ed9838dd930",
             "视频转写(低端设备降级档)",
+        ),
+        // FR-13 (识物) — YOLOE-26S-PF detection-only ONNX. The sha256 is the same
+        // one macOS pins (model_assets.YOLO_SHA256); staging copies the file from
+        // models/yoloe-26s-pf/ rather than build/onnx/, because it is an Ultralytics
+        // export, not one of our quantized re-exports.
+        ModelSpec(
+            ModelId.YOLOE_DETECT,
+            "yoloe-26s-pf.onnx",
+            45_190_233L,
+            "32866f4bb407805e4e94a7bc37634fd4e64e0d8349e69e7af3e93008f916a492",
+            "看图识物",
         ),
     ).associateBy { it.id }
 

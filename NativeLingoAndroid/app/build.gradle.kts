@@ -152,6 +152,11 @@ val syncModelsToAssets = tasks.register<Sync>("syncModelsToAssets") {
         )
         eachFile { path = name }
     }
+    // FR-13 (识物) — YOLOE-26S-PF. Sourced from models/yoloe-26s-pf/ (an Ultralytics
+    // export, gitignored like the other large weights) rather than build/onnx/.
+    from(rootProject.layout.projectDirectory.dir("../models/yoloe-26s-pf")) {
+        include("yoloe-26s-pf.onnx")
+    }
     into(modelAssets)
 }
 
@@ -211,6 +216,7 @@ dependencies {
     implementation(project(":core-asr"))
     implementation(project(":core-audio"))
     implementation(project(":core-models"))
+    implementation(project(":core-vision"))
     implementation(libs.onnxruntime.android)
 
     // Test-only: golden-fixture helpers and the runner.
