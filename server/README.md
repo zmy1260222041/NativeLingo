@@ -60,9 +60,43 @@ python3 -m venv /opt/nativelingo/.venv
 [Service]
 WorkingDirectory=/opt/nativelingo
 EnvironmentFile=/opt/nativelingo/nativelingo.env   # NATIVELINGO_TOKEN + dirs
-ExecStart=/opt/nativelingo/.venv/bin/uvicorn backend.main:app --host 0.0.0.0 --port 8756
+ExecStart=/opt/nativelingo/.venv/bin/uvicorn backend.main:app --host 0.0.0.0 \
+    --port 8756 \
+    --ssl-keyfile /opt/nativelingo/tls/server.key \
+    --ssl-certfile /opt/nativelingo/tls/server.pem
 Restart=always
 ```
+
+## TLS (v0.7.3): private CA pinned in the APK
+
+The server has **no domain**, so Let's Encrypt is not available. Instead the
+server runs a **private CA**; its certificate is baked into the Android app
+(`NativeLingoAndroid/app/src/main/res/raw/nl_ca.pem`) and OkHttp trusts ONLY
+that CA — a forged or system-trusted chain is rejected, so no MITM can
+impersonate the server on the bare IP.
+
+```
+cd /opt/nativelingo/tls
+openssl genrsa -out ca.key 4096
+openssl req -x509 -new -key ca.key -days 3650 -subj '/CN=NativeLingo Private CA' -out ca.pem
+openssl genrsa -out server.key 2048
+openssl req -new -key server.key -subj '/CN=124.220.234.178' -out server.csr
+printf 'subjectAltName=IP:124.220.234.178\n' > san.cnf
+openssl x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial \
+    -days 3650 -extfile san.cnf -out server.pem
+chmod 600 ca.key server.key
+```
+
+**Rotation:** the server certificate can be re-issued any time from the same
+CA *without an app release* (the APK pins the CA, not the leaf). Only a CA
+rotation (10-year expiry) requires a new APK build. `ca.key` is the trust
+root — keep it 600 and back it up off-box.
+
+Security summary (v0.7.3): TLS everywhere + **per-device tokens** (v0.7.1,
+SHA-256 hashed, revocable) + **user accounts** (v0.7.2, scrypt+salt) + no
+recordings store + upload caps + disk waterline + per-IP rate limits +
+admin-only endpoints. The Tencent Cloud security group only needs TCP 8756
+(22 for ops).
 
 Security: **per-device registration** (v0.7.1) — the APK ships with no
 credential at all. The operator issues one-time registration codes
@@ -75,9 +109,9 @@ devices endpoints are admin-only. `/analyze_video` decodes the learner
 upload in memory — there is deliberately no recordings store (voice data
 with no retention policy would violate PIPL Art. 19/47). Uploads are
 size-capped (video 1.5 GB, learner 100 MB) with a disk-waterline check, and
-per-IP rate limits guard the 4-core CPU. Plain HTTP for now (TLS via
-Caddy/nginx is a documented follow-up — the Tencent Cloud security group
-must open TCP 8756).
+per-IP rate limits guard the 4-core CPU. Transport is TLS (v0.7.3) with a
+private CA pinned in the APK — see the TLS section below. The Tencent Cloud
+security group only needs TCP 8756 (22 for ops).
 
 ## Keeping in sync
 

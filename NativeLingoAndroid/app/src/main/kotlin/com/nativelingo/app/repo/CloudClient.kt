@@ -1,6 +1,7 @@
 package com.nativelingo.app.repo
 
 import com.nativelingo.app.BuildConfig
+import com.nativelingo.app.R
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -41,8 +42,15 @@ class CloudApiException(
  *
  * [baseUrl] defaults to BuildConfig (gradle property); tests and local dev
  * override both.
+ *
+ * **TLS pinning (v0.7.3):** the self-hosted server has no domain, so its
+ * certificate is signed by a private CA (`server/` deploy docs) and the CA is
+ * baked into the APK (`res/raw/nl_ca.pem`). [CloudClient] trusts ONLY that CA
+ * — a system-trusted or forged certificate chain is rejected, so no MITM can
+ * impersonate the server. HTTP URLs (local dev) are untouched.
  */
 class CloudClient(
+    private val appContext: android.content.Context,
     private val baseUrl: String = BuildConfig.SERVER_URL,
     private val tokenProvider: () -> String? = { null },
 ) {
@@ -51,6 +59,7 @@ class CloudClient(
         .connectTimeout(15, TimeUnit.SECONDS)
         .writeTimeout(120, TimeUnit.SECONDS)   // video upload (import path)
         .readTimeout(300, TimeUnit.SECONDS)    // cold-server first analysis
+        .apply { pinnedTls(this) }
         .build()
 
     /** GET and parse a JSON body. Throws [CloudApiException] on transport or
@@ -85,6 +94,27 @@ class CloudClient(
         call(request(path).post("".toRequestBody()).build())
 
     // ── internals ──────────────────────────────────────────────────────────
+
+    /** Trust only the private CA baked into the APK (no domain → self-signed
+     * chain; pinning is the only way to prevent MITM on a bare IP). */
+    private fun pinnedTls(builder: OkHttpClient.Builder) {
+        val caPem = appContext.resources.openRawResource(R.raw.nl_ca).use { it.readBytes() }
+        val ca = java.security.cert.CertificateFactory.getInstance("X.509")
+            .generateCertificate(java.io.ByteArrayInputStream(caPem))
+        val ks = java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType()).apply {
+            load(null)
+            setCertificateEntry("nl_ca", ca)
+        }
+        val tmf = javax.net.ssl.TrustManagerFactory.getInstance(
+            javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm(),
+        ).apply { init(ks) }
+        val sslContext = javax.net.ssl.SSLContext.getInstance("TLS")
+        sslContext.init(null, tmf.trustManagers, null)
+        builder.sslSocketFactory(
+            sslContext.socketFactory,
+            tmf.trustManagers!!.first { it is javax.net.ssl.X509TrustManager } as javax.net.ssl.X509TrustManager,
+        )
+    }
 
     private fun request(path: String): Request.Builder =
         Request.Builder()

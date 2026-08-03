@@ -28,7 +28,7 @@ android {
         minSdk = 28          // NFR-4①: Android 9+ / API 28+
         targetSdk = 35
         versionCode = 1
-        versionName = "0.7.2"
+        versionName = "0.7.3"
 
         // The device-side gate harness lives in this module's androidTest source
         // set (src/androidTest) rather than in each core module's, for one reason:
@@ -49,11 +49,12 @@ android {
         // server URL is a build property; the AUTH token is deliberately NOT
         // here — the APK ships with no credential (OWASP M1): the user logs
         // in with an account and the server issues a per-device token
-        // (v0.7.2).
-        //  -PNATIVELINGO_SERVER_URL=http://10.0.2.2:8756
+        // (v0.7.2). TLS is a private CA pinned inside the APK (v0.7.3) —
+        // the server has no domain, so the default URL is https to the bare IP.
+        //  -PNATIVELINGO_SERVER_URL=http://10.0.2.2:8757   (local dev, no TLS)
         // The default URL points at the self-hosted production server.
         val serverUrl = (project.findProperty("NATIVELINGO_SERVER_URL") as? String)
-            ?: "http://124.220.234.178:8756"
+            ?: "https://124.220.234.178:8756"
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
     }
 
