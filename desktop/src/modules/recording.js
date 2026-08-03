@@ -93,11 +93,12 @@ export function makeTimer(elementId) {
   };
 }
 
-export function runCountdown(statusElement, seconds = 3) {
+export function runCountdown(statusElement, seconds = 3, onTick) {
   return new Promise((resolve) => {
     let remaining = seconds;
     const tick = () => {
       statusElement.textContent = String(remaining);
+      onTick?.(remaining);
       if (remaining <= 1) {
         window.setTimeout(resolve, 1000);
         return;

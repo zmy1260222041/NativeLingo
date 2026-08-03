@@ -4,6 +4,7 @@ import { feedbackIndex, formatSpeechRate, scoreColor } from "../src/modules/resu
 import { selectedRangeLabel, setSpeakingStage } from "../src/modules/speaking.js";
 import { countObjectLabels, setMemoStage } from "../src/modules/memorizing.js";
 import { appStore } from "../src/modules/state.js";
+import { containRect, objectsAtPoint } from "../src/modules/geometry.js";
 
 afterEach(() => {
   vi.useRealTimers();
@@ -51,6 +52,26 @@ describe("memorizing workflow", () => {
     expect(appStore.get().memoStage).toBe("detail");
     expect(document.documentElement.dataset.memoStage).toBe("detail");
   });
+
+  it("maps portrait media inside a letterboxed stage without stretching", () => {
+    expect(containRect(900, 620, 900, 1600)).toEqual({
+      x: 275.625,
+      y: 0,
+      width: 348.75,
+      height: 620,
+      scale: 0.3875,
+    });
+  });
+
+  it("orders overlapping objects from the most specific box", () => {
+    const objects = [
+      { label_en: "table", box: [0, 0, 900, 900] },
+      { label_en: "cup", box: [200, 200, 300, 300] },
+      { label_en: "handle", box: [320, 260, 80, 120] },
+    ];
+    expect(objectsAtPoint(objects, 350, 300).map((object) => object.label_en))
+      .toEqual(["handle", "cup", "table"]);
+  });
 });
 
 describe("recording feedback", () => {
@@ -68,10 +89,12 @@ describe("recording feedback", () => {
     expect(document.getElementById("timer").textContent).toBe("00:02");
     timer.stop();
 
-    const countdown = runCountdown(status, 2);
+    const ticks = [];
+    const countdown = runCountdown(status, 2, (remaining) => ticks.push(remaining));
     expect(status.textContent).toBe("2");
     await vi.advanceTimersByTimeAsync(2000);
     await countdown;
     expect(status.textContent).toBe("1");
+    expect(ticks).toEqual([2, 1]);
   });
 });

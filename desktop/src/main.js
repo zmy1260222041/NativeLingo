@@ -14,6 +14,7 @@ import { appStore } from "./modules/state.js";
 import { UI_COPY } from "./modules/copy.js";
 import { setIconButton } from "./modules/icons.js";
 import {
+  animateCountdown,
   flipLayout,
   refreshMotion,
   revealHotspots,
@@ -21,6 +22,7 @@ import {
   revealView,
   stackResults,
 } from "./modules/motion.js";
+import { containRect, objectsAtPoint } from "./modules/geometry.js";
 import {
   createRecorder,
   makeTimer,
@@ -420,7 +422,19 @@ function setupShadow(startT, endT) {
   else video.addEventListener("loadedmetadata", seek, { once: true });
   $("shadow-analyze-btn").disabled = true;
   $("shadow-learner-player").hidden = true;
+  $("shadow-countdown").hidden = true;
   revealView($("shadow-section"));
+}
+
+async function runShadowCountdown(statusEl) {
+  const overlay = $("shadow-countdown");
+  overlay.hidden = false;
+  setStatus(statusEl, "countdown media-countdown-status");
+  try {
+    await runCountdown(statusEl, 3, (remaining) => animateCountdown(overlay, remaining));
+  } finally {
+    overlay.hidden = true;
+  }
 }
 
 function playShadowClip() {
@@ -466,6 +480,7 @@ $("shadow-record-btn").addEventListener("click", async () => {
       setStatus(statusEl, "prep", "正在准备麦克风");
       btn.disabled = true;
       setIconButton(btn, "record", "正在准备麦克风");
+      delete btn.dataset.tooltip;
       await shadowRec.prepare((blob) => {
         clientLog("recording stopped; blob size=" + blob.size);
         videoState.learnerBlob = blob;
@@ -484,8 +499,7 @@ $("shadow-record-btn").addEventListener("click", async () => {
       // Countdown gives a clear "start now" cue. Capture + video begin
       // together at zero, so the opening isn't clipped and there's no
       // lead-in silence to skew alignment/fluency.
-      setStatus(statusEl, "countdown");
-      await runCountdown(statusEl, 3);
+      await runShadowCountdown(statusEl);
       shadowRec.begin();
       playShadowClip(); // muted video + subtitles play in sync, from rangeStart
       shadowTimer.start();
@@ -498,6 +512,7 @@ $("shadow-record-btn").addEventListener("click", async () => {
       clientLog("getUserMedia FAILED: " + (err && err.name) + " / " + (err && err.message));
       btn.disabled = false;
       setIconButton(btn, "record", "开始跟读");
+      $("shadow-countdown").hidden = true;
       shadowStatus("无法访问麦克风：" + (err && err.message ? err.message : err));
       setSpeakingStage("error", { mode: "video", reason: "microphone" });
     }
@@ -849,6 +864,9 @@ const memo = {
   pronounceToken: 0,
   pronounceWord: "",       // FR-17: word/phrase currently targeted for practice
   pronounceRecorder: null,
+  hotspotResizeObserver: null,
+  hotspotByObject: new Map(),
+  hotspotPicker: null,
 };
 const MEMO_MAX_DIM = 1920;
 const MEMO_MAX_DIRECT_UPLOAD_BYTES = 50_000_000;
@@ -909,6 +927,7 @@ async function memoPollStatus() {
 function memoWireUpload() {
   const zone = $("memo-upload");
   const input = $("memo-file");
+  memoWireHotspotGeometry();
   zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("drag"); });
   zone.addEventListener("dragleave", () => zone.classList.remove("drag"));
   zone.addEventListener("drop", (e) => {
@@ -939,12 +958,37 @@ function memoResetToUpload() {
   memo.scenarioToken += 1;
   if (memo.previewUrl) URL.revokeObjectURL(memo.previewUrl);
   memo.previewUrl = null;
+  memoHideHotspotPicker();
   $("memo-hotspots").innerHTML = "";
   $("memo-object-summary").hidden = true;
   $("memo-object-summary").textContent = "";
   appStore.patch({ memoView: "upload" });
   setMemoStage("upload");
   revealView($("memo-upload").closest(".card"));
+}
+
+function memoWireHotspotGeometry() {
+  const sync = () => memoSyncHotspotLayer();
+  if (typeof ResizeObserver === "function") {
+    memo.hotspotResizeObserver = new ResizeObserver(sync);
+    memo.hotspotResizeObserver.observe($("memo-stage"));
+    memo.hotspotResizeObserver.observe($("memo-img"));
+  } else {
+    window.addEventListener("resize", sync);
+  }
+}
+
+function memoSyncHotspotLayer() {
+  const stage = $("memo-stage");
+  const img = $("memo-img");
+  const layer = $("memo-hotspots");
+  if (!memo.imgW || !memo.imgH || !stage || !img || !layer) return;
+  const fitted = containRect(img.clientWidth, img.clientHeight, memo.imgW, memo.imgH);
+  if (!fitted.width || !fitted.height) return;
+  layer.style.left = `${img.offsetLeft + fitted.x}px`;
+  layer.style.top = `${img.offsetTop + fitted.y}px`;
+  layer.style.width = `${fitted.width}px`;
+  layer.style.height = `${fitted.height}px`;
 }
 
 function memoLoadImage(file) {
@@ -1031,7 +1075,10 @@ async function memoHandleFile(file) {
   if (memo.previewUrl) URL.revokeObjectURL(memo.previewUrl);
   memo.previewUrl = URL.createObjectURL(enc.previewBlob);
   img.src = memo.previewUrl;
-  img.addEventListener("load", () => revealImage(img), { once: true });
+  img.addEventListener("load", () => {
+    memoSyncHotspotLayer();
+    revealImage(img);
+  }, { once: true });
   memo.imgEl = img;
   memo.imgW = enc.w; memo.imgH = enc.h;
   $("memo-hotspots").innerHTML = "";
@@ -1058,6 +1105,7 @@ async function memoHandleFile(file) {
       memo.imgH = Number(data.image_size[1]);
     }
     memo.objects = data.objects || [];
+    memoSyncHotspotLayer();
     memoRenderHotspots();
     setMemoStage("photo", { objects: memo.objects.length });
   } catch (e) {
@@ -1076,7 +1124,10 @@ async function memoHandleFile(file) {
 function memoRenderHotspots() {
   const hs = $("memo-hotspots");
   const summary = $("memo-object-summary");
+  memoHideHotspotPicker();
   hs.innerHTML = "";
+  memo.hotspotByObject = new Map();
+  memoSyncHotspotLayer();
   if (!memo.objects.length) {
     summary.hidden = true;
     summary.textContent = "";
@@ -1144,16 +1195,114 @@ function memoRenderHotspots() {
     dot.tabIndex = 0;
     dot.setAttribute("role", "button");
     dot.setAttribute("aria-label", `查看物品 ${o.label_en}`);
-    dot.addEventListener("click", () => memoOpenDetail(o));
+    dot.addEventListener("click", (event) => memoSelectHotspot(o, event));
     dot.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        memoOpenDetail(o);
+        memoSelectHotspot(o);
       }
     });
     hs.appendChild(dot);
+    memo.hotspotByObject.set(o, dot);
   });
   revealHotspots(hs);
+}
+
+function memoSelectHotspot(object, event) {
+  const [boxX, boxY, boxW, boxH] = object.box.map(Number);
+  let x = boxX + boxW / 2;
+  let y = boxY + boxH / 2;
+  const layerRect = $("memo-hotspots").getBoundingClientRect();
+  if (event && layerRect.width > 0 && layerRect.height > 0) {
+    const pointerX = (event.clientX - layerRect.left) / layerRect.width * memo.imgW;
+    const pointerY = (event.clientY - layerRect.top) / layerRect.height * memo.imgH;
+    if (pointerX >= boxX && pointerX <= boxX + boxW &&
+        pointerY >= boxY && pointerY <= boxY + boxH) {
+      x = pointerX;
+      y = pointerY;
+    }
+  }
+  const candidates = objectsAtPoint(memo.objects, x, y);
+  if (candidates.length <= 1) {
+    memoOpenDetail(object);
+    return;
+  }
+  memoShowHotspotPicker(candidates, object);
+}
+
+function memoShowHotspotPicker(candidates, selected) {
+  memoHideHotspotPicker();
+  const layer = $("memo-hotspots");
+  const picker = document.createElement("div");
+  picker.id = "memo-hotspot-picker";
+  picker.className = "hotspot-picker";
+  picker.setAttribute("role", "group");
+  picker.setAttribute("aria-label", "选择重叠物品");
+
+  const previous = document.createElement("button");
+  previous.type = "button";
+  previous.className = "hotspot-picker-nav";
+  setIconButton(previous, "chevronLeft", "上一个重叠物品");
+  const target = document.createElement("button");
+  target.type = "button";
+  target.className = "hotspot-picker-target";
+  const label = document.createElement("span");
+  label.className = "hotspot-picker-label";
+  const count = document.createElement("span");
+  count.className = "hotspot-picker-count";
+  target.append(label, count);
+  const next = document.createElement("button");
+  next.type = "button";
+  next.className = "hotspot-picker-nav";
+  setIconButton(next, "chevronRight", "下一个重叠物品");
+  picker.append(previous, target, next);
+  layer.appendChild(picker);
+
+  const state = {
+    candidates,
+    index: Math.max(0, candidates.indexOf(selected)),
+    picker,
+    returnFocus: memo.hotspotByObject.get(selected),
+  };
+  memo.hotspotPicker = state;
+
+  const render = () => {
+    const current = state.candidates[state.index];
+    label.textContent = current.label_en;
+    count.textContent = `${state.index + 1}/${state.candidates.length}`;
+    target.setAttribute("aria-label", `打开物品 ${current.label_en}`);
+    state.candidates.forEach((candidate) => {
+      const hotspot = memo.hotspotByObject.get(candidate);
+      hotspot?.classList.add("picker-candidate");
+      hotspot?.classList.toggle("picker-active", candidate === current);
+    });
+  };
+  const step = (amount) => {
+    state.index = (state.index + amount + state.candidates.length) % state.candidates.length;
+    render();
+  };
+  previous.addEventListener("click", () => step(-1));
+  next.addEventListener("click", () => step(1));
+  target.addEventListener("click", () => memoOpenDetail(state.candidates[state.index]));
+  picker.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    memoHideHotspotPicker(true);
+  });
+  render();
+  revealView(picker);
+  target.focus();
+}
+
+function memoHideHotspotPicker(restoreFocus = false) {
+  const state = memo.hotspotPicker;
+  if (!state) return;
+  state.candidates.forEach((candidate) => {
+    memo.hotspotByObject.get(candidate)?.classList.remove("picker-candidate", "picker-active");
+  });
+  state.picker.remove();
+  memo.hotspotPicker = null;
+  if (restoreFocus) state.returnFocus?.focus();
 }
 
 function memoContextCropBox(obj) {
@@ -1246,6 +1395,7 @@ function memoRenderPartHotspots(parts, cropSize, onSelect, chipByPart) {
 }
 
 async function memoOpenDetail(obj) {
+  memoHideHotspotPicker();
   const detailToken = ++memo.detailToken;
   memo.scenarioToken += 1;
   memoPronounceReset();            // FR-17: clear previous scores/recording

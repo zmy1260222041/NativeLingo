@@ -88,6 +88,9 @@
             <section id="shadow-section" class="recording-stage" hidden>
               <div class="video-frame">
                 <video id="shadow-video" class="shadow-video" muted playsinline></video>
+                <div id="shadow-countdown" class="media-countdown" hidden aria-hidden="true">
+                  <span></span>
+                </div>
               </div>
               <div class="record-dock">
                 <button id="shadow-replay-btn" class="icon-button dock-secondary" type="button" aria-label="重放画面"></button>
@@ -182,7 +185,7 @@
         </section>
 
         <section id="memo-view" class="media-workspace card" hidden>
-          <div class="memo-stage">
+          <div id="memo-stage" class="memo-stage">
             <img id="memo-img" class="memo-img" alt="待识别的日常照片">
             <div id="memo-hotspots" class="memo-hotspots"></div>
             <div id="memo-analyzing" class="memo-overlay" hidden>

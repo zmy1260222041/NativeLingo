@@ -200,7 +200,13 @@ test("records a selected video range and renders stacked feedback", async ({ pag
   const sentences = page.locator(".sentence-item");
   await sentences.nth(0).click();
   await sentences.nth(1).click();
-  await page.getByRole("button", { name: "开始跟读" }).click();
+  const recordButton = page.locator("#shadow-record-btn");
+  await recordButton.click();
+  const countdown = page.locator("#shadow-countdown");
+  await expect(countdown).toBeVisible({ timeout: 1_000 });
+  await expect(countdown.locator("span")).toHaveText(/[123]/);
+  await expect(recordButton).not.toHaveAttribute("data-tooltip");
+  await expect(page).toHaveScreenshot("countdown-on-video.png");
   await expect(page.getByRole("button", { name: "停止跟读" })).toBeVisible({ timeout: 5_000 });
   await page.getByRole("button", { name: "停止跟读" }).click();
   await expect(page.getByRole("button", { name: "开始分析" })).toBeEnabled();
@@ -209,6 +215,82 @@ test("records a selected video range and renders stacked feedback", async ({ pag
   await expect(page.getByRole("button", { name: "下一条反馈" })).toBeVisible();
   await page.evaluate(() => document.activeElement?.blur());
   await expect(page).toHaveScreenshot("results-light.png");
+});
+
+test("keeps portrait hotspots on the photo and exposes every overlap", async ({ page }) => {
+  await page.route("http://127.0.0.1:8756/memorize/analyze", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        preprocessing: "memorize-image-v1",
+        photo_id: "portrait-photo",
+        image_size: [900, 1600],
+        objects: [
+          { id: "backdrop-1", label_en: "backdrop", box: [80, 160, 720, 1120] },
+          { id: "cup-1", label_en: "cup", box: [250, 480, 360, 460] },
+          { id: "handle-1", label_en: "handle", box: [470, 600, 120, 180] },
+        ],
+      }),
+    });
+  });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "识物" }).click();
+  const portraitSvg = Buffer.from(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="90" height="160" viewBox="0 0 90 160"><rect width="90" height="160" fill="#d8d8cf"/><path d="M12 136 42 54l18 32 18-18v68Z" fill="#6b6f65"/><circle cx="64" cy="34" r="12" fill="#b7f34a"/></svg>',
+  );
+  await page.locator("#memo-file").setInputFiles({
+    name: "portrait.svg",
+    mimeType: "image/svg+xml",
+    buffer: portraitSvg,
+  });
+  const handle = page.getByRole("button", { name: "查看物品 handle" });
+  await expect(handle).toBeVisible();
+  await page.waitForTimeout(700);
+
+  const readGeometry = () => page.evaluate(() => {
+    const stage = document.getElementById("memo-stage").getBoundingClientRect();
+    const layer = document.getElementById("memo-hotspots").getBoundingClientRect();
+    const hotspot = document.querySelector('[aria-label="查看物品 handle"]').getBoundingClientRect();
+    return {
+      stage: { left: stage.left, width: stage.width },
+      layer: { left: layer.left, width: layer.width, height: layer.height },
+      hotspot: {
+        left: (hotspot.left - layer.left) / layer.width,
+        top: (hotspot.top - layer.top) / layer.height,
+        width: hotspot.width / layer.width,
+        height: hotspot.height / layer.height,
+      },
+    };
+  });
+  const wide = await readGeometry();
+  expect(wide.layer.width).toBeLessThan(wide.stage.width * 0.65);
+  expect(wide.layer.left + wide.layer.width / 2)
+    .toBeCloseTo(wide.stage.left + wide.stage.width / 2, 0);
+  expect(wide.hotspot.left).toBeCloseTo(470 / 900, 2);
+  expect(wide.hotspot.top).toBeCloseTo(600 / 1600, 2);
+
+  await page.setViewportSize({ width: 600, height: 720 });
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const narrow = await readGeometry();
+  expect(narrow.hotspot.left).toBeCloseTo(wide.hotspot.left, 3);
+  expect(narrow.hotspot.top).toBeCloseTo(wide.hotspot.top, 3);
+  expect(narrow.hotspot.width).toBeCloseTo(wide.hotspot.width, 3);
+  expect(narrow.hotspot.height).toBeCloseTo(wide.hotspot.height, 3);
+  await page.mouse.move(4, 4);
+  await expect(page).toHaveScreenshot("portrait-hotspots.png", { fullPage: true });
+
+  await handle.click();
+  const picker = page.locator("#memo-hotspot-picker");
+  await expect(picker).toBeVisible();
+  await expect(picker.locator(".hotspot-picker-count")).toHaveText("1/3");
+  await expect(picker.locator(".hotspot-picker-label")).toHaveText("handle");
+  await page.getByRole("button", { name: "下一个重叠物品" }).click();
+  await expect(picker.locator(".hotspot-picker-label")).toHaveText("cup");
+  await expect(page).toHaveScreenshot("overlap-picker.png", { fullPage: true });
+  await page.getByRole("button", { name: "打开物品 cup" }).click();
+  await expect(page.locator("#memo-detail-label")).toHaveText("cup");
 });
 
 test("keeps audio upload and analysis in the same workbench", async ({ page }) => {

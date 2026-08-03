@@ -720,6 +720,36 @@ video {
   object-fit: contain;
 }
 
+.media-countdown {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #f7f7ef;
+  background: radial-gradient(circle, rgba(13, 14, 11, 0.16) 0 72px, rgba(13, 14, 11, 0.42) 150px);
+  backdrop-filter: blur(1.5px);
+}
+
+.media-countdown::before {
+  position: absolute;
+  width: 112px;
+  height: 112px;
+  border: 1px solid rgba(247, 247, 239, 0.38);
+  border-radius: 50%;
+  content: "";
+}
+
+.media-countdown span {
+  position: relative;
+  font-size: clamp(64px, 12vw, 92px);
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.36);
+}
+
 .record-dock {
   display: flex;
   min-height: 70px;
@@ -849,6 +879,19 @@ video {
   min-width: 50px;
   font-size: 26px;
   font-variant-numeric: tabular-nums;
+}
+
+#shadow-analyze-status.media-countdown-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .analyze-status.rec {
@@ -1390,7 +1433,7 @@ audio[controls] {
 
 .memo-upload-zone .info-button {
   position: absolute;
-  right: 20px;
+  right: clamp(62px, 5vw, 72px);
   bottom: 20px;
   z-index: 2;
 }
@@ -1450,7 +1493,10 @@ audio[controls] {
   object-fit: contain;
 }
 
-.memo-hotspots,
+.memo-hotspots {
+  position: absolute;
+}
+
 .memo-part-hotspots {
   position: absolute;
   inset: 0;
@@ -1465,11 +1511,17 @@ audio[controls] {
 }
 
 .hotspot:hover,
-.hotspot:focus-visible {
+.hotspot:focus-visible,
+.hotspot.picker-active {
   z-index: 1200 !important;
   border-color: var(--accent);
   background: rgba(199, 248, 90, 0.14);
   transform: scale(1.012);
+}
+
+.hotspot.picker-candidate:not(.picker-active) {
+  border-color: rgba(247, 247, 239, 0.78);
+  background: rgba(13, 14, 11, 0.16);
 }
 
 .hotspot-tag,
@@ -1495,6 +1547,7 @@ audio[controls] {
 
 .hotspot:hover .hotspot-tag,
 .hotspot:focus-visible .hotspot-tag,
+.hotspot.picker-active .hotspot-tag,
 .part-hotspot:hover .part-hotspot-tag,
 .part-hotspot:focus-visible .part-hotspot-tag,
 .part-hotspot.active .part-hotspot-tag {
@@ -1506,6 +1559,73 @@ audio[controls] {
 .part-hotspot-tag-inside { top: 3px; }
 .hotspot-tag-right,
 .part-hotspot-tag-right { right: -1px; left: auto; border-radius: 6px 6px 0 6px; }
+
+.hotspot-picker {
+  position: absolute;
+  z-index: 1300;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  display: grid;
+  width: min(260px, calc(100% - 20px));
+  min-height: 52px;
+  margin-inline: auto;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid rgba(247, 247, 239, 0.24);
+  border-radius: 14px;
+  color: #f7f7ef;
+  background: rgba(13, 14, 11, 0.88);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+  line-height: 1;
+}
+
+.hotspot-picker-nav,
+.hotspot-picker-target {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+}
+
+.hotspot-picker-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hotspot-picker-nav:hover,
+.hotspot-picker-target:hover {
+  background: rgba(247, 247, 239, 0.1);
+}
+
+.hotspot-picker-target {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 10px;
+  border-inline: 1px solid rgba(247, 247, 239, 0.16);
+  font-size: 12px;
+  font-weight: 620;
+}
+
+.hotspot-picker-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hotspot-picker-count {
+  flex: 0 0 auto;
+  color: rgba(247, 247, 239, 0.58);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
 
 .memo-overlay,
 .memo-detail-overlay {

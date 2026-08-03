@@ -39,6 +39,22 @@ export function revealImage(element) {
   );
 }
 
+export function animateCountdown(container, value) {
+  const digit = container?.querySelector("span");
+  if (!digit) return;
+  digit.textContent = String(value);
+  gsap.killTweensOf(digit);
+  if (!canAnimate()) {
+    gsap.set(digit, { autoAlpha: 1, scale: 1 });
+    return;
+  }
+  gsap.fromTo(
+    digit,
+    { autoAlpha: 0.18, scale: 0.72 },
+    { autoAlpha: 1, scale: 1, duration: 0.34, ease: "power3.out" },
+  );
+}
+
 export function revealHotspots(container) {
   if (!container || !canAnimate()) return;
   gsap.fromTo(
