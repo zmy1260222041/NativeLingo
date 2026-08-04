@@ -3,8 +3,11 @@ package com.nativelingo.app.audio
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.util.Log
 import java.io.ByteArrayOutputStream
 import java.nio.ByteOrder
+import kotlin.math.log10
+import kotlin.math.sqrt
 
 /**
  * FR-3 capture: 16 kHz mono PCM via [AudioRecord] with [MediaRecorder.AudioSource.UNPROCESSED]
@@ -23,6 +26,9 @@ import java.nio.ByteOrder
  * without the mic.
  *
  * The caller owns the RECORD_AUDIO runtime permission; [start] assumes it is held.
+ *
+ * Quiet takes (peak < -12 dBFS) get a linear post-capture boost of up to
+ * +12 dB in [stop] — see [normalizeLevel]. Still UNPROCESSED, still no AGC.
  */
 class LearnerRecorder {
 
@@ -69,7 +75,8 @@ class LearnerRecorder {
 
     private var pending: ByteArray = ByteArray(0)
 
-    /** Stop capture, block until the read loop drains, return samples in [-1, 1]. */
+    /** Stop capture, block until the read loop drains, return samples in [-1, 1],
+     *  level-normalised so quiet UNPROCESSED takes still replay audibly. */
     fun stop(): FloatArray {
         recording = false
         thread?.join(2000)
@@ -80,11 +87,61 @@ class LearnerRecorder {
         val bytes = pending
         pending = ByteArray(0)
         val shorts = ByteBufferCompat.toShortArray(bytes)
-        return FloatArray(shorts.size) { shorts[it] / 32768.0f }
+        val samples = FloatArray(shorts.size) { shorts[it] / 32768.0f }
+        return normalizeLevel(samples)
     }
+
+    /**
+     * Boost quiet takes to a healthy level with a pure linear gain (up to
+     * +12 dB), never clipping. NFR-4④ stays intact — the source is still
+     * UNPROCESSED with no AGC/NS colouring; this is a post-capture scale, and
+     * every scoring consumer is scale-invariant (R-12 lesson ②: frameDb is
+     * relative, stressPos takes positions only, CMVN normalises per dimension;
+     * the server also speaker-normalises embeddings), so scores are unchanged
+     * while A/B replay and the uploaded WAV both become audible. Takes that
+     * are already ≥ -12 dBFS peak pass through untouched (gain = 1).
+     */
+    private fun normalizeLevel(samples: FloatArray): FloatArray {
+        if (samples.isEmpty()) return samples
+        var peak = 0f
+        var sumSq = 0.0
+        for (s in samples) {
+            val a = if (s < 0f) -s else s
+            if (a > peak) peak = a
+            sumSq += s.toDouble() * s
+        }
+        val gain = when {
+            peak <= 0f -> 1f // silence: nothing to boost
+            peak < QUIET_PEAK -> minOf(MAX_GAIN, TARGET_PEAK / peak)
+            else -> 1f
+        }
+        Log.i(
+            TAG,
+            "take peak=%.1f dBFS rms=%.1f dBFS gain=+%.1f dB".format(
+                dBfs(peak),
+                dBfs(sqrt(sumSq / samples.size.toDouble()).toFloat()),
+                20f * log10(gain),
+            ),
+        )
+        if (gain == 1f) return samples
+        return FloatArray(samples.size) { samples[it] * gain }
+    }
+
+    private fun dBfs(v: Float): Float = if (v <= 0f) -120f else 20f * log10(v)
 
     companion object {
         const val SAMPLE_RATE = 16_000
+
+        /** Below this peak (-12 dBFS) a take gets boosted. */
+        private const val QUIET_PEAK = 0.25f
+
+        /** Cap at +12 dB so a noise floor is not dragged up indefinitely. */
+        private const val MAX_GAIN = 4f
+
+        /** Normalise toward 0.85 peak — 1.5 dB headroom below INT16 full scale. */
+        private const val TARGET_PEAK = 0.85f
+
+        private const val TAG = "LearnerRecorder"
     }
 }
 

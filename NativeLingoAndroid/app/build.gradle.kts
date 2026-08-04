@@ -28,7 +28,7 @@ android {
         minSdk = 28          // NFR-4①: Android 9+ / API 28+
         targetSdk = 35
         versionCode = 1
-        versionName = "0.7.3"
+        versionName = "0.7.4"
 
         // The device-side gate harness lives in this module's androidTest source
         // set (src/androidTest) rather than in each core module's, for one reason:
