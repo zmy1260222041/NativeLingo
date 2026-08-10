@@ -2017,3 +2017,198 @@ audio[controls] {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Survival — 内测采集版
+   No score styling beyond the slot verdicts: `delivery` is a slot-hit rate and
+   the NPC's reaction carries it. There is deliberately no gauge or dial, which
+   would invite a fluency/地道度 number to be added next to it (红线 3).
+   -------------------------------------------------------------------------- */
+.survival-workbench {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg, 18px);
+  background: var(--surface);
+  box-shadow: var(--shadow-small);
+}
+
+#survival-beta-note { margin-bottom: 14px; }
+
+.survival-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.survival-need {
+  margin: 0 0 6px;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+}
+
+.survival-situation-text {
+  margin: 0 0 8px;
+  max-width: 62ch;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.survival-npc-greeting {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--line-strong);
+  color: var(--muted);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.survival-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.survival-hint {
+  padding: 6px 11px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 560;
+}
+
+.survival-hint.required {
+  border-style: solid;
+  border-color: var(--line-strong);
+  color: var(--ink-soft);
+}
+
+.survival-record {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.survival-record .btn-secondary { margin-left: auto; }
+
+.survival-result { display: grid; gap: 18px; }
+
+.survival-heard h2,
+.survival-correct h2 {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 620;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.survival-transcript {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.5;
+}
+
+.survival-lowconf {
+  margin: 6px 0 0;
+  color: var(--warning);
+  font-size: 13px;
+}
+
+.survival-slots { display: grid; gap: 6px; }
+
+.survival-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  font-size: 13px;
+}
+
+.survival-slot span { color: var(--muted); font-size: 12px; }
+.survival-slot.hit { border-color: var(--good); background: var(--accent-soft); }
+.survival-slot.hit span { color: var(--accent-ink); }
+.survival-slot.optional { opacity: 0.82; }
+
+.survival-npc {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised);
+}
+
+.survival-npc-line { margin: 0 0 6px; font-size: 17px; line-height: 1.5; }
+.survival-reward { margin: 0; color: var(--muted); font-size: 13px; }
+
+.survival-new-words { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.survival-new-word {
+  padding: 6px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 560;
+}
+
+.survival-result-actions,
+.survival-correct-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.survival-correct {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+
+.survival-correct-hint { margin: 0; color: var(--muted); font-size: 13px; }
+.survival-correct-words { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.survival-correct-word {
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 560;
+  cursor: pointer;
+}
+
+.survival-correct-word.dropped {
+  border-style: dashed;
+  color: var(--faint);
+  text-decoration: line-through;
+}
+
+#survival-correct-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--surface-raised);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+}
+
+@media (max-width: 720px) {
+  .survival-workbench { padding: 18px; }
+  .survival-need { font-size: 22px; }
+  .survival-record .btn-secondary { margin-left: 0; }
+}

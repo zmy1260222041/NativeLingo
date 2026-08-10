@@ -36,6 +36,14 @@ import {
   MEMO_PREPROCESSING_CONTRACT,
   setMemoStage,
 } from "./modules/memorizing.js";
+import {
+  assertNoUncalibratedScore,
+  correctableWords,
+  rewardLine,
+  setSurvivalStage,
+  SURVIVAL_TIERS,
+  withHints,
+} from "./modules/survival.js";
 import { wireEditorialShell, wireTheme } from "./modules/shell.js";
 
 installRuntimeLogging();
@@ -45,7 +53,7 @@ installRuntimeLogging();
 // once the backend responds, so the marker is reliable across cold starts (the
 // load-time ping otherwise fails silently while the backend is still spinning
 // up and never reaches the log).
-const BOOT_TAG = "v24-editorial";
+const BOOT_TAG = "v25-survival-beta";
 let _bootMarked = false;
 function markBoot() {
   if (_bootMarked) return;
@@ -163,6 +171,10 @@ document.querySelectorAll("#module-speaking .tab").forEach((tab) => {
 function onModuleChange(module) {
   if (module === "memorize") memoEnter();
   else memoLeave();
+  // Survival must not warm or release anything the other modules own — R-14 G6
+  // requires Speaking's scores to stay bit-identical, so entering this module
+  // touches nothing but its own state.
+  if (module === "survival") survivalEnter();
 }
 
 // =====================================================================
@@ -1764,6 +1776,269 @@ function memoPronounceToggleRecord() {
 }
 
 $("memo-pronounce-record").addEventListener("click", memoPronounceToggleRecord);
+
+// =====================================================================
+// SURVIVAL — 内测采集版 (FR-22/25/27)
+// =====================================================================
+// 情境 -> 录音 -> 判定 -> 纠正. Recording reuses the shared MediaRecorder path
+// so collected clips come through the same route a learner's clips will, and all
+// HTTP goes through runtime.js (never a second copy of auth/timeout here).
+//
+// The only number rendered is `delivery` — it is R-14 G1's own criterion.
+// assertNoUncalibratedScore() runs on every response so a future backend change
+// cannot quietly put a fluency or 地道度 number on screen (红线 3).
+const survival = {
+  scenario: null,
+  attemptId: null,
+  transcript: "",
+  entered: false,
+  session: `s-${Math.random().toString(36).slice(2, 10)}`,
+};
+const survivalRec = createRecorder();
+const survivalTimer = makeTimer("survival-timer");
+
+// Needs-pyramid labels, covering every `need` value in the shipped library.
+// A heading, not progression: FR-26's needs-tier advance is out of scope, and
+// ordering the collection by need would skew which scenarios get recorded.
+const SURVIVAL_NEEDS = Object.freeze({
+  food: "你需要吃的",
+  water: "你需要喝的",
+  warmth: "你需要保暖",
+  shelter: "你需要落脚的地方",
+  safety: "你需要脱离危险",
+  belonging: "你想和人搭上话",
+  esteem: "你想被认真对待",
+});
+
+const survivalStatus = (state, message) =>
+  setStatus($("survival-status"), state, message);
+
+function survivalEnter() {
+  if (!survival.entered) {
+    survival.entered = true;
+    survivalRenderTiers();
+  }
+  if (!survival.scenario) survivalLoadScenario();
+}
+
+function survivalRenderTiers() {
+  const nav = $("survival-tiers");
+  nav.textContent = "";
+  SURVIVAL_TIERS.forEach((tier) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "tab";
+    button.dataset.tier = tier.id;
+    button.append(Object.assign(document.createElement("span"), { textContent: tier.label }));
+    button.addEventListener("click", () => {
+      appStore.patch({ survivalTier: tier.id });
+      survivalMarkTier();
+      survivalLoadScenario();
+    });
+    nav.append(button);
+  });
+  survivalMarkTier();
+}
+
+function survivalMarkTier() {
+  const current = appStore.get().survivalTier;
+  $("survival-tiers").querySelectorAll(".tab").forEach((tab) => {
+    const active = tab.dataset.tier === current;
+    tab.classList.toggle("tab-active", active);
+    tab.setAttribute("aria-pressed", String(active));
+  });
+}
+
+async function survivalLoadScenario() {
+  survivalResetResult();
+  survivalStatus("", "正在取情境");
+  const tier = appStore.get().survivalTier;
+  try {
+    const res = await deadlineFetch(
+      `/game/scenario?tier=${encodeURIComponent(tier)}&session=${encodeURIComponent(survival.session)}`,
+      { headers: authHeaders() },
+    );
+    const data = assertNoUncalibratedScore(await readJson(res, "取情境失败"), "/game/scenario");
+    survival.scenario = data;
+    $("survival-need").textContent = SURVIVAL_NEEDS[data.need] || "眼下的处境";
+    $("survival-situation-text").textContent = data.situation_zh || "";
+    $("survival-npc-greeting").textContent = data.npc_greeting || "";
+    survivalRenderHints(data.slot_hints || []);
+    survivalStatus("", "");
+    setSurvivalStage("situation", { scenarioId: data.id, tier: data.tier });
+    revealView($("survival-situation"));
+  } catch (err) {
+    survivalStatus("err", err.message || "取情境失败");
+    setSurvivalStage("error", { reason: "scenario" });
+  }
+}
+
+function survivalRenderHints(hints) {
+  const box = $("survival-hints");
+  box.textContent = "";
+  hints.forEach((hint) => {
+    if (!hint?.zh_hint) return;
+    const chip = document.createElement("span");
+    chip.className = `survival-hint${hint.required ? " required" : ""}`;
+    chip.textContent = hint.required ? hint.zh_hint : `${hint.zh_hint}（可选）`;
+    box.append(chip);
+  });
+}
+
+function survivalResetResult() {
+  $("survival-result").hidden = true;
+  $("survival-correct").hidden = true;
+  $("survival-new-words").hidden = true;
+  $("survival-lowconf").hidden = true;
+  survival.attemptId = null;
+  survival.transcript = "";
+}
+
+async function survivalToggleRecord() {
+  const btn = $("survival-record-btn");
+  if (survivalRec.recording) {
+    survivalRec.stop();
+    survivalTimer.stop();
+    setIconButton(btn, "record", "开始说话");
+    btn.classList.remove("recording");
+    survivalStatus("", "正在整理录音");
+    return;
+  }
+  if (!survival.scenario) return;
+  try {
+    await survivalRec.start((blob) => survivalSubmit(blob));
+  } catch (_) {
+    survivalStatus("err", "无法使用麦克风，请在系统设置里允许后重试");
+    return;
+  }
+  survivalResetResult();
+  setIconButton(btn, "record", "说完了");
+  btn.classList.add("recording");
+  survivalTimer.start();
+  survivalStatus("", "在说了");
+  setSurvivalStage("recording", { scenarioId: survival.scenario.id });
+}
+
+async function survivalSubmit(blob) {
+  if (!blob || !blob.size || !survival.scenario) return;
+  survivalStatus("", "正在听你说的话");
+  setSurvivalStage("judging", { scenarioId: survival.scenario.id });
+  const form = new FormData();
+  form.append("scenario_id", survival.scenario.id);
+  form.append("learner", blob, "attempt.webm");
+  try {
+    const res = await deadlineFetch(
+      "/game/attempt",
+      { method: "POST", headers: authHeaders(), body: form },
+      20_000,
+    );
+    const data = assertNoUncalibratedScore(await readJson(res, "判定失败"), "/game/attempt");
+    survival.attemptId = data.attempt_id;
+    survivalRenderResult(data);
+    survivalStatus("", "");
+  } catch (err) {
+    survivalStatus("err", err.message || "判定失败");
+    setSurvivalStage("error", { reason: "attempt" });
+  }
+}
+
+function survivalRenderResult(data) {
+  $("survival-transcript").textContent = data.transcript || "（没听到内容）";
+  $("survival-lowconf").hidden = !data.low_confidence;
+  survival.transcript = data.transcript || "";
+
+  const box = $("survival-slots");
+  box.textContent = "";
+  withHints(data.slots || [], survival.scenario?.slot_hints || []).forEach((slot) => {
+    const row = document.createElement("div");
+    row.className = `survival-slot${slot.hit ? " hit" : ""}${slot.required ? "" : " optional"}`;
+    const label = document.createElement("strong");
+    label.textContent = slot.label || slot.key;
+    const mark = document.createElement("span");
+    mark.textContent = slot.hit ? "已表达" : slot.required ? "还没说到" : "未加上（可选）";
+    row.append(label, mark);
+    box.append(row);
+  });
+
+  $("survival-npc-line").textContent = data.npc?.line || "";
+  $("survival-reward").textContent = rewardLine(data.reward);
+
+  const words = $("survival-new-words");
+  words.textContent = "";
+  (data.new_words || []).forEach((word) => {
+    if (!word?.en) return;
+    const chip = document.createElement("span");
+    chip.className = "survival-new-word";
+    chip.textContent = word.zh ? `${word.en} ${word.zh}` : word.en;
+    words.append(chip);
+  });
+  words.hidden = words.childElementCount === 0;
+
+  $("survival-result").hidden = false;
+  setSurvivalStage("result", {
+    scenarioId: data.scenario_id || survival.scenario?.id,
+    delivered: Boolean(data.delivered),
+  });
+  revealView($("survival-result"));
+}
+
+function survivalOpenCorrection() {
+  if (!survival.attemptId) return;
+  const box = $("survival-correct-words");
+  box.textContent = "";
+  const input = $("survival-correct-input");
+  input.value = survival.transcript;
+  // Tapping a word drops it from the sentence: the common case is the
+  // instrument inventing or mangling one word, not the learner rewriting all.
+  correctableWords(survival.transcript).forEach((word) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "survival-correct-word";
+    chip.textContent = word;
+    chip.addEventListener("click", () => {
+      chip.classList.toggle("dropped");
+      const kept = Array.from(box.querySelectorAll(".survival-correct-word"))
+        .filter((el) => !el.classList.contains("dropped"))
+        .map((el) => el.textContent);
+      input.value = kept.join(" ");
+    });
+    box.append(chip);
+  });
+  $("survival-correct").hidden = false;
+  setSurvivalStage("correcting", { attemptId: survival.attemptId });
+  revealView($("survival-correct"));
+  input.focus();
+}
+
+async function survivalSubmitCorrection() {
+  const corrected = $("survival-correct-input").value.trim();
+  if (!survival.attemptId || !corrected) return;
+  survivalStatus("", "正在重新判定");
+  try {
+    const res = await deadlineFetch(`/game/attempt/${survival.attemptId}/correct`, {
+      method: "POST",
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({ corrected_text: corrected, learner_claims_correct: true }),
+    });
+    const data = assertNoUncalibratedScore(await readJson(res, "重新判定失败"), "/game/correct");
+    $("survival-correct").hidden = true;
+    survivalRenderResult({ ...data, new_words: [], low_confidence: false });
+    // §5.4: a correction never costs an attempt.
+    survivalStatus("", "已按你说的重新判定，没有消耗机会");
+  } catch (err) {
+    survivalStatus("err", err.message || "重新判定失败");
+  }
+}
+
+$("survival-record-btn").addEventListener("click", survivalToggleRecord);
+$("survival-skip").addEventListener("click", survivalLoadScenario);
+$("survival-next").addEventListener("click", survivalLoadScenario);
+$("survival-correct-open").addEventListener("click", survivalOpenCorrection);
+$("survival-correct-submit").addEventListener("click", survivalSubmitCorrection);
+$("survival-correct-cancel").addEventListener("click", () => {
+  $("survival-correct").hidden = true;
+  setSurvivalStage("result", { attemptId: survival.attemptId });
+});
 
 // =====================================================================
 // Init

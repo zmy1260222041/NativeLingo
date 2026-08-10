@@ -29,4 +29,7 @@ export const appStore = createStore({
   memoView: "upload",
   memoStage: "upload",
   memoContext: {},
+  survivalStage: "idle",
+  survivalContext: {},
+  survivalTier: "toddler",
 });

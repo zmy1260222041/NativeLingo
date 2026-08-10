@@ -16,10 +16,18 @@ function toggleSystemPanel(force) {
 }
 
 export function wireEditorialShell() {
-  const moduleIcons = { speaking: "speaking", memorize: "camera" };
+  // Keyed by data-module rather than a two-way branch, so a further module is
+  // one entry here instead of a rewrite of the label logic.
+  const moduleIcons = { speaking: "speaking", memorize: "camera", survival: "speaking" };
+  const moduleLabels = {
+    speaking: UI_COPY.speaking,
+    memorize: UI_COPY.memorize,
+    survival: UI_COPY.survival,
+  };
   document.querySelectorAll(".module").forEach((button) => {
-    const label = button.dataset.module === "speaking" ? UI_COPY.speaking : UI_COPY.memorize;
-    setIconButton(button, moduleIcons[button.dataset.module], label, label);
+    const key = button.dataset.module;
+    const label = moduleLabels[key] || key;
+    setIconButton(button, moduleIcons[key] || "speaking", label, label);
   });
   document.querySelectorAll(".tab").forEach((button) => {
     const video = button.dataset.mode === "video";
@@ -36,6 +44,7 @@ export function wireEditorialShell() {
   setIconButton(byId("record-btn"), "record", "开始录音");
   setIconButton(byId("memo-back"), "back", "返回整图");
   setIconButton(byId("memo-pronounce-record"), "record", "开始录音");
+  setIconButton(byId("survival-record-btn"), "record", "开始说话");
 
   byId("backend-status").addEventListener("click", () => toggleSystemPanel());
   byId("info-toggle").addEventListener("click", () => toggleSystemPanel());

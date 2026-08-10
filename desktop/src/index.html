@@ -34,6 +34,9 @@
         <button class="module" type="button" data-module="memorize" aria-pressed="false">
           <span>识物</span>
         </button>
+        <button class="module" type="button" data-module="survival" aria-pressed="false">
+          <span>求生</span>
+        </button>
       </nav>
 
       <div class="topbar-actions">
@@ -248,6 +251,74 @@
               <div id="memo-scenario" class="memo-scenario"></div>
             </section>
           </div>
+        </section>
+      </section>
+
+      <!-- Survival — 内测采集版. Four screens: 情境 -> 录音 -> 判定 -> 纠正.
+           Only `delivery` is rendered (it is R-14 G1's own criterion); no
+           fluency / naturalness / 地道度 appears anywhere, per 红线 3. -->
+      <section id="module-survival" class="module-pane" hidden aria-label="求生场景">
+        <div id="survival-beta-note" class="local-note">
+          <span aria-hidden="true" class="local-note-icon"></span>
+          内测采集版：录音保存在本机，用于校准判定，不会离开设备
+        </div>
+
+        <section class="survival-workbench card">
+          <div class="survival-head">
+            <nav id="survival-tiers" class="tabs" aria-label="难度阶段"></nav>
+            <div id="survival-status" class="analyze-status" role="status" aria-live="polite"></div>
+          </div>
+
+          <section id="survival-situation" class="survival-situation">
+            <h1 id="survival-need" class="survival-need"></h1>
+            <p id="survival-situation-text" class="survival-situation-text"></p>
+            <p id="survival-npc-greeting" class="survival-npc-greeting"></p>
+            <div id="survival-hints" class="survival-hints" aria-label="需要表达的意思"></div>
+          </section>
+
+          <div class="survival-record">
+            <button id="survival-record-btn" class="record-control" type="button" aria-label="开始说话"></button>
+            <span id="survival-timer" class="timer">00:00</span>
+            <button id="survival-skip" class="btn btn-secondary" type="button">换一个情境</button>
+          </div>
+
+          <section id="survival-result" class="survival-result" hidden>
+            <div class="survival-heard">
+              <h2>听到的是</h2>
+              <p id="survival-transcript" class="survival-transcript"></p>
+              <p id="survival-lowconf" class="survival-lowconf" hidden>这段录音很轻或很含糊，可以再说一次</p>
+            </div>
+
+            <div id="survival-slots" class="survival-slots" aria-label="意思是否传达"></div>
+
+            <div class="survival-npc">
+              <p id="survival-npc-line" class="survival-npc-line"></p>
+              <p id="survival-reward" class="survival-reward"></p>
+            </div>
+
+            <div id="survival-new-words" class="survival-new-words" hidden></div>
+
+            <div class="survival-result-actions">
+              <button id="survival-correct-open" class="btn btn-secondary" type="button">这不是我说的话</button>
+              <button id="survival-next" class="btn" type="button">下一个情境</button>
+            </div>
+          </section>
+
+          <!-- FR-27 correction entry: the (A)/(B) triage. A correction that
+               raises delivery means the instrument lost a word that was said;
+               one that does not points at pronunciation instead. Costs no
+               attempt — §5.4 retries are free. -->
+          <section id="survival-correct" class="survival-correct" hidden>
+            <h2>你实际说的是哪些词</h2>
+            <p class="survival-correct-hint">点掉听错的词，或直接改写整句。改完不消耗机会。</p>
+            <div id="survival-correct-words" class="survival-correct-words"></div>
+            <label class="sr-only" for="survival-correct-input">你实际说的话</label>
+            <input id="survival-correct-input" type="text" autocomplete="off" spellcheck="false">
+            <div class="survival-correct-actions">
+              <button id="survival-correct-submit" class="btn" type="button">就是这句</button>
+              <button id="survival-correct-cancel" class="btn btn-secondary" type="button">取消</button>
+            </div>
+          </section>
         </section>
       </section>
     </main>

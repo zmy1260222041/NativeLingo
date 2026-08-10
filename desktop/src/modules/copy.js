@@ -2,6 +2,7 @@ export const UI_COPY = Object.freeze({
   brand: "NativeLingo",
   speaking: "跟读",
   memorize: "识物",
+  survival: "求生",
   videoMode: "视频",
   audioMode: "音频",
   chooseVideo: "选择素材",
