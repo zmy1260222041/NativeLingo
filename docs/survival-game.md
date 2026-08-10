@@ -182,6 +182,12 @@ reward: [
 
 ### 5.5 示例场景(填好的两条)
 
+> 注:以下示例展示的是**场景 schema 的形状**,不是逐字节拷贝。`food-ask-bread` 在
+> G3 评分轮(用户按低分反馈改写场景文本)后已升到 `version: 2`,`situation` 改为
+> 面包店柜台的措辞,`reward` / `new_words` / `provenance` 也随之更新。以
+> `desktop/backend/core/game_scenarios/L1-food-ask-bread.json` 为准;本示例保留原始
+> 简化措辞以说明字段语义。
+
 **示例 A —— `food-ask-bread`(婴儿级 / 生理需求)**
 
 ```json
@@ -515,6 +521,21 @@ sidecar 体例(`CACHE_VERSION = 5`,`transcribe.py:164`,旧缓存惰性补算)。
 全部沿用既有约定:bearer token 鉴权(`require_token`)、
 `_within_memorize_deadline`(`main.py:477`)的 15s deadline → 504 + 可读中文,
 模型不可用 → 503。
+
+#### 9.1.1 内测采集版已实现的端点(2026-08-10)
+
+§5.2 放行的内测采集版只实现了上面草案的一个子集。**已实现**:
+
+| 路由 | 方法 | 用途 | 与草案的差异 |
+|---|---|---|---|
+| `/game/scenario` | GET | 取一条场景(`?tier=&session=`,随机不重复,不做需求层级推进) | 只出中文 `situation_zh` + `npc_greeting` + 槽位中文提示;**扣住**英文 `situation.en` / `reference_answer` / `accept` 集(采集要听真话,不能泄露答案) |
+| `/game/attempt` | POST | 录音 → 游戏独立转写(`game_transcribe.py`)→ 槽位匹配 → `delivery` → NPC 三档回应 + 最小物资 → 落盘 → 返回 `attempt_id` | **只出 `delivery`**(G1 判据本身),**不出** fluency / 地道度(红线 3,G7 未测) |
+| `/game/attempt/{aid}/correct` | POST | FR-27 词级纠正 → 按纠正文本重判 → 不消耗机会 | 草案里没有,FR-27 新增;`triage_hint` 标 `asr_miss`(delivery 升 ⇒ (B) 类)或 `pronunciation`(⇒ (A) 类,导流 Speaking) |
+| `/game/export` | GET | 导出 `delivery_rows` + `asr_manifest`,格式直接喂两个量具 | 草案里没有;`origin` 列留空(人工 attestation),采集路由记在 `collection` 列 |
+
+**未实现**(超出内测范围,受原门约束):
+`/game/state`(进度经济,FR-26)、`/game/observe`(照片扩词,FR-24)、
+`/game/review`(云端审核,FR-23 / G5 —— 内测期零出站)。
 
 ### 9.2 前端
 
