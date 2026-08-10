@@ -1,0 +1,127 @@
+{
+  "id": "shelter-ask-toilet",
+  "version": 1,
+  "tier": "infant",
+  "need": "shelter",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "你急着要上厕所。一个人正在店门口扫地。",
+    "en": "You badly need a toilet. A person is sweeping in front of a shop."
+  },
+  "npc": {
+    "persona": "A shopkeeper sweeping the step. Practical, points the way without fuss.",
+    "greeting": "Hello. Do you need something?",
+    "responses": {
+      "hit": [
+        "The toilet? It is in the back. Go.",
+        "Yes, this way. Behind the door."
+      ],
+      "partial": [
+        "You need something. Say it again for me?",
+        "Where do you want to go?"
+      ],
+      "miss": [
+        "Sorry? Say it again?",
+        "Hmm? I did not catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "toilet",
+        "bathroom",
+        "restroom",
+        "wc",
+        "washroom"
+      ],
+      "zh_hint": "你要找的地方"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": [
+        "where",
+        "where is",
+        "need",
+        "want",
+        "can i",
+        "may i",
+        "please",
+        "i go"
+      ],
+      "zh_hint": "表达这是一个请求或提问"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks",
+        "excuse me"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "toilet_access",
+          "count": 1
+        },
+        {
+          "id": "clean_water",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "toilet_access",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "vague_direction",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "toilet",
+      "zh": "厕所",
+      "source": "npc"
+    },
+    {
+      "en": "back",
+      "zh": "后面",
+      "source": "npc"
+    },
+    {
+      "en": "door",
+      "zh": "门",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "Where is the toilet, please?",
+  "provenance": {
+    "rationale": "问厕所在哪是出门在外最不可回避的生理需求表达,几乎每个成人学习者出国第一天就会需要它,且它无法用手势体面地替代 —— 这正是「必须让对方听懂」的真实交际压力。",
+    "frequency_basis": "需求金字塔第 1 层;go#31 / where#86 / need#90 均在 NGSL 首百词,首次引入 where 疑问词这一高复用功能词;但 toilet / bathroom / restroom / washroom / wc **五种说法无一在 NGSL 2,809 词内** —— 这是频次表用于日常生存场景时最典型的盲区,该槽位只能由 CEFR-J 等级侧定级。"
+  }
+}

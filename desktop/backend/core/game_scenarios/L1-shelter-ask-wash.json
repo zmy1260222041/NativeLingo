@@ -1,0 +1,137 @@
+{
+  "id": "shelter-ask-wash",
+  "version": 2,
+  "tier": "toddler",
+  "need": "shelter",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "长途出行后你刚住进一家青旅，想洗澡，但不知道淋浴间在哪里，也没有毛巾。前台工作人员正在值班。",
+    "en": "After a long journey, you have just checked into a hostel and want to shower, but you do not know where the showers are and have no towel. A receptionist is on duty."
+  },
+  "npc": {
+    "persona": "A hostel receptionist on duty. Matter-of-fact, welcoming, and used to practical guest requests.",
+    "greeting": "Hello. How can I help?",
+    "responses": {
+      "hit": [
+        "You need a shower? It is down the hall. Here is a clean towel.",
+        "Of course. The shower room is upstairs, and I can give you soap and a towel."
+      ],
+      "partial": [
+        "You want to wash? Tell me what you need from the desk.",
+        "A towel, or directions to the shower? Say it again for me."
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "wash",
+        "wash my hands",
+        "wash myself",
+        "shower",
+        "the shower",
+        "shower room",
+        "water",
+        "towel",
+        "soap",
+        "clean myself"
+      ],
+      "zh_hint": "你要做的事或要的东西"
+    },
+    {
+      "key": "reason_state",
+      "required": true,
+      "accept": [
+        "dirty",
+        "i am dirty",
+        "me dirty",
+        "long trip",
+        "long journey",
+        "not washed",
+        "no towel"
+      ],
+      "zh_hint": "说明你的状态,让对方理解需求"
+    },
+    {
+      "key": "request_act",
+      "required": false,
+      "accept": [
+        "can i",
+        "may i",
+        "could you",
+        "please",
+        "need",
+        "want"
+      ],
+      "zh_hint": "请求标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "wash_access",
+          "count": 1
+        },
+        {
+          "id": "soap",
+          "count": 1
+        },
+        {
+          "id": "towel",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "wash_access",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "wet_cloth",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "wash",
+      "zh": "洗",
+      "source": "npc"
+    },
+    {
+      "en": "soap",
+      "zh": "肥皂",
+      "source": "npc"
+    },
+    {
+      "en": "towel",
+      "zh": "毛巾",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "After a long trip, I need a shower. Where can I wash, and can I have a towel?",
+  "provenance": {
+    "rationale": "入住青旅、健身房或临时住宿后询问淋浴位置并索取毛巾，是旅行和公共设施使用中的常见事务。淋浴间不可从柜台直接看见，NPC 也不知道玩家缺毛巾，必须通过语言交付 wash/shower 与 towel 两项需求。",
+    "frequency_basis": "需求金字塔第 1 层;hands#198 / water#322 / clean#842 在最低频段,但 wash#1368 与 dirty#2255 分别在第二、三千段,soap / shower / towel 不在 NGSL 2,809 词内 —— soap 与 towel 属生活照片可扩词项，其等级须由 CEFR-J 给出。"
+  }
+}

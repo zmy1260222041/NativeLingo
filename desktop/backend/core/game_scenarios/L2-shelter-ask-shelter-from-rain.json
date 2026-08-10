@@ -1,0 +1,145 @@
+{
+  "id": "shelter-ask-shelter-from-rain",
+  "version": 1,
+  "tier": "toddler",
+  "need": "shelter",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "突然下起大雨,你没有伞。旁边一家店的屋檐下站着店主,你想问能不能在这儿躲一会儿雨。",
+    "en": "It has started to rain hard and you have no umbrella. A shop owner is standing under the awning next door, and you want to ask if you can wait there until the rain stops."
+  },
+  "npc": {
+    "persona": "A shop owner watching the rain from the doorway. Easy-going and welcoming.",
+    "greeting": "Coming down hard, isn't it?",
+    "responses": {
+      "hit": [
+        "Stay under here? Of course. Stand by the wall, it is drier.",
+        "Wait here, yes. It will pass soon. Here, a dry cloth."
+      ],
+      "partial": [
+        "You are soaked. What do you need?",
+        "Under here? Say it once more?"
+      ],
+      "miss": [
+        "Sorry? Say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_shelter",
+      "required": true,
+      "accept": [
+        "stay here",
+        "wait here",
+        "stand here",
+        "under here",
+        "inside",
+        "come in",
+        "here",
+        "dry place",
+        "out of the rain"
+      ],
+      "zh_hint": "你要的东西:在这儿避雨的位置"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": [
+        "can i",
+        "may i",
+        "please",
+        "want",
+        "need",
+        "ok",
+        "okay",
+        "is it ok",
+        "let me"
+      ],
+      "zh_hint": "表达这是一个请求"
+    },
+    {
+      "key": "reason_state",
+      "required": false,
+      "accept": [
+        "rain",
+        "raining",
+        "wet",
+        "no umbrella",
+        "cold",
+        "big rain"
+      ],
+      "zh_hint": "说明原因:下雨了 / 你没伞"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks",
+        "excuse me"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "dry_spot",
+          "count": 1
+        },
+        {
+          "id": "dry_cloth",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "dry_spot",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "narrow_ledge",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "rain",
+      "zh": "雨",
+      "source": "npc"
+    },
+    {
+      "en": "dry",
+      "zh": "干的",
+      "source": "npc"
+    },
+    {
+      "en": "wait",
+      "zh": "等",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "Can I wait here until the rain stops?",
+  "provenance": {
+    "rationale": "被雨困住、临时找地方躲一躲,是几乎每个人每年都会遇到的小状况,而开口问一句就能解决。它把「庇护」这个抽象需求缩小成一个当场可给的东西:一块干的地方。",
+    "frequency_basis": "需求金字塔第 2 层(基本庇护)。wait#403 与 inside#660 在最低频段,但 dry#1135 与 rain#1232 已入第二千段 —— 与 shelter-ask-sit-inside 同因:天气词并不在最低频段;意思可由「here, please」加上下雨的语境传达,不要求 until 从句。"
+  }
+}

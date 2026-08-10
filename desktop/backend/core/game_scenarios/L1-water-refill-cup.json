@@ -1,0 +1,126 @@
+{
+  "id": "water-refill-cup",
+  "version": 2,
+  "tier": "infant",
+  "need": "water",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "餐馆里你的杯子已经空了。水壶在服务员手里，她正在给邻桌添水，还没有注意到你。",
+    "en": "Your cup is empty in a restaurant. The server has the water jug and is refilling a nearby table, but has not noticed you yet."
+  },
+  "npc": {
+    "persona": "A restaurant server checking the tables. Friendly, attentive, and happy to refill a drink when asked.",
+    "greeting": "How is everything?",
+    "responses": {
+      "hit": [
+        "More water? Of course. I will fill your cup.",
+        "Yes, let me refill it for you."
+      ],
+      "partial": [
+        "Your cup? What do you need?",
+        "Water? Tell me what you would like."
+      ],
+      "miss": [
+        "Sorry? Say it again?",
+        "I did not catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "water",
+        "cup",
+        "my cup",
+        "drink",
+        "more water"
+      ],
+      "zh_hint": "你要的东西"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": [
+        "want",
+        "need",
+        "fill",
+        "fill it",
+        "give me",
+        "can i have",
+        "please",
+        "more"
+      ],
+      "zh_hint": "表达这是一个请求"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "water",
+          "count": 2
+        },
+        {
+          "id": "cup",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "water",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "water_sip",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "cup",
+      "zh": "杯子",
+      "source": "npc"
+    },
+    {
+      "en": "empty",
+      "zh": "空的",
+      "source": "npc"
+    },
+    {
+      "en": "full",
+      "zh": "满的",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "More water, please.",
+  "provenance": {
+    "rationale": "在餐馆、咖啡店或会议中请人续水，是成人高频复现的服务交流。水壶由服务员控制且对方尚未注意到空杯，玩家必须主动说 more water 或 fill my cup 才能满足需求。",
+    "frequency_basis": "需求金字塔第 1 层;more#42 / water#322 / drink#655 / fill#845 在最低频段,但 cup#1491 与 empty#1592 在第二千段 —— cup 也是 yoloe_everyday_labels 中的日常物,支持照片扩词接入,其等级由 CEFR-J 给出。"
+  }
+}

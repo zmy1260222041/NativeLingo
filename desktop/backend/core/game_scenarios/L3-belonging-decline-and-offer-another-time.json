@@ -1,0 +1,168 @@
+{
+  "id": "belonging-decline-and-offer-another-time",
+  "version": 1,
+  "tier": "youth",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "同事叫你今晚一起去吃饭,但你今晚要照顾生病的家人。你想婉拒,同时说明原因,并约另一天,免得对方觉得你不想来。",
+    "en": "A workmate invites you out to eat tonight, but you have to look after a sick family member. You want to say no, explain why, and suggest another day so he does not think you are not interested."
+  },
+  "npc": {
+    "persona": "A workmate who asked you out to eat. Easy-going, takes a no without offence.",
+    "greeting": "A few of us are eating out tonight. Come along?",
+    "responses": {
+      "hit": [
+        "Ah, your mother is unwell. Of course, go home. Thursday then, we will wait for you.",
+        "No trouble at all. Family first. Let us make it Thursday instead."
+      ],
+      "partial": [
+        "You cannot come tonight, I understand. Did you say another day?",
+        "Not tonight, then. Was there more?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? I did not catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "decline",
+      "required": true,
+      "accept": [
+        "i cannot",
+        "cannot",
+        "can not",
+        "cant",
+        "can't",
+        "not tonight",
+        "no tonight",
+        "not today",
+        "sorry no",
+        "i am not free",
+        "not free",
+        "busy"
+      ],
+      "zh_hint": "表达今晚去不了"
+    },
+    {
+      "key": "reason",
+      "required": true,
+      "accept": [
+        "my mother",
+        "my family",
+        "sick",
+        "ill",
+        "not well",
+        "take care",
+        "look after",
+        "hospital",
+        "at home",
+        "someone is sick"
+      ],
+      "zh_hint": "说明原因,让对方明白不是不想去"
+    },
+    {
+      "key": "alternative",
+      "required": true,
+      "accept": [
+        "another day",
+        "next time",
+        "tomorrow",
+        "thursday",
+        "friday",
+        "next week",
+        "later",
+        "other day",
+        "maybe saturday",
+        "when i am free"
+      ],
+      "zh_hint": "提出改约另一天"
+    },
+    {
+      "key": "warmth",
+      "required": false,
+      "accept": [
+        "i want to come",
+        "i would like to",
+        "thank you for asking",
+        "thanks for asking",
+        "sounds good",
+        "next time for sure",
+        "really"
+      ],
+      "zh_hint": "表达你其实很想去(保住关系)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "sorry",
+        "i am sorry",
+        "please",
+        "thank you",
+        "thanks"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "rescheduled_invitation",
+          "count": 1
+        },
+        {
+          "id": "kept_friendship",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "rescheduled_invitation",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "awkward_goodbye",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "Thursday",
+      "zh": "星期四",
+      "source": "npc"
+    },
+    {
+      "en": "unwell",
+      "zh": "不舒服的",
+      "source": "npc"
+    },
+    {
+      "en": "instead",
+      "zh": "改为",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "I cannot come tonight, my mother is sick. Can we go on Thursday instead?",
+  "provenance": {
+    "rationale": "拒绝邀请却不伤关系,是归属层里最实用也最容易搞砸的一次交流。生硬的 no 会被读成疏远,而学习者往往因为不会解释而干脆不解释。三个必需槽位正对应「拒绝 + 原因 + 改约」这个保住关系的最小结构。",
+    "frequency_basis": "需求金字塔第 3 层(归属)。cannot#38(NGSL 收于 can)/ busy#1233 / tonight#1414 / sick#1716 均在 NGSL 内,但 **Thursday 等星期名整类不在 NGSL 2,809 词中** —— 频次表不收星期与月份,这类词只能由 CEFR-J 定级;youth 级难度在于三个意思单元的组合,「no tonight, mother sick, thursday ok?」即算传达到。"
+  }
+}

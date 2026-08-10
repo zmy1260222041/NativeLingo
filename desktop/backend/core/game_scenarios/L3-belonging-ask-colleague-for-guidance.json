@@ -1,0 +1,76 @@
+{
+  "id": "belonging-ask-colleague-for-guidance",
+  "version": 1,
+  "tier": "professional",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "组里有个流程你还没摸清,同事做得最熟。你想请她抽二十分钟带你走一遍,并商量什么时候方便。",
+    "en": "There is a process on the team you have not got the hang of, and a colleague knows it best. You want to ask her for twenty minutes to walk you through it, and agree on a time that suits her."
+  },
+  "npc": {
+    "persona": "An experienced colleague, busy but generous with her time. Never makes anyone feel slow for asking.",
+    "greeting": "You wanted to catch me?",
+    "responses": {
+      "hit": [
+        "Walk you through the stock report? Twenty minutes is plenty. Come by after lunch, say one thirty, and bring last month's file.",
+        "Happy to. Tomorrow morning is quieter for me than today. Bring your laptop and we will do it together."
+      ],
+      "partial": [
+        "Which part would you like to go over? And when suits you?",
+        "I can help with that. Say the second part again?"
+      ],
+      "miss": [
+        "Sorry, could you say that again?",
+        "Hmm, I did not quite catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "topic",
+      "required": true,
+      "accept": ["the report", "stock report", "the process", "this system", "the form", "how it works", "this part", "the steps", "this task"],
+      "zh_hint": "你想学的东西"
+    },
+    {
+      "key": "request_guidance",
+      "required": true,
+      "accept": ["show me", "can you show me", "teach me", "walk me through", "go over it", "help me", "explain", "i want to learn", "can you help", "sit with me"],
+      "zh_hint": "请对方带你走一遍"
+    },
+    {
+      "key": "time_negotiation",
+      "required": true,
+      "accept": ["when", "when are you free", "what time", "twenty minutes", "20 minutes", "half an hour", "after lunch", "tomorrow", "this afternoon", "any time that suits you", "if you have time today"],
+      "zh_hint": "商量时间与需要多久"
+    },
+    {
+      "key": "preparation",
+      "required": false,
+      "accept": ["i read", "i tried", "i looked at", "i already", "i have the file", "i wrote down", "my questions", "i prepared"],
+      "zh_hint": "说明你已经自己试过(专业度标记)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "if you have time", "sorry to bother", "i appreciate", "when it suits you"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "booked_walkthrough", "count": 1 }, { "id": "colleague_mentor", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "booked_walkthrough", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "link_to_the_manual", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "process", "zh": "流程", "source": "npc" },
+    { "en": "lunch", "zh": "午饭", "source": "npc" },
+    { "en": "file", "zh": "文件", "source": "npc" }
+  ],
+  "reference_answer": "Could you walk me through the stock report? Twenty minutes would be enough. When are you free?",
+  "provenance": {
+    "rationale": "向同事请教并约时间是职场里每周都会发生的事,也是融入团队的实际方式 —— 求助建立的关系比独自摸索更牢。非母语者常因为怕显得能力不足而不敢问,结果既没学会也没建立关系。",
+    "frequency_basis": "需求金字塔第 3 层(群体归属与互助)。show me / when / minutes / tomorrow 均为常用词;professional 级的难度在于同时交付请求、范围与时间协商,而不要求礼貌用语的语法形式正确。"
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "id": "food-buy-market-portion",
+  "version": 1,
+  "tier": "youth",
+  "need": "food",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "你攒到了一点钱,想在市场买够吃两天的东西,但钱只够买一样。摊主可以帮你挑。",
+    "en": "You have saved a little money and want enough food for two days, but it is only enough for one item. The seller can help you choose."
+  },
+  "npc": {
+    "persona": "A market seller who weighs things out. Honest, gives real advice when asked.",
+    "greeting": "Everything here is fresh today. How much do you need?",
+    "responses": {
+      "hit": [
+        "Two days on that money? Then take the rice. It fills you longer.",
+        "I see. Half a bag of rice, and I will add some beans."
+      ],
+      "partial": [
+        "Rice, yes. How much do you want?",
+        "For how long do you need it? Tell me again?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "I did not catch that. One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "rice",
+        "food",
+        "beans",
+        "bread",
+        "something filling",
+        "enough food"
+      ],
+      "zh_hint": "你要买的东西"
+    },
+    {
+      "key": "quantity",
+      "required": true,
+      "accept": [
+        "two days",
+        "for two days",
+        "enough for two days",
+        "a lot",
+        "half a bag",
+        "some",
+        "how much",
+        "two day"
+      ],
+      "zh_hint": "说明你要多少 / 要吃多久"
+    },
+    {
+      "key": "constraint",
+      "required": true,
+      "accept": [
+        "little money",
+        "not much money",
+        "only this much",
+        "cheap",
+        "cheapest",
+        "small money",
+        "no money for two"
+      ],
+      "zh_hint": "说明你的限制,让对方能替你权衡"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks",
+        "excuse me"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "rice",
+          "count": 2
+        },
+        {
+          "id": "beans",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "rice",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "rice_handful",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "fresh",
+      "zh": "新鲜的",
+      "source": "npc"
+    },
+    {
+      "en": "cheap",
+      "zh": "便宜的",
+      "source": "npc"
+    },
+    {
+      "en": "bag",
+      "zh": "袋",
+      "source": "npc"
+    },
+    {
+      "en": "beans",
+      "zh": "豆子",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "I only have a little money. What can I buy that lasts two days?",
+  "provenance": {
+    "rationale": "买菜时说清「要多少、预算多少、请你帮我挑」是成人每周都在做的事,也是三槽位表达的自然落点:物品 + 数量 + 限制。青年级在此第一次要求学习者同时传达数量与约束条件,而不只是需求本身。",
+    "frequency_basis": "需求金字塔第 1 层;day#85 / cheapest#1095 / bag#1252 在 NGSL 前 1,300,但 bread#2262 与 rice#2695 落在第三千段,beans 不在 NGSL 内 —— 主食名反而是最低频的一类,原措辞「全在中低频段」不成立;新增的是数量与限制表达,现实购物对话里出现频率极高。"
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "id": "shelter-ask-sit-inside",
+  "version": 2,
+  "tier": "infant",
+  "need": "shelter",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "突然下起大雨，你没有伞。咖啡店里还有空座，店员正在门边收拾伞架；你想问能不能进去等雨小一些。",
+    "en": "Heavy rain starts and you have no umbrella. A cafe still has empty seats, and an employee is tidying the umbrella stand by the door. You want to ask whether you may wait inside."
+  },
+  "npc": {
+    "persona": "A cafe employee tidying the entrance. Calm, practical, and happy to let someone wait out the rain.",
+    "greeting": "Hello. Can I help you?",
+    "responses": {
+      "hit": [
+        "Yes, come inside and wait. You can use that seat.",
+        "Of course. Come in and stay dry until the rain slows."
+      ],
+      "partial": [
+        "You want to wait somewhere? Tell me where.",
+        "Inside? Say the request once more for me."
+      ],
+      "miss": [
+        "Sorry? Say it again?",
+        "Hmm? What do you need?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "in",
+        "inside",
+        "come in",
+        "the cafe",
+        "wait inside",
+        "dry",
+        "out of the rain"
+      ],
+      "zh_hint": "你要的东西:进屋躲雨"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": [
+        "want",
+        "need",
+        "can i",
+        "may i",
+        "let me",
+        "please"
+      ],
+      "zh_hint": "表达这是一个请求"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "dry_shelter",
+          "count": 1
+        },
+        {
+          "id": "warm_seat",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "dry_shelter",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "doorway_spot",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "inside",
+      "zh": "里面",
+      "source": "npc"
+    },
+    {
+      "en": "rain",
+      "zh": "雨",
+      "source": "npc"
+    },
+    {
+      "en": "dry",
+      "zh": "干的",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "Can I wait inside, please?",
+  "provenance": {
+    "rationale": "突降大雨时向商店、咖啡店或公共场所工作人员请求短暂进门避雨，是城市生活和旅行中常见的小型许可交流。空座并不等于自动获准进入，NPC 也没有替玩家提出避雨需求，因此必须说出 inside 或 wait 并构成请求。",
+    "frequency_basis": "需求金字塔第 1 层;in#7 / come#65 / let#174 / wait#403 / inside#660 确在最低频段,但 dry#1135 与 rain#1232 已入第二千段;本场景以介词与基础请求构式承担主要表达。"
+  }
+}

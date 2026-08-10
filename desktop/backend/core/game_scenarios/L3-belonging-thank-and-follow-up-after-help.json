@@ -1,0 +1,76 @@
+{
+  "id": "belonging-thank-and-follow-up-after-help",
+  "version": 1,
+  "tier": "professional",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "上周同事替你顶了一次班,你才赶上家里的事。今天你想当面谢他,说清他帮到了什么,并提出以后怎么回报。",
+    "en": "A colleague covered your shift last week so you could deal with something at home. Today you want to thank him in person, say what his help actually made possible, and offer something back."
+  },
+  "npc": {
+    "persona": "A colleague who covered your shift. Modest, brushes off thanks, but visibly pleased.",
+    "greeting": "Morning. All sorted at home?",
+    "responses": {
+      "hit": [
+        "I am glad it helped. And yes, I may take you up on that for the Friday late shift next month. Thank you for saying so.",
+        "It was no trouble, honestly. But I will remember the offer. Good to know I can ask you too."
+      ],
+      "partial": [
+        "Thank you, that is kind. Was there something else?",
+        "Glad to help. Say the last part again?"
+      ],
+      "miss": [
+        "Sorry, could you say that again?",
+        "Hmm, I did not catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "thanks",
+      "required": true,
+      "accept": ["thank you", "thanks", "i want to thank you", "grateful", "i appreciate", "very kind", "so kind of you"],
+      "zh_hint": "表达感谢"
+    },
+    {
+      "key": "what_it_enabled",
+      "required": true,
+      "accept": ["you took my shift", "covered my shift", "my shift", "last week", "because of you", "you helped me", "i could go home", "i could take my mother", "it helped me", "i needed to be at home"],
+      "zh_hint": "说清他具体帮了什么、让你做到了什么"
+    },
+    {
+      "key": "offer_back",
+      "required": true,
+      "accept": ["i can cover", "i will cover", "if you need", "tell me when", "any time", "next time i", "i owe you", "ask me", "i can take yours", "let me know"],
+      "zh_hint": "提出以后怎么回报"
+    },
+    {
+      "key": "specificity",
+      "required": false,
+      "accept": ["friday", "next month", "late shift", "weekend", "any shift", "your saturday", "the night one"],
+      "zh_hint": "把回报说得更具体(专业度标记)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "really", "honestly", "i mean it", "just wanted to say"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "standing_favour", "count": 1 }, { "id": "colleague_ally", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "colleague_ally", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "polite_nod", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "shift", "zh": "班次", "source": "npc" },
+    { "en": "cover", "zh": "替班", "source": "npc" },
+    { "en": "offer", "zh": "提出给予", "source": "npc" }
+  ],
+  "reference_answer": "Thank you for covering my shift last week. It meant I could be at home. If you need a shift covered, tell me and I will take it.",
+  "provenance": {
+    "rationale": "受人帮助之后回头道谢并提出回报,是维持长期同事关系的关键动作,也是职场互助循环真正闭合的地方。只说一句 thanks 往关系里加的东西很少,说清「帮到了什么 + 我能还什么」才让对方下次愿意再帮。",
+    "frequency_basis": "需求金字塔第 3 层(群体归属与互惠)。thank you / shift / cover / next time 都是常用职场词;professional 级的难度在于三个意思单元的组织与具体化,语法不完美不影响感谢与回报是否传达到。"
+  }
+}

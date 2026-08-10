@@ -1,0 +1,70 @@
+{
+  "id": "safety-ask-street-safe",
+  "version": 1,
+  "tier": "toddler",
+  "need": "safety",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "天黑了,你要走回住处。前面那条街你没走过,想问路边的人那条街晚上安不安全。",
+    "en": "It is dark and you need to walk back to where you sleep. You have never used the street ahead, so you want to ask someone nearby if it is safe at night."
+  },
+  "npc": {
+    "persona": "A shopkeeper sweeping the doorstep. Friendly, glad to answer.",
+    "greeting": "Heading home?",
+    "responses": {
+      "hit": [
+        "That street? It is safe. Keep to the lights.",
+        "Safe, yes. Many people walk there at night."
+      ],
+      "partial": [
+        "The street? What do you want to know?",
+        "You mean that way? Tell me more."
+      ],
+      "miss": [
+        "Sorry? Say that again?",
+        "Hmm? I did not catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "place_ref",
+      "required": true,
+      "accept": ["street", "the street", "that street", "road", "that way", "this way", "there", "over there"],
+      "zh_hint": "你在问的那条路"
+    },
+    {
+      "key": "safety_query",
+      "required": true,
+      "accept": ["safe", "safety", "danger", "dangerous", "ok", "okay", "good", "bad", "scared", "afraid"],
+      "zh_hint": "问的是安不安全"
+    },
+    {
+      "key": "time_ref",
+      "required": false,
+      "accept": ["night", "tonight", "at night", "dark", "now", "late"],
+      "zh_hint": "什么时候(晚上 / 现在)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "excuse me"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "safe_route", "count": 1 }, { "id": "pocket_lamp", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "safe_route", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "pointed_direction", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "safe", "zh": "安全的", "source": "npc" },
+    { "en": "street", "zh": "街道", "source": "npc" },
+    { "en": "night", "zh": "夜晚", "source": "npc" }
+  ],
+  "reference_answer": "Is that street safe at night?",
+  "provenance": {
+    "rationale": "独自走夜路之前确认路线安全,是城市生活里反复出现的判断。对刚到一个地方的人,这句问话常常是当天必须说出口的一句;安全在这里不是抽象概念,而是「走哪条路」这个具体决定。",
+    "frequency_basis": "需求金字塔第 2 层(安全)。safe / street / night 都属日常高频词,整句可以只由「street—safe—night」三个意思单元构成,不要求疑问句倒装或完整系动词。"
+  }
+}

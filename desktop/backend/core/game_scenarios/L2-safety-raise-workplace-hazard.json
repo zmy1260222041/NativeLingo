@@ -1,0 +1,76 @@
+{
+  "id": "safety-raise-workplace-hazard",
+  "version": 1,
+  "tier": "professional",
+  "need": "safety",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "仓库通道上有一根电线横在地上,已经有人差点被绊倒。你去找班组长说明风险,并提出怎么处理。",
+    "en": "A power cable runs across the walkway in the warehouse and someone has already tripped on it. You go to the shift supervisor to raise the risk and suggest what to do."
+  },
+  "npc": {
+    "persona": "A shift supervisor who takes safety reports seriously. Attentive and appreciative.",
+    "greeting": "You wanted a word?",
+    "responses": {
+      "hit": [
+        "A cable across the walkway, and someone nearly went down. You are right, that is a real risk. I will tape it down now and put a cone there until maintenance moves it.",
+        "Good that you came to me. Cable on the floor, people walking past it all shift. I will get it covered before the next round."
+      ],
+      "partial": [
+        "Where exactly is it, and what do you think we should do?",
+        "I hear there is a problem. Walk me through it once more?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? I did not follow that. One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "hazard_object",
+      "required": true,
+      "accept": ["cable", "wire", "the cable", "power cable", "cord", "line on the floor"],
+      "zh_hint": "有风险的东西:那根电线"
+    },
+    {
+      "key": "hazard_location",
+      "required": true,
+      "accept": ["walkway", "the floor", "on the floor", "across the path", "path", "aisle", "where people walk", "by the door", "in the way"],
+      "zh_hint": "它在哪里造成问题"
+    },
+    {
+      "key": "risk_statement",
+      "required": true,
+      "accept": ["dangerous", "not safe", "unsafe", "risk", "someone will fall", "trip", "tripped", "fall", "fell", "get hurt", "hurt someone", "accident"],
+      "zh_hint": "说明风险:会有人绊倒 / 受伤"
+    },
+    {
+      "key": "proposed_action",
+      "required": false,
+      "accept": ["tape it", "cover it", "move it", "we should move", "can we move", "put a cone", "mark it", "unplug it", "maybe we can", "i suggest"],
+      "zh_hint": "提出处理办法(专业度标记)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "just so you know", "sorry to bother", "when you have a minute"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "hazard_cleared", "count": 1 }, { "id": "supervisor_trust", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "hazard_cleared", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "warning_cone", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "cable", "zh": "电线", "source": "npc" },
+    { "en": "trip", "zh": "绊倒", "source": "npc" },
+    { "en": "cover", "zh": "盖住", "source": "npc" }
+  ],
+  "reference_answer": "There is a cable across the walkway and someone nearly tripped on it. Can we tape it down or move it?",
+  "provenance": {
+    "rationale": "工作场所里指出一个具体隐患,是很多岗位每月都会做的事,地上的线、湿滑的地面、挡住的通道都属同类。开口报隐患对非母语者尤其吃力,因为要同时说清事实、风险与建议,而沉默的代价是有人受伤。",
+    "frequency_basis": "需求金字塔第 2 层(人身安全)。cable / floor / dangerous / move 均为常用词,专业度体现在把「现象 + 风险 + 建议」组织成一次简短汇报;语法不完美不影响风险是否传达到。"
+  }
+}

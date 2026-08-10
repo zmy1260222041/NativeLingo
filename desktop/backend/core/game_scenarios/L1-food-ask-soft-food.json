@@ -1,0 +1,136 @@
+{
+  "id": "food-ask-soft-food",
+  "version": 2,
+  "tier": "toddler",
+  "need": "food",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "你的牙很疼，咬不动硬东西。食堂柜台有汤、米饭和烤肉，工作人员等你说明想吃什么。",
+    "en": "Your tooth hurts and you cannot bite anything hard. A cafeteria counter has soup, rice, and roast meat, and the server is waiting for you to explain what you can eat."
+  },
+  "npc": {
+    "persona": "A cafeteria server helping a queue. Efficient, patient, and willing to suggest an appropriate dish after hearing the need.",
+    "greeting": "Hello. What can I serve you?",
+    "responses": {
+      "hit": [
+        "Your tooth hurts? Then the soup is a good soft choice.",
+        "Something soft. Yes, I can give you soup and rice."
+      ],
+      "partial": [
+        "Your tooth hurts? Tell me what kind of food you need.",
+        "Something soft? Which dish would work for you?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "porridge",
+        "soft food",
+        "something soft",
+        "soft",
+        "soup",
+        "rice",
+        "not bread",
+        "no bread"
+      ],
+      "zh_hint": "你要的东西"
+    },
+    {
+      "key": "reason_state",
+      "required": true,
+      "accept": [
+        "my tooth hurts",
+        "tooth hurts",
+        "tooth pain",
+        "hurts",
+        "pain",
+        "cannot bite",
+        "teeth hurt"
+      ],
+      "zh_hint": "说明你的身体状况,让对方理解为什么"
+    },
+    {
+      "key": "request_act",
+      "required": false,
+      "accept": [
+        "can i have",
+        "may i",
+        "could you",
+        "please",
+        "need",
+        "want"
+      ],
+      "zh_hint": "请求标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "soft_meal",
+          "count": 1
+        },
+        {
+          "id": "hot_drink",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "soup",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "plain_rice",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "soft",
+      "zh": "软的",
+      "source": "npc"
+    },
+    {
+      "en": "hard",
+      "zh": "硬的",
+      "source": "npc"
+    },
+    {
+      "en": "tooth",
+      "zh": "牙",
+      "source": "npc"
+    },
+    {
+      "en": "hurt",
+      "zh": "疼",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "My tooth hurts. Can I have something soft?",
+  "provenance": {
+    "rationale": "牙痛、术后或吞咽不适时在食堂和餐馆说明自己需要软食，是常见的饮食调整。柜台有多种食物且 NPC 不先给二选一答案，玩家必须同时传达身体状况与 soft food 需求，对方才能选出合适餐食。",
+    "frequency_basis": "需求金字塔第 1 层;实测 pain#1150 / hurt#1421 / soft#1601 / tooth#2026 / bread#2262 / bite#2663 依次落在 NGSL 第二至三千段,porridge 与 soup 不在 NGSL 2,809 词内 —— 原措辞「均在最低频段」不成立,已按实测改写;引入 X hurts 这一固定构式,是幼儿级典型的身体状态表达。"
+  }
+}

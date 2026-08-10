@@ -1,0 +1,134 @@
+{
+  "id": "warmth-ask-shoes",
+  "version": 2,
+  "tier": "toddler",
+  "need": "warmth",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "大雨后你的鞋全湿了，脚一直发冷。你走进一家鞋店，干鞋都在店员身后的货架上，需要说明状况并请他拿一双。",
+    "en": "After heavy rain, your shoes are soaked and your feet are cold. You enter a shoe shop where dry shoes are on shelves behind the clerk, so you need to explain and ask for a pair."
+  },
+  "npc": {
+    "persona": "A shoe-shop clerk who listens before suggesting a pair. Practical, patient, and never pushy.",
+    "greeting": "Hello. What can I help you find?",
+    "responses": {
+      "hit": [
+        "Your shoes are wet and your feet are cold? I will get you a dry pair in your size.",
+        "Dry shoes, yes. Sit down and try this pair."
+      ],
+      "partial": [
+        "Your shoes are wet? What do you need from the shop?",
+        "A dry pair? Tell me your request once more."
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "I did not catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "shoes",
+        "shoe",
+        "dry shoes",
+        "socks",
+        "a pair",
+        "new shoes",
+        "dry pair"
+      ],
+      "zh_hint": "你要的东西或希望对方做的事"
+    },
+    {
+      "key": "reason_state",
+      "required": true,
+      "accept": [
+        "cold",
+        "wet",
+        "my feet are cold",
+        "feet wet",
+        "broken",
+        "me cold"
+      ],
+      "zh_hint": "说明你的状态,让对方理解需求"
+    },
+    {
+      "key": "request_act",
+      "required": false,
+      "accept": [
+        "can you",
+        "could you",
+        "may i",
+        "please",
+        "need",
+        "want"
+      ],
+      "zh_hint": "请求标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "dry_shoes",
+          "count": 1
+        },
+        {
+          "id": "socks",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "mended_shoe",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "cloth_wrap",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "shoe",
+      "zh": "鞋",
+      "source": "npc"
+    },
+    {
+      "en": "wet",
+      "zh": "湿的",
+      "source": "npc"
+    },
+    {
+      "en": "dry",
+      "zh": "干的",
+      "source": "npc"
+    },
+    {
+      "en": "size",
+      "zh": "尺码",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "My shoes are wet and my feet are cold. Can I have a dry pair?",
+  "provenance": {
+    "rationale": "雨雪后鞋袜湿冷并进店更换，是步行、通勤和旅行中常见的即时保暖需求。商品在店员身后的货架上，玩家必须说明 wet/cold 状态并请求 dry shoes，不能靠自行拿取完成。",
+    "frequency_basis": "需求金字塔第 1 层;feet#576 / cold#867 在最低频段,dry#1135 / shoe#1476 / wet#2084 在第二千段,socks 不在 NGSL 2,809 词内 —— shoe 属检测器日常物词表可覆盖项，支持照片扩词。"
+  }
+}

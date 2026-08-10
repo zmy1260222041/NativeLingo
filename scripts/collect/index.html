@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Survival 语料采集 —— R-14 G1/G2</title>
+<!--
+  评审工具,不是产品代码。R-14 的 P0 三门(G1/G2/G3)未过,产品实现不得开始;
+  本页只为采集 G1/G2 所需的真实 L2 录音,与 desktop/src/ 完全隔离:
+  不进 desktop/src/、不注册进 main.js、不碰 index.html。
+
+  一次采集,两处消费(不要采两次):
+    录音 -> transcribe_waveform 转写 -> 人标 delivered  -> G1
+    同一批录音 -> 人听录音标 expected_keywords          -> G2
+
+  为什么不用外部录音工具:WKWebView 下 MediaRecorder 的实际编码容器与码率会影响
+  转写结果。外部工具采到的音质会略优于生产路径,而那个偏差方向会让 G2 系统性偏乐观。
+  本页因此逐条复刻 desktop/src/modules/recording.js 的采集契约。
+
+  **本页在任何一步都不显示 slots.accept 与 reference_answer。**
+  受试者一旦看到期望答案,标注出来的就不再是「他自己会怎么说」,G1 的 precision
+  会系统性偏高。加载器在读取场景时就把这两个字段丢弃,而不是靠渲染时不去引用它们。
+-->
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 24px 64px;
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    background: #f6f7f9; color: #1c1f23;
+    max-width: 760px; margin-inline: auto;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 24px; }
+  .card {
+    background: #fff; border: 1px solid #e3e6ea; border-radius: 14px;
+    padding: 20px 22px; margin-bottom: 16px;
+  }
+  .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tag {
+    font-size: 12px; padding: 3px 10px; border-radius: 999px;
+    background: #eef1f5; color: #4b5563;
+  }
+  .situation { font-size: 18px; margin: 0 0 16px; }
+  .greeting {
+    margin: 0; padding: 12px 16px; border-left: 3px solid #c7cdd6;
+    background: #fafbfc; border-radius: 0 8px 8px 0; font-style: italic;
+  }
+  .greeting-label { display: block; font-style: normal; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+  button {
+    font: inherit; padding: 10px 20px; border-radius: 10px; cursor: pointer;
+    border: 1px solid #c7cdd6; background: #fff;
+  }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary { background: #1c1f23; color: #fff; border-color: #1c1f23; }
+  button.rec { background: #b3261e; color: #fff; border-color: #b3261e; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .status { font-size: 13px; color: #6b7280; min-height: 1.6em; }
+  .warn { color: #92400e; background: #fffbeb; border: 1px solid #fde68a;
+          padding: 10px 14px; border-radius: 8px; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #eef1f5; }
+  code { background: #eef1f5; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  label.field { display: block; margin: 12px 0 4px; font-size: 13px; color: #4b5563; }
+  input[type=text] { width: 100%; padding: 8px 10px; border: 1px solid #c7cdd6; border-radius: 8px; font: inherit; }
+</style>
+</head>
+<body>
+
+<h1>Survival 语料采集</h1>
+<p class="sub">
+  R-14 / G1 意思传达判准 + G2 ASR 关键词召回 —— 评审工具,非产品代码。
+  录音留在本机,导出后按 <code>scripts/fixtures/game_asr/README.md</code> 处理。
+</p>
+
+<div class="card" id="setup">
+  <label class="field">说话人代号(匿名,例 <code>s01</code> —— 不要填真名)</label>
+  <input type="text" id="speaker" placeholder="s01" autocomplete="off" />
+  <label class="field">母语(L1,例 <code>zh</code> / <code>ja</code> / <code>es</code>)</label>
+  <input type="text" id="l1" placeholder="zh" autocomplete="off" />
+  <div class="row" style="margin-top:16px">
+    <button class="primary" id="load">载入场景并开始</button>
+    <span class="status" id="setupStatus"></span>
+  </div>
+  <p class="warn" style="margin-top:16px">
+    采集条件须与生产一致:内置麦克风、嘴距 30–60cm、<strong>不做任何后处理</strong>。
+    每位说话人每档 ≤10 条。录音包含可识别声纹,<strong>不提交进仓库</strong>。
+  </p>
+</div>
+
+<div class="card" id="stage" hidden>
+  <div class="meta">
+    <span class="tag" id="progress"></span>
+    <span class="tag" id="tier"></span>
+    <span class="tag" id="need"></span>
+  </div>
+  <p class="situation" id="situation"></p>
+  <p class="greeting"><span class="greeting-label">对方说</span><span id="greeting"></span></p>
+
+  <div class="row" style="margin-top:20px">
+    <button class="rec" id="rec">开始录音</button>
+    <button id="replay" disabled>回放</button>
+    <button id="redo" disabled>重录</button>
+    <button class="primary" id="next" disabled>下一条</button>
+  </div>
+  <p class="status" id="status"></p>
+  <audio id="player" hidden></audio>
+</div>
+
+<div class="card" id="done" hidden>
+  <h2 style="font-size:17px;margin:0 0 12px">本轮完成</h2>
+  <p class="status" id="doneSummary"></p>
+  <div class="row">
+    <button class="primary" id="export">导出 clips + manifest.json</button>
+  </div>
+  <table id="tally" style="margin-top:16px"></table>
+</div>
+
+<script type="module" src="./collect.js"></script>
+</body>
+</html>

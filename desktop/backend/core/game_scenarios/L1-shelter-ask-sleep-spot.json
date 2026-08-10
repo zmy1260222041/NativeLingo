@@ -1,0 +1,135 @@
+{
+  "id": "shelter-ask-sleep-spot",
+  "version": 2,
+  "tier": "toddler",
+  "need": "shelter",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "末班车突然取消，天已经很晚，你回不了家。住在附近的朋友接起电话，你想说明情况并问能不能借住一晚。",
+    "en": "The last train is suddenly cancelled, it is already late, and you cannot get home. A friend who lives nearby answers the phone, and you want to explain and ask to stay for one night."
+  },
+  "npc": {
+    "persona": "A nearby friend answering an unexpected late call. Concerned, practical, and willing to help once the situation is clear.",
+    "greeting": "Hi. Is everything okay?",
+    "responses": {
+      "hit": [
+        "The last train was cancelled? Yes, stay here tonight. I will make up the guest bed.",
+        "Of course. Come over and sleep on the sofa. I will send you the address."
+      ],
+      "partial": [
+        "You cannot get home? Tell me what you need tonight.",
+        "You need somewhere to stay? Ask me once more."
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "I did not catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "sleep",
+        "a place to sleep",
+        "stay",
+        "stay with you",
+        "the night",
+        "tonight",
+        "your place",
+        "your sofa"
+      ],
+      "zh_hint": "你要的东西:一个过夜的地方"
+    },
+    {
+      "key": "reason_state",
+      "required": true,
+      "accept": [
+        "last train cancelled",
+        "last train was cancelled",
+        "the last train was cancelled",
+        "train cancelled",
+        "no train",
+        "cannot get home",
+        "cannot go home",
+        "stuck here",
+        "too late",
+        "late"
+      ],
+      "zh_hint": "说明你的处境,让对方理解需求"
+    },
+    {
+      "key": "request_act",
+      "required": false,
+      "accept": [
+        "can i",
+        "may i",
+        "could you",
+        "please",
+        "need",
+        "want",
+        "let me"
+      ],
+      "zh_hint": "请求标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "guest_bed",
+          "count": 1
+        },
+        {
+          "id": "blanket",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "sofa_bed",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "sofa_space",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "stay",
+      "zh": "借住",
+      "source": "npc"
+    },
+    {
+      "en": "cancelled",
+      "zh": "取消了",
+      "source": "npc"
+    },
+    {
+      "en": "sofa",
+      "zh": "沙发",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "The last train was cancelled. Can I stay at your place tonight?",
+  "provenance": {
+    "rationale": "末班公共交通取消或错过后向附近朋友请求临时借住，是城市夜间出行中真实且具有明确后果的交流。朋友只知道来电异常，不知道交通原因或住宿请求，玩家必须说明回不了家并提出 stay tonight。",
+    "frequency_basis": "需求金字塔第 1 层;go#31 / here#98 / place#114 / stay#345 / sleep#827 均在最低频段,tonight#1414 在第二千段;交通中断原因词由更高词汇等级承担，但核心借住请求仍可用 stay / here / tonight 传达。"
+  }
+}

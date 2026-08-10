@@ -1,0 +1,167 @@
+{
+  "id": "esteem-claim-credit-for-own-work",
+  "version": 2,
+  "tier": "professional",
+  "need": "esteem",
+  "maslow_level": 4,
+  "situation": {
+    "zh": "周会前你看到组长准备发送的进度汇总，里面漏掉了你已经完成的数据清理工作。共享文件的编辑记录可查；你要说明完成了什么，并请求把它补进汇总。",
+    "en": "Before the weekly meeting, you see that the progress summary your supervisor is about to send omits the data-cleaning work you completed. The shared file history can be checked, so you need to name the work and ask for it to be added."
+  },
+  "npc": {
+    "persona": "A supervisor who compiled the summary from several updates and would rather correct an omission than defend it. Matter-of-fact and not defensive.",
+    "greeting": "Anything to add before I send this out?",
+    "responses": {
+      "hit": [
+        "The data-cleaning work is missing, and the file history shows you completed it. I will add the task and your name before sending the summary.",
+        "Good that you said so. I left out your completed work, and the shared file confirms it. I am updating the record now."
+      ],
+      "partial": [
+        "Which completed task is missing, and what should the summary say?",
+        "Something was left out. Tell me which work you completed."
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? I did not follow. One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "contribution_named",
+      "required": true,
+      "accept": [
+        "i wrote",
+        "i made",
+        "i did",
+        "i prepared",
+        "my part",
+        "that section",
+        "the stock report",
+        "the numbers"
+      ],
+      "zh_hint": "你做的是哪一部分"
+    },
+    {
+      "key": "omission_identified",
+      "required": true,
+      "accept": [
+        "my name",
+        "not in the report",
+        "missing from the report",
+        "left out",
+        "not listed",
+        "no mention",
+        "my work is missing",
+        "that was me",
+        "it was me",
+        "mine"
+      ],
+      "zh_hint": "指出汇总漏掉了你的已完成工作"
+    },
+    {
+      "key": "request_correction",
+      "required": true,
+      "accept": [
+        "add my name",
+        "add my work",
+        "include my work",
+        "include it",
+        "put it in the report",
+        "put my name",
+        "can you add",
+        "change it",
+        "correct it",
+        "change the record",
+        "fix the list",
+        "write my name"
+      ],
+      "zh_hint": "请求更正记录"
+    },
+    {
+      "key": "evidence",
+      "required": false,
+      "accept": [
+        "the file",
+        "check the file",
+        "you can check",
+        "the notes",
+        "last week",
+        "i can show you",
+        "it is dated"
+      ],
+      "zh_hint": "可查的凭据(专业度标记)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks",
+        "sorry to bring this up",
+        "i appreciate",
+        "just so the record is right"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "work_in_the_record",
+          "count": 1
+        },
+        {
+          "id": "supervisor_respect",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "work_in_the_record",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "verbal_acknowledgement",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "include",
+      "zh": "包括；列入",
+      "source": "npc"
+    },
+    {
+      "en": "record",
+      "zh": "记录",
+      "source": "npc"
+    },
+    {
+      "en": "section",
+      "zh": "(文件的)一节",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "I did the data-cleaning work, but it is missing from the report. The shared file shows my edits. Can you add my work to the summary?",
+  "provenance": {
+    "rationale": "周报、项目进度或绩效材料汇总时漏掉一项已完成工作，是团队协作中常见的信息遗漏，比“他人抢功”更普遍也更少依赖冲突。NPC 不知道漏项内容，玩家必须说明 contribution + omission + add request，语言直接决定工作是否进入正式记录。",
+    "frequency_basis": "需求金字塔第 4 层(尊重)。必需槽位核心词 change#113 / wrote#121 / numbers#127 / put#139 / report#166 / name#206 / record#344 / add#414 / section#668 均在 NGSL 前七百,correct#1032 刚出首千;难度在一次交流里组织「完成了什么 + 汇总漏了 + 请补入」三个意思单元，而非要求语法完美。"
+  }
+}

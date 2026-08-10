@@ -1,0 +1,76 @@
+{
+  "id": "belonging-ask-neighbour-for-help-moving",
+  "version": 1,
+  "tier": "youth",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "你要把一张桌子搬上楼,一个人抬不动。楼下邻居正在门口修自行车。你想请他帮个忙,说清要多久。",
+    "en": "You need to carry a table upstairs and cannot manage it alone. The neighbour downstairs is fixing his bicycle at the door. You want to ask for a hand and say how long it will take."
+  },
+  "npc": {
+    "persona": "A neighbour with bicycle grease on his hands. Practical, glad to be asked, no fuss.",
+    "greeting": "Need something?",
+    "responses": {
+      "hit": [
+        "Carry the table up? Ten minutes, no problem. Let me wash my hands. You take the light end.",
+        "Two of us and it is easy. Come on, before the rain."
+      ],
+      "partial": [
+        "Help with what, exactly?",
+        "The table, yes, and how long will it take?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "request_help",
+      "required": true,
+      "accept": ["help", "help me", "can you help", "give me a hand", "a hand", "need you", "can you come", "with me", "please help"],
+      "zh_hint": "请求帮忙"
+    },
+    {
+      "key": "task",
+      "required": true,
+      "accept": ["table", "the table", "carry", "carry it up", "lift", "move", "upstairs", "up the stairs", "too heavy", "heavy"],
+      "zh_hint": "说明要帮什么:把桌子搬上楼"
+    },
+    {
+      "key": "scope",
+      "required": false,
+      "accept": ["ten minutes", "five minutes", "a few minutes", "quick", "not long", "short", "only one table", "just this one", "one thing"],
+      "zh_hint": "说明要多久(让对方容易答应)"
+    },
+    {
+      "key": "reciprocity",
+      "required": false,
+      "accept": ["i can help you", "next time i help", "i owe you", "tea after", "i will help you too", "thank you so much", "let me know if"],
+      "zh_hint": "表示你也愿意回报"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "sorry to bother", "if you are free", "excuse me", "when you have time"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "table_upstairs", "count": 1 }, { "id": "neighbour_friendship", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "table_upstairs", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "borrowed_trolley", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "carry", "zh": "搬", "source": "npc" },
+    { "en": "heavy", "zh": "重的", "source": "npc" },
+    { "en": "minute", "zh": "分钟", "source": "npc" }
+  ],
+  "reference_answer": "Can you help me carry this table upstairs? It will only take ten minutes.",
+  "provenance": {
+    "rationale": "搬家具、抬重物、扶梯子这类临时求助在邻里之间很常见,而敢向邻居开口求助本身就是归属感的体现 —— 关系是在互相帮忙里建立的。说清「多久」是能不能被答应的关键,这也是真实生活里的求助礼节。",
+    "frequency_basis": "需求金字塔第 3 层(归属与互助)。help / carry / heavy / minutes 均为最常用词;youth 级要求把请求与具体任务一起说清,「help me, table up, ten minute」即算传达到。"
+  }
+}

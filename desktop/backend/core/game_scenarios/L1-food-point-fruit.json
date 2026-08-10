@@ -1,0 +1,117 @@
+{
+  "id": "food-point-fruit",
+  "version": 2,
+  "tier": "infant",
+  "need": "food",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "水果摊上摆着苹果和橙子，水果在摊主身后。你需要开口告诉他要哪一种。",
+    "en": "A fruit stall has apples and oranges behind the seller. You need to tell him which kind you want."
+  },
+  "npc": {
+    "persona": "A fruit seller with a soft voice who waits for customers to choose and never rushes them.",
+    "greeting": "Good morning. What would you like?",
+    "responses": {
+      "hit": [
+        "An apple? Here. It is sweet.",
+        "Yes. Take this one."
+      ],
+      "partial": [
+        "This one? Or that one?",
+        "You want fruit? Which fruit?"
+      ],
+      "miss": [
+        "Sorry? Say it again?",
+        "Hmm? Tell me again?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "apple",
+        "fruit",
+        "that one",
+        "this one",
+        "food",
+        "eat"
+      ],
+      "zh_hint": "你要的东西"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": [
+        "want",
+        "need",
+        "give me",
+        "can i have",
+        "may i have",
+        "please",
+        "one"
+      ],
+      "zh_hint": "表达这是一个请求"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "apple",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "apple",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "bruised_apple",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "apple",
+      "zh": "苹果",
+      "source": "npc"
+    },
+    {
+      "en": "sweet",
+      "zh": "甜的",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "Can I have an apple, please?",
+  "provenance": {
+    "rationale": "在市场摊位从多种水果中指定一种并购买，是成人日常和旅行中高复用的交流。水果在摊主身后且 NPC 只问开放式问题，玩家必须主动说出 apple 或指代具体选项，点头本身无法完成需求。",
+    "frequency_basis": "需求金字塔第 1 层;one#35 / want#76 与 food#367 / eat#476 均在 NGSL 首五百,但 fruit#1640 在第二千段,apple 不在 NGSL 2,809 词内 —— apple 属仓库内 yoloe_everyday_labels 已覆盖的日常物,与 FR-24 照片扩词直接衔接,其等级须由 CEFR-J 给出而非频次表。"
+  }
+}

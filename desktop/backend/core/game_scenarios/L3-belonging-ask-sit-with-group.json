@@ -1,0 +1,146 @@
+{
+  "id": "belonging-ask-sit-with-group",
+  "version": 1,
+  "tier": "toddler",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "食堂里几乎坐满了。一桌人正在吃饭聊天,那桌还有一个空位。你想问能不能坐过去。",
+    "en": "The canteen is almost full. A table of people are eating and talking, and there is one empty seat there. You want to ask if you can sit with them."
+  },
+  "npc": {
+    "persona": "One of the people at the table, already moving her plate over. Welcoming, unbothered.",
+    "greeting": "Looking for a seat?",
+    "responses": {
+      "hit": [
+        "Sit with us? Yes, here. Move the bag, that chair is free.",
+        "Of course. Sit down. We were just talking about the rain."
+      ],
+      "partial": [
+        "The seat? Say that again?",
+        "You want to sit? Ask me once more?"
+      ],
+      "miss": [
+        "Sorry? Say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "request_seat",
+      "required": true,
+      "accept": [
+        "sit",
+        "sit here",
+        "sit with you",
+        "this seat",
+        "the chair",
+        "chair",
+        "seat",
+        "place"
+      ],
+      "zh_hint": "你要的东西:一个位子 / 坐下"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": [
+        "can i",
+        "may i",
+        "please",
+        "is it ok",
+        "ok",
+        "okay",
+        "want",
+        "free",
+        "is it free",
+        "anyone"
+      ],
+      "zh_hint": "表达这是一个请求"
+    },
+    {
+      "key": "with_group",
+      "required": false,
+      "accept": [
+        "with you",
+        "here with you",
+        "next to you",
+        "together",
+        "your table",
+        "join you"
+      ],
+      "zh_hint": "说明你想和他们坐在一起"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks",
+        "excuse me",
+        "hello"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "place_at_the_table",
+          "count": 1
+        },
+        {
+          "id": "company",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "place_at_the_table",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "corner_stool",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "seat",
+      "zh": "座位",
+      "source": "npc"
+    },
+    {
+      "en": "free",
+      "zh": "空着的",
+      "source": "npc"
+    },
+    {
+      "en": "chair",
+      "zh": "椅子",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "Can I sit here with you?",
+  "provenance": {
+    "rationale": "在食堂、咖啡馆或长桌旁问一句能不能坐,是每天都在发生的事,也是最容易因为怕说错而放弃的那种小交流 —— 放弃的结果就是一个人吃饭。物资在这里正是「桌边的一个位子」。",
+    "frequency_basis": "需求金字塔第 3 层(归属)。can#38 / here#98 / free#395 / seat#852 全在最低频段,仅 chair#1060 略过千词线;「sit here ok?」即算传达到。"
+  }
+}

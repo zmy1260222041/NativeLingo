@@ -1,0 +1,142 @@
+{
+  "id": "shelter-ask-place-to-sleep",
+  "version": 1,
+  "tier": "toddler",
+  "need": "shelter",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "入夜了,你还没有地方过夜。一间小旅舍门口坐着看门人。",
+    "en": "Night has come and you have nowhere to sleep. A doorkeeper is sitting at the entrance of a small guest house."
+  },
+  "npc": {
+    "persona": "A doorkeeper who has seen many travellers. Gentle and matter-of-fact.",
+    "greeting": "Late to be out. Do you need to stay?",
+    "responses": {
+      "hit": [
+        "A place to sleep? Come in. The small room by the stairs is free tonight.",
+        "Sleep here? Yes. Follow me."
+      ],
+      "partial": [
+        "You need a place? For what?",
+        "Tonight? Tell me what you need."
+      ],
+      "miss": [
+        "Sorry? Say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "place to sleep",
+        "somewhere to sleep",
+        "sleep",
+        "sleep here",
+        "bed",
+        "room",
+        "stay",
+        "a place",
+        "place"
+      ],
+      "zh_hint": "你要的东西:过夜的地方"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": [
+        "can i",
+        "may i",
+        "want",
+        "need",
+        "please",
+        "help",
+        "give me",
+        "let me"
+      ],
+      "zh_hint": "表达这是一个请求"
+    },
+    {
+      "key": "time_ref",
+      "required": false,
+      "accept": [
+        "tonight",
+        "night",
+        "one night",
+        "tomorrow",
+        "now"
+      ],
+      "zh_hint": "住多久 / 什么时候"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "sleep_mat",
+          "count": 1
+        },
+        {
+          "id": "blanket",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "sleep_mat",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "dry_corner",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "sleep",
+      "zh": "睡觉",
+      "source": "npc"
+    },
+    {
+      "en": "room",
+      "zh": "房间",
+      "source": "npc"
+    },
+    {
+      "en": "stay",
+      "zh": "留下住",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "Can I sleep here tonight?",
+  "provenance": {
+    "rationale": "今晚有没有安全的地方睡,是居所需求里最直接的一条。对旅行、搬迁、临时住宿的人来说,「今晚能住这儿吗」是每次换地方都要说的一句话,语言在这里直接决定当晚有没有屋顶。",
+    "frequency_basis": "需求金字塔第 2 层(居所)。stay#345 / bed#694 / sleep#827 在最低频段,但 somewhere#1320 与 tonight#1414 在第二千段,原措辞「都在最低频段」对后两词不成立;「sleep + tonight + can I」三个词就足以传达意思,不要求语序正确。"
+  }
+}

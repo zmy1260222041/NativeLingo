@@ -1,0 +1,130 @@
+{
+  "id": "water-ask-clean-water",
+  "version": 2,
+  "tier": "toddler",
+  "need": "water",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "旅行途中你的水瓶空了。车站洗手池标着“不可饮用”，附近没有饮水机；你需要向信息台工作人员询问哪里能取得安全饮用水。",
+    "en": "Your bottle is empty while travelling. A station sink is marked 'not for drinking' and there is no water fountain nearby, so you need to ask an information-desk employee where to get safe drinking water."
+  },
+  "npc": {
+    "persona": "A station information-desk employee who knows the facilities. Clear, careful, and ready to direct travellers.",
+    "greeting": "Hello. Can I help you?",
+    "responses": {
+      "hit": [
+        "Safe drinking water? Yes. You can refill your bottle at the cafe counter.",
+        "The sink water is not for drinking. I will give you a bottle and show you the refill point."
+      ],
+      "partial": [
+        "You need water? Tell me what kind and where you looked.",
+        "Your bottle is empty? Ask me once more what you need."
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "clean water",
+        "safe water",
+        "your water",
+        "boiled water",
+        "drinking water",
+        "water fountain",
+        "refill",
+        "water",
+        "clean"
+      ],
+      "zh_hint": "你要的东西:干净的水"
+    },
+    {
+      "key": "reason_state",
+      "required": true,
+      "accept": [
+        "thirsty",
+        "i am thirsty",
+        "me thirsty",
+        "bottle empty",
+        "my bottle is empty",
+        "not for drinking",
+        "dirty",
+        "not safe",
+        "sick"
+      ],
+      "zh_hint": "说明你的状态或顾虑,让对方理解需求"
+    },
+    {
+      "key": "request_act",
+      "required": false,
+      "accept": [
+        "can i have",
+        "may i",
+        "could you",
+        "please",
+        "need",
+        "want"
+      ],
+      "zh_hint": "请求标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "clean_water",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "clean_water",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "water_refill_directions",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "clean",
+      "zh": "干净的",
+      "source": "npc"
+    },
+    {
+      "en": "drinking water",
+      "zh": "饮用水",
+      "source": "npc"
+    },
+    {
+      "en": "safe",
+      "zh": "安全的",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "My bottle is empty. Where can I get safe drinking water?",
+  "provenance": {
+    "rationale": "在车站、机场和公共建筑遇到不可饮用的洗手池水时询问饮水点，是旅行者常见的设施咨询。现有水源明确不可饮用且饮水点不可见，玩家必须向信息台说出 safe/drinking water 或 refill 才能获得水。",
+    "frequency_basis": "需求金字塔第 1 层;water#322 / clean#842 在最低频段,safe#1027 / sick#1716 / dirty#2255 依次更晚,boiled 与 thirsty 不在 NGSL 2,809 词内;本场景继续训练形容词区分可饮用与不可饮用水。"
+  }
+}

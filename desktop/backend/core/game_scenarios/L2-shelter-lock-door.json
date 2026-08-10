@@ -1,0 +1,64 @@
+{
+  "id": "shelter-lock-door",
+  "version": 2,
+  "tier": "toddler",
+  "need": "shelter",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "你第一次住进一间使用电子门锁的民宿。关门后没有任何提示灯，你不确定是否锁好，便联系前台询问操作方法。",
+    "en": "You are staying for the first time in a rental with an electronic door lock. After closing the door, no indicator appears, so you contact reception to ask how to lock it."
+  },
+  "npc": {
+    "persona": "A night receptionist familiar with the electronic locks. Warm, unhurried, and careful with instructions.",
+    "greeting": "Front desk. How can I help?",
+    "responses": {
+      "hit": [
+        "The electronic lock? Close the door, then press the lock button once.",
+        "To lock it, pull the door shut and hold the button until the light turns green."
+      ],
+      "partial": [
+        "The door? What about it?",
+        "You want to lock it? Tell me what the light is doing."
+      ],
+      "miss": [
+        "Sorry? Say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": ["door", "the door", "my door", "lock", "key", "key card", "button"],
+      "zh_hint": "你要处理的东西:门 / 电子锁 / 钥匙卡"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": ["how", "can i", "help", "show me", "want", "need", "close", "shut", "please"],
+      "zh_hint": "表达这是一个请求或提问"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "door_key", "count": 1 }, { "id": "night_pass", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "door_key", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "door_wedge", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "door", "zh": "门", "source": "npc" },
+    { "en": "lock", "zh": "锁", "source": "npc" },
+    { "en": "key", "zh": "钥匙", "source": "npc" }
+  ],
+  "reference_answer": "How do I lock the door?",
+  "provenance": {
+    "rationale": "酒店、民宿和共享办公空间采用不同门锁，初次入住时询问如何上锁是常见的居所安全交流。门是否锁好无法仅靠外观确认，前台也看不到玩家的操作，因此必须说清 door/lock 并提出 how 或 help 请求。",
+    "frequency_basis": "需求金字塔第 2 层(居所与安全)。door / lock / key 是日常具体名词，请求可由 how / can I / help 这类基础功能词承载；电子锁的 button / key card 由场景观察与 CEFR-J 等级侧补入。"
+  }
+}

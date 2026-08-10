@@ -1,0 +1,70 @@
+{
+  "id": "belonging-ask-join-ball-game",
+  "version": 1,
+  "tier": "toddler",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "楼下空地上几个人在踢球,你在旁边看了一会儿。你想问能不能一起玩。",
+    "en": "A few people are kicking a ball around on the ground below, and you have been watching for a while. You want to ask if you can play too."
+  },
+  "npc": {
+    "persona": "One of the players, catching the ball to talk to you. Cheerful and easy.",
+    "greeting": "You have been watching a while. Want the ball?",
+    "responses": {
+      "hit": [
+        "Play with us? Come on. You are on my side.",
+        "Yes! Two more and we have real teams. Stand over there."
+      ],
+      "partial": [
+        "You want to play? Say it again?",
+        "Come closer, what did you say?"
+      ],
+      "miss": [
+        "Sorry? Say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "request_join",
+      "required": true,
+      "accept": ["play", "play with you", "join", "join you", "me too", "with you", "i play", "can i play"],
+      "zh_hint": "你想做的事:一起玩"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": ["can i", "may i", "please", "want", "ok", "okay", "is it ok", "let me"],
+      "zh_hint": "表达这是一个请求"
+    },
+    {
+      "key": "reference_activity",
+      "required": false,
+      "accept": ["ball", "the ball", "game", "football", "team", "your team"],
+      "zh_hint": "指明是什么活动"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "hello", "hi"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "spot_on_the_team", "count": 1 }, { "id": "company", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "spot_on_the_team", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "turn_at_the_ball", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "play", "zh": "玩", "source": "npc" },
+    { "en": "ball", "zh": "球", "source": "npc" },
+    { "en": "team", "zh": "队", "source": "npc" }
+  ],
+  "reference_answer": "Can I play with you?",
+  "provenance": {
+    "rationale": "在球场、公园边看着别人玩而想加入,是从旁观者变成参与者的经典一步。这类活动本身几乎不需要语言,唯一的门槛就是开口那一句,所以对怕说错的成人特别有代表性。",
+    "frequency_basis": "需求金字塔第 3 层(归属)。play / with you / can I 属最低频段;「me play too」这类形式同样计入传达到。"
+  }
+}

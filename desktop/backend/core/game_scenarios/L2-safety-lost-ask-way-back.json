@@ -1,0 +1,70 @@
+{
+  "id": "safety-lost-ask-way-back",
+  "version": 1,
+  "tier": "toddler",
+  "need": "safety",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "你走远了,认不出回去的路,天色渐暗。街角有个卖水果的摊主。",
+    "en": "You have walked too far and cannot recognise the way back. It is getting dark. A fruit seller is at the corner."
+  },
+  "npc": {
+    "persona": "A fruit seller who knows every street nearby. Warm and patient.",
+    "greeting": "You look lost, little one.",
+    "responses": {
+      "hit": [
+        "Back to the green house? Walk this way, then left. It is close.",
+        "Lost? Do not worry. Come, I will point the way."
+      ],
+      "partial": [
+        "You want to go somewhere? Where?",
+        "Lost? Tell me the place."
+      ],
+      "miss": [
+        "Sorry? Say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "state_lost",
+      "required": true,
+      "accept": ["lost", "i am lost", "me lost", "cannot find", "can not find", "i do not know", "dont know", "don't know", "no know"],
+      "zh_hint": "说明你的状态:迷路了"
+    },
+    {
+      "key": "need_direction",
+      "required": true,
+      "accept": ["way", "the way", "way back", "road", "home", "back", "go back", "go home", "where", "how to go"],
+      "zh_hint": "你要的东西:回去的路"
+    },
+    {
+      "key": "request_act",
+      "required": false,
+      "accept": ["help", "can you", "please", "show me", "tell me"],
+      "zh_hint": "请求标记"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "excuse me"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "safe_route", "count": 1 }, { "id": "escort", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "safe_route", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "pointed_direction", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "lost", "zh": "迷路的", "source": "npc" },
+    { "en": "way", "zh": "路", "source": "npc" },
+    { "en": "back", "zh": "回去", "source": "npc" }
+  ],
+  "reference_answer": "I am lost. How do I go back?",
+  "provenance": {
+    "rationale": "迷路是任何人在陌生街区都会遇到的事,而「我迷路了,怎么回去」常常是走投无路时唯一有用的一句话。它同时练「陈述自身状态」与「提出方向请求」两个最实用的言语功能。",
+    "frequency_basis": "需求金字塔第 2 层(安全)。lost / way / back / home 均属最低频段;两个必需意思单元都可由单词或两词短语传达,「me lost, house where」这类形式同样计入。"
+  }
+}

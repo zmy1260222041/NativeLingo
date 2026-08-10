@@ -1,0 +1,76 @@
+{
+  "id": "safety-report-lost-bag",
+  "version": 1,
+  "tier": "youth",
+  "need": "safety",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "你的包不见了,里面有钥匙和钱。你去车站的服务台报失,并留下联系方式。",
+    "en": "Your bag is gone, with your keys and money inside. You go to the station desk to report it and leave a way to reach you."
+  },
+  "npc": {
+    "persona": "A station clerk with a lost-property book. Methodical and reassuring.",
+    "greeting": "Good evening. What can I do for you?",
+    "responses": {
+      "hit": [
+        "A brown bag, keys and money inside, left on the bus around six. I have written it down. If it comes in, we will call you.",
+        "Lost bag with your keys. I have your number here. We will call the moment someone brings it."
+      ],
+      "partial": [
+        "You lost something? What was it, and where?",
+        "I can write it down. Tell me what the bag looks like."
+      ],
+      "miss": [
+        "Sorry, could you say that again?",
+        "Hmm? One more time, please?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "lost_object",
+      "required": true,
+      "accept": ["bag", "my bag", "backpack", "keys", "my keys", "wallet", "purse"],
+      "zh_hint": "丢的是什么"
+    },
+    {
+      "key": "lost_event",
+      "required": true,
+      "accept": ["lost", "i lost", "gone", "missing", "cannot find", "can not find", "cant find", "can't find", "left it", "left behind", "someone took"],
+      "zh_hint": "说明它丢了 / 找不到"
+    },
+    {
+      "key": "where_or_when",
+      "required": true,
+      "accept": ["bus", "on the bus", "train", "here", "station", "this morning", "morning", "today", "yesterday", "six", "an hour ago", "just now"],
+      "zh_hint": "在哪儿丢的 / 什么时候丢的"
+    },
+    {
+      "key": "contact",
+      "required": false,
+      "accept": ["my number", "phone", "call me", "my name is", "you can call", "number is", "here is my number"],
+      "zh_hint": "留下联系方式(便于对方找到你)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "excuse me", "hello", "good evening"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "lost_report", "count": 1 }, { "id": "spare_key", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "lost_report", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "note_on_board", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "lost", "zh": "丢失的", "source": "npc" },
+    { "en": "bag", "zh": "包", "source": "npc" },
+    { "en": "call", "zh": "打电话", "source": "npc" }
+  ],
+  "reference_answer": "I lost my bag on the bus this evening. My keys are inside. Can you call me if someone brings it?",
+  "provenance": {
+    "rationale": "丢包、丢钥匙、丢手机是极常见的意外,而报失需要在几句话里交付「丢了什么 + 在哪丢的 + 怎么联系我」。钥匙丢了直接威胁住处安全,因此这既是财物问题也是安全问题。",
+    "frequency_basis": "需求金字塔第 2 层(财物与人身安全)。bag / lost / bus / call 都是最常用的日常词;youth 级的难度来自三个必需意思单元的组合与时间地点信息,而非词汇难度。"
+  }
+}

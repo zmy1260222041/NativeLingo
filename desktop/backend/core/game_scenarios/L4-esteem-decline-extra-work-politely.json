@@ -1,0 +1,160 @@
+{
+  "id": "esteem-decline-extra-work-politely",
+  "version": 1,
+  "tier": "professional",
+  "need": "esteem",
+  "maslow_level": 4,
+  "situation": {
+    "zh": "手上的活已经排满到周末,同事又来请你接一件新的。你要说清接不了、为什么接不了,并给出一个你确实做得到的替代安排。",
+    "en": "Your week is already full and a colleague asks you to take on one more job. You need to say you cannot, why not, and offer something you can actually do instead."
+  },
+  "npc": {
+    "persona": "A colleague under pressure who will take a clear no over a vague yes. Reasonable once the reason is on the table.",
+    "greeting": "Could you take one more this week?",
+    "responses": {
+      "hit": [
+        "Your week is full already — I did not know that. Next Monday works for me, so let us say Monday and I will tell them.",
+        "Fair enough. You cannot this week, and you can start Monday. I would rather have that than a yes that slips."
+      ],
+      "partial": [
+        "So is that a no for now, or a no for the whole week?",
+        "I hear you are busy. When could you take it?"
+      ],
+      "miss": [
+        "Sorry? Say that again?",
+        "Hmm? I did not catch that. One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "decline",
+      "required": true,
+      "accept": [
+        "i cannot",
+        "i cant",
+        "i can not",
+        "not this week",
+        "i am not able",
+        "no",
+        "i have to say no",
+        "i must say no"
+      ],
+      "zh_hint": "明确表示接不了"
+    },
+    {
+      "key": "reason_load",
+      "required": true,
+      "accept": [
+        "my week is full",
+        "full",
+        "too much work",
+        "already have",
+        "i am working on",
+        "no time",
+        "busy",
+        "three jobs"
+      ],
+      "zh_hint": "为什么接不了:手上已经排满"
+    },
+    {
+      "key": "alternative_offer",
+      "required": true,
+      "accept": [
+        "next week",
+        "on monday",
+        "monday",
+        "after friday",
+        "i can start",
+        "i can take it later",
+        "ask me again",
+        "someone else can"
+      ],
+      "zh_hint": "给出你做得到的替代安排"
+    },
+    {
+      "key": "specificity",
+      "required": false,
+      "accept": [
+        "half a day",
+        "two hours",
+        "by friday",
+        "the small part",
+        "only the first part",
+        "if the other one moves"
+      ],
+      "zh_hint": "把替代安排说具体(专业度标记)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "sorry",
+        "i am sorry",
+        "thank you for asking",
+        "thanks for asking",
+        "i would like to help",
+        "please ask me again"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "protected_week",
+          "count": 1
+        },
+        {
+          "id": "reputation_for_straight_answers",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "protected_week",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "postponed_ask",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "full",
+      "zh": "排满的",
+      "source": "npc"
+    },
+    {
+      "en": "slip",
+      "zh": "拖延;耽误",
+      "source": "npc"
+    },
+    {
+      "en": "fair",
+      "zh": "合理的",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "I cannot take it this week, my week is already full. I could start on Monday if that still helps.",
+  "provenance": {
+    "rationale": "拒绝一件多出来的活,是职场里最频繁又最难开口的一次表达。非母语者常因为词不够用而含糊答应,结果延期时失去的信誉比当初拒绝更多 —— 这一条的教学意义正在于「说不」是一项可练的表达,不是态度问题。归到第 4 层(尊重)而不是第 3 层(归属):它要维护的是自己的时间与信誉边界,不是求接纳。",
+    "frequency_basis": "需求金字塔第 4 层(尊重与自我边界)。用词全部落在 NGSL 首千内:cannot#38 / work#67 / next#151 / week#157 / already#302 / full#410 / start#136 / able#271 / jobs#231,busy#1233 略出首千但在第二千段内且是本场景最差的一个;weekday 名(monday 等)按 NGSL 结构性盲区处理,须由 CEFR-J 等级侧定级。难度不在词汇而在把「拒绝 + 原因 + 替代」三件事在一次回答里讲完 —— 只说 no 会命中 decline 而漏掉后两个必需槽位,这正是本场景想练的东西。"
+  }
+}

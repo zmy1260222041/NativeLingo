@@ -1,0 +1,149 @@
+{
+  "id": "shelter-rent-room-night",
+  "version": 2,
+  "tier": "youth",
+  "need": "shelter",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "夜班巴士取消了，你需要在青年旅舍住一晚。前台同时有单间和多人间床位，但你的预算只够较便宜的床位。",
+    "en": "Your night bus is cancelled and you need to stay in a hostel for one night. Reception has both private rooms and dorm beds, but your budget only covers the cheaper bed."
+  },
+  "npc": {
+    "persona": "A hostel receptionist checking room availability. Businesslike, helpful, and ready to explain the cheaper options.",
+    "greeting": "Good evening. How can I help?",
+    "responses": {
+      "hit": [
+        "One night within that budget? The dorm bed is available and includes a blanket.",
+        "The private room costs more, but I can give you the cheaper dorm bed for tonight."
+      ],
+      "partial": [
+        "A place to stay, yes. For how many nights and which type of room?",
+        "You need the cheaper option? Tell me your budget again."
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "I did not catch that. One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "a room",
+        "room",
+        "a bed",
+        "bed",
+        "stay",
+        "sleep here",
+        "a place"
+      ],
+      "zh_hint": "你要的东西"
+    },
+    {
+      "key": "duration",
+      "required": true,
+      "accept": [
+        "one night",
+        "tonight",
+        "for tonight",
+        "one day",
+        "just tonight",
+        "1 night"
+      ],
+      "zh_hint": "说明住多久"
+    },
+    {
+      "key": "constraint",
+      "required": true,
+      "accept": [
+        "dorm bed",
+        "dorm",
+        "my budget",
+        "within my budget",
+        "cheapest",
+        "little money",
+        "not much money",
+        "cheap",
+        "too expensive",
+        "no money"
+      ],
+      "zh_hint": "说明你的预算限制"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks",
+        "excuse me"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "dorm_bed",
+          "count": 1
+        },
+        {
+          "id": "blanket",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "dorm_bed",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "floor_mat",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "room",
+      "zh": "房间",
+      "source": "npc"
+    },
+    {
+      "en": "dorm",
+      "zh": "多人间",
+      "source": "npc"
+    },
+    {
+      "en": "expensive",
+      "zh": "贵的",
+      "source": "npc"
+    },
+    {
+      "en": "budget",
+      "zh": "预算",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "I need a bed for one night. What is the cheapest option within my budget?",
+  "provenance": {
+    "rationale": "交通取消后在旅舍询问一晚住宿并比较单间与多人间价格，是旅行者常见的临时住宿交易。前台不知道玩家要住多久或预算范围，必须明确 bed/room + one night + cheapest/budget 才能匹配床位。",
+    "frequency_basis": "需求金字塔第 1 层(居所);day#85 / expensive#1061 / cheap#1095 在中低频段,tonight#1414 更晚;数量词 + 时长 + 价格限制三类信息同时出现，是日常住宿交易的标准信息量；dorm 不在 NGSL 2,809 词内，dorm / budget 均由 CEFR-J 等级侧定级。"
+  }
+}

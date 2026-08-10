@@ -1,0 +1,55 @@
+{
+  "id": "water-ask-drink",
+  "version": 2,
+  "tier": "infant",
+  "need": "water",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "你走了很久，非常口渴。咖啡店的饮水壶放在柜台后，店员抬头等你开口。",
+    "en": "You have walked a long way and are very thirsty. A water jug is behind a cafe counter, and the employee looks up and waits for you to speak."
+  },
+  "npc": {
+    "persona": "A cafe employee at the counter. Unhurried, attentive, and willing to provide drinking water.",
+    "greeting": "Hello. What can I get you?",
+    "responses": {
+      "hit": ["Water? Here. Drink slowly.", "Yes, drink. There is more."],
+      "partial": ["You are thirsty? What do you want?", "You want something from me?"],
+      "miss": ["Sorry? Say it again?", "Hmm? What do you need?"]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": ["water", "drink", "something to drink", "thirsty", "me thirsty"],
+      "zh_hint": "你要的东西"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": ["want", "need", "give me", "can i have", "may i have", "please"],
+      "zh_hint": "表达这是一个请求"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "water", "count": 2 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "water", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "water_sip", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "water", "zh": "水", "source": "npc" },
+    { "en": "drink", "zh": "喝", "source": "npc" },
+    { "en": "thirsty", "zh": "渴的", "source": "npc" }
+  ],
+  "reference_answer": "I want water, please.",
+  "provenance": {
+    "rationale": "在咖啡店、餐馆或服务柜台请求一杯水，是成人日常和旅行中高频、低门槛的交流。水在柜台后且店员只作开放式询问，玩家必须说出 water 或 drink 并提出请求，不能直接拿取或只靠点头。",
+    "frequency_basis": "需求金字塔第 1 层;water / drink / want 均在分级词表最低频段(NGSL 类词表首千词内),不需要任何新句法。"
+  }
+}

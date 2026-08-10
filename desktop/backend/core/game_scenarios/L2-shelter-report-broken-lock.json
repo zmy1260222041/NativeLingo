@@ -1,0 +1,76 @@
+{
+  "id": "shelter-report-broken-lock",
+  "version": 1,
+  "tier": "youth",
+  "need": "shelter",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "你住的房间门锁坏了,推一下就开。你想找管房子的人说明情况,并请他今天就来修。",
+    "en": "The lock on your room is broken, and the door opens with a push. You want to tell the person who keeps the building what is wrong and ask them to fix it today."
+  },
+  "npc": {
+    "persona": "The building keeper, carrying a toolbag. Practical, willing to help, never critical.",
+    "greeting": "You were looking for me?",
+    "responses": {
+      "hit": [
+        "The lock is broken and you cannot close the door? I will come up with a new one this afternoon.",
+        "Broken lock, and you sleep there tonight. Understood. I will fix it before dark."
+      ],
+      "partial": [
+        "Something with your room? Tell me what is wrong.",
+        "The lock, or the door? And when do you need it?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? I did not catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "problem_object",
+      "required": true,
+      "accept": ["lock", "the lock", "door", "my door", "door lock", "key"],
+      "zh_hint": "出问题的东西:门 / 锁"
+    },
+    {
+      "key": "problem_state",
+      "required": true,
+      "accept": ["broken", "does not work", "doesnt work", "doesn't work", "not work", "no work", "will not close", "wont close", "won't close", "does not close", "open by itself", "loose"],
+      "zh_hint": "问题是什么:坏了 / 关不上"
+    },
+    {
+      "key": "request_repair",
+      "required": true,
+      "accept": ["fix", "repair", "change", "new lock", "can you fix", "please fix", "come", "look at it", "help"],
+      "zh_hint": "请对方修好它"
+    },
+    {
+      "key": "urgency_reason",
+      "required": false,
+      "accept": ["today", "tonight", "now", "soon", "i sleep there", "i am scared", "not safe", "afraid", "my things"],
+      "zh_hint": "说明为什么要尽快(会提高对方的重视程度)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "sorry to bother", "excuse me"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "new_lock", "count": 1 }, { "id": "spare_key", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "new_lock", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "door_wedge", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "broken", "zh": "坏了的", "source": "npc" },
+    { "en": "fix", "zh": "修", "source": "npc" },
+    { "en": "afternoon", "zh": "下午", "source": "npc" }
+  ],
+  "reference_answer": "The lock on my door is broken. Can you fix it today?",
+  "provenance": {
+    "rationale": "住处的锁、门、窗坏掉是极常见的居住问题,报修则是租房生活的固定动作。它要求把「哪个东西 + 坏成什么样 + 要你做什么」三件事一次说清,是安全需求里最典型的一次交涉,而不是单纯要东西。",
+    "frequency_basis": "需求金字塔第 2 层(居所安全)。lock / door / broken / fix 属日常高频词;youth 级的难度来自需要同时交付三个意思单元并可选地给出理由,而非来自生僻词汇。"
+  }
+}

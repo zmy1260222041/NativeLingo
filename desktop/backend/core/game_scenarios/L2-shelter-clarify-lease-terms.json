@@ -1,0 +1,76 @@
+{
+  "id": "shelter-clarify-lease-terms",
+  "version": 1,
+  "tier": "professional",
+  "need": "shelter",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "你准备签一年的租约。签字前你想确认押金怎么退、水电是否另计,以及提前搬走要提前多久通知。",
+    "en": "You are about to sign a one-year lease. Before you sign, you want to confirm how the deposit is returned, whether water and power are separate, and how much notice you must give if you leave early."
+  },
+  "npc": {
+    "persona": "A letting agent with the contract on the table. Professional, happy to explain, never impatient.",
+    "greeting": "Take your time. Any questions before you sign?",
+    "responses": {
+      "hit": [
+        "Good questions. The deposit comes back within thirty days if nothing is damaged, water and power are billed on top, and one month of notice if you leave early. Shall I mark those lines for you?",
+        "So: deposit returned after the check, bills separate, one month notice. That is all in clause four. I will point it out before you sign."
+      ],
+      "partial": [
+        "Which part would you like me to go over? The deposit, the bills, or the notice?",
+        "I want to answer properly. Ask me that one again with a bit more detail?"
+      ],
+      "miss": [
+        "Sorry, could you say that again?",
+        "Hmm, I did not catch that. One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "topic_contract",
+      "required": true,
+      "accept": ["contract", "lease", "agreement", "this paper", "the paper", "sign", "before i sign"],
+      "zh_hint": "话题:这份租约 / 签字前"
+    },
+    {
+      "key": "query_deposit",
+      "required": true,
+      "accept": ["deposit", "the deposit", "my money back", "get it back", "return the money", "refund", "when do i get it back"],
+      "zh_hint": "问押金怎么退"
+    },
+    {
+      "key": "query_bills_or_notice",
+      "required": true,
+      "accept": ["water and power", "electric", "electricity", "bills", "included", "extra", "on top", "notice", "tell you before", "leave early", "move out early", "how many days before", "one month"],
+      "zh_hint": "问水电是否另计,或提前搬走要提前多久通知"
+    },
+    {
+      "key": "confirm_request",
+      "required": false,
+      "accept": ["can you show me", "show me the line", "write it", "in writing", "point it out", "which part", "where does it say", "explain"],
+      "zh_hint": "请对方在合同上指出对应条款(专业度标记)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "i appreciate", "sorry to ask"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "signed_lease", "count": 1 }, { "id": "deposit_receipt", "count": 1 }, { "id": "clear_terms", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "signed_lease", "count": 1 }, { "id": "clear_terms", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "unread_contract", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "deposit", "zh": "押金", "source": "npc" },
+    { "en": "lease", "zh": "租约", "source": "npc" },
+    { "en": "notice", "zh": "提前通知", "source": "npc" }
+  ],
+  "reference_answer": "Before I sign, how is the deposit returned, are water and power billed separately, and how much notice do I need to give if I move out early?",
+  "provenance": {
+    "rationale": "租房签约是长期居所安全的关键一步,而押金、账单和退租通知期正是最常出问题的三条。绝大多数租房者都经历过这次对话,问清与不问清的差别是一笔钱和一次纠纷。",
+    "frequency_basis": "需求金字塔第 2 层(居所稳定)。deposit / bills / notice 属租房事务的固定词汇,在 professional 级词表内;难度来自一次交流里要提出并组织多个具体问题,而不要求从句或被动语态正确。"
+  }
+}

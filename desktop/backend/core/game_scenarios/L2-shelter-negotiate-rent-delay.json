@@ -1,0 +1,76 @@
+{
+  "id": "shelter-negotiate-rent-delay",
+  "version": 2,
+  "tier": "youth",
+  "need": "shelter",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "房租自动转账因为账户余额不足被退回，你的工资周五到账。物业经理发消息询问失败的付款，你需要解释并请求把付款日改到周五。",
+    "en": "Your automatic rent transfer failed because the account balance was too low, and your salary arrives on Friday. The property manager messages about the failed payment, so you need to explain and ask to move the payment date to Friday."
+  },
+  "npc": {
+    "persona": "A property manager reviewing failed automatic payments. Direct, organised, and willing to reschedule a payment when given a clear date.",
+    "greeting": "I saw that the rent payment did not go through. What happened?",
+    "responses": {
+      "hit": [
+        "Your salary arrives Friday, so you want the payment retried then. That is fine. I will reschedule it.",
+        "The automatic transfer failed, and you can pay in full on Friday. All right. I will update the payment date."
+      ],
+      "partial": [
+        "You need more time? Until when?",
+        "I hear you. Why is it late, and when can you pay?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? I did not follow that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "topic_rent",
+      "required": true,
+      "accept": ["rent", "the rent", "money", "pay", "payment", "rent payment", "transfer"],
+      "zh_hint": "话题:房租 / 付款"
+    },
+    {
+      "key": "request_delay",
+      "required": true,
+      "accept": ["more time", "more days", "later", "wait", "can i pay later", "delay", "not today", "retry friday", "pay friday", "friday"],
+      "zh_hint": "请求延后"
+    },
+    {
+      "key": "reason",
+      "required": true,
+      "accept": ["transfer failed", "payment failed", "not enough money", "balance too low", "no money yet", "my pay", "salary", "get paid friday", "wages", "payday"],
+      "zh_hint": "说明原因,让对方理解为什么晚"
+    },
+    {
+      "key": "commitment",
+      "required": false,
+      "accept": ["i will pay", "i pay friday", "promise", "all of it", "full", "sure", "for sure", "then i pay"],
+      "zh_hint": "给出承诺(会提高对方的信任)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "sorry", "i am sorry"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "rent_extension", "count": 1 }, { "id": "landlord_trust", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "rent_extension", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "one_more_night", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "rent", "zh": "房租", "source": "npc" },
+    { "en": "pay", "zh": "支付", "source": "npc" },
+    { "en": "Friday", "zh": "星期五", "source": "npc" }
+  ],
+  "reference_answer": "The transfer failed because my salary arrives on Friday. Can you retry the rent payment then?",
+  "provenance": {
+    "rationale": "自动扣款失败、发薪日与付款日错开并联系物业改期，是现代租住生活中常见的账户管理问题。物业只知道付款失败，不知道原因和可付款日期，玩家必须交付 failure + Friday + reschedule 三项信息。",
+    "frequency_basis": "需求金字塔第 2 层(居所稳定)。rent / pay / work 属高频生活词；retry 不在 NGSL 2,809 词内，Friday 等星期名整类也不在该表中，须由 CEFR-J 等级侧定级；youth 级难度在于把失败原因、明确日期与改期请求组织在一次交流中。"
+  }
+}

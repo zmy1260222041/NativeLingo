@@ -1,0 +1,76 @@
+{
+  "id": "safety-ask-neighbour-keep-spare-key",
+  "version": 2,
+  "tier": "youth",
+  "need": "safety",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "你要出差一周。隔壁邻居平时会替你收快递，也答应紧急时帮忙查看住处；你想请他保管一把备用钥匙，并说明只有紧急情况才使用。",
+    "en": "You will be away for a week. Your next-door neighbour already receives parcels for you and has agreed to check your home in an emergency. You want to ask him to keep a spare key and explain that it is only for emergencies."
+  },
+  "npc": {
+    "persona": "A trusted neighbour who already exchanges practical favours with you. Friendly, dependable, and careful about boundaries.",
+    "greeting": "Hello. Everything all right?",
+    "responses": {
+      "hit": [
+        "Keep a spare key while you are away, only for emergencies? That is fine. I will keep it safely in my drawer.",
+        "Yes, I can hold the spare key for the week and use it only if you call or there is an emergency."
+      ],
+      "partial": [
+        "A key? Tell me what you would like me to do with it.",
+        "I think I follow. Say that part again?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? I did not catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "object_key",
+      "required": true,
+      "accept": ["key", "spare key", "extra key", "another key", "my key", "second key"],
+      "zh_hint": "东西:备用钥匙"
+    },
+    {
+      "key": "request_keep",
+      "required": true,
+      "accept": ["keep it", "hold it", "you keep", "can you keep", "have it", "take it", "with you", "at your place", "look after it"],
+      "zh_hint": "请对方替你保管"
+    },
+    {
+      "key": "reason",
+      "required": true,
+      "accept": ["away for a week", "on a trip", "work trip", "emergency", "in an emergency", "check my home", "check the apartment", "water leak", "fire", "in case"],
+      "zh_hint": "说明原因:外出期间发生紧急情况时需要进入住处"
+    },
+    {
+      "key": "reassurance",
+      "required": false,
+      "accept": ["only if", "only for emergencies", "just in case", "i will call", "ask me first", "if it is ok", "if you do not mind", "for one week"],
+      "zh_hint": "说明使用边界，让对方安心"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "sorry to ask", "if you do not mind", "excuse me"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "spare_key_kept", "count": 1 }, { "id": "neighbour_trust", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "spare_key_kept", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "neighbour_phone_number", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "spare", "zh": "备用的", "source": "npc" },
+    { "en": "drawer", "zh": "抽屉", "source": "npc" },
+    { "en": "knock", "zh": "敲门", "source": "npc" }
+  ],
+  "reference_answer": "I will be away for a week. Could you keep a spare key and use it only in an emergency?",
+  "provenance": {
+    "rationale": "出差或旅行期间请已有互助关系的邻居保管备用钥匙，以便漏水、火警等紧急情况进入住处，是城市邻里中常见的风险安排。既有信任关系已在情境中成立，但钥匙用途和使用边界仍必须由玩家说清。",
+    "frequency_basis": "需求金字塔第 2 层(居所安全)。key / keep / week / home 均为日常高频词；youth 级的难度在于一次交付保管请求、外出原因与 only for emergencies 的边界。"
+  }
+}

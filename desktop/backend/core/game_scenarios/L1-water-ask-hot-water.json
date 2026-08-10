@@ -1,0 +1,128 @@
+{
+  "id": "water-ask-hot-water",
+  "version": 2,
+  "tier": "toddler",
+  "need": "water",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "餐馆服务员给你放下一杯冰水。天气很冷，你想换成热水；服务员回来准备为你点单。",
+    "en": "A restaurant server puts down a glass of iced water. The weather is cold and you want hot water instead; the server returns to take your order."
+  },
+  "npc": {
+    "persona": "A restaurant server taking orders. Friendly, attentive, and willing to replace a drink when the customer explains.",
+    "greeting": "Are you ready to order?",
+    "responses": {
+      "hit": [
+        "Hot water instead of ice water? Of course. I will change it.",
+        "Yes, I will bring you a cup of hot water. Careful when it arrives."
+      ],
+      "partial": [
+        "Water, yes. Hot or cold?",
+        "You want a drink? Tell me again?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "hot water",
+        "hot drink",
+        "tea",
+        "something hot",
+        "water",
+        "hot"
+      ],
+      "zh_hint": "你要的东西"
+    },
+    {
+      "key": "reason_state",
+      "required": true,
+      "accept": [
+        "cold",
+        "i am cold",
+        "me cold",
+        "thirsty",
+        "freezing",
+        "want warm"
+      ],
+      "zh_hint": "说明你的状态,让对方理解为什么要热的"
+    },
+    {
+      "key": "request_act",
+      "required": false,
+      "accept": [
+        "can i have",
+        "may i",
+        "could you",
+        "please",
+        "need",
+        "want"
+      ],
+      "zh_hint": "请求标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "hot_drink",
+          "count": 1
+        },
+        {
+          "id": "cup",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "hot_drink",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "warm_water",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "hot",
+      "zh": "热的",
+      "source": "npc"
+    },
+    {
+      "en": "cold",
+      "zh": "冷的",
+      "source": "npc"
+    },
+    {
+      "en": "careful",
+      "zh": "小心",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "I am cold. Can I have some hot water?",
+  "provenance": {
+    "rationale": "餐馆或酒店默认提供冷水时主动要求热水，是中文母语学习者在跨文化旅行中高复用的真实请求。NPC 只询问点单，没有主动猜测换水需求；玩家必须明确说 hot water，单说 water 会保留歧义。",
+    "frequency_basis": "需求金字塔第 1 层;water#322 / drink#655 / cold#867 / hot#885 确在最低频段,但 warm#1021 / tea#1599 / freezing#1856 在其后,thirsty 不在 NGSL 内;新增的是形容词 + 名词的修饰结构,是幼儿级的合理增量。"
+  }
+}

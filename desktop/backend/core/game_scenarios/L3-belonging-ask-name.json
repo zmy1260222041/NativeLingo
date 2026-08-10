@@ -1,0 +1,70 @@
+{
+  "id": "belonging-ask-name",
+  "version": 1,
+  "tier": "toddler",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "有个人每天早上都和你走同一条路,今天在门口又碰上了。你想问她叫什么名字。",
+    "en": "Someone walks the same way as you every morning, and you meet her at the gate again today. You want to ask her name."
+  },
+  "npc": {
+    "persona": "A woman who walks this way every morning. Warm, glad to be asked.",
+    "greeting": "Morning. We keep meeting here.",
+    "responses": {
+      "hit": [
+        "My name? Mira. And you? Good to know you at last.",
+        "Mira. Now we are not strangers. See you tomorrow morning."
+      ],
+      "partial": [
+        "Sorry, what would you like to know?",
+        "You want to ask me something? Say it again?"
+      ],
+      "miss": [
+        "Sorry? Say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "topic_name",
+      "required": true,
+      "accept": ["name", "your name", "you name", "called", "what you call", "who are you"],
+      "zh_hint": "话题:她的名字"
+    },
+    {
+      "key": "question_act",
+      "required": true,
+      "accept": ["what", "what is", "whats", "what's", "tell me", "can i ask", "please", "who"],
+      "zh_hint": "表达这是一个提问"
+    },
+    {
+      "key": "self_intro",
+      "required": false,
+      "accept": ["my name is", "i am", "im", "i'm", "me", "call me"],
+      "zh_hint": "也说出自己的名字(让关系对等)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "excuse me", "hello", "good morning"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "a_name_known", "count": 1 }, { "id": "morning_greeting", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "a_name_known", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "nod_of_recognition", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "name", "zh": "名字", "source": "npc" },
+    { "en": "morning", "zh": "早上", "source": "npc" },
+    { "en": "tomorrow", "zh": "明天", "source": "npc" }
+  ],
+  "reference_answer": "What is your name? I am Lin.",
+  "provenance": {
+    "rationale": "问名字是从「面熟的人」变成「认识的人」的那一步,也是归属需求里最小、最高频的一次交流。天天见面却互不知名是很常见的状态,而打破它只需要一句话。",
+    "frequency_basis": "需求金字塔第 3 层(归属)。name / what / your 属最低频段;「your name?」两个词即算传达到,不要求系动词或语序正确。"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "id": "belonging-ask-to-join-walking-group",
+  "version": 1,
+  "tier": "youth",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "每天傍晚有一群人在河边一起散步。你看了几天了,今天想上去问能不能跟他们一起走,以及他们几点集合。",
+    "en": "A group walks by the river together every evening. You have watched them for a few days and today you want to ask whether you can walk with them and when they meet."
+  },
+  "npc": {
+    "persona": "A member of the walking group, stretching before they set off. Open and encouraging.",
+    "greeting": "You have been sitting there a few evenings now.",
+    "responses": {
+      "hit": [
+        "Walk with us? Please do. We meet here at six, every day but Sunday.",
+        "Of course you can join. Six o'clock by this bench. We go slowly, do not worry."
+      ],
+      "partial": [
+        "You want to walk with us? And what else did you ask?",
+        "Join us, yes. Was there a question about the time?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "request_join",
+      "required": true,
+      "accept": ["join", "join you", "walk with you", "come with you", "with you", "can i come", "me too", "i want to walk"],
+      "zh_hint": "请求加入他们"
+    },
+    {
+      "key": "activity_ref",
+      "required": true,
+      "accept": ["walk", "walking", "the walk", "river", "by the river", "group", "evening walk", "you every day"],
+      "zh_hint": "指明是什么活动:傍晚散步"
+    },
+    {
+      "key": "practical_question",
+      "required": true,
+      "accept": ["what time", "when", "when do you meet", "where do you meet", "how long", "every day", "which day", "what days", "do i need"],
+      "zh_hint": "问一个落地的问题:几点 / 在哪集合"
+    },
+    {
+      "key": "self_disclosure",
+      "required": false,
+      "accept": ["i live near", "i am new", "new here", "i walk alone", "i see you", "i watched you", "i just moved"],
+      "zh_hint": "说一点自己的情况"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "excuse me", "if it is ok", "hello"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "place_in_the_group", "count": 1 }, { "id": "meeting_time", "count": 1 }, { "id": "company", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "place_in_the_group", "count": 1 }, { "id": "meeting_time", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "wave_next_time", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "join", "zh": "加入", "source": "npc" },
+    { "en": "evening", "zh": "傍晚", "source": "npc" },
+    { "en": "bench", "zh": "长椅", "source": "npc" }
+  ],
+  "reference_answer": "Can I walk with your group? What time do you meet?",
+  "provenance": {
+    "rationale": "加入一个固定的日常小团体 —— 散步、球场、合唱、遛狗 —— 是搬到新地方后建立归属的主要途径。它必须问出集合时间才算真的加入,所以比一次性的搭话更进一步。",
+    "frequency_basis": "需求金字塔第 3 层(归属)。walk / join / what time / evening 均为高频词;youth 级要求同时交付加入请求与一个事务性追问,「walk with you? what time?」即算传达到。"
+  }
+}

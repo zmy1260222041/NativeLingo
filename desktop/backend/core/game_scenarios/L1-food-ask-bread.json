@@ -1,0 +1,115 @@
+{
+  "id": "food-ask-bread",
+  "version": 2,
+  "tier": "infant",
+  "need": "food",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "你饿了。面包店柜台后摆着几种面包，店员抬头等你点单。",
+    "en": "You are hungry. Several kinds of bread are behind a bakery counter, and the clerk looks up to take your order."
+  },
+  "npc": {
+    "persona": "A patient bakery clerk who waits for customers to choose and never rushes them.",
+    "greeting": "Hello. What would you like?",
+    "responses": {
+      "hit": [
+        "Bread? Here you are. Take two.",
+        "Of course. Here, eat."
+      ],
+      "partial": [
+        "Food? Which one do you want?",
+        "You want something. Show me?"
+      ],
+      "miss": [
+        "Sorry? Say it again?",
+        "Hmm? What do you need?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "bread",
+        "food",
+        "something to eat",
+        "eat",
+        "hungry"
+      ],
+      "zh_hint": "你要的东西"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": [
+        "want",
+        "need",
+        "give me",
+        "can i have",
+        "may i have",
+        "please"
+      ],
+      "zh_hint": "表达这是一个请求"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "bread",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "bread",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "crumb",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "bread",
+      "zh": "面包",
+      "source": "npc"
+    },
+    {
+      "en": "hungry",
+      "zh": "饿的",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "I want bread, please.",
+  "provenance": {
+    "rationale": "在面包店或咖啡店柜台点一份主食，是成人日常和旅行中反复出现的交易。食物在柜台后，店员只作开放式招呼，玩家必须自己说出要面包并提出请求，不能靠点头让 NPC 猜中。",
+    "frequency_basis": "需求金字塔第 1 层;请求构式 can#38 / want#76 / give#77 / need#90 全在 NGSL 首百词,food#367 与 eat#476 亦在首五百;但具体物名 bread#2262 落在第三千段,hungry 不在 NGSL 2,809 词内 —— 实测表明本场景的难点不在句法而在具体物名,该两词须由 CEFR-J 等级侧定级。"
+  }
+}

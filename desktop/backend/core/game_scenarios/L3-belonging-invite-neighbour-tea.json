@@ -1,0 +1,166 @@
+{
+  "id": "belonging-invite-neighbour-tea",
+  "version": 1,
+  "tier": "youth",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "住在对门的人上周帮你搬过东西。你想请他哪天过来喝杯茶,顺便说个时间。",
+    "en": "The person across the hall helped you carry things last week. You want to invite him over for tea and suggest a time."
+  },
+  "npc": {
+    "persona": "The neighbour from across the hall, on his way out with a shopping bag. Friendly, a little surprised, pleased.",
+    "greeting": "Oh, hello. Settling in all right?",
+    "responses": {
+      "hit": [
+        "Tea at your place on Saturday afternoon? I would like that. Around four?",
+        "An invitation, and for helping with the boxes? Very kind. Saturday works."
+      ],
+      "partial": [
+        "You are inviting me? When were you thinking?",
+        "Tea, yes, and when? Say that part again?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? I did not catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "invite_act",
+      "required": true,
+      "accept": [
+        "come",
+        "come over",
+        "come to my place",
+        "come in",
+        "visit",
+        "invite",
+        "would you like to come",
+        "you want to come",
+        "drink tea with me",
+        "have tea"
+      ],
+      "zh_hint": "发出邀请"
+    },
+    {
+      "key": "occasion",
+      "required": true,
+      "accept": [
+        "tea",
+        "some tea",
+        "a cup of tea",
+        "coffee",
+        "drink",
+        "dinner",
+        "eat",
+        "food"
+      ],
+      "zh_hint": "邀请做什么:喝茶"
+    },
+    {
+      "key": "time",
+      "required": true,
+      "accept": [
+        "saturday",
+        "sunday",
+        "tomorrow",
+        "tonight",
+        "this week",
+        "next week",
+        "afternoon",
+        "evening",
+        "four",
+        "when you are free",
+        "any day"
+      ],
+      "zh_hint": "给出时间,否则邀请落不了地"
+    },
+    {
+      "key": "reason_thanks",
+      "required": false,
+      "accept": [
+        "you helped me",
+        "thank you for",
+        "for the boxes",
+        "last week",
+        "you were kind",
+        "to say thank you",
+        "because you helped"
+      ],
+      "zh_hint": "说明理由:上次他帮了你"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks",
+        "if you are free",
+        "if you like",
+        "no pressure"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "accepted_invitation",
+          "count": 1
+        },
+        {
+          "id": "neighbour_friendship",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "accepted_invitation",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "maybe_another_time",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "invite",
+      "zh": "邀请",
+      "source": "npc"
+    },
+    {
+      "en": "Saturday",
+      "zh": "星期六",
+      "source": "npc"
+    },
+    {
+      "en": "kind",
+      "zh": "好心的",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "You helped me last week. Would you like to come for tea on Saturday afternoon?",
+  "provenance": {
+    "rationale": "回请帮过自己的人是维持邻里关系的常规动作,而发出邀请比接受邀请难得多:必须自己定内容和时间。很多学习者能听懂邀请却从不主动发出,归属感也就停在原地。",
+    "frequency_basis": "需求金字塔第 3 层(归属)。like#45 与 come#65 在首百词,coffee#1395 / cup#1491 / tea#1599 在第二千段,而 **Saturday 等星期名整类不在 NGSL 内** —— 与 belonging-decline-and-offer-another-time 同因;youth 级难度在于邀请必须带上时间才算完整,而不要求情态动词或条件句正确。"
+  }
+}

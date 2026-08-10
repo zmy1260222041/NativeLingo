@@ -1,0 +1,127 @@
+{
+  "id": "warmth-ask-coat",
+  "version": 2,
+  "tier": "infant",
+  "need": "warmth",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "天气突然变冷，你没有带外套。和你一起出门的朋友车里有一件备用夹克，但她不知道你需要借。",
+    "en": "The weather suddenly turns cold and you did not bring a coat. A friend you are going out with has a spare jacket in her car, but she does not know you need to borrow it."
+  },
+  "npc": {
+    "persona": "A close friend getting ready to leave. Warm and helpful, but does not guess what you need.",
+    "greeting": "Ready to go?",
+    "responses": {
+      "hit": [
+        "You want to borrow my spare jacket? Of course. It is in the car.",
+        "Yes, take the coat. You can give it back tomorrow."
+      ],
+      "partial": [
+        "You need something because it is cold? What do you need?",
+        "My jacket? Tell me what you want me to do."
+      ],
+      "miss": [
+        "Sorry? Say it again?",
+        "Hmm? What do you need?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "coat",
+        "jacket",
+        "clothes",
+        "something warm",
+        "warm",
+        "cold"
+      ],
+      "zh_hint": "你要的东西"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": [
+        "want",
+        "need",
+        "give me",
+        "can i have",
+        "may i have",
+        "borrow",
+        "lend me",
+        "please"
+      ],
+      "zh_hint": "表达这是一个请求"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "coat",
+          "count": 1
+        },
+        {
+          "id": "socks",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "coat",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "thin_shirt",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "coat",
+      "zh": "外套",
+      "source": "npc"
+    },
+    {
+      "en": "clothes",
+      "zh": "衣服",
+      "source": "npc"
+    },
+    {
+      "en": "thin",
+      "zh": "薄的",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "Can I borrow your jacket, please?",
+  "provenance": {
+    "rationale": "天气变化时向朋友、家人或同行者借一件外套，是日常出行中常见且关系边界清楚的请求。备用外套的位置已知，但朋友没有主动提出借衣，玩家必须说出 coat 或 jacket 并明确 borrow。",
+    "frequency_basis": "需求金字塔第 1 层;can#38 / want#76 / give#77 在首百词,clothes#956 亦在首千内,但 warm#1021 / coat#1863 / jacket#2253 逐级更晚 —— coat 属检测器实体词表可覆盖的日常物,便于照片扩词,其等级由 CEFR-J 给出。"
+  }
+}

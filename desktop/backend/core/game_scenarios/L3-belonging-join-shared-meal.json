@@ -1,0 +1,70 @@
+{
+  "id": "belonging-join-shared-meal",
+  "version": 1,
+  "tier": "youth",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "邻居们在院子里摆了一桌共食,每家带一道菜。有人招手让你过去。你想加入,并说明你能带什么。",
+    "en": "The neighbours have set out a shared meal in the yard, and each household brings a dish. Someone waves you over. You want to join and say what you can bring."
+  },
+  "npc": {
+    "persona": "A neighbour arranging plates on the long table. Warm, chatty, glad of one more.",
+    "greeting": "Come over. There is more than enough.",
+    "responses": {
+      "hit": [
+        "You will bring rice next time? Perfect. Sit down, eat first. We do this every Sunday.",
+        "Join us, of course. And bring something next week if you like. Plates are at the end."
+      ],
+      "partial": [
+        "You are joining? And what was the other part?",
+        "I did not quite get all of it. Say it again?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "request_join",
+      "required": true,
+      "accept": ["join", "join you", "eat with you", "sit with you", "can i come", "me too", "with you", "i come"],
+      "zh_hint": "表达你想加入"
+    },
+    {
+      "key": "contribution",
+      "required": true,
+      "accept": ["i bring", "i can bring", "next time i bring", "i will bring", "i have", "i cook", "i made", "rice", "bread", "fruit", "soup", "help you", "i can help"],
+      "zh_hint": "说明你能带什么 / 能帮什么(共食的规矩是各出一份)"
+    },
+    {
+      "key": "question_about_them",
+      "required": false,
+      "accept": ["do you do this often", "every week", "when", "who cooked", "what is this", "how often", "can i ask"],
+      "zh_hint": "问一句关于他们的事(把交流变成双向的)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "smells good", "hello", "so kind"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "place_at_the_table", "count": 1 }, { "id": "shared_meal", "count": 1 }, { "id": "sunday_invitation", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "place_at_the_table", "count": 1 }, { "id": "shared_meal", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "plate_of_leftovers", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "join", "zh": "加入", "source": "npc" },
+    { "en": "plate", "zh": "盘子", "source": "npc" },
+    { "en": "Sunday", "zh": "星期日", "source": "npc" }
+  ],
+  "reference_answer": "Can I join you? I will bring rice next time.",
+  "provenance": {
+    "rationale": "邻里、同事、同学之间的共食是形成归属感最常见的场合,而「各带一份」的默认规矩意味着加入不只是被邀请,还要说出自己出什么。这一条把归属从「被允许」推进到「有来有往」。",
+    "frequency_basis": "需求金字塔第 3 层(归属)。join / bring / rice / next time 均为日常高频词;youth 级要求同时交付加入意愿与自己的贡献,「i come, i bring rice」即算传达到。"
+  }
+}

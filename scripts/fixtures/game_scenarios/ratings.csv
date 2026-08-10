@@ -1,0 +1,47 @@
+ratings
+scenario_id,tier,need,maslow_level,situation_zh,npc_greeting,commonness,fitness,notes,rater
+food-ask-bread,infant,food,1,你饿了。面包店柜台后摆着几种面包，店员抬头等你点单。,Hello. What would you like?,5,5,,Mingyang
+food-point-fruit,infant,food,1,水果摊上摆着苹果和橙子，水果在摊主身后。你需要开口告诉他要哪一种。,Good morning. What would you like?,5,5,,Mingyang
+shelter-ask-sit-inside,infant,shelter,1,突然下起大雨，你没有伞。咖啡店里还有空座，店员正在门边收拾伞架；你想问能不能进去等雨小一些。,Hello. Can I help you?,5,5,,Mingyang
+shelter-ask-toilet,infant,shelter,1,你急着要上厕所。一个人正在店门口扫地。,Hello. Do you need something?,5,5,,Mingyang
+warmth-ask-coat,infant,warmth,1,天气突然变冷，你没有带外套。和你一起出门的朋友车里有一件备用夹克，但她不知道你需要借。,Ready to go?,5,5,,Mingyang
+warmth-ask-fire-seat,infant,warmth,1,冬天的候车室很冷。暖气旁的座位空着，但旁边的人把包放在上面；你想请他移开包，让你靠近暖气坐下。,Hello.,5,5,,Mingyang
+water-ask-drink,infant,water,1,你走了很久，非常口渴。咖啡店的饮水壶放在柜台后，店员抬头等你开口。,Hello. What can I get you?,5,5,,Mingyang
+water-refill-cup,infant,water,1,餐馆里你的杯子已经空了。水壶在服务员手里，她正在给邻桌添水，还没有注意到你。,How is everything?,5,5,,Mingyang
+belonging-ask-join-ball-game,toddler,belonging,3,"楼下空地上几个人在踢球,你在旁边看了一会儿。你想问能不能一起玩。",You have been watching a while. Want the ball?,5,4,,Mingyang
+belonging-ask-name,toddler,belonging,3,"有个人每天早上都和你走同一条路,今天在门口又碰上了。你想问她叫什么名字。",Morning. We keep meeting here.,4,5,,Mingyang
+belonging-ask-sit-with-group,toddler,belonging,3,"食堂里几乎坐满了。一桌人正在吃饭聊天,那桌还有一个空位。你想问能不能坐过去。",Looking for a seat?,5,5,,Mingyang
+food-ask-soft-food,toddler,food,1,你的牙很疼，咬不动硬东西。食堂柜台有汤、米饭和烤肉，工作人员等你说明想吃什么。,Hello. What can I serve you?,5,5,,Mingyang
+safety-ask-street-safe,toddler,safety,2,"天黑了,你要走回住处。前面那条街你没走过,想问路边的人那条街晚上安不安全。",Heading home?,4,5,,Mingyang
+safety-lost-ask-way-back,toddler,safety,2,"你走远了,认不出回去的路,天色渐暗。街角有个卖水果的摊主。","You look lost, little one.",4,5,,Mingyang
+shelter-ask-place-to-sleep,toddler,shelter,2,"入夜了,你还没有地方过夜。一间小旅舍门口坐着看门人。",Late to be out. Do you need to stay?,4,5,,Mingyang
+shelter-ask-shelter-from-rain,toddler,shelter,2,"突然下起大雨,你没有伞。旁边一家店的屋檐下站着店主,你想问能不能在这儿躲一会儿雨。","Coming down hard, isn't it?",4,5,,Mingyang
+shelter-ask-sleep-spot,toddler,shelter,1,末班车突然取消，天已经很晚，你回不了家。住在附近的朋友接起电话，你想说明情况并问能不能借住一晚。,Hi. Is everything okay?,4,5,,Mingyang
+shelter-ask-wash,toddler,shelter,1,长途出行后你刚住进一家青旅，想洗澡，但不知道淋浴间在哪里，也没有毛巾。前台工作人员正在值班。,Hello. How can I help?,4,4,,Mingyang
+shelter-lock-door,toddler,shelter,2,你第一次住进一间使用电子门锁的民宿。关门后没有任何提示灯，你不确定是否锁好，便联系前台询问操作方法。,Front desk. How can I help?,4,5,,Mingyang
+warmth-ask-blanket,toddler,warmth,1,夜里旅馆房间很冷，暖气一直没有升温。你打电话给前台，想说明情况并要一条额外的毯子。,Front desk. How can I help?,4,4,,Mingyang
+warmth-ask-shoes,toddler,warmth,1,大雨后你的鞋全湿了，脚一直发冷。你走进一家鞋店，干鞋都在店员身后的货架上，需要说明状况并请他拿一双。,Hello. What can I help you find?,5,4,,Mingyang
+water-ask-clean-water,toddler,water,1,旅行途中你的水瓶空了。车站洗手池标着“不可饮用”，附近没有饮水机；你需要向信息台工作人员询问哪里能取得安全饮用水。,Hello. Can I help you?,5,5,,Mingyang
+water-ask-hot-water,toddler,water,1,餐馆服务员给你放下一杯冰水。天气很冷，你想换成热水；服务员回来准备为你点单。,Are you ready to order?,5,5,,Mingyang
+belonging-ask-neighbour-for-help-moving,youth,belonging,3,"你要把一张桌子搬上楼,一个人抬不动。楼下邻居正在门口修自行车。你想请他帮个忙,说清要多久。",Need something?,5,5,,Mingyang
+belonging-ask-to-join-walking-group,youth,belonging,3,"每天傍晚有一群人在河边一起散步。你看了几天了,今天想上去问能不能跟他们一起走,以及他们几点集合。",You have been sitting there a few evenings now.,4,5,,Mingyang
+belonging-decline-and-offer-another-time,youth,belonging,3,"同事叫你今晚一起去吃饭,但你今晚要照顾生病的家人。你想婉拒,同时说明原因,并约另一天,免得对方觉得你不想来。",A few of us are eating out tonight. Come along?,5,5,,Mingyang
+belonging-invite-neighbour-tea,youth,belonging,3,"住在对门的人上周帮你搬过东西。你想请他哪天过来喝杯茶,顺便说个时间。","Oh, hello. Settling in all right?",4,5,,Mingyang
+belonging-join-shared-meal,youth,belonging,3,"邻居们在院子里摆了一桌共食,每家带一道菜。有人招手让你过去。你想加入,并说明你能带什么。",Come over. There is more than enough.,4,4,,Mingyang
+belonging-small-talk-waiting-line,youth,belonging,3,"你在诊所排队,还要等半个多小时。旁边坐着一个和你一样在等的人。你想随口聊两句。",Long wait today.,4,4,,Mingyang
+food-buy-market-portion,youth,food,1,"你攒到了一点钱,想在市场买够吃两天的东西,但钱只够买一样。摊主可以帮你挑。",Everything here is fresh today. How much do you need?,4,5,,Mingyang
+safety-ask-neighbour-keep-spare-key,youth,safety,2,你要出差一周。隔壁邻居平时会替你收快递，也答应紧急时帮忙查看住处；你想请他保管一把备用钥匙，并说明只有紧急情况才使用。,Hello. Everything all right?,4,5,,Mingyang
+safety-ask-pharmacy-medicine,youth,safety,2,"你连着两天喉咙痛、有点发烧。你走进一家药店,想说明症状并问该吃什么。",Good afternoon. How can I help?,5,5,,Mingyang
+safety-report-lost-bag,youth,safety,2,"你的包不见了,里面有钥匙和钱。你去车站的服务台报失,并留下联系方式。",Good evening. What can I do for you?,4,5,,Mingyang
+shelter-negotiate-rent-delay,youth,shelter,2,房租自动转账因为账户余额不足被退回，你的工资周五到账。物业经理发消息询问失败的付款，你需要解释并请求把付款日改到周五。,I saw that the rent payment did not go through. What happened?,4,5,,Mingyang
+shelter-rent-room-night,youth,shelter,1,夜班巴士取消了，你需要在青年旅舍住一晚。前台同时有单间和多人间床位，但你的预算只够较便宜的床位。,Good evening. How can I help?,5,5,,Mingyang
+shelter-report-broken-lock,youth,shelter,2,"你住的房间门锁坏了,推一下就开。你想找管房子的人说明情况,并请他今天就来修。",You were looking for me?,4,5,,Mingyang
+water-report-broken-tap,youth,water,1,租住房的厨房水龙头从早上起就不出水。你到物业前台找到维修人员，需要说明房间和位置并请求报修。,Maintenance desk. What problem are you reporting?,5,5,,Mingyang
+belonging-ask-colleague-for-guidance,professional,belonging,3,"组里有个流程你还没摸清,同事做得最熟。你想请她抽二十分钟带你走一遍,并商量什么时候方便。",You wanted to catch me?,5,5,,Mingyang
+belonging-introduce-self-new-team,professional,belonging,3,"今天是你到新组的第一天。组会开始前,组长请你做个简短的自我介绍:你叫什么、之前做什么、来做哪部分工作。","Before we start, would you like to say a few words about yourself?",5,5,,Mingyang
+belonging-thank-and-follow-up-after-help,professional,belonging,3,"上周同事替你顶了一次班,你才赶上家里的事。今天你想当面谢他,说清他帮到了什么,并提出以后怎么回报。",Morning. All sorted at home?,4,4,,Mingyang
+esteem-admit-mistake-and-fix,professional,esteem,4,"你昨天报的库存数少填了一箱,单子已经发出去了。你去找负责人说清错在哪、影响了什么,并说出你打算怎么补。",You look like you have something to tell me.,4,5,,Mingyang
+esteem-claim-credit-for-own-work,professional,esteem,4,周会前你看到组长准备发送的进度汇总，里面漏掉了你已经完成的数据清理工作。共享文件的编辑记录可查；你要说明完成了什么，并请求把它补进汇总。,Anything to add before I send this out?,4,5,,Mingyang
+esteem-decline-extra-work-politely,professional,esteem,4,"手上的活已经排满到周末,同事又来请你接一件新的。你要说清接不了、为什么接不了,并给出一个你确实做得到的替代安排。",Could you take one more this week?,5,5,,Mingyang
+safety-raise-workplace-hazard,professional,safety,2,"仓库通道上有一根电线横在地上,已经有人差点被绊倒。你去找班组长说明风险,并提出怎么处理。",You wanted a word?,4,5,,Mingyang
+shelter-clarify-lease-terms,professional,shelter,2,"你准备签一年的租约。签字前你想确认押金怎么退、水电是否另计,以及提前搬走要提前多久通知。",Take your time. Any questions before you sign?,4,5,,Mingyang

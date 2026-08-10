@@ -1,0 +1,149 @@
+{
+  "id": "belonging-small-talk-waiting-line",
+  "version": 1,
+  "tier": "youth",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "你在诊所排队,还要等半个多小时。旁边坐着一个和你一样在等的人。你想随口聊两句。",
+    "en": "You are waiting at the clinic with more than half an hour to go. Someone is sitting next to you, waiting as well. You want to make a little conversation."
+  },
+  "npc": {
+    "persona": "Another person in the waiting room, happy to pass the time. Relaxed and open.",
+    "greeting": "Long wait today.",
+    "responses": {
+      "hit": [
+        "Always slow on Mondays, yes. I come here for my mother. And you, first time?",
+        "Half an hour at least. I bring a book now. Have you been to this clinic before?"
+      ],
+      "partial": [
+        "Sorry, was that a question for me?",
+        "I think you asked something. Say it again?"
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "Hmm? I did not catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "opener",
+      "required": true,
+      "accept": [
+        "long wait",
+        "slow today",
+        "how long",
+        "many people",
+        "busy today",
+        "always like this",
+        "waiting too",
+        "you waiting"
+      ],
+      "zh_hint": "开个话头:等很久 / 人很多"
+    },
+    {
+      "key": "question_to_them",
+      "required": true,
+      "accept": [
+        "do you",
+        "have you",
+        "are you",
+        "how about you",
+        "and you",
+        "you come here often",
+        "first time",
+        "what about you",
+        "you too"
+      ],
+      "zh_hint": "把话头交回给对方(问一个问题)"
+    },
+    {
+      "key": "self_disclosure",
+      "required": false,
+      "accept": [
+        "i am here for",
+        "my first time",
+        "i live",
+        "i work",
+        "i came",
+        "my throat",
+        "for my",
+        "i waited"
+      ],
+      "zh_hint": "也说一点自己的情况(让对话对等)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "hello",
+        "hi",
+        "excuse me",
+        "please",
+        "thank you",
+        "thanks",
+        "nice to talk"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "easy_conversation",
+          "count": 1
+        },
+        {
+          "id": "company",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "easy_conversation",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "friendly_nod",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "wait",
+      "zh": "等待",
+      "source": "npc"
+    },
+    {
+      "en": "Monday",
+      "zh": "星期一",
+      "source": "npc"
+    },
+    {
+      "en": "clinic",
+      "zh": "诊所",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "Long wait today. Have you been to this clinic before?",
+  "provenance": {
+    "rationale": "排队、等车、等电梯时的闲聊是母语者每天做很多次、二语学习者却几乎完全回避的一类交流。它没有实用目的,正因如此才是归属层的核心技能:关系是从这种无目的的两句话里长出来的。",
+    "frequency_basis": "需求金字塔第 3 层(归属)。time#49 / people#57 / wait#403 在最低频段,slow#1118 与 busy#1233 稍晚;youth 级的难度是必须把话轮交回对方,一个粗糙的「and you?」即满足该槽位。"
+  }
+}

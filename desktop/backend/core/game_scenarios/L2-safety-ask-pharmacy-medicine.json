@@ -1,0 +1,76 @@
+{
+  "id": "safety-ask-pharmacy-medicine",
+  "version": 1,
+  "tier": "youth",
+  "need": "safety",
+  "maslow_level": 2,
+  "situation": {
+    "zh": "你连着两天喉咙痛、有点发烧。你走进一家药店,想说明症状并问该吃什么。",
+    "en": "Your throat has hurt for two days and you feel a little hot. You go into a pharmacy to describe how you feel and ask what you should take."
+  },
+  "npc": {
+    "persona": "A pharmacist behind a low counter. Calm, careful, asks simple questions.",
+    "greeting": "Good afternoon. How can I help?",
+    "responses": {
+      "hit": [
+        "A sore throat for two days, with some fever. Take these twice a day, after food. Drink warm water.",
+        "Throat and a little fever. This one will help. If it is the same in three days, see a doctor."
+      ],
+      "partial": [
+        "Where does it hurt? And for how long?",
+        "I see you are not well. Tell me what you feel."
+      ],
+      "miss": [
+        "Sorry, could you say that again?",
+        "Hmm? I did not quite catch that."
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "symptom_part",
+      "required": true,
+      "accept": ["throat", "my throat", "head", "stomach", "fever", "hot", "temperature", "cough", "sick", "ill", "not well"],
+      "zh_hint": "哪里不舒服 / 什么症状"
+    },
+    {
+      "key": "symptom_state",
+      "required": true,
+      "accept": ["hurt", "hurts", "pain", "painful", "sore", "ache", "aches", "bad", "burning", "cannot swallow", "hard to swallow"],
+      "zh_hint": "不舒服的样子:疼 / 难受"
+    },
+    {
+      "key": "request_medicine",
+      "required": true,
+      "accept": ["medicine", "something for it", "what to take", "pills", "tablet", "tablets", "help", "what should i take", "give me something", "need something"],
+      "zh_hint": "请对方给药 / 给建议"
+    },
+    {
+      "key": "duration",
+      "required": false,
+      "accept": ["two days", "2 days", "days", "since yesterday", "yesterday", "a week", "long time", "today"],
+      "zh_hint": "持续多久(有助于对方判断)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["please", "thank you", "thanks", "excuse me", "good afternoon", "hello"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "medicine", "count": 1 }, { "id": "care_advice", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "medicine", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "warm_water", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "throat", "zh": "喉咙", "source": "npc" },
+    { "en": "fever", "zh": "发烧", "source": "npc" },
+    { "en": "medicine", "zh": "药", "source": "npc" }
+  ],
+  "reference_answer": "My throat has hurt for two days and I feel a little hot. What should I take?",
+  "provenance": {
+    "rationale": "身体不适去药店说明症状,是每个人一年里都会碰上几次的事,而且说不清就拿不到对的药,语言直接影响健康。描述身体感觉是最难用母语翻译过去的一类表达,却又必须能用粗糙形式说出来。",
+    "frequency_basis": "需求金字塔第 2 层(人身安全与健康)。throat / hurt / medicine / days 都是日常高频词;youth 级要求同时给出部位、感觉与请求,「throat hurt, two day, medicine please」这类形式即算传达到。"
+  }
+}

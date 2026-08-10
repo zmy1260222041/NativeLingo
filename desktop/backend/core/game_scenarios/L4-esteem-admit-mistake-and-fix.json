@@ -1,0 +1,162 @@
+{
+  "id": "esteem-admit-mistake-and-fix",
+  "version": 1,
+  "tier": "professional",
+  "need": "esteem",
+  "maslow_level": 4,
+  "situation": {
+    "zh": "你昨天报的库存数少填了一箱,单子已经发出去了。你去找负责人说清错在哪、影响了什么,并说出你打算怎么补。",
+    "en": "The stock count you filed yesterday was one box short and the order has already gone out. You go to the person in charge to say what was wrong, what it affected, and how you will fix it."
+  },
+  "npc": {
+    "persona": "A person in charge who would much rather hear it early than find it later. Steady, never scolding.",
+    "greeting": "You look like you have something to tell me.",
+    "responses": {
+      "hit": [
+        "One box short on yesterday's count, and the order went out on that number. Thank you for coming straight to me — send the correction now and I will hold the delivery.",
+        "So the number was wrong and the order used it. Good that I know today and not next week. Fix the count and tell the warehouse."
+      ],
+      "partial": [
+        "What exactly was wrong, and what do you want to do about it?",
+        "Something went wrong yesterday. Walk me through it?"
+      ],
+      "miss": [
+        "Sorry, once more?",
+        "Hmm? I did not follow that. Say it again?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "own_the_error",
+      "required": true,
+      "accept": [
+        "i made a mistake",
+        "my mistake",
+        "i was wrong",
+        "i got it wrong",
+        "i counted wrong",
+        "the number i wrote",
+        "i put the wrong number",
+        "my count"
+      ],
+      "zh_hint": "承认是自己弄错的"
+    },
+    {
+      "key": "what_it_affected",
+      "required": true,
+      "accept": [
+        "the order",
+        "the order went out",
+        "they sent",
+        "the delivery",
+        "the list",
+        "one box short",
+        "one box missing",
+        "the stock number"
+      ],
+      "zh_hint": "错误影响了什么"
+    },
+    {
+      "key": "fix_offered",
+      "required": true,
+      "accept": [
+        "i will fix it",
+        "i can fix it",
+        "i will count again",
+        "i will change the number",
+        "i will tell them",
+        "i will send the correction",
+        "can we stop the delivery",
+        "i will do it now"
+      ],
+      "zh_hint": "你打算怎么补"
+    },
+    {
+      "key": "timing",
+      "required": false,
+      "accept": [
+        "now",
+        "today",
+        "this morning",
+        "before the truck",
+        "in ten minutes",
+        "right away",
+        "yesterday",
+        "already started"
+      ],
+      "zh_hint": "把补救时间说具体(专业度标记)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "sorry",
+        "i am sorry",
+        "i apologise",
+        "i apologize",
+        "thank you",
+        "i wanted to tell you first"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "corrected_count",
+          "count": 1
+        },
+        {
+          "id": "reputation_for_owning_errors",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "corrected_count",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "flagged_for_review",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "correction",
+      "zh": "更正",
+      "source": "npc"
+    },
+    {
+      "en": "hold",
+      "zh": "暂缓;扣住",
+      "source": "npc"
+    },
+    {
+      "en": "short",
+      "zh": "少了;不足",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "I made a mistake in yesterday's count, it was one box short, and the order went out on that number. I will send the correction now.",
+  "provenance": {
+    "rationale": "主动报自己的错,是职场信誉真正建立或损失的那一刻,而且几乎人人每年都要做几次。非母语者的额外负担在于:词不够用时最省力的选择是不说,而错误被别人发现的代价远大于自己说出来。归到第 4 层(尊重)是因为这里换到的不是物件也不是接纳,而是「这个人报错不隐瞒」这一评价 —— §2 的包容 NPC 设定在这条上最吃重:NPC 不能有任何责备措辞。",
+    "frequency_basis": "需求金字塔第 4 层(尊重与信誉)。必需槽位用词都不生僻:tell#103 / change#113 / wrote#121 / number#127 / order#215 / sent#323 / stop#347 / short#419 / stock#691 均在 NGSL 前七百,wrong#575 亦在首千内;最差的三个 count#1022 / mistake#1152 / delivery#1428 落在第二千段,correction 不在 NGSL 2,809 词内 —— 它只出现在 NPC 台词与一条可选说法里,属 FR-24 可被观察收词的新词而非必需产出。难度在于把「承认 + 影响 + 补救」三件事一次说清而不停留在道歉 —— 只说 sorry 会命中礼貌标记却漏掉全部三个必需槽位,而礼貌槽位按 §5.3 只影响物资品质,不影响是否传达到。"
+  }
+}

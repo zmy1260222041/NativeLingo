@@ -1,0 +1,130 @@
+{
+  "id": "warmth-ask-fire-seat",
+  "version": 2,
+  "tier": "infant",
+  "need": "warmth",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "冬天的候车室很冷。暖气旁的座位空着，但旁边的人把包放在上面；你想请他移开包，让你靠近暖气坐下。",
+    "en": "A station waiting room is cold in winter. A seat by the heater is empty, but the person next to it has put a bag there. You want to ask them to move it so you can sit near the heater."
+  },
+  "npc": {
+    "persona": "A traveller waiting beside the heater. Considerate and quick to move their bag when asked.",
+    "greeting": "Hello.",
+    "responses": {
+      "hit": [
+        "Of course. I will move my bag. Sit here by the heater.",
+        "Yes, this seat is free. Come and warm up."
+      ],
+      "partial": [
+        "You mean this seat? What would you like me to do?",
+        "You are cold? Tell me where you want to sit."
+      ],
+      "miss": [
+        "Sorry? Say it again?",
+        "Hmm? What do you need?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "need_object",
+      "required": true,
+      "accept": [
+        "heater",
+        "warm",
+        "sit",
+        "sit here",
+        "this seat",
+        "here",
+        "close",
+        "cold",
+        "me cold"
+      ],
+      "zh_hint": "你要的东西:靠近火取暖"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": [
+        "want",
+        "need",
+        "can i",
+        "may i",
+        "let me",
+        "move your bag",
+        "move the bag",
+        "please"
+      ],
+      "zh_hint": "表达这是一个请求"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "heated_seat",
+          "count": 1
+        },
+        {
+          "id": "hot_drink",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "heated_seat",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "outer_spot",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "heater",
+      "zh": "暖气",
+      "source": "npc"
+    },
+    {
+      "en": "seat",
+      "zh": "座位",
+      "source": "npc"
+    },
+    {
+      "en": "hand",
+      "zh": "手",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "Can you move your bag? I need to sit by the heater.",
+  "provenance": {
+    "rationale": "在车站、机场或公共候车区请别人移开占座物品，是高复用的公共空间协商；寒冷与暖气使座位需求具有即时功能。NPC 只打招呼，玩家必须同时指出座位或暖气并提出移包或入座请求。",
+    "frequency_basis": "需求金字塔第 1 层;can#38 / need#90 / here#98 / sit#356 / cold#867 均在最低频段,warm#1021 略过千词线;heater 不在 NGSL 2,809 词内,由 CEFR-J 等级侧定级。"
+  }
+}

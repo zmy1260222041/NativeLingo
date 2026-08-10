@@ -1,0 +1,76 @@
+{
+  "id": "belonging-introduce-self-new-team",
+  "version": 1,
+  "tier": "professional",
+  "need": "belonging",
+  "maslow_level": 3,
+  "situation": {
+    "zh": "今天是你到新组的第一天。组会开始前,组长请你做个简短的自我介绍:你叫什么、之前做什么、来做哪部分工作。",
+    "en": "It is your first day with a new team. Before the meeting starts, the team lead asks you to introduce yourself briefly: your name, what you did before, and what you will be working on here."
+  },
+  "npc": {
+    "persona": "A team lead running a small stand-up. Welcoming, keeps things light, never puts anyone on the spot.",
+    "greeting": "Before we start, would you like to say a few words about yourself?",
+    "responses": {
+      "hit": [
+        "Thanks, Lin. Three years on warehouse systems, and you will be taking the stock reports here. Good to have you. Priya sits next to you and knows those reports well.",
+        "That is helpful, thank you. So reporting is your area. We will get you into the Thursday review then."
+      ],
+      "partial": [
+        "Thank you. And which part will you be working on with us?",
+        "Got your name. Tell us a little about what you did before?"
+      ],
+      "miss": [
+        "Sorry, could you say that again?",
+        "Hmm, I did not catch that. One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "self_name",
+      "required": true,
+      "accept": ["my name is", "i am", "im", "i'm", "call me", "this is", "i go by"],
+      "zh_hint": "说出你的名字"
+    },
+    {
+      "key": "background",
+      "required": true,
+      "accept": ["i worked", "i used to work", "before i", "i was", "i come from", "years", "three years", "my last job", "i did", "i studied", "my background"],
+      "zh_hint": "说明你之前的经历"
+    },
+    {
+      "key": "role_here",
+      "required": true,
+      "accept": ["i will work on", "i work on", "my job here", "i am here to", "i will help with", "reports", "stock reports", "my part", "i take care of", "i will be doing"],
+      "zh_hint": "说明你在这里负责什么"
+    },
+    {
+      "key": "openness",
+      "required": false,
+      "accept": ["ask me", "you can ask me", "happy to help", "glad to be here", "nice to meet you", "still learning", "please tell me", "i would like to learn"],
+      "zh_hint": "表达开放态度(专业度与亲和标记)"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": ["thank you", "thanks", "please", "good morning", "hello"],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    { "min_delivery": 90, "quality": "generous", "items": [{ "id": "team_welcome", "count": 1 }, { "id": "desk_neighbour_contact", "count": 1 }, { "id": "meeting_invite", "count": 1 }] },
+    { "min_delivery": 60, "quality": "plain", "items": [{ "id": "team_welcome", "count": 1 }] },
+    { "min_delivery": 30, "quality": "scrap", "items": [{ "id": "name_on_the_list", "count": 1 }] }
+  ],
+  "new_words": [
+    { "en": "team", "zh": "团队", "source": "npc" },
+    { "en": "report", "zh": "报告", "source": "npc" },
+    { "en": "review", "zh": "评审会", "source": "npc" }
+  ],
+  "reference_answer": "My name is Lin. I worked on warehouse systems for three years, and here I will be taking care of the stock reports.",
+  "provenance": {
+    "rationale": "入职、转组、加入项目时的简短自我介绍几乎人人都要做,而且往往决定了同事第一次怎么记住你、后面找谁问什么。它是职场归属的入口,一次说不清就要靠后面很多次弥补。",
+    "frequency_basis": "需求金字塔第 3 层(群体归属)。name / worked / years / job 属高频职场词;professional 级的难度在于一次交流里组织三个信息单元并保持简短,而不要求时态或冠词完全正确。"
+  }
+}

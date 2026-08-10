@@ -1,0 +1,147 @@
+{
+  "id": "water-report-broken-tap",
+  "version": 2,
+  "tier": "youth",
+  "need": "water",
+  "maslow_level": 1,
+  "situation": {
+    "zh": "租住房的厨房水龙头从早上起就不出水。你到物业前台找到维修人员，需要说明房间和位置并请求报修。",
+    "en": "The kitchen tap in your rental has produced no water since morning. You find a maintenance worker at the property desk and need to give your room and the location before requesting a repair."
+  },
+  "npc": {
+    "persona": "A maintenance worker at a property desk. Willing to help, but needs the apartment and fixture location before acting.",
+    "greeting": "Maintenance desk. What problem are you reporting?",
+    "responses": {
+      "hit": [
+        "The kitchen tap in your room has had no water since morning? I will come up with my tools. Take these bottles for now.",
+        "I have the room and location. I will repair the kitchen tap today and arrange drinking water until then."
+      ],
+      "partial": [
+        "The tap? Which room and which part of the apartment?",
+        "No water since morning, yes. Tell me the location again."
+      ],
+      "miss": [
+        "Sorry, say that again?",
+        "I did not catch that. One more time?"
+      ]
+    }
+  },
+  "slots": [
+    {
+      "key": "problem",
+      "required": true,
+      "accept": [
+        "the tap is broken",
+        "tap broken",
+        "no water",
+        "water not come",
+        "broken",
+        "not working",
+        "no water in the kitchen"
+      ],
+      "zh_hint": "说明出了什么问题"
+    },
+    {
+      "key": "location",
+      "required": true,
+      "accept": [
+        "in the kitchen",
+        "the kitchen",
+        "my room",
+        "my apartment",
+        "upstairs",
+        "room four",
+        "room 4"
+      ],
+      "zh_hint": "说明问题在哪里"
+    },
+    {
+      "key": "request_act",
+      "required": true,
+      "accept": [
+        "can you fix it",
+        "fix it",
+        "please fix",
+        "we need water",
+        "i need water",
+        "help",
+        "can you help"
+      ],
+      "zh_hint": "说明你要对方做什么"
+    },
+    {
+      "key": "politeness",
+      "required": false,
+      "accept": [
+        "please",
+        "thank you",
+        "thanks",
+        "excuse me"
+      ],
+      "zh_hint": "礼貌标记"
+    }
+  ],
+  "reward": [
+    {
+      "min_delivery": 90,
+      "quality": "generous",
+      "items": [
+        {
+          "id": "tap_fixed",
+          "count": 1
+        },
+        {
+          "id": "bottled_water",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 60,
+      "quality": "plain",
+      "items": [
+        {
+          "id": "bottled_water",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "min_delivery": 30,
+      "quality": "scrap",
+      "items": [
+        {
+          "id": "water_sip",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "new_words": [
+    {
+      "en": "tap",
+      "zh": "水龙头",
+      "source": "npc"
+    },
+    {
+      "en": "broken",
+      "zh": "坏了的",
+      "source": "npc"
+    },
+    {
+      "en": "fix",
+      "zh": "修",
+      "source": "npc"
+    },
+    {
+      "en": "kitchen",
+      "zh": "厨房",
+      "source": "npc"
+    }
+  ],
+  "reference_answer": "The kitchen tap in room four has no water. Can you fix it today?",
+  "provenance": {
+    "rationale": "向物业或房东报告厨房、浴室水龙头故障，是租住生活中常见且必须定位的报修交流。维修人员只知道有人报问题，不知道房间和具体水龙头；玩家必须交付 problem + location + repair request 才能安排处理。",
+    "frequency_basis": "需求金字塔第 1 层;broken#368(NGSL 收于 break)与 fix#973 在最低频段,tap#2297 已过第二千线;新增的是描述故障、房间与室内位置三类表达，kitchen 等位置词由 CEFR-J 等级侧核定。"
+  }
+}
