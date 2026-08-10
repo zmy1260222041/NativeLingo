@@ -1,0 +1,5 @@
+.godot/
+builds/
+*.wav
+__pycache__/
+*.pyc
