@@ -23,11 +23,13 @@ Exposes:
 from __future__ import annotations
 
 import io
+import json
 import os
 import re
 import tempfile
 import threading
 import uuid
+from datetime import datetime, timezone
 
 import numpy as np
 import soundfile as sf
@@ -864,6 +866,246 @@ async def memorize_pronounce(
         "fluency": round(float(result.fluency), 1),
         "speech_rate_ratio": round(float(result.speech_rate_ratio), 3),
     }
+
+
+# --------------------------------------------------------------------------- #
+# Survival module — internal-beta collection build (FR-22/25/27, R-14 G1/G2)
+# --------------------------------------------------------------------------- #
+# This build exists to PRODUCE the corpus G1 and G2 need, not to ship the game:
+# R-14 requires >=200 labelled responses transcribed through the production path
+# and >=8 L2 speakers, neither of which can exist before there is something to
+# speak into. Scope is a closed list — scenario fetch, record, transcribe, slot
+# match, NPC reply, minimal supplies, correction entry, on-device persistence.
+# NOT here, deliberately: /game/review (FR-23 cloud judging), photo vocabulary
+# expansion (FR-24), the full supply economy and needs-tier progression (FR-26).
+# Consequence worth stating: the beta build makes ZERO outbound requests, so
+# NFR-6's whitelist surface is empty for this round.
+#
+# No fluency / naturalness / 地道度 is computed or returned. `delivery` is the
+# deterministic slot-hit rate — it is G1's criterion itself — and is the only
+# number the learner sees. Every other dimension's threshold is unfixed until
+# G7; emitting one now would dress an uncalibrated number as a finished score.
+_GAME_SERVED: dict[str, set[str]] = {}
+_GAME_SERVED_LOCK = threading.Lock()
+
+
+def _utc_now() -> str:
+    """UTC ISO-8601 timestamp. Attempts sort by this in the export, so it must
+    be timezone-explicit — a collection session spanning a DST change would
+    otherwise reorder itself."""
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+class GameCorrectReq(BaseModel):
+    corrected_text: str
+    # The learner's own claim about what they said. Recorded, never used as the
+    # `well_pronounced` annotation: self-assessment is systematically optimistic
+    # (only those who believe they were right will tap), which is exactly the
+    # (A)/(B) conflation the G2 criterion revision exists to separate.
+    learner_claims_correct: bool = False
+    note: str = ""
+
+
+def _game_scenarios() -> dict:
+    from backend.core import game_scenario
+
+    scenarios, notes = game_scenario.load_scenarios()
+    if not scenarios:
+        raise HTTPException(
+            status_code=503,
+            detail=f"scenario library unavailable: {'; '.join(notes) or 'empty'}",
+        )
+    return scenarios
+
+
+@app.get("/game/scenario")
+def game_scenario_next(tier: str = "toddler", session: str = "default",
+                       _=Depends(require_token)):
+    """One scenario for the given tier.
+
+    Beta behaviour is random-without-repeat inside a session, NOT the needs-tier
+    progression of FR-26: progression would bias which scenarios get recorded,
+    and the corpus needs even coverage across the library more than it needs a
+    game arc. `situation.en` is withheld — the learner must produce the English
+    from a Chinese situation, so shipping the English would leak the answer.
+    """
+    scenarios = _game_scenarios()
+    pool = [s for s in scenarios.values() if str(s.get("tier") or "") == tier]
+    if not pool:
+        raise HTTPException(status_code=404, detail=f"no scenario for tier {tier!r}")
+    with _GAME_SERVED_LOCK:
+        served = _GAME_SERVED.setdefault(session, set())
+        fresh = [s for s in pool if s.get("id") not in served]
+        if not fresh:  # exhausted the tier — start the cycle over
+            served.clear()
+            fresh = pool
+        pick = fresh[uuid.uuid4().int % len(fresh)]
+        served.add(pick.get("id"))
+    npc = pick.get("npc") or {}
+    return {
+        "id": pick.get("id"),
+        "tier": pick.get("tier"),
+        "need": pick.get("need"),
+        "maslow_level": pick.get("maslow_level"),
+        "situation_zh": (pick.get("situation") or {}).get("zh", ""),
+        "npc_greeting": npc.get("greeting", ""),
+        "npc_persona": npc.get("persona", ""),
+        "slot_hints": [
+            {"key": s.get("key"), "required": bool(s.get("required")),
+             "zh_hint": s.get("zh_hint", "")}
+            for s in (pick.get("slots") or [])
+        ],
+        "remaining_in_tier": max(0, len(pool) - len(_GAME_SERVED.get(session, ())))
+    }
+
+
+@app.post("/game/attempt")
+async def game_attempt(
+    scenario_id: str = Form(...),
+    learner: UploadFile = File(...),
+    speaker: str = Form(""),
+    _=Depends(require_token),
+):
+    """Learner recording -> transcript -> slot match -> NPC reply + supplies.
+
+    The audio and the judgement are persisted under NATIVELINGO_DATA_DIR (not a
+    temp dir — a restart must not erase collected corpus), and the decode
+    settings are stored alongside because a clip transcribed under different
+    settings is a different measurement.
+    """
+    from backend.core import game_scenario as game_scenario_mod
+    from backend.core import game_store, game_transcribe
+
+    scenarios = _game_scenarios()
+    scenario = scenarios.get(scenario_id)
+    if scenario is None:
+        raise HTTPException(status_code=404, detail=f"unknown scenario {scenario_id!r}")
+
+    raw = await learner.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="empty audio upload")
+    try:
+        wav = _decode_upload(raw)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail=f"could not decode audio: {exc}")
+    if wav.size == 0:
+        raise HTTPException(status_code=400, detail="audio contained no speech")
+
+    def _run():
+        return game_transcribe.transcribe_utterance(wav, scenario)
+
+    try:
+        asr = _within_memorize_deadline(_run)
+    except _MemorizeRequestTimedOut:
+        raise HTTPException(status_code=504, detail="转写等待超过15秒，已停止本次请求。请重试。")
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail=f"transcription unavailable: {exc}")
+
+    aid = game_store.new_attempt_id()
+    result = game_scenario_mod.judge(scenario, asr["text"], seed=uuid.uuid4().int)
+    sf.write(game_store.attempt_wav_path(aid), wav, 16000,
+             format="WAV", subtype="PCM_16")
+    game_store.save_attempt(aid, {
+        "created_at": _utc_now(),
+        "scenario_id": scenario_id,
+        "tier": scenario.get("tier"),
+        "speaker": (speaker or "").strip()[:64],
+        "transcript": result["transcript"],
+        "words": asr["words"],
+        "avg_logprob": asr["avg_logprob"],
+        "no_speech_prob": asr["no_speech_prob"],
+        "low_confidence": asr["low_confidence"],
+        "decode": asr["decode"],
+        "slots": result["slots"],
+        "delivery": result["delivery"],
+        "delivered": result["delivered"],
+        "duration_s": round(wav.size / 16000.0, 3),
+    })
+    return {
+        "attempt_id": aid,
+        "transcript": result["transcript"],
+        "low_confidence": asr["low_confidence"],
+        "slots": [{"key": s["key"], "required": s["required"], "hit": s["hit"],
+                   "matched": s["matched"]} for s in result["slots"]],
+        "delivery": result["delivery"],
+        "delivered": result["delivered"],
+        "npc": result["npc"],
+        "reward": result["reward"],
+        "new_words": result["new_words"],
+    }
+
+
+@app.post("/game/attempt/{aid}/correct")
+def game_attempt_correct(aid: str, req: GameCorrectReq, _=Depends(require_token)):
+    """FR-27: the learner says the transcript got their words wrong.
+
+    Re-judges against the corrected text and stores the correction in its own
+    file — the attempt keeps what the instrument heard, the correction keeps what
+    the human says was said, and merging them would destroy the distinction the
+    corpus is being collected to measure. Costs no attempt (§5.4 retries are
+    free), which is also why precision is G1's asymmetric side.
+    """
+    from backend.core import game_scenario as game_scenario_mod
+    from backend.core import game_store
+
+    try:
+        attempt = game_store.load_attempt(aid)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except (OSError, json.JSONDecodeError):
+        raise HTTPException(status_code=404, detail="attempt not found")
+
+    corrected = game_scenario_mod.normalise(req.corrected_text)
+    if not corrected:
+        raise HTTPException(status_code=400, detail="corrected_text is empty")
+
+    scenario = _game_scenarios().get(attempt.get("scenario_id"))
+    if scenario is None:
+        raise HTTPException(status_code=404, detail="scenario for this attempt is gone")
+
+    result = game_scenario_mod.judge(scenario, corrected, seed=uuid.uuid4().int)
+    game_store.save_correction(aid, {
+        "created_at": _utc_now(),
+        "scenario_id": attempt.get("scenario_id"),
+        "asr_text": attempt.get("transcript") or "",
+        "corrected_text": corrected,
+        "learner_claims_correct": bool(req.learner_claims_correct),
+        "note": (req.note or "").strip()[:500],
+        "delivery_before": attempt.get("delivery"),
+        "delivery_after": result["delivery"],
+        "delivered_after": result["delivered"],
+        # A correction that raises delivery means the instrument probably lost a
+        # word the learner said — the (B) case G2 measures. One that does not is
+        # more likely (A), and routes to the Speaking module instead.
+        "triage_hint": "asr_miss" if result["delivery"] > (attempt.get("delivery") or 0)
+                       else "pronunciation",
+    })
+    return {
+        "attempt_id": aid,
+        "transcript": corrected,
+        "slots": [{"key": s["key"], "required": s["required"], "hit": s["hit"],
+                   "matched": s["matched"]} for s in result["slots"]],
+        "delivery": result["delivery"],
+        "delivered": result["delivered"],
+        "npc": result["npc"],
+        "reward": result["reward"],
+        "retry_free": True,
+    }
+
+
+@app.get("/game/export")
+def game_export(_=Depends(require_token)):
+    """The collection, shaped as the two gate harnesses read it.
+
+    Human-judgement columns come back EMPTY on purpose: `delivered` (G1 truth),
+    `expected_keywords` and `well_pronounced` (G2) are made by listening to the
+    audio. Prefilling them from the transcript would have each gate grade its
+    own homework. Audio stays on disk under `clips_dir` — it contains
+    identifiable voices and is never returned over HTTP or committed.
+    """
+    from backend.core import game_store
+
+    return game_store.export_rows()
 
 
 def main():

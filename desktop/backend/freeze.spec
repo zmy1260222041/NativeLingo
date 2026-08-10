@@ -76,6 +76,14 @@ for _coco in (
     datas += [(os.path.join(PROJROOT, "backend", "core", _coco),
                os.path.join("backend", "core"))]
 
+# Survival scenario library (FR-22). game_scenario.load_scenarios() resolves the
+# directory __file__-relative, and PyInstaller does not auto-collect sibling data
+# directories — without this the frozen app finds an empty library and every
+# /game/scenario request 503s.
+_game_scenarios = os.path.join(PROJROOT, "backend", "core", "game_scenarios")
+if os.path.isdir(_game_scenarios):
+    datas += [(_game_scenarios, os.path.join("backend", "core", "game_scenarios"))]
+
 # Pre-bundle the Whisper base.en model (141MB) so transcription runs offline —
 # no first-run download. transcribe.py resolves it via a __file__-relative path.
 # Conditional: if the model wasn't staged (clean dev), skip and fall back to HF.
