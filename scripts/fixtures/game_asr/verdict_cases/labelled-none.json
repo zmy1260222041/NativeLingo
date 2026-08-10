@@ -1,0 +1,26 @@
+[
+  {
+    "clip": "infant-food-ask-bread-s03-01.wav",
+    "scenario": "food-ask-bread",
+    "tier": "infant",
+    "expected_keywords": ["bread", "want"],
+    "intended": "me want bread",
+    "transcript": "me want bread"
+  },
+  {
+    "clip": "infant-food-ask-bread-s03-02.wav",
+    "scenario": "food-ask-bread",
+    "tier": "infant",
+    "expected_keywords": ["bread", "want"],
+    "intended": "me want b'e",
+    "transcript": "me want bit"
+  },
+  {
+    "clip": "toddler-warmth-ask-blanket-s02-01.wav",
+    "scenario": "warmth-ask-blanket",
+    "tier": "toddler",
+    "expected_keywords": ["blanket", "cold"],
+    "intended": "blanket, I cold",
+    "transcript": "blanket I cold"
+  }
+]
