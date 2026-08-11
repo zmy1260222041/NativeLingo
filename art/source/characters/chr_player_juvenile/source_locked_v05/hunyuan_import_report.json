@@ -1,0 +1,40 @@
+{
+  "schema": "hunyuan_v05_import_report.v1",
+  "input_glb": "art/source/characters/chr_player_juvenile/source_locked_v05/hunyuan_raw/hunyuan_multiview_v3_1.glb",
+  "source_blend": "art/source/characters/chr_player_juvenile/source_locked_v05/hunyuan_source/hunyuan_multiview_v3_1.blend",
+  "normalized_glb": "art/source/characters/chr_player_juvenile/source_locked_v05/hunyuan_processed/hunyuan_multiview_v3_1_normalized.glb",
+  "objects": [
+    "HUNYUAN_model_v05"
+  ],
+  "vertices": 299156,
+  "faces": 500000,
+  "source_topology": {
+    "vertices": 299156,
+    "faces": 500000,
+    "non_manifold_edges": 95466,
+    "loose_vertices": 0,
+    "connected_components": 2227
+  },
+  "materials": [
+    "Material.001"
+  ],
+  "bounds_min_m": [
+    -0.311299,
+    -0.241814,
+    0.0
+  ],
+  "bounds_max_m": [
+    0.311299,
+    0.241814,
+    1.78
+  ],
+  "height_m": 1.78,
+  "source_forward": "TBD (resolved by Gate A silhouette-IoU mapping)",
+  "runtime_export_allowed": false,
+  "clay_outputs": [
+    "art/source/characters/chr_player_juvenile/source_locked_v05/validation/hunyuan_mv_ny_clay.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v05/validation/hunyuan_mv_px_clay.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v05/validation/hunyuan_mv_py_clay.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v05/validation/hunyuan_mv_nx_clay.png"
+  ]
+}

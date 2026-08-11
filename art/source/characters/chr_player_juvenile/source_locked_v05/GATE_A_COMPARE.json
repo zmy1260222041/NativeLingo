@@ -1,0 +1,112 @@
+{
+  "schema": "gate_a_compare_v04_v05.v1",
+  "method": "absolute-distance silhouette, 1024 canvas, brute-force orientation",
+  "candidates": {
+    "rodin_v04": {
+      "iou_matrix": {
+        "ny": {
+          "front": 0.7074,
+          "left": 0.3551,
+          "back": 0.551,
+          "right": 0.5405
+        },
+        "px": {
+          "front": 0.2825,
+          "left": 0.6322,
+          "back": 0.3233,
+          "right": 0.3862
+        },
+        "py": {
+          "front": 0.3213,
+          "left": 0.3422,
+          "back": 0.2846,
+          "right": 0.3113
+        },
+        "nx": {
+          "front": 0.612,
+          "left": 0.317,
+          "back": 0.5366,
+          "right": 0.5034
+        }
+      },
+      "mapping_clay_to_concept": {
+        "ny": "front",
+        "px": "left",
+        "py": "right",
+        "nx": "back"
+      },
+      "mean_iou": 0.5469,
+      "per_view": {
+        "front": {
+          "clay_view": "ny",
+          "iou": 0.7074
+        },
+        "left": {
+          "clay_view": "px",
+          "iou": 0.6322
+        },
+        "right": {
+          "clay_view": "py",
+          "iou": 0.3113
+        },
+        "back": {
+          "clay_view": "nx",
+          "iou": 0.5366
+        }
+      }
+    },
+    "hunyuan_v05": {
+      "iou_matrix": {
+        "ny": {
+          "front": 0.7777,
+          "left": 0.3541,
+          "back": 0.4429,
+          "right": 0.5042
+        },
+        "px": {
+          "front": 0.3238,
+          "left": 0.7392,
+          "back": 0.3508,
+          "right": 0.4277
+        },
+        "py": {
+          "front": 0.4518,
+          "left": 0.3217,
+          "back": 0.638,
+          "right": 0.5784
+        },
+        "nx": {
+          "front": 0.2985,
+          "left": 0.3241,
+          "back": 0.3175,
+          "right": 0.3207
+        }
+      },
+      "mapping_clay_to_concept": {
+        "ny": "front",
+        "px": "left",
+        "py": "back",
+        "nx": "right"
+      },
+      "mean_iou": 0.6189,
+      "per_view": {
+        "front": {
+          "clay_view": "ny",
+          "iou": 0.7777
+        },
+        "left": {
+          "clay_view": "px",
+          "iou": 0.7392
+        },
+        "back": {
+          "clay_view": "py",
+          "iou": 0.638
+        },
+        "right": {
+          "clay_view": "nx",
+          "iou": 0.3207
+        }
+      }
+    }
+  }
+}

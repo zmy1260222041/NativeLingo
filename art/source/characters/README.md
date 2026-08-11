@@ -12,6 +12,25 @@ This directory contains the protected character-modeling sources for Stranger.
    defines asset-specific proportions, asymmetry and current blockers.
 4. `design/art/art-bible.md` controls visual language, palette and performance.
 
+## Current candidate versions
+
+Player character (`chr_player_juvenile`) — two A/B candidates, same locked four-view contract:
+
+- **`source_locked_v04/` — Hyper3D Rodin baseline** (committed, listed in
+  `ASSET_LOCK_MANIFEST.json`). 23k tris / 3×512². Gate A = **FAIL** (hallucinated tail,
+  softened sails/eyes/digits). Details: `source_locked_v04/GATE_A_REVIEW.md`.
+- **`source_locked_v05/` — Tencent Hunyuan3D Pro v3.1 multi-view** (uncommitted candidate).
+  500k tris / 4096², no tail. Gate A fair same-method A/B: mean silhouette IoU **0.619 vs Rodin
+  0.547**, leads on all four views → **the current stronger base**. Verdict CONDITIONAL: the only
+  remaining sculpt item is splitting the single head crest into the three rear-swept sails.
+  Details: `source_locked_v05/GATE_A_REVIEW.md`, `HUNYUAN_FROM_CONCEPT_RUNBOOK.md`,
+  `GATE_A_COMPARE.json`.
+
+NPCs (`chr_npc_mira` v06, `chr_npc_rowan` v04): Rodin baselines, listed in
+`ASSET_LOCK_MANIFEST.json`.
+
+No candidate is promoted to `game/assets/characters/` until Gate D passes.
+
 The procedural geometry currently visible in the Godot prototype is a temporary
 runtime placeholder. It is not a modeling source and must never be converted,
 retopologized or promoted into a character asset.

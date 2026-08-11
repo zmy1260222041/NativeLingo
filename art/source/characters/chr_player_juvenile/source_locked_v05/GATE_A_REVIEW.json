@@ -1,0 +1,72 @@
+{
+  "schema": "hunyuan_v05_gate_a_review.v1",
+  "candidate": "hunyuan_multiview_v3_1 (Tencent Hunyuan3D Pro Model=3.1, front+left+back+right)",
+  "baseline": "rodin v04 (front 0.8174 / left 0.6665 / back 0.7396 / right 0.6665)",
+  "mask_coverage_pixels_ref": {
+    "front": 119127,
+    "left": 83620,
+    "back": 120269,
+    "right": 113890
+  },
+  "mask_coverage_pixels_ren": {
+    "ny": 116127,
+    "px": 75860,
+    "py": 112819,
+    "nx": 73020
+  },
+  "iou_matrix_clay_x_concept": {
+    "ny": {
+      "front": 0.7777,
+      "left": 0.3541,
+      "back": 0.4429,
+      "right": 0.5042
+    },
+    "px": {
+      "front": 0.3238,
+      "left": 0.7392,
+      "back": 0.3508,
+      "right": 0.4277
+    },
+    "py": {
+      "front": 0.4518,
+      "left": 0.3217,
+      "back": 0.638,
+      "right": 0.5784
+    },
+    "nx": {
+      "front": 0.2985,
+      "left": 0.3241,
+      "back": 0.3175,
+      "right": 0.3207
+    }
+  },
+  "best_orientation_mapping_clay_to_concept": {
+    "ny": "front",
+    "px": "left",
+    "py": "back",
+    "nx": "right"
+  },
+  "mean_iou_best": 0.6189,
+  "per_view": {
+    "front": {
+      "clay_view": "ny",
+      "iou": 0.7777,
+      "rodin_v04": 0.8174
+    },
+    "left": {
+      "clay_view": "px",
+      "iou": 0.7392,
+      "rodin_v04": 0.6665
+    },
+    "back": {
+      "clay_view": "py",
+      "iou": 0.638,
+      "rodin_v04": 0.7396
+    },
+    "right": {
+      "clay_view": "nx",
+      "iou": 0.3207,
+      "rodin_v04": 0.6665
+    }
+  }
+}
