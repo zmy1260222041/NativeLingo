@@ -1,0 +1,51 @@
+{
+  "schema": "rodin_v04_import_report.v1",
+  "input_glb": "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_raw/base_basic_pbr.glb",
+  "source_blend": "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_source/chr_player_juvenile_rodin_v04.blend",
+  "normalized_glb": "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_processed/chr_player_juvenile_rodin_v04_normalized.glb",
+  "objects": [
+    "RODIN_model_v04"
+  ],
+  "vertices": 11668,
+  "faces": 23332,
+  "source_topology": {
+    "vertices": 11668,
+    "faces": 23332,
+    "non_manifold_edges": 0,
+    "loose_vertices": 0,
+    "connected_components": 1,
+    "vertices_before_weld": 21083
+  },
+  "materials": [
+    "model"
+  ],
+  "bounds_min_m": [
+    -0.327476,
+    -0.238587,
+    0.0
+  ],
+  "bounds_max_m": [
+    0.327476,
+    0.238587,
+    1.78
+  ],
+  "height_m": 1.78,
+  "source_forward": "-Y",
+  "runtime_export_allowed": false,
+  "clay_outputs": [
+    "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_raw/view_ny.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v04/validation/rodin_ny_clay.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_raw/view_px.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v04/validation/rodin_px_clay.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_raw/view_py.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v04/validation/rodin_py_clay.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_raw/view_nx.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v04/validation/rodin_nx_clay.png"
+  ],
+  "pbr_outputs": [
+    "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_raw/beauty_front_v3.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v04/validation/rodin_front_pbr.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_raw/beauty_3qtr_v3.png",
+    "art/source/characters/chr_player_juvenile/source_locked_v04/validation/rodin_3qtr_pbr.png"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "rodin_npc_import_report.v1",
+  "asset_id": "chr_npc_mira",
+  "input_glb": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/rodin_raw/base_basic_pbr.glb",
+  "source_blend": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/rodin_source/chr_npc_mira_rodin_source_locked_v06.blend",
+  "normalized_glb": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/rodin_processed/chr_npc_mira_rodin_source_locked_v06_normalized.glb",
+  "objects": [
+    "RODIN_chr_npc_mira_base_00"
+  ],
+  "source_topology": {
+    "vertices": 11664,
+    "faces": 23332,
+    "triangles": 23332,
+    "non_manifold_edges": 0,
+    "loose_vertices": 0,
+    "vertices_before_weld": 27007
+  },
+  "materials": [
+    "model"
+  ],
+  "bounds_min_m": [
+    -0.453607,
+    -0.292983,
+    0.0
+  ],
+  "bounds_max_m": [
+    0.453607,
+    0.292983,
+    1.72
+  ],
+  "height_m": 1.72,
+  "feet_grounded": true,
+  "source_forward": "-Y assumption pending concept overlay",
+  "runtime_export_allowed": false,
+  "clay_outputs": [
+    "art/source/characters/npcs/chr_npc_mira/source_locked_v06/validation/rodin_front_clay.png",
+    "art/source/characters/npcs/chr_npc_mira/source_locked_v06/validation/rodin_character_left_clay.png",
+    "art/source/characters/npcs/chr_npc_mira/source_locked_v06/validation/rodin_back_clay.png",
+    "art/source/characters/npcs/chr_npc_mira/source_locked_v06/validation/rodin_character_right_clay.png"
+  ]
+}

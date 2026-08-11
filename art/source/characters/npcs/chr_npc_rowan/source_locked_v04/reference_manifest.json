@@ -1,0 +1,52 @@
+{
+  "schema": "reference_manifest.v1",
+  "asset_id": "chr_npc_rowan",
+  "status": "SOURCE_LOCKED_USER_APPROVED",
+  "source_files": [
+    "reference/turnaround_source.png",
+    "reference/figure_view_0.png",
+    "reference/figure_view_1.png",
+    "reference/figure_view_2.png",
+    "reference/figure_view_3.png"
+  ],
+  "primary_view": "front",
+  "view_order": ["front", "character_left", "back", "character_right"],
+  "target_height_m": 2.08,
+  "physical_side_map": {
+    "front_image_left": "character physical right / narrow face",
+    "front_image_right": "character physical left / wide face",
+    "character_left_profile": "wide face, larger eye, longer mouth",
+    "character_right_profile": "narrow face, smaller eye, shorter mouth"
+  },
+  "expected_primary_parts": {
+    "count": 19,
+    "labels": [
+      "asymmetric_wedge_head", "neck_hinge", "upper_suspended_plate", "lower_open_loop_plate",
+      "upper_arm_left", "upper_arm_right", "forearm_left", "forearm_right",
+      "hand_left_three_digit", "hand_right_three_digit", "upper_leg_left", "upper_leg_right",
+      "knee_left", "knee_right", "lower_leg_left", "lower_leg_right",
+      "foot_left_split_wedge", "foot_right_split_wedge", "face_panel_system"
+    ]
+  },
+  "structural_parts": [
+    "one skewed pentagonal head solid with unequal physical face sides",
+    "upper suspended kite plate and lower open-loop plate",
+    "long arms extending below the knee line",
+    "lower legs 1.35-1.45 times upper-leg length",
+    "three digits per hand and split wedge feet"
+  ],
+  "decorative_parts": [
+    "two unequal amber eye windows with vertical dark pupils",
+    "closed asymmetric shallow mouth line"
+  ],
+  "texture_regions": ["dusk_indigo", "hearth_amber", "dust_cream", "bark_plum"],
+  "validation_thresholds": {
+    "front_mask_iou_min": 0.9,
+    "bbox_center_tolerance_px": 12,
+    "part_count_exact": true,
+    "height_error_percent_max": 2.0,
+    "ground_line_error_percent_max": 1.0,
+    "front_back_head_bbox_difference_percent_max": 3.0
+  },
+  "generation_policy": "Rodin supplies a sculptable Gate A base only; it is not runtime-ready."
+}

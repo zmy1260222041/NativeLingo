@@ -1,0 +1,54 @@
+{
+  "schema": "stranger.character_asset_lock.v1",
+  "generated_at": "2026-08-11",
+  "policy": {
+    "hash_algorithm": "sha256",
+    "listed_files_are_immutable": true,
+    "edit_strategy": "create a new source_locked version or versioned sculpt; never overwrite a listed file",
+    "credentials_must_not_be_stored": true,
+    "runtime_export_allowed": false
+  },
+  "assets": [
+    {
+      "asset_id": "chr_player_juvenile",
+      "source_lock": "source_locked_v04",
+      "files": [
+        {"role": "reference_front", "path": "art/source/characters/chr_player_juvenile/source_locked_v04/reference/figure_view_0.png", "bytes": 464594, "sha256": "a9fc7c32a2a2b2fa9f0ce6528654ffc40c43a91984ace2ed1c9db5136854dc26"},
+        {"role": "reference_left", "path": "art/source/characters/chr_player_juvenile/source_locked_v04/reference/figure_view_1.png", "bytes": 427992, "sha256": "a04a4bcc7a9bf10cfb9f3659e4d15c4a40b0b2f0f20888c5b4eede6f50e9a35e"},
+        {"role": "reference_back", "path": "art/source/characters/chr_player_juvenile/source_locked_v04/reference/figure_view_2.png", "bytes": 455836, "sha256": "a2f56825cbe70e05a883a754e9cef74814c9a895d33a54d8ec31c2ba8adbf87a"},
+        {"role": "reference_right", "path": "art/source/characters/chr_player_juvenile/source_locked_v04/reference/figure_view_3.png", "bytes": 459884, "sha256": "ddcf954868c6c9b212e9c207580fa328f91e6c75eaaf283eaff3fcd6c494570f"},
+        {"role": "rodin_raw", "path": "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_raw/base_basic_pbr.glb", "bytes": 1771440, "sha256": "70dc43608c3637317c035306e9f3751ad24f2479b6230138186008775cf26402"},
+        {"role": "imported_baseline_blend", "path": "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_source/chr_player_juvenile_rodin_v04.blend", "bytes": 1541302, "sha256": "16562733834eba2b3f6ec82c2779ed853ba6bf6063eb4a49110b2c053925f1e8"},
+        {"role": "normalized_baseline_glb", "path": "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_processed/chr_player_juvenile_rodin_v04_normalized.glb", "bytes": 1267196, "sha256": "4679d0bc590518f9cf589943fb8cc510cf3ed91e6f03ef87f15872a282312cdc"}
+      ]
+    },
+    {
+      "asset_id": "chr_npc_mira",
+      "source_lock": "source_locked_v06",
+      "files": [
+        {"role": "turnaround_source", "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/turnaround_source.png", "bytes": 1850931, "sha256": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c"},
+        {"role": "reference_front", "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_0.png", "bytes": 348614, "sha256": "4c1c542f15efc205d1c5befd47262a0da31c01855de3db2e84e91d0dbc8c07e8"},
+        {"role": "reference_left", "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_1.png", "bytes": 203477, "sha256": "983473db23ec2743faca02fee8a8e8448e2e1e752f2c06411b7505a85322b0f5"},
+        {"role": "reference_back", "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_2.png", "bytes": 345896, "sha256": "e15a7f80f47b885102151c3ab333d57f36fbe5993b700618a05b1757ede8daa9"},
+        {"role": "reference_right", "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_3.png", "bytes": 205864, "sha256": "af65f4c8876bde4e7e6a14989ac44d50f72c572edc166fb551ad6c88bba68334"},
+        {"role": "rodin_raw", "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/rodin_raw/base_basic_pbr.glb", "bytes": 2352212, "sha256": "b7fde94f1222be187f64ca11f099718be986b48a469624aac1e5008a1798d183"},
+        {"role": "imported_baseline_blend", "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/rodin_source/chr_npc_mira_rodin_source_locked_v06.blend", "bytes": 1868747, "sha256": "56a945f8f29200a050afb241ce969569f3725a57067f952dd880a81604823279"},
+        {"role": "normalized_baseline_glb", "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/rodin_processed/chr_npc_mira_rodin_source_locked_v06_normalized.glb", "bytes": 1623880, "sha256": "fdca9958e253844048764a6b56a59b9ce8e90e2bbea439acc6b59882722bf8fb"}
+      ]
+    },
+    {
+      "asset_id": "chr_npc_rowan",
+      "source_lock": "source_locked_v04",
+      "files": [
+        {"role": "turnaround_source", "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/turnaround_source.png", "bytes": 1689017, "sha256": "194dc52ffe29d6248b6548bb0b113f6c0293f82aac96448b2fa8c64e76cdc55b"},
+        {"role": "reference_front", "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_0.png", "bytes": 230219, "sha256": "c213b916949a9c06505bb50abfe03caafceee91bc7ee222225832bbdd2bbd3d4"},
+        {"role": "reference_left", "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_1.png", "bytes": 158066, "sha256": "ed67163b455c775e93803d5a6f979c46a6044c67d56575f6aba8fb7ecd0c7469"},
+        {"role": "reference_back", "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_2.png", "bytes": 229485, "sha256": "323256f7c34eb5ca184d896173021710695dbf50455753e98005c16f4c835cb6"},
+        {"role": "reference_right", "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_3.png", "bytes": 160636, "sha256": "f766a3c11c8963ae76cca183151a4910b56716f1024ac303dda9218d76fb709e"},
+        {"role": "rodin_raw", "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/rodin_raw/base_basic_pbr.glb", "bytes": 2221280, "sha256": "9ef9354012c7f3167757c54851a9a779531113efd0c8c446f6823580305be772"},
+        {"role": "imported_baseline_blend", "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/rodin_source/chr_npc_rowan_rodin_source_locked_v04.blend", "bytes": 1763113, "sha256": "8e99518ad70411c36dc99f75271171c214cf832c75376efa6ad4530d79c2e9f0"},
+        {"role": "normalized_baseline_glb", "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/rodin_processed/chr_npc_rowan_rodin_source_locked_v04_normalized.glb", "bytes": 1519044, "sha256": "76c02200387a6f8b81f816af926bfb5c2653b8e55d9dc16f974d306b3c1dff16"}
+      ]
+    }
+  ]
+}

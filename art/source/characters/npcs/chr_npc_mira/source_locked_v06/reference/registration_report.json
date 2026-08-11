@@ -1,0 +1,125 @@
+{
+  "schema": "rodin_reference_preparation.v2",
+  "asset_id": "chr_npc_mira",
+  "source": "reference/turnaround_source.png",
+  "source_sha256": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c",
+  "source_size": [
+    1491,
+    1055
+  ],
+  "estimated_background_rgb": [
+    242.0,
+    229.0,
+    224.0
+  ],
+  "canvas_size": [
+    512,
+    1024
+  ],
+  "view_order": [
+    "front",
+    "character_left",
+    "back",
+    "character_right"
+  ],
+  "views": [
+    {
+      "index": 0,
+      "name": "front",
+      "seed_x_range": [
+        0,
+        418
+      ],
+      "subject_x_range": [
+        0,
+        418
+      ],
+      "source_vertical_range": [
+        0,
+        1055
+      ],
+      "shared_scale": 0.9706161137440759,
+      "canvas_offset_x": 53,
+      "output": "reference/figure_view_0.png",
+      "sha256": "4c1c542f15efc205d1c5befd47262a0da31c01855de3db2e84e91d0dbc8c07e8",
+      "rgba_audit_output": "reference/figure_view_0_rgba.png",
+      "rgba_audit_sha256": "d02930aec97accdabb333a9c74b20ec96adc5acb4c13f005d2b1cb6ec759df4a",
+      "mask_output": "reference/figure_view_0_mask.png",
+      "mask_sha256": "b60e953dcab5674ca3dec8c62b35068e0ee8b74ba5b8d072ab2d7d25fb3cbd0b"
+    },
+    {
+      "index": 1,
+      "name": "character_left",
+      "seed_x_range": [
+        418,
+        704
+      ],
+      "subject_x_range": [
+        418,
+        704
+      ],
+      "source_vertical_range": [
+        0,
+        1055
+      ],
+      "shared_scale": 0.9706161137440759,
+      "canvas_offset_x": 117,
+      "output": "reference/figure_view_1.png",
+      "sha256": "983473db23ec2743faca02fee8a8e8448e2e1e752f2c06411b7505a85322b0f5",
+      "rgba_audit_output": "reference/figure_view_1_rgba.png",
+      "rgba_audit_sha256": "5726bcd233c6e9bd01e1585b96dce9b06673203763ac7910cfee822ff392c2aa",
+      "mask_output": "reference/figure_view_1_mask.png",
+      "mask_sha256": "ae680893a4752cfdeda229cd1745711985706f453e3c9f33fbe885062f7b7e80"
+    },
+    {
+      "index": 2,
+      "name": "back",
+      "seed_x_range": [
+        704,
+        1170
+      ],
+      "subject_x_range": [
+        704,
+        1170
+      ],
+      "source_vertical_range": [
+        0,
+        1055
+      ],
+      "shared_scale": 0.9706161137440759,
+      "canvas_offset_x": 30,
+      "output": "reference/figure_view_2.png",
+      "sha256": "e15a7f80f47b885102151c3ab333d57f36fbe5993b700618a05b1757ede8daa9",
+      "rgba_audit_output": "reference/figure_view_2_rgba.png",
+      "rgba_audit_sha256": "42d374abee0b43ee1926d20fe4d9cb9d37d4b2c960f2c5df84f130ac8d9271a5",
+      "mask_output": "reference/figure_view_2_mask.png",
+      "mask_sha256": "5d4b6cdea3c6528c71037ff5905eb671373ad9b2ac550dc237df6458a503a178"
+    },
+    {
+      "index": 3,
+      "name": "character_right",
+      "seed_x_range": [
+        1170,
+        1491
+      ],
+      "subject_x_range": [
+        1170,
+        1475
+      ],
+      "source_vertical_range": [
+        0,
+        1055
+      ],
+      "shared_scale": 0.9706161137440759,
+      "canvas_offset_x": 108,
+      "output": "reference/figure_view_3.png",
+      "sha256": "af65f4c8876bde4e7e6a14989ac44d50f72c572edc166fb551ad6c88bba68334",
+      "rgba_audit_output": "reference/figure_view_3_rgba.png",
+      "rgba_audit_sha256": "8bf431fc68a7756310e04c42abf6a7f3d9487f38b6a8e8ee1b2c1b8b21cb2be8",
+      "mask_output": "reference/figure_view_3_mask.png",
+      "mask_sha256": "427b385670fdff48806709d526becc78f49ca23a19c0affc88249a042c126699"
+    }
+  ],
+  "contact_sheet": "reference/figure_contact_sheet.png",
+  "contact_sheet_sha256": "3bb95061500e9d86e11749081ed227be341849b8bd8d78ecfd828d529e476705"
+}

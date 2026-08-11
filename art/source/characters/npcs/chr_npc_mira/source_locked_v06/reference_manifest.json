@@ -1,0 +1,46 @@
+{
+  "schema": "reference_manifest.v1",
+  "asset_id": "chr_npc_mira",
+  "status": "SOURCE_LOCKED_USER_APPROVED",
+  "source_files": [
+    "reference/turnaround_source.png",
+    "reference/figure_view_0.png",
+    "reference/figure_view_1.png",
+    "reference/figure_view_2.png",
+    "reference/figure_view_3.png"
+  ],
+  "primary_view": "front",
+  "view_order": ["front", "character_left", "back", "character_right"],
+  "target_height_m": 1.72,
+  "expected_primary_parts": {
+    "count": 21,
+    "labels": [
+      "head_seed_shell", "neck_notch", "shoulder_plate_center", "shoulder_plate_left",
+      "shoulder_plate_right", "torso_core", "pelvis_core", "upper_arm_left",
+      "upper_arm_right", "forearm_left", "forearm_right", "hand_left_three_digit",
+      "hand_right_three_digit", "upper_leg_left", "upper_leg_right", "lower_leg_left",
+      "lower_leg_right", "foot_left_split_wedge", "foot_right_split_wedge",
+      "crossbody_harness", "tool_pouch"
+    ]
+  },
+  "structural_parts": [
+    "three interlocking shoulder plates, never one smooth cape",
+    "three digits per hand with readable palm structure",
+    "split wedge feet and explicit knee landmarks",
+    "asymmetric head pod with short folded mouth",
+    "crossbody harness, support clasp, seed-pod tool pouch"
+  ],
+  "decorative_parts": [
+    "exactly three plum ovals on each outer upper arm",
+    "two repair stitch groups on the harness/shoulder system"
+  ],
+  "texture_regions": ["coral_clay", "dust_cream", "bark_plum", "dusk_indigo", "hearth_amber"],
+  "validation_thresholds": {
+    "front_mask_iou_min": 0.9,
+    "bbox_center_tolerance_px": 12,
+    "part_count_exact": true,
+    "height_error_percent_max": 2.0,
+    "ground_line_error_percent_max": 1.0
+  },
+  "generation_policy": "Rodin supplies a sculptable Gate A base only; it is not runtime-ready."
+}

@@ -1,0 +1,10 @@
+{
+  "schema": "rodin_job_audit.v1",
+  "provider": "Blender Copilot built-in Hyper3D free trial",
+  "mode": "MAIN_SITE / Sketch / Raw",
+  "task_uuid": "e0313f86-4c96-45b3-8864-bd09539c2d49",
+  "input_count": 4,
+  "status": "Done / Downloaded / Imported",
+  "consumed_trial_credit": 0.5,
+  "subscription_key_stored": false
+}

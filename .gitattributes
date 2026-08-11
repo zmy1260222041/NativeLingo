@@ -1,0 +1,10 @@
+# Treat authored and generated art binaries as indivisible assets. Git LFS is not
+# configured in this repository, so these rules prevent text merges without adding
+# an unavailable filter dependency.
+*.blend binary
+*.glb binary
+*.png binary
+*.webp binary
+*.jpg binary
+*.jpeg binary
+*.tga binary

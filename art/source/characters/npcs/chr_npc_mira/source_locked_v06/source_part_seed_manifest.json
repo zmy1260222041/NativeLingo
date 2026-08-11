@@ -1,0 +1,15 @@
+{
+  "schema": "source_part_seed_manifest.v1",
+  "asset_id": "chr_npc_mira",
+  "source": "reference/turnaround_source.png",
+  "output_dir": "reference",
+  "view_order": ["front", "character_left", "back", "character_right"],
+  "view_x_ranges": [[0, 418], [418, 704], [704, 1170], [1170, 1491]],
+  "ground_line_y": 931,
+  "ground_line_radius": 3,
+  "canvas_width": 512,
+  "canvas_height": 1024,
+  "background_distance_threshold": 18,
+  "alpha_feather": 10,
+  "horizontal_padding_px": 12
+}
