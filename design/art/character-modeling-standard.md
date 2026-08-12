@@ -13,9 +13,10 @@
 ## 1. 权威来源与资产保护
 
 1. 只有用户批准并进入 `source_locked_vXX/` 的四视图是形体权威；被拒绝、被替代的概念图不得参与生成或建模。
-2. `ASSET_LOCK_MANIFEST.json` 中的概念图、Rodin 原始 GLB、干净导入 `.blend` 和 normalized GLB 均为
-   不可覆盖的基线。任何调整必须写入新的版本文件；必要时升 `source_locked_vXX`。
-3. Gate A 雕刻从 `sculpt/<asset_id>_gate_a_v01.blend` 开始，不在 `rodin_source/` 基线上直接保存。
+2. `ASSET_LOCK_MANIFEST.json` 中的概念图、生成器（Rodin/Tripo）原始 GLB、干净导入 `.blend` 和
+   normalized GLB 均为不可覆盖的基线。任何调整必须写入新的版本文件；必要时升 `source_locked_vXX`。
+3. Gate A 雕刻从 `sculpt/<asset_id>_gate_a_v01.blend` 开始，不在生成器源（`rodin_source/`/`tripo_source/`）
+   基线上直接保存。
 4. 生成凭据、trial key、subscription key 和签名下载 URL 绝不入库；任务 UUID 只可作为无秘密审计编号。
 5. 每次建模前后运行 `python3 art/source/characters/verify_asset_locks.py`。失败时立即停止，不继续保存或导出。
 
@@ -24,7 +25,7 @@
 ```text
 用户批准的标准四视图
 → 视图注册与部件/左右映射
-→ Rodin 生成可雕刻基础网格
+→ Tripo 生成可雕刻基础网格
 → 干净 Blender 导入与四视 clay 证据
 → Gate A 雕刻 / remesh / 形体精修
 → 手工 retopology 与面部/关节 edge loops
@@ -34,12 +35,17 @@
 → Godot wrapper、碰撞与运行验证
 ```
 
-- Rodin 只提供 Gate A 基础表面，不提供最终比例、拓扑、材质、绑定或 LOD。
+> **生成器决策（ADR-0001）**：主角角色细化全面改用 **Tripo** 生成基础网格（替代原 Rodin 唯一路线）。
+> 理由见 `docs/architecture/adr-0001-character-refinement-tripo.md`。Rodin/Hunyuan 已锁基线保留为
+> 资产锁不可变基线，但新角色的基础网格生成统一走 Tripo（多视图图→3D，DashScope 变体复用
+> `DASHSCOPE_API_KEY`，或 Tripo 原生 API 单图/文生）。生成凭据绝不入库。
+
+- Tripo 只提供 Gate A 基础表面，不提供最终比例、拓扑、材质、绑定或 LOD。
 - Blender 中的 sculpt、remesh、retopology、edge loops、face topology 和 subdivision 是必需生产步骤。
 - 方块、球、胶囊、圆柱只允许用于临时尺寸/碰撞 blockout。由 primitives 拼出的运行时角色不得作为
   sculpt source、retopo source 或最终网格。
 - 当前 Godot 程序化 NPC 是可删除的运行占位，不属于资产链，也不作为任何造型判断依据。
-- 当 Rodin 基础网格已具备可修复的整体体积时，优先在版本化副本上雕刻修复；不得因局部错误反复随机生成。
+- 当 Tripo 基础网格已具备可修复的整体体积时，优先在版本化副本上雕刻修复；不得因局部错误反复随机生成。
 
 ## 3. 四视约束与 Gate A
 
@@ -77,7 +83,7 @@ LOD1 ≤13k、LOD2 ≤5k。LOD 必须手工保留轮廓，不依赖自动 decima
 
 ## 5. 材质、绑定与动画
 
-- Rodin PBR 只用于辨识生成表面，最终 Base Color、Normal、ORM 按 Art Bible 重绘；单角色材质槽 ≤3。
+- 生成器（Rodin/Tripo）PBR 只用于辨识生成表面，最终 Base Color、Normal、ORM 按 Art Bible 重绘；单角色材质槽 ≤3。
 - 不用噪声、毛孔、随机磨损或弥漫互渗伪装造型。色块边界、单层硬阴影和少量中尺度结构承担完成度。
 - 主角 deform bones ≤72，NPC ≤68；每顶点最多 4 权重，清除 `<0.02` 权重。
 - 面部最少支持独立眨眼、眉、下颌和嘴角；口型按角色需要建立，不把整张脸作为刚性片旋转。
@@ -99,7 +105,7 @@ LOD1 ≤13k、LOD2 ≤5k。LOD 必须手工保留轮廓，不依赖自动 decima
 
 | 资产 | 锁定版本 | 当前状态 | 下一步 |
 |---|---|---|---|
-| Player Juvenile | `source_locked_v04` | Rodin base / Gate A FAIL | 版本化雕刻：尾巴、眼窝、三层头冠、手脚 |
+| Player Juvenile | `source_locked_v06` | Hunyuan cloud / Gate D 15-of-16 | LOD0 面部 blendshape（blink/jaw/viseme）手工待办 |
 | Mira | `source_locked_v06` | Rodin base / Gate A FAIL | 版本化雕刻：脸、三肩片、三指手、腿脚、背带 |
 | Rowan | `source_locked_v04` | Rodin base / Gate A FAIL | 版本化雕刻：开放下环、非对称脸、三指手、关节 |
 | Tavi | `source_locked_v06` | Concept source locked / reference prep pending | 确定目标身高；拆分、注册并测量四视后才可提交 Rodin |

@@ -1,9 +1,9 @@
 # Asset Specs — Character: Player Juvenile
 
-> **Visual source**: `source_locked_v04/reference/figure_view_{0,1,2,3}.png`
-> **Pipeline**: Rodin → clean Blender import → four-view sculpt → retopology → rig/animation → Godot
+> **Visual source**: `art/source/characters/chr_player_juvenile/reference/figure_view_{0,1,2,3}.png`
+> **Pipeline**: Hunyuan3D Pro base → ai3d cloud (LOD/rig/motion) → headless Blender assembly → Godot
 > **Art Bible**: `design/art/art-bible.md` §§1–4, 8–9
-> **Status**: Gate A base imported; runtime export disabled
+> **Status**: Gate D 15-of-16 (cloud-built runtime GLB in place); blendshapes pending manual
 
 ## Locked Character DNA
 
@@ -22,12 +22,11 @@ superhero uniform, wrist device, transformation/hourglass symbol, copied franchi
 
 | Field | Value |
 |---|---|
-| Concept authority | `art/source/characters/chr_player_juvenile/source_locked_v04/reference/figure_view_{0,1,2,3}.png` |
-| Protected imported baseline | `art/source/characters/chr_player_juvenile/source_locked_v04/rodin_source/chr_player_juvenile_rodin_v04.blend` |
-| First editable sculpt | `art/source/characters/chr_player_juvenile/source_locked_v04/sculpt/chr_player_juvenile_gate_a_v01.blend` |
-| Current exchange mesh | `art/source/characters/chr_player_juvenile/source_locked_v04/rodin_processed/chr_player_juvenile_rodin_v04_normalized.glb` |
+| Concept authority | `art/source/characters/chr_player_juvenile/reference/figure_view_{0,1,2,3}.png` |
+| Hunyuan base (v05) | `art/source/characters/chr_player_juvenile/source_locked_v05/hunyuan_source/hunyuan_multiview_v3_1.blend` |
+| Cloud-built runtime (v06) | `game/assets/characters/chr_player_juvenile.glb` |
 | Canonical standard | `design/art/character-modeling-standard.md` |
-| Asset-specific stages | `art/source/characters/chr_player_juvenile/source_locked_v04/RODIN_PRODUCTION_PIPELINE.md` |
+| Asset-specific stages | `art/source/characters/chr_player_juvenile/source_locked_v06/README.md` |
 | Height | 1.78 m |
 | Runtime axes | Y-up, front `-Z`, scale 1.0 |
 | Origin | midpoint between grounded feet |
@@ -36,14 +35,15 @@ superhero uniform, wrist device, transformation/hourglass symbol, copied franchi
 | Skeleton | ≤72 deform bones; ≤4 influences/vertex; remove weights `<0.02` |
 | Runtime package | must not exist until Gate D passes |
 
-## Current Rodin base
+## Current state (v06 cloud-built)
 
-11,668 welded source vertices, 23,332 triangles, one closed connected component, zero non-manifold
-edges and zero loose vertices. Rodin PBR is retained only for visual inspection; final materials are
-authored from the Art Bible.
+Built end-to-end from the v05 Hunyuan3D Pro base via Tencent ai3d cloud jobs (LOD0/1/2 reduce +
+auto-rig + motion retarget) + headless Blender assembly. 15 of 16 Gate D checks pass; the runtime
+GLB is in place at `game/assets/characters/chr_player_juvenile.glb`.
 
-Gate A blockers: remove the invented tail; repair eye sockets, lids, three sail layers, three-digit
-hands, three-toed feet, joint landmarks and bilateral consistency.
+Pending: LOD0 facial blend shapes (blink/jaw/viseme) must be authored manually — the only ai3d gap.
+Visual review (proportions, gesture retarget fidelity, flat material) also deferred to human review
+in the Godot editor.
 
 ## Deliverables
 

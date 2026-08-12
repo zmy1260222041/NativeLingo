@@ -1,6 +1,6 @@
 """Import the Hunyuan3D Pro v3.1 multi-view GLB into a clean Blender scene and render verified views.
 
-Mirrors ``import_render_rodin_v04.py`` for the v05 Hunyuan candidate. The raw Tencent output is a
+Builds the v05 Hunyuan candidate baseline. The raw Tencent output is a
 dense AI mesh (≈500k tris, 4K PBR), so unlike Rodin's attribute-split baseline this script does NOT
 enforce a single closed manifold — it reports topology and proceeds. Orientation is resolved later by
 the Gate A silhouette-IoU mapping, so cameras are named by viewpoint position (ny/px/py/nx) rather

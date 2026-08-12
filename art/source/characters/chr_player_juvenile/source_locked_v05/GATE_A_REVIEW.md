@@ -6,7 +6,7 @@ Verdict: `CONDITIONAL_PASS / STRONGER_BASE_THAN_RODIN_V04 / SCULPT_REQUIRED`
 
 - Candidate: `hunyuan_raw/hunyuan_multiview_v3_1.glb` — Tencent Hunyuan3D Pro, `Model=3.1`,
   inputs front + left + back + right (`MultiViewImages`).
-- Four-view contract: `../source_locked_v04/reference/figure_view_{0,1,2,3}.png`.
+- Four-view contract: `../reference/figure_view_{0,1,2,3}.png`.
 - Editable base: `hunyuan_source/hunyuan_multiview_v3_1.blend`.
 - Import evidence: `hunyuan_import_report.json`.
 - Clay evidence: `validation/hunyuan_mv_{ny,px,py,nx}_clay.png`.

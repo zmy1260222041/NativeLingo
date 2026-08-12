@@ -63,16 +63,16 @@ python3 -m py_compile game/speech_service/server.py
 
 ## Build the player character source
 
-The only valid character source pipeline begins with the Rodin delivery and a clean
+The player source pipeline uses the Tencent Hunyuan3D Pro base and a clean
 Blender import:
 
 ```sh
 /Applications/Blender.app/Contents/MacOS/Blender \
   --background --factory-startup \
-  --python art/source/characters/chr_player_juvenile/blender/import_render_rodin_v04.py
+  --python art/source/characters/chr_player_juvenile/blender/import_render_hunyuan_v05.py
 ```
 
 Continue only with
-`art/source/characters/chr_player_juvenile/source_locked_v04/RODIN_PRODUCTION_PIPELINE.md`.
+`art/source/characters/chr_player_juvenile/source_locked_v05/HUNYUAN_FROM_CONCEPT_RUNBOOK.md`.
 The runtime GLB is exported only after Gate D; current evidence is recorded in
-`design/assets/player-juvenile-validation.md`.
+`art/source/characters/chr_player_juvenile/source_locked_v06/README.md`.

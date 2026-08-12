@@ -8,7 +8,7 @@ The approved concept views remain the visual contract; Hunyuan supplies the edit
 
 ## Canonical files
 
-- Concept views (reused): `../source_locked_v04/reference/figure_view_{0,1,2,3}.png`.
+- Concept views (reused): `../reference/figure_view_{0,1,2,3}.png`.
 - Generation/import runbook: `HUNYUAN_FROM_CONCEPT_RUNBOOK.md`.
 - Cross-character modeling rules: `design/art/character-modeling-standard.md`.
 - Raw Hunyuan delivery: `hunyuan_raw/hunyuan_multiview_v3_1.glb` + `preview_multiview.png`.

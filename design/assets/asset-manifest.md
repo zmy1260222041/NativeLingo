@@ -9,7 +9,7 @@
 | Asset ID | Name | Category | Status | Spec File |
 |---|---|---|---|---|
 | ASSET-001 | Player Juvenile Four-View Concept | 2D Reference | Approved | `design/assets/specs/player-juvenile-assets.md` |
-| ASSET-002 | Rodin Sculpt Source | 3D Source | Gate A Repair Required | `design/assets/player-juvenile-validation.md` |
+| ASSET-002 | Hunyuan Sculpt Base | 3D Source | Gate A Conditional Pass | `art/source/characters/chr_player_juvenile/source_locked_v05/GATE_A_REVIEW.md` |
 | ASSET-003 | `chr_player_juvenile_lod0` | 3D Mesh | Pending Gate A | `design/assets/specs/player-juvenile-assets.md` |
 | ASSET-004 | `chr_player_juvenile_lod1` | 3D Mesh | Pending LOD0 | `design/assets/specs/player-juvenile-assets.md` |
 | ASSET-005 | `chr_player_juvenile_lod2` | 3D Mesh | Pending LOD0 | `design/assets/specs/player-juvenile-assets.md` |

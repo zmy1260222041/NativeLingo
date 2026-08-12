@@ -15,9 +15,9 @@
 
 ## 1. 唯一源图
 
-复用 v04 锁定四视图（同一输入，与 Rodin 严格可比）：
+使用锁定四视图（共享 `../reference/`，原 v04 契约）：
 
-- `../source_locked_v04/reference/figure_view_0.png` 正面（主图）
+- `../reference/figure_view_0.png` 正面（主图）
 - `…/figure_view_1.png` 左、`…/figure_view_2.png` 背、`…/figure_view_3.png` 右（MultiView）
 
 ## 2. 直签提交（绕过过时的 addon 路径）

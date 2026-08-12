@@ -16,45 +16,27 @@
       "files": [
         {
           "role": "reference_front",
-          "path": "art/source/characters/chr_player_juvenile/source_locked_v04/reference/figure_view_0.png",
+          "path": "art/source/characters/chr_player_juvenile/reference/figure_view_0.png",
           "bytes": 464594,
           "sha256": "a9fc7c32a2a2b2fa9f0ce6528654ffc40c43a91984ace2ed1c9db5136854dc26"
         },
         {
           "role": "reference_left",
-          "path": "art/source/characters/chr_player_juvenile/source_locked_v04/reference/figure_view_1.png",
+          "path": "art/source/characters/chr_player_juvenile/reference/figure_view_1.png",
           "bytes": 427992,
           "sha256": "a04a4bcc7a9bf10cfb9f3659e4d15c4a40b0b2f0f20888c5b4eede6f50e9a35e"
         },
         {
           "role": "reference_back",
-          "path": "art/source/characters/chr_player_juvenile/source_locked_v04/reference/figure_view_2.png",
+          "path": "art/source/characters/chr_player_juvenile/reference/figure_view_2.png",
           "bytes": 455836,
           "sha256": "a2f56825cbe70e05a883a754e9cef74814c9a895d33a54d8ec31c2ba8adbf87a"
         },
         {
           "role": "reference_right",
-          "path": "art/source/characters/chr_player_juvenile/source_locked_v04/reference/figure_view_3.png",
+          "path": "art/source/characters/chr_player_juvenile/reference/figure_view_3.png",
           "bytes": 459884,
           "sha256": "ddcf954868c6c9b212e9c207580fa328f91e6c75eaaf283eaff3fcd6c494570f"
-        },
-        {
-          "role": "rodin_raw",
-          "path": "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_raw/base_basic_pbr.glb",
-          "bytes": 1771440,
-          "sha256": "70dc43608c3637317c035306e9f3751ad24f2479b6230138186008775cf26402"
-        },
-        {
-          "role": "imported_baseline_blend",
-          "path": "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_source/chr_player_juvenile_rodin_v04.blend",
-          "bytes": 1541302,
-          "sha256": "16562733834eba2b3f6ec82c2779ed853ba6bf6063eb4a49110b2c053925f1e8"
-        },
-        {
-          "role": "normalized_baseline_glb",
-          "path": "art/source/characters/chr_player_juvenile/source_locked_v04/rodin_processed/chr_player_juvenile_rodin_v04_normalized.glb",
-          "bytes": 1267196,
-          "sha256": "4679d0bc590518f9cf589943fb8cc510cf3ed91e6f03ef87f15872a282312cdc"
         },
         {
           "role": "runtime_glb_v06_cloud",
@@ -77,30 +59,6 @@
           "sha256": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c"
         },
         {
-          "role": "reference_front",
-          "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_0.png",
-          "bytes": 348614,
-          "sha256": "4c1c542f15efc205d1c5befd47262a0da31c01855de3db2e84e91d0dbc8c07e8"
-        },
-        {
-          "role": "reference_left",
-          "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_1.png",
-          "bytes": 203477,
-          "sha256": "983473db23ec2743faca02fee8a8e8448e2e1e752f2c06411b7505a85322b0f5"
-        },
-        {
-          "role": "reference_back",
-          "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_2.png",
-          "bytes": 345896,
-          "sha256": "e15a7f80f47b885102151c3ab333d57f36fbe5993b700618a05b1757ede8daa9"
-        },
-        {
-          "role": "reference_right",
-          "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_3.png",
-          "bytes": 205864,
-          "sha256": "af65f4c8876bde4e7e6a14989ac44d50f72c572edc166fb551ad6c88bba68334"
-        },
-        {
           "role": "rodin_raw",
           "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/rodin_raw/base_basic_pbr.glb",
           "bytes": 2352212,
@@ -117,8 +75,34 @@
           "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/rodin_processed/chr_npc_mira_rodin_source_locked_v06_normalized.glb",
           "bytes": 1623880,
           "sha256": "fdca9958e253844048764a6b56a59b9ce8e90e2bbea439acc6b59882722bf8fb"
+        },
+        {
+          "role": "reference_front",
+          "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_0.png",
+          "bytes": 349363,
+          "sha256": "9c3f0f1c349c72cc5238d113a29fe66597b7bab8f94820073bdd4e2ec80bc667"
+        },
+        {
+          "role": "reference_left",
+          "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_1.png",
+          "bytes": 203987,
+          "sha256": "42ffe876da871908770600f143e351b3bc27453e2de63a08ac39e4a955fb9502"
+        },
+        {
+          "role": "reference_back",
+          "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_2.png",
+          "bytes": 347109,
+          "sha256": "70871cc34e43fb678af9aeb4deef88e99171cdbb1cd88e4c19009cd398fd41d2"
+        },
+        {
+          "role": "reference_right",
+          "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_3.png",
+          "bytes": 206537,
+          "sha256": "001ce8ac650e5666727a0b05fb740a808042df6a024af31976082c3fbfc7c118"
         }
-      ]
+      ],
+      "registered_reference_set": "reference_root_promoted_v03",
+      "legacy_rodin_status": "INVALIDATED_GROUND_LINE_REFERENCE_DEFECT_RESUBMISSION_REQUIRED"
     },
     {
       "asset_id": "chr_npc_rowan",
@@ -129,30 +113,6 @@
           "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/turnaround_source.png",
           "bytes": 1689017,
           "sha256": "194dc52ffe29d6248b6548bb0b113f6c0293f82aac96448b2fa8c64e76cdc55b"
-        },
-        {
-          "role": "reference_front",
-          "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_0.png",
-          "bytes": 230219,
-          "sha256": "c213b916949a9c06505bb50abfe03caafceee91bc7ee222225832bbdd2bbd3d4"
-        },
-        {
-          "role": "reference_left",
-          "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_1.png",
-          "bytes": 158066,
-          "sha256": "ed67163b455c775e93803d5a6f979c46a6044c67d56575f6aba8fb7ecd0c7469"
-        },
-        {
-          "role": "reference_back",
-          "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_2.png",
-          "bytes": 229485,
-          "sha256": "323256f7c34eb5ca184d896173021710695dbf50455753e98005c16f4c835cb6"
-        },
-        {
-          "role": "reference_right",
-          "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_3.png",
-          "bytes": 160636,
-          "sha256": "f766a3c11c8963ae76cca183151a4910b56716f1024ac303dda9218d76fb709e"
         },
         {
           "role": "rodin_raw",
@@ -171,8 +131,34 @@
           "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/rodin_processed/chr_npc_rowan_rodin_source_locked_v04_normalized.glb",
           "bytes": 1519044,
           "sha256": "76c02200387a6f8b81f816af926bfb5c2653b8e55d9dc16f974d306b3c1dff16"
+        },
+        {
+          "role": "reference_front",
+          "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_0.png",
+          "bytes": 231359,
+          "sha256": "7842a35bd4b5edb8ceed7e4abaaf81ac06c1bc1f6d65aa881dac64602b382cdf"
+        },
+        {
+          "role": "reference_left",
+          "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_1.png",
+          "bytes": 158707,
+          "sha256": "8ec8766407094b9d007e7bc45241e6c067ee53823d91667d928e0cf0411239f3"
+        },
+        {
+          "role": "reference_back",
+          "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_2.png",
+          "bytes": 230086,
+          "sha256": "a3b31fa5dc5037185c02ae61d93497ba0af4ebd3b681bbfce9ae7aceb03c81d1"
+        },
+        {
+          "role": "reference_right",
+          "path": "art/source/characters/npcs/chr_npc_rowan/source_locked_v04/reference/figure_view_3.png",
+          "bytes": 161811,
+          "sha256": "f661aaf4fff33e87b23c207e195d16fd1bc7a9f117dc414331cf5eb6730efb93"
         }
-      ]
+      ],
+      "registered_reference_set": "reference_root_promoted_v03",
+      "legacy_rodin_status": "INVALIDATED_GROUND_LINE_REFERENCE_DEFECT_RESUBMISSION_REQUIRED"
     },
     {
       "asset_id": "chr_npc_ori",
@@ -187,28 +173,29 @@
         {
           "role": "reference_front",
           "path": "art/source/characters/npcs/chr_npc_ori/source_locked_v06/reference/figure_view_0.png",
-          "bytes": 305491,
-          "sha256": "876f66d53d7a9d816d655d74cbccc635da18d32361840cc14c4c809d045eabea"
+          "bytes": 307234,
+          "sha256": "8a10f4f3c85be307a1b60664519b54b33fcb98196c486e889382dd062b866052"
         },
         {
           "role": "reference_left",
           "path": "art/source/characters/npcs/chr_npc_ori/source_locked_v06/reference/figure_view_1.png",
-          "bytes": 178091,
-          "sha256": "ecb323692ff6ef7c014bdb01c7676866c404f07262b4a9f6803138d41e412baa"
+          "bytes": 179664,
+          "sha256": "ac76de4e2d2f12ee615dc4a55b37236577d24e6800ac794a11f0ec7fd237ad3d"
         },
         {
           "role": "reference_back",
           "path": "art/source/characters/npcs/chr_npc_ori/source_locked_v06/reference/figure_view_2.png",
-          "bytes": 294159,
-          "sha256": "8a7c927c401aa7b7049eba023c8dd65bd6146542c2bddc9a33c38187a69b00cd"
+          "bytes": 296968,
+          "sha256": "0902522d6f235ad28f7432a0b3aed80e2feda9cf05aefdbf648c8534b1e77395"
         },
         {
           "role": "reference_right",
           "path": "art/source/characters/npcs/chr_npc_ori/source_locked_v06/reference/figure_view_3.png",
-          "bytes": 180110,
-          "sha256": "943c7f849961342c8bee83dde41c56bd4cd54a3f5316313040546858992c3aaf"
+          "bytes": 181645,
+          "sha256": "a6975edf65d13496404077058ff444e543412ad68bf7b3d56b0fbc0dc8853410"
         }
-      ]
+      ],
+      "registered_reference_set": "reference_root_promoted_v03"
     },
     {
       "asset_id": "chr_npc_tavi",
