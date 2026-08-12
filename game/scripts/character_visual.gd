@@ -205,6 +205,8 @@ func _rename_lod0_mesh() -> void:
 const WALK_SOURCE_PATH := "res://assets/characters/chr_player_walk_source.fbx"
 const WALK_SOURCE_HASH := "32795ddb244644eac67ccfd8b84060c3"
 
+const WalkAnimFix := preload("res://scripts/walk_anim_fix.gd")
+
 func _add_walk_from_source() -> void:
 	if not ResourceLoader.exists(WALK_SOURCE_PATH):
 		push_warning("walk source FBX missing: ", WALK_SOURCE_PATH)
@@ -230,6 +232,15 @@ func _add_walk_from_source() -> void:
 		if cloud_name.contains(WALK_SOURCE_HASH):
 			var anim := walk_lib.get_animation(cloud_name)
 			anim.loop_mode = Animation.LOOP_LINEAR
+			# The walk source FBX is a separate cloud generation whose skeleton
+			# rest pose differs from this rig's (hips yaw ~166° vs ~35°), so
+			# playing its keys here twists the pelvis ~130° and the head ~75°
+			# off the idle pose (see tools/debug_cli.gd `selftest`). Re-base
+			# the walk cycle neutral onto the idle pose, which is authored on
+			# this rig and plays correctly.
+			var idle_anim := lib.get_animation(RUNTIME_IDLE) if lib.has_animation(RUNTIME_IDLE) else null
+			if idle_anim != null:
+				anim = WalkAnimFix.build_fixed_walk(anim, idle_anim, "rebase")
 			lib.add_animation(RUNTIME_WALK, anim)
 			break
 	walk_inst.queue_free()
