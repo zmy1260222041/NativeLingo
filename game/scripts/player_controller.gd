@@ -133,6 +133,10 @@ func _attempt_interaction(communication: String) -> void:
 		var reaction := "offer" if nearby_target.target_id == "rowan" and GameState.water > 0 else "greet"
 		character_visual.play_reaction(reaction)
 		nearby_target.interact(communication)
+	elif communication == "gesture":
+		# No target nearby: still play the greeting gesture so the player can
+		# see/demo the gesture animation standalone.
+		character_visual.play_reaction("greet")
 
 func _start_voice_interaction() -> void:
 	if not is_instance_valid(nearby_target) or nearby_target.interaction_kind != "npc":

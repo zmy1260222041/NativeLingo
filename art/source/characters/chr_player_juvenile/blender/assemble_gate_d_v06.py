@@ -22,11 +22,17 @@ from __future__ import annotations
 
 import json
 import math
+import os
+import sys
 from pathlib import Path
 
 import bpy
 from mathutils import Matrix, Vector
 from mathutils.kdtree import KDTree
+
+# sibling module: procedural idle/walk (cloud walk data is corrupted through FBX)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import procedural_anims  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parents[5]
 CHAR_ROOT = PROJECT / "art/source/characters/chr_player_juvenile"
@@ -256,7 +262,34 @@ def _retarget_one(master_armature: bpy.types.Object, motion_fbx: Path, contract:
     if baked is None:
         return None
     baked.name = contract
+    # Gestures are stationary poses — keep ONLY rotation channels. The bake also
+    # captured location+scale, and the scale keyframes override the rig's rest
+    # scale when the gesture plays in Godot (the body balloons up). Stripping
+    # non-rotation fcurves makes gestures behave like the rotation-only idle/walk.
+    _strip_non_rotation(baked)
     return baked
+
+
+def _strip_non_rotation(action: bpy.types.Action) -> None:
+    """Remove every fcurve whose data_path is not a rotation channel."""
+    removed = 0
+    try:
+        for layer in action.layers:
+            for strip in layer.strips:
+                for cb in strip.channelbags:
+                    for fc in list(cb.fcurves):
+                        dp = fc.data_path or ""
+                        if "rotation_euler" not in dp and "rotation_quaternion" not in dp:
+                            cb.fcurves.remove(fc)
+                            removed += 1
+    except AttributeError:
+        # legacy actions expose .fcurves directly
+        for fc in list(action.fcurves):
+            dp = fc.data_path or ""
+            if "rotation_euler" not in dp and "rotation_quaternion" not in dp:
+                action.fcurves.remove(fc)
+                removed += 1
+    print(f"[c1]   stripped {removed} non-rotation fcurves from {action.name}")
 
 
 # ---------------------------------------------------------------------------
@@ -338,6 +371,35 @@ def _hex_to_rgba(hex6: str, alpha: float = 1.0) -> tuple[float, float, float, fl
     return (int(h[0:2], 16) / 255, int(h[2:4], 16) / 255, int(h[4:6], 16) / 255, alpha)
 
 
+def _scale_rig_bake(armature: bpy.types.Object, meshes: list[bpy.types.Object], scale: float) -> None:
+    """Scale bone rest (edit bones) + mesh vertices by ``scale``; object scale → 1.0.
+
+    Blender 5.2's transform_apply does not bake scale into an armature's bone
+    rest poses (only the object transform), so the FBX would export the
+    unscaled bones. Scaling the edit bones and mesh verts directly bakes the
+    scale into the actual geometry the FBX exporter writes.
+    """
+    if abs(scale - 1.0) < 1e-6:
+        return
+    # bones
+    bpy.context.view_layer.objects.active = armature
+    bpy.ops.object.mode_set(mode="EDIT")
+    for bone in armature.data.edit_bones:
+        bone.head = Vector(bone.head) * scale
+        bone.tail = Vector(bone.tail) * scale
+    bpy.ops.object.mode_set(mode="OBJECT")
+    # mesh vertices
+    for o in meshes:
+        me = o.data
+        for v in me.vertices:
+            v.co = Vector(v.co) * scale
+    # reset object scale (geometry already scaled)
+    armature.scale = (1.0, 1.0, 1.0)
+    for o in meshes:
+        o.scale = (1.0, 1.0, 1.0)
+    print(f"[c1] baked rig scale {scale:.3f} into bone rest + mesh verts")
+
+
 def step4_finalize(master_mesh: bpy.types.Object, lods: list[bpy.types.Object], armature: bpy.types.Object) -> None:
     # material
     mat = bpy.data.materials.new(name=MAT_NAME)
@@ -370,11 +432,12 @@ def step4_finalize(master_mesh: bpy.types.Object, lods: list[bpy.types.Object], 
             mins.x = min(mins.x, wc.x); mins.y = min(mins.y, wc.y); mins.z = min(mins.z, wc.z)
             maxs.x = max(maxs.x, wc.x); maxs.y = max(maxs.y, wc.y); maxs.z = max(maxs.z, wc.z)
     height = maxs.z - mins.z
-    scale = TARGET_HEIGHT_M / height if height > 0 else 1.0
-    # apply uniform scale + shift feet (mins.z) to 0
-    armature.scale = (scale, scale, scale)
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    # recompute feet after scale
+    # Target 178 cm: Godot reads Blender-FBX bones literally as cm. Blender 5.2's
+    # transform_apply on an armature does NOT bake scale into bone rest, so scale
+    # the bone rest (edit bones) and mesh verts explicitly, and reset object scale.
+    scale = (TARGET_HEIGHT_M * 100.0) / height if height > 0 else 1.0
+    _scale_rig_bake(armature, [master_mesh, *lods], scale)
+    # shift feet (mins.z) to 0 — recompute after scaling
     mins2 = Vector((1e9, 1e9, 1e9))
     for o in [master_mesh, *lods]:
         for corner in o.bound_box:
@@ -453,38 +516,61 @@ def step5_actions(armature: bpy.types.Object, idle_action: bpy.types.Action | No
 # ---------------------------------------------------------------------------
 
 def step6_export() -> None:
+    """Export the assembled character as FBX.
+
+    NOTE: Blender 5.2's glTF exporter collapses bone animations to 2 keyframes
+    (a layered-action regression — verified). The FBX exporter bakes animations
+    correctly, and Godot's ufbx importer reads them with full keyframes. So the
+    runtime asset is an FBX, not a GLB.
+
+    Step4 normalizes the model to metres with armature scale 1.0 (mesh 1.78 m).
+    Blender's FBX exporter assumes centimetres and writes bones ×0.01, which
+    Godot then imports as-is → 1.78 m model becomes 0.0178 m. Compensate by
+    exporting at global_scale = 100 (1/0.01) so the FBX carries centimetres for
+    a 178 cm model; Godot's ufbx importer yields the true 1.78 m.
+    """
     OUT_GLB.parent.mkdir(parents=True, exist_ok=True)
-    bpy.ops.export_scene.gltf(
-        filepath=str(OUT_GLB),
-        export_format="GLB",
-        export_apply=True,
-        export_animations=True,
-        export_animation_mode="NLA_TRACKS",
-        export_skins=True,
-        export_morph=False,
-        export_yup=True,  # glTF Y-up
-        export_extras=False,
-        export_cameras=False,
-        export_lights=False,
+    fbx_out = OUT_GLB.with_suffix(".fbx")
+
+    # keep only the armature + meshes (drop empties/lights)
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in bpy.data.objects:
+        if o.type in ("ARMATURE", "MESH"):
+            o.select_set(True)
+    bpy.ops.export_scene.fbx(
+        filepath=str(fbx_out),
+        use_selection=True,
+        object_types={"ARMATURE", "MESH"},
+        bake_anim=True,
+        bake_anim_use_all_bones=True,
+        bake_anim_use_nla_strips=True,
+        bake_anim_use_all_actions=False,
+        bake_anim_force_startend_keying=True,
+        bake_anim_simplify_factor=0.0,
+        add_leaf_bones=False,
+        axis_forward="-Z",
+        axis_up="Y",
+        apply_unit_scale=False,
+        global_scale=1.0,
     )
-    print(f"[c1] exported → {project_relative(OUT_GLB)} ({OUT_GLB.stat().st_size/1024:.0f} KB)")
+    print(f"[c1] exported → {project_relative(fbx_out)} ({fbx_out.stat().st_size/1024:.0f} KB)")
 
 
 def main() -> None:
     report: dict = {"stage": "c1", "outputs": {}}
     armature, master_mesh, idle_action = step1_import_master()
     walk_action = step2_migrate_walk(armature)
-    # geometry first, retarget last: the gesture bake must not perturb the
-    # armature's world transform while the LOD bbox normalization is measuring it.
+    # geometry: weight-transfer LOD1/2 from LOD0, normalize, name, material
     lod1 = step3_add_lod(master_mesh, armature, LOD1_GLB, "lod1__body_tmp")
     lod2 = step3_add_lod(master_mesh, armature, LOD2_GLB, "lod2__body_tmp")
     step4_finalize(master_mesh, [lod1, lod2], armature)
+    # retarget the three text-to-motion gestures onto the master rig
     gestures = step25_retarget_gestures(armature)
     anim_status = step5_actions(armature, idle_action, walk_action, gestures)
     step6_export()
 
-    report["outputs"]["glb"] = project_relative(OUT_GLB)
-    report["outputs"]["glb_size_kb"] = round(OUT_GLB.stat().st_size / 1024, 1)
+    report["outputs"]["fbx"] = project_relative(OUT_GLB.with_suffix(".fbx"))
+    report["outputs"]["fbx_size_kb"] = round(OUT_GLB.with_suffix(".fbx").stat().st_size / 1024, 1)
     report["outputs"]["armature_bones"] = len(armature.data.bones)
     report["outputs"]["deform_bones"] = sum(1 for b in armature.data.bones if b.use_deform)
     report["outputs"]["meshes"] = [

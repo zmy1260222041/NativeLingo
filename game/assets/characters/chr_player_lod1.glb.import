@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cy3pk7rw04jyw"
-path="res://.godot/imported/chr_player_juvenile.glb-ef4cd3345539f382ec09c2142ee18314.scn"
+uid="uid://cn15aooea03t1"
+path="res://.godot/imported/chr_player_lod1.glb-5df9c76f3fe4f72b16044ed3653380f0.scn"
 
 [deps]
 
-source_file="res://assets/characters/chr_player_juvenile.glb"
-dest_files=["res://.godot/imported/chr_player_juvenile.glb-ef4cd3345539f382ec09c2142ee18314.scn"]
+source_file="res://assets/characters/chr_player_lod1.glb"
+dest_files=["res://.godot/imported/chr_player_lod1.glb-5df9c76f3fe4f72b16044ed3653380f0.scn"]
 
 [params]
 
@@ -33,7 +33,7 @@ animation/fps=30
 animation/trimming=false
 animation/remove_immutable_tracks=true
 animation/import_rest_as_RESET=false
-import_script/path="res://scripts/character_import_post.gd"
+import_script/path=""
 materials/extract=0
 materials/extract_format=0
 materials/extract_path=""

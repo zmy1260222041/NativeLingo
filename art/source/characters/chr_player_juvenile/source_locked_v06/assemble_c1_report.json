@@ -1,8 +1,8 @@
 {
   "stage": "c1",
   "outputs": {
-    "glb": "game/assets/characters/chr_player_juvenile.glb",
-    "glb_size_kb": 2602.5,
+    "fbx": "game/assets/characters/chr_player_juvenile.fbx",
+    "fbx_size_kb": 3086.5,
     "armature_bones": 28,
     "deform_bones": 28,
     "meshes": [

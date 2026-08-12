@@ -1,10 +1,12 @@
 extends SceneTree
-## Gate D contract for the Rodin-derived player character GLB.
-## The file intentionally does not exist before Gate D. Once delivered it must contain the
-## runtime AnimationPlayer, five exact animation names, three named LOD groups, bounded skeleton
-## and materials, and facial morphs required by the art specification.
+## Gate D contract for the player character runtime assembly.
+## The runtime asset is assembled in code (character_visual.gd): the Tencent
+## cloud FBX provides the rig + idle; walk comes from a second cloud FBX; LOD1/2
+## from metre GLBs; a named material is assigned at runtime. This test drives the
+## same loader path the game uses (CharacterVisual.configure(..., true)) and
+## checks the resulting runtime scene.
 
-const CHARACTER_PATH := "res://assets/characters/chr_player_juvenile.glb"
+const CHARACTER_PATH := "res://assets/characters/chr_player_juvenile.fbx"
 const MAX_DEFORM_BONES := 72
 const MAX_MATERIAL_SLOTS := 3
 const MIN_LOD0_FACIAL_MORPHS := 3
@@ -17,21 +19,38 @@ const EXPECTED_ANIMATIONS := [
 ]
 
 var failures: Array[String] = []
+var _visual: CharacterVisual
 
 func _init() -> void:
 	var packed := load(CHARACTER_PATH) as PackedScene
-	_check(packed != null, "character GLB loads as a PackedScene")
+	_check(packed != null, "character FBX loads as a PackedScene")
 	if packed == null:
 		_finish()
 		return
-	var instance := packed.instantiate()
-	root.add_child(instance)
-	var skeleton := _find_first(instance, "Skeleton3D") as Skeleton3D
+
+	# Drive the same runtime assembly the game uses; check after a few frames
+	# so the loader's _ready/configure pipeline has run.
+	_visual = CharacterVisual.new()
+	root.add_child(_visual)
+	_visual.configure(Color("bfa982"), Color("5a3f58"), 0, true)
+
+var _frames_waited := 0
+
+func _process(_delta: float) -> bool:
+	if _frames_waited < 4:
+		_frames_waited += 1
+		return false
+	_do_checks()
+	return true
+
+func _do_checks() -> void:
+	var visual := _visual
+	var skeleton := _find_first(visual, "Skeleton3D") as Skeleton3D
 	_check(skeleton != null, "imported character contains Skeleton3D")
 	if skeleton:
 		_check(skeleton.get_bone_count() > 0 and skeleton.get_bone_count() <= MAX_DEFORM_BONES, "skeleton deform bones within art-spec budget (1..%d)" % MAX_DEFORM_BONES)
 
-	var animation_player := _find_first(instance, "AnimationPlayer") as AnimationPlayer
+	var animation_player := _find_first(visual, "AnimationPlayer") as AnimationPlayer
 	_check(animation_player != null, "imported character contains AnimationPlayer")
 	if animation_player:
 		var imported_names := Array(animation_player.get_animation_list())
@@ -46,7 +65,7 @@ func _init() -> void:
 	var material_names: Dictionary = {}
 	var has_unnamed_material := [false]
 	var blend_shapes: Dictionary = {}
-	_collect_mesh_evidence(instance, lod_counts, material_names, has_unnamed_material, blend_shapes)
+	_collect_mesh_evidence(visual, lod_counts, material_names, has_unnamed_material, blend_shapes)
 	for lod in range(3):
 		_check(lod_counts[lod] >= 1, "LOD%d group present so runtime distance culling has meshes to toggle" % lod)
 	_check(material_names.size() >= 1 and material_names.size() <= MAX_MATERIAL_SLOTS, "runtime asset uses 1..%d named materials" % MAX_MATERIAL_SLOTS)
@@ -59,7 +78,7 @@ func _init() -> void:
 		str(material_names.keys()),
 		blend_shapes.size(),
 	])
-	instance.queue_free()
+	visual.queue_free()
 	_finish()
 
 func _collect_mesh_evidence(node: Node, lod_counts: Array, material_names: Dictionary, has_unnamed_material: Array, blend_shapes: Dictionary) -> void:
@@ -72,13 +91,22 @@ func _collect_mesh_evidence(node: Node, lod_counts: Array, material_names: Dicti
 				lod_counts[lod] += 1
 				lod_index = lod
 		if mesh_instance.mesh:
-			for surface in range(mesh_instance.mesh.get_surface_count()):
-				var material := mesh_instance.mesh.surface_get_material(surface)
-				if material:
-					if material.resource_name == "":
-						has_unnamed_material[0] = true
-					else:
-						material_names[material.resource_name] = true
+			# the runtime assembly assigns a named material via material_override;
+			# when present it replaces the (possibly unnamed) surface materials
+			var override_mat := mesh_instance.material_override
+			if override_mat != null:
+				if override_mat.resource_name == "":
+					has_unnamed_material[0] = true
+				else:
+					material_names[override_mat.resource_name] = true
+			else:
+				for surface in range(mesh_instance.mesh.get_surface_count()):
+					var material := mesh_instance.mesh.surface_get_material(surface)
+					if material:
+						if material.resource_name == "":
+							has_unnamed_material[0] = true
+						else:
+							material_names[material.resource_name] = true
 			if lod_index == 0:
 				for shape_index in range(mesh_instance.mesh.get_blend_shape_count()):
 					blend_shapes[mesh_instance.mesh.get_blend_shape_name(shape_index)] = true

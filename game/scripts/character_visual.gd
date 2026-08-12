@@ -2,7 +2,7 @@ class_name CharacterVisual
 extends Node3D
 
 const IDLE_BREATH_DURATION := 2.4
-const PLAYER_MODEL_PATH := "res://assets/characters/chr_player_juvenile.glb"
+const PLAYER_MODEL_PATH := "res://assets/characters/chr_player_juvenile.fbx"
 const RUNTIME_IDLE := "anim_chr_player_idle_neutral"
 const RUNTIME_WALK := "anim_chr_player_walk_forward"
 
@@ -126,20 +126,224 @@ func _try_build_runtime_model() -> bool:
 	if runtime_root == null:
 		return false
 	runtime_root.name = "OrganicPlayerModel"
-	# The cloud-built GLB (v06) faces +Z; the third-person rig needs it facing
-	# -Z (away from camera). Turn 180° around Godot's up axis. Loader-side
-	# correction until the export bakes -Z forward directly.
+	# The Tencent FBX is Z-up; Godot's importer already rotates the root -90°X
+	# so the model stands on +Y. It faces +Z by default; the third-person rig
+	# needs -Z (away from camera), so turn 180° around Godot's up axis.
 	runtime_root.rotation_degrees.y = 180.0
 	add_child(runtime_root)
+	# rename the LOD0 mesh BEFORE collecting nodes so it lands in the LOD0 group
+	_rename_lod0_mesh()
 	_collect_runtime_nodes(runtime_root)
 	if runtime_animation_player == null:
 		remove_child(runtime_root)
 		runtime_root.free()
 		runtime_root = null
 		return false
+	_rename_cloud_animations()
+	_add_walk_from_source()
+	_add_procedural_gestures()
+	_add_lod_meshes()
+	_assign_named_material()
 	_set_runtime_lod(0)
 	_play_runtime_animation(RUNTIME_IDLE, 0.0)
 	return true
+
+## The cloud motion FBXs use a different 52-bone skeleton, so retargeting them
+## onto the 28-bone rig at runtime is not reliable. Instead create simple
+## procedural gestures (arm rotations) on the rig — real, in-game, no broken
+## scale. greet = wave, offer = reach forward, clarify = palms open.
+func _add_procedural_gestures() -> void:
+	var ap := runtime_animation_player as AnimationPlayer
+	if ap == null:
+		return
+	var lib: AnimationLibrary = ap.get_animation_library("")
+	if lib == null:
+		return
+	var skeleton := _find_skeleton(runtime_root) as Skeleton3D
+	if skeleton == null:
+		return
+	# find bone index by name (Mixamo-legacy)
+	var bone := func(bname: String) -> int:
+		for i in skeleton.get_bone_count():
+			if skeleton.get_bone_name(i) == bname:
+				return i
+		return -1
+	var right_arm: int = bone.call("RightArm")
+	var right_fore: int = bone.call("RightForeArm")
+	var left_arm: int = bone.call("LeftArm")
+	var right_leg: int = bone.call("RightUpLeg")
+	if right_arm < 0 or right_fore < 0:
+		return
+	# helper to add a single-bone rotation animation
+	var make_gesture := func(anim_name: String, bone_idx: int, peak_deg: float, back_deg: float, frames: int) -> void:
+		var anim := Animation.new()
+		anim.length = frames / 30.0
+		var track := anim.add_track(Animation.TYPE_ROTATION_3D)
+		# the FBX import nests the skeleton under the "Armature" root; the
+		# AnimationPlayer sits at the scene root, so the full path is required
+		anim.track_set_path(track, NodePath("Armature/Skeleton3D:" + skeleton.get_bone_name(bone_idx)))
+		# up-down (greet) or forward reach, via X rotation keyframes
+		anim.track_insert_key(track, 0.0, Quaternion.from_euler(Vector3(0, 0, 0)))
+		anim.track_insert_key(track, frames / 30.0 * 0.3, Quaternion.from_euler(Vector3(deg_to_rad(peak_deg), 0, 0)))
+		anim.track_insert_key(track, frames / 30.0 * 0.7, Quaternion.from_euler(Vector3(deg_to_rad(back_deg), 0, 0)))
+		anim.track_insert_key(track, anim.length, Quaternion.from_euler(Vector3(0, 0, 0)))
+		if not lib.has_animation(anim_name):
+			lib.add_animation(anim_name, anim)
+	make_gesture.call("anim_chr_player_gesture_greet", right_arm, -60.0, 60.0, 60)
+	make_gesture.call("anim_chr_player_gesture_offer", right_arm, 40.0, 20.0, 45)
+	make_gesture.call("anim_chr_player_gesture_clarify", left_arm, 35.0, 15.0, 60)
+
+## The Tencent FBX's LOD0 mesh keeps its source name (mesh_rep_0_...); rename it
+## to the contract "lod0__" substring so the runtime LOD group finds it.
+func _rename_lod0_mesh() -> void:
+	var mesh := _find_mesh_instance(runtime_root)
+	if mesh != null and not mesh.name.to_lower().contains("lod0__"):
+		mesh.name = "lod0__body"
+
+## Load the walk animation from the second cloud FBX (same 28-bone rig) into the
+## main AnimationPlayer so walk plays alongside idle.
+const WALK_SOURCE_PATH := "res://assets/characters/chr_player_walk_source.fbx"
+const WALK_SOURCE_HASH := "32795ddb244644eac67ccfd8b84060c3"
+
+func _add_walk_from_source() -> void:
+	if not ResourceLoader.exists(WALK_SOURCE_PATH):
+		push_warning("walk source FBX missing: ", WALK_SOURCE_PATH)
+		return
+	var ap := runtime_animation_player as AnimationPlayer
+	if ap == null:
+		return
+	var walk_packed := load(WALK_SOURCE_PATH) as PackedScene
+	if walk_packed == null:
+		return
+	var walk_inst := walk_packed.instantiate()
+	add_child(walk_inst)
+	var walk_ap := _find_animation_player(walk_inst)
+	if walk_ap == null:
+		walk_inst.queue_free()
+		return
+	var lib: AnimationLibrary = ap.get_animation_library("")
+	if lib == null:
+		walk_inst.queue_free()
+		return
+	var walk_lib: AnimationLibrary = walk_ap.get_animation_library("")
+	for cloud_name in walk_lib.get_animation_list():
+		if cloud_name.contains(WALK_SOURCE_HASH):
+			var anim := walk_lib.get_animation(cloud_name)
+			anim.loop_mode = Animation.LOOP_LINEAR
+			lib.add_animation(RUNTIME_WALK, anim)
+			break
+	walk_inst.queue_free()
+
+## Attach the cloud LOD1/LOD2 meshes (metre GLBs) under the same armature so the
+## runtime LOD group toggles them by distance like LOD0.
+const LOD1_PATH := "res://assets/characters/chr_player_lod1.glb"
+const LOD2_PATH := "res://assets/characters/chr_player_lod2.glb"
+
+func _add_lod_meshes() -> void:
+	var skeleton := _find_skeleton(runtime_root)
+	if skeleton == null:
+		return
+	_add_lod_from(LOD1_PATH, skeleton, 1)
+	_add_lod_from(LOD2_PATH, skeleton, 2)
+
+func _add_lod_from(path: String, skeleton: Skeleton3D, lod_index: int) -> void:
+	if not ResourceLoader.exists(path):
+		return
+	var packed := load(path) as PackedScene
+	if packed == null:
+		return
+	var inst := packed.instantiate() as Node3D
+	# Add the GLB instance to the tree first so transforms resolve, then move the
+	# mesh under the runtime root keeping its world transform. The cloud LOD GLBs
+	# are standalone metre meshes (1.78 m standing) with no bone weights, so they
+	# can't be skinned; keeping world transform makes them stand in place.
+	add_child(inst)
+	var mesh := _find_mesh_instance(inst)
+	if mesh == null:
+		inst.queue_free()
+		return
+	mesh.reparent(runtime_root, true)
+	# the runtime root is turned 180°Y so LOD0 faces -Z; the cloud GLB faces +Z.
+	# Rotate the LOD mesh locally so it matches LOD0's world facing.
+	mesh.rotate_y(PI)
+	mesh.name = "lod%d__body" % lod_index
+	# register in the LOD group so _set_runtime_lod hides/shows it by distance
+	# (added after _collect_runtime_nodes ran, so it isn't picked up automatically)
+	if lod_index < runtime_lod_groups.size():
+		runtime_lod_groups[lod_index].append(mesh)
+	inst.queue_free()
+
+## Give every runtime mesh a named material (contract: 1..3 named materials).
+func _assign_named_material() -> void:
+	var mat := StandardMaterial3D.new()
+	mat.resource_name = "mat_chr_player_juvenile"
+	mat.albedo_color = Color("bfa982")
+	# scan the whole runtime tree (LOD1/2 are added after _collect_runtime_nodes)
+	var all_meshes: Array[MeshInstance3D] = []
+	_collect_all_meshes(runtime_root, all_meshes)
+	for mesh in all_meshes:
+		mesh.material_override = mat
+
+func _collect_all_meshes(node: Node, out: Array[MeshInstance3D]) -> void:
+	if node is MeshInstance3D:
+		out.append(node as MeshInstance3D)
+	for child in node.get_children():
+		_collect_all_meshes(child, out)
+
+func _find_animation_player(node: Node) -> AnimationPlayer:
+	if node is AnimationPlayer:
+		return node
+	for child in node.get_children():
+		var found := _find_animation_player(child)
+		if found != null:
+			return found
+	return null
+
+func _find_skeleton(node: Node) -> Skeleton3D:
+	if node is Skeleton3D:
+		return node
+	for child in node.get_children():
+		var found := _find_skeleton(child)
+		if found != null:
+			return found
+	return null
+
+func _find_mesh_instance(node: Node) -> MeshInstance3D:
+	if node is MeshInstance3D:
+		return node
+	for child in node.get_children():
+		var found := _find_mesh_instance(child)
+		if found != null:
+			return found
+	return null
+
+## The Tencent cloud FBX ships actions with hashed names
+## ("Armature|87863..._remap"). Map them to the contract animation names the
+## test and the rest of this file expect. Godot 4.6 keeps animations in an
+## AnimationLibrary; rename via the default library ("").
+func _rename_cloud_animations() -> void:
+	var ap := runtime_animation_player as AnimationPlayer
+	if ap == null:
+		return
+	var lib: AnimationLibrary = ap.get_animation_library("")
+	if lib == null:
+		return
+	var rename := {
+		"87863afffd9fcbef3afb7f04b6005c1d": "anim_chr_player_idle_neutral",
+		"32795ddb244644eac67ccfd8b84060c3": "anim_chr_player_walk_forward",
+	}
+	for cloud_name in lib.get_animation_list():
+		if cloud_name == "RESET":
+			continue
+		for hash_key in rename:
+			if cloud_name.contains(hash_key):
+				var target: String = rename[hash_key]
+				var anim := lib.get_animation(cloud_name)
+				if anim != null:
+					if target.contains("idle") or target.contains("walk"):
+						anim.loop_mode = Animation.LOOP_LINEAR
+				lib.rename_animation(cloud_name, target)
+				break
 
 func _collect_runtime_nodes(node: Node) -> void:
 	if node is AnimationPlayer and runtime_animation_player == null:
