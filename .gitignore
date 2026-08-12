@@ -86,3 +86,7 @@ CLAUDE.md
 .idea/
 *.swp
 *~
+
+# agent session state and editor backups
+.zcode/
+*.blend1

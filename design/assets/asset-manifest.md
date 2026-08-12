@@ -34,4 +34,11 @@
 | ASSET-014 | Rowan Rodin Sculpt Baseline | 3D Source | Gate A Repair Required | `art/source/characters/npcs/chr_npc_rowan/source_locked_v04/GATE_A_REVIEW.md` |
 | ASSET-015 | `chr_npc_rowan.glb` | Runtime Package | Blocked Until Gate D | `design/art/character-modeling-standard.md` |
 
-There is intentionally no player, Mira or Rowan runtime GLB while Gate A–D are incomplete.
+## Character: Tavi
+
+| Asset ID | Name | Category | Status | Spec File |
+|---|---|---|---|---|
+| ASSET-016 | Tavi v06 Four-View Concept | 2D Reference | Source Locked | `art/source/characters/npcs/chr_npc_tavi/source_locked_v06/reference_manifest.json` |
+
+There is intentionally no player, Mira, Rowan or Tavi runtime GLB while the
+applicable reference-preparation and Gate A–D requirements are incomplete.

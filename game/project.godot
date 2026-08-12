@@ -23,6 +23,7 @@ window/size/viewport_height=900
 window/size/window_width_override=1152
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [rendering]
 
@@ -59,7 +60,7 @@ jump={
 }
 sprint={
 "deadzone": 0.2,
-"events": [Object(InputEventKey,"physical_keycode":4194325), Object(InputEventJoypadButton,"button_index":9)]
+"events": [Object(InputEventKey,"physical_keycode":4194325), Object(InputEventJoypadButton,"button_index":7)]
 }
 interact={
 "deadzone": 0.2,
@@ -71,7 +72,7 @@ gesture={
 }
 push_to_talk={
 "deadzone": 0.2,
-"events": [Object(InputEventKey,"physical_keycode":86), Object(InputEventJoypadButton,"button_index":4)]
+"events": [Object(InputEventKey,"physical_keycode":86), Object(InputEventJoypadButton,"button_index":9)]
 }
 pause={
 "deadzone": 0.2,
@@ -81,6 +82,27 @@ reset_prototype={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":4194340)]
 }
+camera_left={
+"deadzone": 0.2,
+"events": [Object(InputEventJoypadMotion,"axis":2,"axis_value":-1.0)]
+}
+camera_right={
+"deadzone": 0.2,
+"events": [Object(InputEventJoypadMotion,"axis":2,"axis_value":1.0)]
+}
+camera_up={
+"deadzone": 0.2,
+"events": [Object(InputEventJoypadMotion,"axis":3,"axis_value":-1.0)]
+}
+camera_down={
+"deadzone": 0.2,
+"events": [Object(InputEventJoypadMotion,"axis":3,"axis_value":1.0)]
+}
+
+[internationalization]
+
+locale/fallback="zh_CN"
+locale/translations=PackedStringArray("res://localization/stranger.zh_CN.translation", "res://localization/stranger.en.translation")
 
 [layer_names]
 

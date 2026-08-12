@@ -1,0 +1,348 @@
+[
+  {
+    "stage": "reduce-face-high",
+    "action": "SubmitReduceFaceJob",
+    "job_id": "1478775947808743424",
+    "status": "WAIT",
+    "request_ids": [
+      "a6de2d09-3bd7-4ff2-9b11-18e769b51016",
+      "9d85f784-7bea-494e-8b0b-8566827a7e35"
+    ],
+    "credits_consumed": null,
+    "input_url": "https://nativelingo-ai3d-1418160727.cos.ap-guangzhou.myqcloud.com/chr_player_juvenile/v06/inputs/hunyuan_multiview_v3_1_normalized.glb?<redacted-presign>",
+    "output_files": [],
+    "measures": [],
+    "error": "terminal status WAIT: {\"Status\": \"WAIT\", \"ErrorCode\": \"\", \"ErrorMessage\": \"\", \"ResultFile3Ds\": [], \"RequestId\": \"9d85f784-7bea-494e-8b0b-8566827a7e35\"}",
+    "finished_at": "2026-08-11T15:27:40Z",
+    "logged_at": "2026-08-11T15:27:40Z"
+  },
+  {
+    "stage": "reduce-face-high",
+    "action": "SubmitReduceFaceJob",
+    "job_id": "1478775947808743424",
+    "status": "DONE",
+    "request_ids": [
+      "2e8f3718-90a2-44b3-9ce4-3607a8a03bc2"
+    ],
+    "credits_consumed": null,
+    "input_url": "(resume)",
+    "output_files": [
+      {
+        "label": "OBJ",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_high_00.obj",
+        "size_kb": 377.7
+      },
+      {
+        "label": "GLB",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_high_01.glb",
+        "size_kb": 199.5
+      },
+      {
+        "label": "IMAGE",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_high_02.bin",
+        "size_kb": 606.9
+      }
+    ],
+    "measures": [
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_high_00.obj",
+        "size_kb": 377.7,
+        "error": "not GLB",
+        "label": "OBJ"
+      },
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_high_01.glb",
+        "size_kb": 199.5,
+        "triangles": 11293,
+        "vertices": 5648,
+        "meshes": 1,
+        "materials": 0,
+        "skins": 0,
+        "animations": 0,
+        "morph_target_blocks": 0,
+        "nodes": 2,
+        "generator": "https://github.com/mikedh/trimesh",
+        "label": "GLB"
+      },
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_high_02.bin",
+        "size_kb": 606.9,
+        "error": "not GLB",
+        "label": "IMAGE"
+      }
+    ],
+    "error": "",
+    "finished_at": "2026-08-11T15:37:26Z",
+    "logged_at": "2026-08-11T15:37:26Z"
+  },
+  {
+    "stage": "reduce-face-medium",
+    "action": "SubmitReduceFaceJob",
+    "job_id": "1478778512709296128",
+    "status": "DONE",
+    "request_ids": [
+      "163bc52b-931b-47ab-ac12-b42a37a9d241",
+      "fd6a60cb-1808-4183-b402-f392a62ada8f"
+    ],
+    "credits_consumed": null,
+    "input_url": "https://nativelingo-ai3d-1418160727.cos.ap-guangzhou.myqcloud.com/chr_player_juvenile/v06/inputs/hunyuan_multiview_v3_1_normalized.glb?<redacted-presign>",
+    "output_files": [
+      {
+        "label": "OBJ",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_medium_00.obj",
+        "size_kb": 296.1
+      },
+      {
+        "label": "GLB",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_medium_01.glb",
+        "size_kb": 157.4
+      },
+      {
+        "label": "IMAGE",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_medium_02.bin",
+        "size_kb": 618.1
+      }
+    ],
+    "measures": [
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_medium_00.obj",
+        "size_kb": 296.1,
+        "error": "not GLB",
+        "label": "OBJ"
+      },
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_medium_01.glb",
+        "size_kb": 157.4,
+        "triangles": 8906,
+        "vertices": 4448,
+        "meshes": 1,
+        "materials": 0,
+        "skins": 0,
+        "animations": 0,
+        "morph_target_blocks": 0,
+        "nodes": 2,
+        "generator": "https://github.com/mikedh/trimesh",
+        "label": "GLB"
+      },
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_medium_02.bin",
+        "size_kb": 618.1,
+        "error": "not GLB",
+        "label": "IMAGE"
+      }
+    ],
+    "error": "",
+    "finished_at": "2026-08-11T15:44:52Z",
+    "logged_at": "2026-08-11T15:44:52Z"
+  },
+  {
+    "stage": "reduce-face-low",
+    "action": "SubmitReduceFaceJob",
+    "job_id": "1478780342302810112",
+    "status": "DONE",
+    "request_ids": [
+      "45c27cb0-f7b3-4b32-8f72-dd9bcbbf9cb1",
+      "4f54c8eb-d5cf-4caa-b5c6-269a796853ba"
+    ],
+    "credits_consumed": null,
+    "input_url": "https://nativelingo-ai3d-1418160727.cos.ap-guangzhou.myqcloud.com/chr_player_juvenile/v06/inputs/hunyuan_multiview_v3_1_normalized.glb?<redacted-presign>",
+    "output_files": [
+      {
+        "label": "OBJ",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_low_00.obj",
+        "size_kb": 187.2
+      },
+      {
+        "label": "GLB",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_low_01.glb",
+        "size_kb": 101.1
+      },
+      {
+        "label": "IMAGE",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_low_02.bin",
+        "size_kb": 610.5
+      }
+    ],
+    "measures": [
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_low_00.obj",
+        "size_kb": 187.2,
+        "error": "not GLB",
+        "label": "OBJ"
+      },
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_low_01.glb",
+        "size_kb": 101.1,
+        "triangles": 5698,
+        "vertices": 2850,
+        "meshes": 1,
+        "materials": 0,
+        "skins": 0,
+        "animations": 0,
+        "morph_target_blocks": 0,
+        "nodes": 2,
+        "generator": "https://github.com/mikedh/trimesh",
+        "label": "GLB"
+      },
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_low_02.bin",
+        "size_kb": 610.5,
+        "error": "not GLB",
+        "label": "IMAGE"
+      }
+    ],
+    "error": "",
+    "finished_at": "2026-08-11T15:48:54Z",
+    "logged_at": "2026-08-11T15:48:54Z"
+  },
+  {
+    "stage": "auto-rig-motion26",
+    "action": "SubmitAutoRiggingJob",
+    "job_id": "1478781398265315328",
+    "status": "DONE",
+    "request_ids": [
+      "44ff8483-09fa-4648-8641-7c327fdb1587",
+      "03bb6f7f-c183-4e22-b133-1b73d1b7f630"
+    ],
+    "credits_consumed": null,
+    "input_url": "https://nativelingo-ai3d-1418160727.cos.ap-guangzhou.myqcloud.com/chr_player_juvenile/v06/inputs/reduceface_high_01.glb?<redacted-presign>",
+    "output_files": [
+      {
+        "label": "FBX",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/autorig_m26_00.fbx",
+        "size_kb": 816.3
+      }
+    ],
+    "measures": [
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/autorig_m26_00.fbx",
+        "size_kb": 816.3,
+        "error": "not GLB",
+        "label": "FBX"
+      }
+    ],
+    "error": "",
+    "finished_at": "2026-08-11T15:49:27Z",
+    "logged_at": "2026-08-11T15:49:27Z"
+  },
+  {
+    "stage": "auto-rig-motion23",
+    "action": "SubmitAutoRiggingJob",
+    "job_id": "1478781539504242688",
+    "status": "DONE",
+    "request_ids": [
+      "5d9427e7-28f8-4ca3-abe9-8b62885d1997",
+      "cc13457d-bba3-4bc4-980b-f9400a7cba2b"
+    ],
+    "credits_consumed": null,
+    "input_url": "https://nativelingo-ai3d-1418160727.cos.ap-guangzhou.myqcloud.com/chr_player_juvenile/v06/inputs/reduceface_high_01.glb?<redacted-presign>",
+    "output_files": [
+      {
+        "label": "FBX",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/autorig_m23_00.fbx",
+        "size_kb": 801.1
+      }
+    ],
+    "measures": [
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/autorig_m23_00.fbx",
+        "size_kb": 801.1,
+        "error": "not GLB",
+        "label": "FBX"
+      }
+    ],
+    "error": "",
+    "finished_at": "2026-08-11T15:50:09Z",
+    "logged_at": "2026-08-11T15:50:09Z"
+  },
+  {
+    "stage": "motion-greet",
+    "action": "SubmitHunyuanTo3DMotionJob",
+    "job_id": "1478781930442792960",
+    "status": "DONE",
+    "request_ids": [
+      "67750474-2887-426e-ac6e-4d370c32b268",
+      "f3859cc9-2b5a-4a0a-a87d-91adf31ce2ab"
+    ],
+    "credits_consumed": null,
+    "input_url": "(text-only, no COS)",
+    "output_files": [
+      {
+        "label": "FBX",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/motion_greet_00.fbx",
+        "size_kb": 16492.1
+      }
+    ],
+    "measures": [
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/motion_greet_00.fbx",
+        "size_kb": 16492.1,
+        "error": "not GLB",
+        "label": "FBX"
+      }
+    ],
+    "error": "",
+    "finished_at": "2026-08-11T15:51:43Z",
+    "logged_at": "2026-08-11T15:51:43Z"
+  },
+  {
+    "stage": "motion-offer",
+    "action": "SubmitHunyuanTo3DMotionJob",
+    "job_id": "1478782037028388864",
+    "status": "DONE",
+    "request_ids": [
+      "cdde5088-5a5f-4d98-b146-a0a323008843",
+      "e3e5b5c4-8417-492b-8287-0ef247acf38f"
+    ],
+    "credits_consumed": null,
+    "input_url": "(text-only, no COS)",
+    "output_files": [
+      {
+        "label": "FBX",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/motion_offer_00.fbx",
+        "size_kb": 16492.1
+      }
+    ],
+    "measures": [
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/motion_offer_00.fbx",
+        "size_kb": 16492.1,
+        "error": "not GLB",
+        "label": "FBX"
+      }
+    ],
+    "error": "",
+    "finished_at": "2026-08-11T15:52:08Z",
+    "logged_at": "2026-08-11T15:52:08Z"
+  },
+  {
+    "stage": "motion-clarify",
+    "action": "SubmitHunyuanTo3DMotionJob",
+    "job_id": "1478782108914630656",
+    "status": "DONE",
+    "request_ids": [
+      "aacf1389-b1ac-4012-a6f7-3e5287a10afd",
+      "fa9db4a5-3446-4f2a-8957-10ac9ca6d1cc"
+    ],
+    "credits_consumed": null,
+    "input_url": "(text-only, no COS)",
+    "output_files": [
+      {
+        "label": "FBX",
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/motion_clarify_00.fbx",
+        "size_kb": 16492.1
+      }
+    ],
+    "measures": [
+      {
+        "path": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/motion_clarify_00.fbx",
+        "size_kb": 16492.1,
+        "error": "not GLB",
+        "label": "FBX"
+      }
+    ],
+    "error": "",
+    "finished_at": "2026-08-11T15:52:25Z",
+    "logged_at": "2026-08-11T15:52:25Z"
+  }
+]

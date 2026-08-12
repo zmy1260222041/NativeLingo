@@ -1,0 +1,1746 @@
+{
+  "autorig_m26_00.fbx": {
+    "objects": [
+      [
+        "Armature",
+        "ARMATURE"
+      ],
+      [
+        "mesh_rep_0_ori_repair_quad.obj.001",
+        "MESH"
+      ]
+    ],
+    "armatures": [
+      {
+        "armature": "Armature",
+        "bone_count": 28,
+        "bones": [
+          "root",
+          "Hips",
+          "Spine",
+          "Spine1",
+          "Spine2",
+          "Neck",
+          "Head",
+          "Head_end",
+          "LeftShoulder",
+          "LeftArm",
+          "LeftForeArm",
+          "LeftHand",
+          "LeftHand_end",
+          "RightShoulder",
+          "RightArm",
+          "RightForeArm",
+          "RightHand",
+          "RightHand_end",
+          "LeftUpLeg",
+          "LeftLeg",
+          "LeftFoot",
+          "LeftToeBase",
+          "LeftToeBase_end",
+          "RightUpLeg",
+          "RightLeg",
+          "RightFoot",
+          "RightToeBase",
+          "RightToeBase_end"
+        ]
+      }
+    ],
+    "meshes": [
+      {
+        "mesh_object": "mesh_rep_0_ori_repair_quad.obj.001",
+        "verts": 5648,
+        "faces": 11293,
+        "material_slots": [],
+        "vertex_groups": [
+          "Hips",
+          "Spine",
+          "Spine1",
+          "Spine2",
+          "Neck",
+          "Head",
+          "LeftShoulder",
+          "LeftArm",
+          "LeftForeArm",
+          "LeftHand",
+          "RightShoulder",
+          "RightArm",
+          "RightForeArm",
+          "RightHand",
+          "LeftUpLeg",
+          "LeftLeg",
+          "LeftFoot",
+          "LeftToeBase",
+          "RightUpLeg",
+          "RightLeg",
+          "RightFoot",
+          "RightToeBase"
+        ],
+        "uv_layers": [],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Armature"
+      }
+    ],
+    "actions": [
+      {
+        "action": "Armature|Armature|87863afffd9fcbef3afb7f04b6005c1d_remap",
+        "frame_range": [
+          1.0,
+          121.0
+        ],
+        "frames": 120
+      }
+    ],
+    "scene_frame_range": [
+      1,
+      250
+    ]
+  },
+  "autorig_m23_00.fbx": {
+    "objects": [
+      [
+        "Armature",
+        "ARMATURE"
+      ],
+      [
+        "mesh_rep_0_ori_repair_quad.obj.001",
+        "MESH"
+      ]
+    ],
+    "armatures": [
+      {
+        "armature": "Armature",
+        "bone_count": 28,
+        "bones": [
+          "root",
+          "Hips",
+          "Spine",
+          "Spine1",
+          "Spine2",
+          "Neck",
+          "Head",
+          "Head_end",
+          "LeftShoulder",
+          "LeftArm",
+          "LeftForeArm",
+          "LeftHand",
+          "LeftHand_end",
+          "RightShoulder",
+          "RightArm",
+          "RightForeArm",
+          "RightHand",
+          "RightHand_end",
+          "LeftUpLeg",
+          "LeftLeg",
+          "LeftFoot",
+          "LeftToeBase",
+          "LeftToeBase_end",
+          "RightUpLeg",
+          "RightLeg",
+          "RightFoot",
+          "RightToeBase",
+          "RightToeBase_end"
+        ]
+      }
+    ],
+    "meshes": [
+      {
+        "mesh_object": "mesh_rep_0_ori_repair_quad.obj.001",
+        "verts": 5648,
+        "faces": 11293,
+        "material_slots": [],
+        "vertex_groups": [
+          "Hips",
+          "Spine",
+          "Spine1",
+          "Spine2",
+          "Neck",
+          "Head",
+          "LeftShoulder",
+          "LeftArm",
+          "LeftForeArm",
+          "LeftHand",
+          "RightShoulder",
+          "RightArm",
+          "RightForeArm",
+          "RightHand",
+          "LeftUpLeg",
+          "LeftLeg",
+          "LeftFoot",
+          "LeftToeBase",
+          "RightUpLeg",
+          "RightLeg",
+          "RightFoot",
+          "RightToeBase"
+        ],
+        "uv_layers": [],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Armature"
+      }
+    ],
+    "actions": [
+      {
+        "action": "Armature|Armature|32795ddb244644eac67ccfd8b84060c3_remap",
+        "frame_range": [
+          1.0,
+          74.0
+        ],
+        "frames": 73
+      }
+    ],
+    "scene_frame_range": [
+      1,
+      250
+    ]
+  },
+  "motion_greet_00.fbx": {
+    "objects": [
+      [
+        "arm",
+        "MESH"
+      ],
+      [
+        "body",
+        "MESH"
+      ],
+      [
+        "body.001",
+        "EMPTY"
+      ],
+      [
+        "head",
+        "MESH"
+      ],
+      [
+        "leg",
+        "MESH"
+      ],
+      [
+        "qiu_L",
+        "EMPTY"
+      ],
+      [
+        "qiu_L1",
+        "MESH"
+      ],
+      [
+        "qiu_L2",
+        "MESH"
+      ],
+      [
+        "qiu_L3",
+        "MESH"
+      ],
+      [
+        "qiu_L4",
+        "MESH"
+      ],
+      [
+        "qiu_L5",
+        "MESH"
+      ],
+      [
+        "qiu_L6",
+        "MESH"
+      ],
+      [
+        "qiu_R",
+        "EMPTY"
+      ],
+      [
+        "qiu_R1",
+        "MESH"
+      ],
+      [
+        "qiu_R2",
+        "MESH"
+      ],
+      [
+        "qiu_R3",
+        "MESH"
+      ],
+      [
+        "qiu_R4",
+        "MESH"
+      ],
+      [
+        "qiu_R5",
+        "MESH"
+      ],
+      [
+        "qiu_R6",
+        "MESH"
+      ],
+      [
+        "Reference",
+        "ARMATURE"
+      ]
+    ],
+    "armatures": [
+      {
+        "armature": "Reference",
+        "bone_count": 52,
+        "bones": [
+          "Pelvis",
+          "L_Hip",
+          "L_Knee",
+          "L_Ankle",
+          "L_Foot",
+          "R_Hip",
+          "R_Knee",
+          "R_Ankle",
+          "R_Foot",
+          "Spine1",
+          "Spine2",
+          "Spine3",
+          "Neck",
+          "Head",
+          "L_Collar",
+          "L_Shoulder",
+          "L_Elbow",
+          "L_Wrist",
+          "L_Index1",
+          "L_Index2",
+          "L_Index3",
+          "L_Middle1",
+          "L_Middle2",
+          "L_Middle3",
+          "L_Pinky1",
+          "L_Pinky2",
+          "L_Pinky3",
+          "L_Ring1",
+          "L_Ring2",
+          "L_Ring3",
+          "L_Thumb1",
+          "L_Thumb2",
+          "L_Thumb3",
+          "R_Collar",
+          "R_Shoulder",
+          "R_Elbow",
+          "R_Wrist",
+          "R_Index1",
+          "R_Index2",
+          "R_Index3",
+          "R_Middle1",
+          "R_Middle2",
+          "R_Middle3",
+          "R_Pinky1",
+          "R_Pinky2",
+          "R_Pinky3",
+          "R_Ring1",
+          "R_Ring2",
+          "R_Ring3",
+          "R_Thumb1",
+          "R_Thumb2",
+          "R_Thumb3"
+        ]
+      }
+    ],
+    "meshes": [
+      {
+        "mesh_object": "arm",
+        "verts": 7110,
+        "faces": 7104,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Shoulder",
+          "L_Elbow",
+          "L_Wrist",
+          "L_Index1",
+          "L_Index2",
+          "L_Index3",
+          "L_Middle1",
+          "L_Middle2",
+          "L_Middle3",
+          "L_Pinky1",
+          "L_Pinky2",
+          "L_Pinky3",
+          "L_Ring1",
+          "L_Ring2",
+          "L_Ring3",
+          "L_Thumb1",
+          "L_Thumb2",
+          "L_Thumb3",
+          "R_Shoulder",
+          "R_Elbow",
+          "R_Wrist",
+          "R_Index1",
+          "R_Index2",
+          "R_Index3",
+          "R_Middle1",
+          "R_Middle2",
+          "R_Middle3",
+          "R_Pinky1",
+          "R_Pinky2",
+          "R_Pinky3",
+          "R_Ring1",
+          "R_Ring2",
+          "R_Ring3",
+          "R_Thumb1",
+          "R_Thumb2",
+          "R_Thumb3"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "body",
+        "verts": 4571,
+        "faces": 4568,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "Pelvis",
+          "Spine1",
+          "Spine2",
+          "Spine3",
+          "Neck",
+          "Head",
+          "L_Collar",
+          "R_Collar"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "head",
+        "verts": 2395,
+        "faces": 2392,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "Spine3",
+          "Neck",
+          "Head",
+          "L_Collar",
+          "R_Collar"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "leg",
+        "verts": 6156,
+        "faces": 6148,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Hip",
+          "L_Knee",
+          "L_Ankle",
+          "L_Foot",
+          "R_Hip",
+          "R_Knee",
+          "R_Ankle",
+          "R_Foot"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L1",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Elbow"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L2",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Wrist"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L3",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Shoulder"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L4",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Hip"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L5",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Ankle"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L6",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Knee"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R1",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Elbow"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R2",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Wrist"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R3",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Shoulder"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R4",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Hip"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R5",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Ankle"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R6",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Knee"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      }
+    ],
+    "actions": [
+      {
+        "action": "Reference|Anim|Layer0",
+        "frame_range": [
+          1.0,
+          193.0
+        ],
+        "frames": 192
+      }
+    ],
+    "scene_frame_range": [
+      1,
+      250
+    ]
+  },
+  "motion_offer_00.fbx": {
+    "objects": [
+      [
+        "arm",
+        "MESH"
+      ],
+      [
+        "body",
+        "MESH"
+      ],
+      [
+        "body.001",
+        "EMPTY"
+      ],
+      [
+        "head",
+        "MESH"
+      ],
+      [
+        "leg",
+        "MESH"
+      ],
+      [
+        "qiu_L",
+        "EMPTY"
+      ],
+      [
+        "qiu_L1",
+        "MESH"
+      ],
+      [
+        "qiu_L2",
+        "MESH"
+      ],
+      [
+        "qiu_L3",
+        "MESH"
+      ],
+      [
+        "qiu_L4",
+        "MESH"
+      ],
+      [
+        "qiu_L5",
+        "MESH"
+      ],
+      [
+        "qiu_L6",
+        "MESH"
+      ],
+      [
+        "qiu_R",
+        "EMPTY"
+      ],
+      [
+        "qiu_R1",
+        "MESH"
+      ],
+      [
+        "qiu_R2",
+        "MESH"
+      ],
+      [
+        "qiu_R3",
+        "MESH"
+      ],
+      [
+        "qiu_R4",
+        "MESH"
+      ],
+      [
+        "qiu_R5",
+        "MESH"
+      ],
+      [
+        "qiu_R6",
+        "MESH"
+      ],
+      [
+        "Reference",
+        "ARMATURE"
+      ]
+    ],
+    "armatures": [
+      {
+        "armature": "Reference",
+        "bone_count": 52,
+        "bones": [
+          "Pelvis",
+          "L_Hip",
+          "L_Knee",
+          "L_Ankle",
+          "L_Foot",
+          "R_Hip",
+          "R_Knee",
+          "R_Ankle",
+          "R_Foot",
+          "Spine1",
+          "Spine2",
+          "Spine3",
+          "Neck",
+          "Head",
+          "L_Collar",
+          "L_Shoulder",
+          "L_Elbow",
+          "L_Wrist",
+          "L_Index1",
+          "L_Index2",
+          "L_Index3",
+          "L_Middle1",
+          "L_Middle2",
+          "L_Middle3",
+          "L_Pinky1",
+          "L_Pinky2",
+          "L_Pinky3",
+          "L_Ring1",
+          "L_Ring2",
+          "L_Ring3",
+          "L_Thumb1",
+          "L_Thumb2",
+          "L_Thumb3",
+          "R_Collar",
+          "R_Shoulder",
+          "R_Elbow",
+          "R_Wrist",
+          "R_Index1",
+          "R_Index2",
+          "R_Index3",
+          "R_Middle1",
+          "R_Middle2",
+          "R_Middle3",
+          "R_Pinky1",
+          "R_Pinky2",
+          "R_Pinky3",
+          "R_Ring1",
+          "R_Ring2",
+          "R_Ring3",
+          "R_Thumb1",
+          "R_Thumb2",
+          "R_Thumb3"
+        ]
+      }
+    ],
+    "meshes": [
+      {
+        "mesh_object": "arm",
+        "verts": 7110,
+        "faces": 7104,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Shoulder",
+          "L_Elbow",
+          "L_Wrist",
+          "L_Index1",
+          "L_Index2",
+          "L_Index3",
+          "L_Middle1",
+          "L_Middle2",
+          "L_Middle3",
+          "L_Pinky1",
+          "L_Pinky2",
+          "L_Pinky3",
+          "L_Ring1",
+          "L_Ring2",
+          "L_Ring3",
+          "L_Thumb1",
+          "L_Thumb2",
+          "L_Thumb3",
+          "R_Shoulder",
+          "R_Elbow",
+          "R_Wrist",
+          "R_Index1",
+          "R_Index2",
+          "R_Index3",
+          "R_Middle1",
+          "R_Middle2",
+          "R_Middle3",
+          "R_Pinky1",
+          "R_Pinky2",
+          "R_Pinky3",
+          "R_Ring1",
+          "R_Ring2",
+          "R_Ring3",
+          "R_Thumb1",
+          "R_Thumb2",
+          "R_Thumb3"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "body",
+        "verts": 4571,
+        "faces": 4568,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "Pelvis",
+          "Spine1",
+          "Spine2",
+          "Spine3",
+          "Neck",
+          "Head",
+          "L_Collar",
+          "R_Collar"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "head",
+        "verts": 2395,
+        "faces": 2392,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "Spine3",
+          "Neck",
+          "Head",
+          "L_Collar",
+          "R_Collar"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "leg",
+        "verts": 6156,
+        "faces": 6148,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Hip",
+          "L_Knee",
+          "L_Ankle",
+          "L_Foot",
+          "R_Hip",
+          "R_Knee",
+          "R_Ankle",
+          "R_Foot"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L1",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Elbow"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L2",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Wrist"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L3",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Shoulder"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L4",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Hip"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L5",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Ankle"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L6",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Knee"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R1",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Elbow"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R2",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Wrist"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R3",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Shoulder"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R4",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Hip"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R5",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Ankle"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R6",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Knee"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      }
+    ],
+    "actions": [
+      {
+        "action": "Reference|Anim|Layer0",
+        "frame_range": [
+          1.0,
+          193.0
+        ],
+        "frames": 192
+      }
+    ],
+    "scene_frame_range": [
+      1,
+      250
+    ]
+  },
+  "motion_clarify_00.fbx": {
+    "objects": [
+      [
+        "arm",
+        "MESH"
+      ],
+      [
+        "body",
+        "MESH"
+      ],
+      [
+        "body.001",
+        "EMPTY"
+      ],
+      [
+        "head",
+        "MESH"
+      ],
+      [
+        "leg",
+        "MESH"
+      ],
+      [
+        "qiu_L",
+        "EMPTY"
+      ],
+      [
+        "qiu_L1",
+        "MESH"
+      ],
+      [
+        "qiu_L2",
+        "MESH"
+      ],
+      [
+        "qiu_L3",
+        "MESH"
+      ],
+      [
+        "qiu_L4",
+        "MESH"
+      ],
+      [
+        "qiu_L5",
+        "MESH"
+      ],
+      [
+        "qiu_L6",
+        "MESH"
+      ],
+      [
+        "qiu_R",
+        "EMPTY"
+      ],
+      [
+        "qiu_R1",
+        "MESH"
+      ],
+      [
+        "qiu_R2",
+        "MESH"
+      ],
+      [
+        "qiu_R3",
+        "MESH"
+      ],
+      [
+        "qiu_R4",
+        "MESH"
+      ],
+      [
+        "qiu_R5",
+        "MESH"
+      ],
+      [
+        "qiu_R6",
+        "MESH"
+      ],
+      [
+        "Reference",
+        "ARMATURE"
+      ]
+    ],
+    "armatures": [
+      {
+        "armature": "Reference",
+        "bone_count": 52,
+        "bones": [
+          "Pelvis",
+          "L_Hip",
+          "L_Knee",
+          "L_Ankle",
+          "L_Foot",
+          "R_Hip",
+          "R_Knee",
+          "R_Ankle",
+          "R_Foot",
+          "Spine1",
+          "Spine2",
+          "Spine3",
+          "Neck",
+          "Head",
+          "L_Collar",
+          "L_Shoulder",
+          "L_Elbow",
+          "L_Wrist",
+          "L_Index1",
+          "L_Index2",
+          "L_Index3",
+          "L_Middle1",
+          "L_Middle2",
+          "L_Middle3",
+          "L_Pinky1",
+          "L_Pinky2",
+          "L_Pinky3",
+          "L_Ring1",
+          "L_Ring2",
+          "L_Ring3",
+          "L_Thumb1",
+          "L_Thumb2",
+          "L_Thumb3",
+          "R_Collar",
+          "R_Shoulder",
+          "R_Elbow",
+          "R_Wrist",
+          "R_Index1",
+          "R_Index2",
+          "R_Index3",
+          "R_Middle1",
+          "R_Middle2",
+          "R_Middle3",
+          "R_Pinky1",
+          "R_Pinky2",
+          "R_Pinky3",
+          "R_Ring1",
+          "R_Ring2",
+          "R_Ring3",
+          "R_Thumb1",
+          "R_Thumb2",
+          "R_Thumb3"
+        ]
+      }
+    ],
+    "meshes": [
+      {
+        "mesh_object": "arm",
+        "verts": 7110,
+        "faces": 7104,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Shoulder",
+          "L_Elbow",
+          "L_Wrist",
+          "L_Index1",
+          "L_Index2",
+          "L_Index3",
+          "L_Middle1",
+          "L_Middle2",
+          "L_Middle3",
+          "L_Pinky1",
+          "L_Pinky2",
+          "L_Pinky3",
+          "L_Ring1",
+          "L_Ring2",
+          "L_Ring3",
+          "L_Thumb1",
+          "L_Thumb2",
+          "L_Thumb3",
+          "R_Shoulder",
+          "R_Elbow",
+          "R_Wrist",
+          "R_Index1",
+          "R_Index2",
+          "R_Index3",
+          "R_Middle1",
+          "R_Middle2",
+          "R_Middle3",
+          "R_Pinky1",
+          "R_Pinky2",
+          "R_Pinky3",
+          "R_Ring1",
+          "R_Ring2",
+          "R_Ring3",
+          "R_Thumb1",
+          "R_Thumb2",
+          "R_Thumb3"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "body",
+        "verts": 4571,
+        "faces": 4568,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "Pelvis",
+          "Spine1",
+          "Spine2",
+          "Spine3",
+          "Neck",
+          "Head",
+          "L_Collar",
+          "R_Collar"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "head",
+        "verts": 2395,
+        "faces": 2392,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "Spine3",
+          "Neck",
+          "Head",
+          "L_Collar",
+          "R_Collar"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "leg",
+        "verts": 6156,
+        "faces": 6148,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Hip",
+          "L_Knee",
+          "L_Ankle",
+          "L_Foot",
+          "R_Hip",
+          "R_Knee",
+          "R_Ankle",
+          "R_Foot"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L1",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Elbow"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L2",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Wrist"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L3",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Shoulder"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L4",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Hip"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L5",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Ankle"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_L6",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "L_Knee"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R1",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Elbow"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R2",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Wrist"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R3",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Shoulder"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R4",
+        "verts": 382,
+        "faces": 400,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Hip"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R5",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Ankle"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      },
+      {
+        "mesh_object": "qiu_R6",
+        "verts": 242,
+        "faces": 256,
+        "material_slots": [
+          "boy_Rigging_Fwd:lambert4"
+        ],
+        "vertex_groups": [
+          "R_Knee"
+        ],
+        "uv_layers": [
+          "map1"
+        ],
+        "shape_keys": [],
+        "has_armature_mod": true,
+        "parent": "Reference"
+      }
+    ],
+    "actions": [
+      {
+        "action": "Reference|Anim|Layer0",
+        "frame_range": [
+          1.0,
+          193.0
+        ],
+        "frames": 192
+      }
+    ],
+    "scene_frame_range": [
+      1,
+      250
+    ]
+  },
+  "reduceface_high_01.glb": {
+    "objects": [
+      [
+        "mesh_rep_0_ori_repair_quad.obj",
+        "MESH"
+      ],
+      [
+        "world",
+        "EMPTY"
+      ]
+    ],
+    "armatures": [],
+    "meshes": [
+      {
+        "mesh_object": "mesh_rep_0_ori_repair_quad.obj",
+        "verts": 5648,
+        "faces": 11293,
+        "material_slots": [],
+        "vertex_groups": [],
+        "uv_layers": [],
+        "shape_keys": [],
+        "has_armature_mod": false,
+        "parent": "world"
+      }
+    ],
+    "actions": [],
+    "scene_frame_range": [
+      1,
+      250
+    ]
+  },
+  "reduceface_medium_01.glb": {
+    "objects": [
+      [
+        "mesh_rep_0_ori_repair_quad.obj",
+        "MESH"
+      ],
+      [
+        "world",
+        "EMPTY"
+      ]
+    ],
+    "armatures": [],
+    "meshes": [
+      {
+        "mesh_object": "mesh_rep_0_ori_repair_quad.obj",
+        "verts": 4448,
+        "faces": 8905,
+        "material_slots": [],
+        "vertex_groups": [],
+        "uv_layers": [],
+        "shape_keys": [],
+        "has_armature_mod": false,
+        "parent": "world"
+      }
+    ],
+    "actions": [],
+    "scene_frame_range": [
+      1,
+      250
+    ]
+  },
+  "reduceface_low_01.glb": {
+    "objects": [
+      [
+        "mesh_rep_0_ori_repair_quad.obj",
+        "MESH"
+      ],
+      [
+        "world",
+        "EMPTY"
+      ]
+    ],
+    "armatures": [],
+    "meshes": [
+      {
+        "mesh_object": "mesh_rep_0_ori_repair_quad.obj",
+        "verts": 2850,
+        "faces": 5698,
+        "material_slots": [],
+        "vertex_groups": [],
+        "uv_layers": [],
+        "shape_keys": [],
+        "has_armature_mod": false,
+        "parent": "world"
+      }
+    ],
+    "actions": [],
+    "scene_frame_range": [
+      1,
+      250
+    ]
+  }
+}

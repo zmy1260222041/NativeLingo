@@ -68,6 +68,13 @@ Gate A 失败时，retopology、绑定、动画、LOD 和 runtime export 全部�
 预算沿用 Art Bible §8：主角 LOD0/1/2 分别 ≤32k/16k/6k 三角面；关键 NPC LOD0 24k–30k、
 LOD1 ≤13k、LOD2 ≤5k。LOD 必须手工保留轮廓，不依赖自动 decimate 产生凹痕。
 
+> **例外（chr_player_juvenile v06，2026-08-11）**：主角 LOD0/1/2 改由腾讯云 ai3d
+> `SubmitReduceFaceJob`（Polygen 1.5）从 v05 Hunyuan 高模自动减面生成，三档分别落在
+> 11.3k / 8.9k / 5.7k 三角面，全部低于上限。此举经资产负责人拍板，刻意偏离上述"LOD0 必须
+> 手工 retopology"条款，以换取云端管线的端到端自动化。代价：变形区（肘/腕/膝/踝）的边流
+> 不及手工 retopology，走路动画在极端关节角度可能出现轻微凹痕——在 v06 验收里作为已知
+> 妥协记录，若不可接受须回退到手工 retopology 重做 LOD0。其余 NPC 仍遵守手工 retopology 规则。
+
 ## 5. 材质、绑定与动画
 
 - Rodin PBR 只用于辨识生成表面，最终 Base Color、Normal、ORM 按 Art Bible 重绘；单角色材质槽 ≤3。
@@ -95,5 +102,6 @@ LOD1 ≤13k、LOD2 ≤5k。LOD 必须手工保留轮廓，不依赖自动 decima
 | Player Juvenile | `source_locked_v04` | Rodin base / Gate A FAIL | 版本化雕刻：尾巴、眼窝、三层头冠、手脚 |
 | Mira | `source_locked_v06` | Rodin base / Gate A FAIL | 版本化雕刻：脸、三肩片、三指手、腿脚、背带 |
 | Rowan | `source_locked_v04` | Rodin base / Gate A FAIL | 版本化雕刻：开放下环、非对称脸、三指手、关节 |
+| Tavi | `source_locked_v06` | Concept source locked / reference prep pending | 确定目标身高；拆分、注册并测量四视后才可提交 Rodin |
 
-三者都不是 runtime asset；当前禁止覆盖游戏角色资产。
+四者都不是 runtime asset；当前禁止覆盖游戏角色资产。

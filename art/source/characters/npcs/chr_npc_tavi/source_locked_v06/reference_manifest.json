@@ -1,0 +1,64 @@
+{
+  "schema": "reference_manifest.v1",
+  "asset_id": "chr_npc_tavi",
+  "status": "SOURCE_LOCKED_USER_APPROVED",
+  "source_files": [
+    "reference/turnaround_source.png"
+  ],
+  "source_sha256": "ff9b58cf3f0b6710a0e2a179d4ab435f7acafd02d28b3c6c2900242c89c4ebf5",
+  "source_size": [1491, 1055],
+  "primary_view": "front",
+  "view_order": ["front", "character_left", "back", "character_right"],
+  "registration_status": "PENDING_DETERMINISTIC_SPLIT_AND_MEASUREMENT",
+  "target_height_m": null,
+  "physical_side_map": {
+    "front_image_left": "character physical right / broad work arm / clamp",
+    "front_image_right": "character physical left / slim arm",
+    "character_left_profile": "slim near arm; far clamp may be occluded",
+    "back_image_left": "character physical left / open swirl offset",
+    "back_image_right": "character physical right / broad work arm / clamp projection",
+    "character_right_profile": "broad near work arm / husk opening / clamp"
+  },
+  "expected_primary_parts": {
+    "count": 22,
+    "labels": [
+      "pod_core", "crown_lobe_1", "crown_lobe_2", "crown_lobe_3",
+      "crown_lobe_4", "crown_lobe_5", "upper_arm_left", "upper_arm_right",
+      "forearm_left", "forearm_right_broad", "hand_left_three_digit",
+      "hand_right_three_digit", "leg_left", "leg_right",
+      "foot_left_three_lobe", "foot_right_three_lobe", "husk_plate_h1",
+      "husk_plate_h2", "husk_plate_h3", "physical_right_arm_opening",
+      "face_system", "crescent_repair_clamp"
+    ]
+  },
+  "structural_parts": [
+    "one uninterrupted head and torso pod with no human neck, waist or pelvis",
+    "five asymmetric folded crown lobes feeding three raised spiral husk plates",
+    "one broad open back swirl offset toward physical left",
+    "physical-right forearm approximately 20-25 percent broader than physical left",
+    "three digits per hand and three seed-wedge lobes per foot",
+    "one separate open-crescent repair clamp held only in the physical-right hand"
+  ],
+  "facial_parts": [
+    "two compact upright rounded-seed eye islands with hooding upper lids",
+    "round hearth-amber irises with vertical silt-ink pupils",
+    "one biological seed-valve mouth with upper and lower rims, corners and oral aperture"
+  ],
+  "body_marking_groups": [
+    "exactly two short score marks on the outer physical-right broad forearm"
+  ],
+  "texture_regions": [
+    "weathered_ochre", "charred_husk", "old_alloy", "inner_husk",
+    "patina_teal", "hearth_amber", "silt_ink"
+  ],
+  "validation_thresholds": {
+    "front_mask_iou_min": 0.9,
+    "bbox_center_tolerance_px": 12,
+    "part_count_exact": true,
+    "height_error_percent_max": 2.0,
+    "ground_line_error_percent_max": 1.0,
+    "front_back_head_bbox_difference_percent_max": 3.0
+  },
+  "generation_policy": "The locked sheet is the immutable shape source. Reference preparation may crop and measure it but may not repaint it.",
+  "runtime_export_allowed": false
+}

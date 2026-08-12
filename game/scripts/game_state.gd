@@ -1,8 +1,12 @@
 extends Node
 
 signal state_changed
+signal needs_changed(food_value: float, warmth_value: float, energy_value: float)
+signal clock_changed(day_value: int, elapsed_seconds: int)
+signal objective_changed(objective: String)
 signal message_requested(text: String, tone: String)
 signal run_completed
+signal day_started(day_value: int)
 
 const SAVE_VERSION := 1
 const MAX_NEED := 100.0
@@ -29,40 +33,52 @@ var completed_steps: Dictionary = {}
 var game_finished := false
 var persistence_enabled := true
 var save_path := "user://stranger_save.json"
+var interaction_time_frozen := false
 
 func _process(delta: float) -> void:
-	if game_finished:
+	if game_finished or interaction_time_frozen:
 		return
+	var previous_needs := Vector3(floorf(food), floorf(warmth), floorf(energy))
+	var previous_second := int(day_time)
 	day_time += delta
 	food = maxf(0.0, food - delta * 0.42)
 	warmth = maxf(0.0, warmth - delta * (0.24 if heater_repaired else 0.36))
 	energy = maxf(0.0, energy - delta * 0.2)
 	if food <= 0.0 or warmth <= 0.0 or energy <= 0.0:
 		faint()
-	state_changed.emit()
+	var current_needs := Vector3(floorf(food), floorf(warmth), floorf(energy))
+	if current_needs != previous_needs:
+		needs_changed.emit(food, warmth, energy)
+		state_changed.emit()
+	if int(day_time) != previous_second:
+		clock_changed.emit(day, int(day_time))
+
+func set_interaction_time_frozen(active: bool) -> void:
+	interaction_time_frozen = active
 
 func objective_text() -> String:
 	if day == 1:
 		if not completed_steps.has("greet_mira"):
-			return "找到米拉，用英语问候，或用手势确认善意"
+			return tr("OBJECTIVE_GREET_MIRA")
 		if berries < 2:
-			return "在聚落边缘收集食物（%d/2）" % berries
-		return "回到庇护所休息，结束第一天"
+			return tr("OBJECTIVE_GATHER_FOOD") % berries
+		return tr("OBJECTIVE_SLEEP_DAY_ONE")
 	if day == 2:
 		if scrap < 2:
-			return "收集加热器零件（%d/2）" % scrap
+			return tr("OBJECTIVE_GATHER_SCRAP") % scrap
 		if not heater_repaired:
-			return "在加热器旁完成修理"
-		return "回到庇护所休息，结束第二天"
+			return tr("OBJECTIVE_REPAIR_HEATER")
+		return tr("OBJECTIVE_SLEEP_DAY_TWO")
 	if day == 3:
 		if water < 1:
-			return "从蓄水器取水"
+			return tr("OBJECTIVE_FETCH_WATER")
 		if not completed_steps.has("help_rowan"):
-			return "把水带给罗文，并表达你的帮助意图"
-		return "纵向切片完成：你在异乡有了第一个立足点"
-	return "继续探索聚落"
+			return tr("OBJECTIVE_HELP_ROWAN")
+		return tr("OBJECTIVE_COMPLETE")
+	return tr("OBJECTIVE_EXPLORE")
 
 func interact(kind: String, target_id: String, communication: String = "action") -> void:
+	var previous_objective := objective_text()
 	match kind:
 		"npc":
 			_interact_npc(target_id, communication)
@@ -70,50 +86,53 @@ func interact(kind: String, target_id: String, communication: String = "action")
 			berries += 1
 			food = minf(MAX_NEED, food + 8.0)
 			completed_steps[target_id] = true
-			message_requested.emit("找到可食用的蓝莓果。", "good")
+			message_requested.emit(tr("MSG_BERRY_FOUND"), "good")
 		"scrap":
 			scrap += 1
 			completed_steps[target_id] = true
-			message_requested.emit("捡到一块还能用的合金零件。", "good")
+			message_requested.emit(tr("MSG_SCRAP_FOUND"), "good")
 		"water":
 			water = 1
-			message_requested.emit("装满了一壶水。", "good")
+			message_requested.emit(tr("MSG_WATER_FILLED"), "good")
 		"heater":
 			if day >= 2 and scrap >= 2:
 				heater_repaired = true
 				scrap -= 2
 				warmth = minf(MAX_NEED, warmth + 25.0)
-				message_requested.emit("加热器恢复运转，庇护所暖了起来。", "good")
+				message_requested.emit(tr("MSG_HEATER_REPAIRED"), "good")
 			else:
-				message_requested.emit("需要两块合金零件。", "neutral")
+				message_requested.emit(tr("MSG_HEATER_NEEDS_SCRAP"), "neutral")
 		"shelter":
 			_try_sleep()
 	state_changed.emit()
+	needs_changed.emit(food, warmth, energy)
+	if objective_text() != previous_objective:
+		objective_changed.emit(objective_text())
 
 func _interact_npc(npc_id: String, communication: String) -> void:
 	if npc_id == "mira" and day == 1 and not completed_steps.has("greet_mira"):
 		completed_steps["greet_mira"] = true
-		remember(npc_id, "在第一天主动表达了善意", 2)
-		message_requested.emit(_communication_reply("Mira", communication, "Welcome, stranger."), "good")
+		remember(npc_id, "MEMORY_GREET_MIRA", 2)
+		message_requested.emit(_communication_reply(tr("NPC_MIRA"), communication, "Welcome, stranger."), "good")
 	elif npc_id == "rowan" and day == 3 and water > 0 and not completed_steps.has("help_rowan"):
 		water = 0
 		completed_steps["help_rowan"] = true
-		remember(npc_id, "缺水时送来了一壶水", 3)
+		remember(npc_id, "MEMORY_HELP_ROWAN", 3)
 		game_finished = true
-		message_requested.emit(_communication_reply("Rowan", communication, "You came back. Thank you."), "good")
+		message_requested.emit(_communication_reply(tr("NPC_ROWAN"), communication, "You came back. Thank you."), "good")
 		save_game()
 		run_completed.emit()
 	else:
 		var known: int = relationships.get(npc_id, 0)
-		var reply := "他们记得你。" if known > 0 else "他们谨慎地打量着这位异乡人。"
+		var reply := tr("MSG_NPC_REMEMBERS") if known > 0 else tr("MSG_NPC_WARY")
 		message_requested.emit(reply, "neutral")
 
 func _communication_reply(speaker: String, communication: String, line: String) -> String:
 	if communication == "voice":
-		return "%s 听懂了你的英语：“%s”" % [speaker, line]
+		return tr("NPC_REPLY_VOICE") % [speaker, line]
 	if communication == "gesture":
-		return "%s 看懂了你的手势。你随时可以免费重试英语。" % speaker
-	return "靠近后按 V 说英语，或按 G 用手势确认。"
+		return tr("NPC_REPLY_GESTURE") % speaker
+	return tr("NPC_REPLY_OBSERVE")
 
 func remember(npc_id: String, memory: String, relationship_gain: int) -> void:
 	relationships[npc_id] = int(relationships.get(npc_id, 0)) + relationship_gain
@@ -130,10 +149,11 @@ func _try_sleep() -> void:
 		day_time = 0.0
 		energy = MAX_NEED
 		warmth = minf(MAX_NEED, warmth + 30.0)
-		message_requested.emit("新的一天开始了。", "good")
+		clock_changed.emit(day, 0)
+		day_started.emit(day)
 		save_game()
 	else:
-		message_requested.emit("今天还有重要的事没有完成。", "neutral")
+		message_requested.emit(tr("MSG_SLEEP_BLOCKED"), "neutral")
 
 func faint() -> void:
 	food = 35.0
@@ -142,10 +162,14 @@ func faint() -> void:
 	day_time = minf(DAY_DURATION - 30.0, day_time + 45.0)
 	berries = maxi(0, berries - 1)
 	scrap = maxi(0, scrap - 1)
-	message_requested.emit("你昏倒后被送回庇护所。时间流逝了，但关系没有受损。", "warning")
+	message_requested.emit(tr("MSG_FAINTED"), "warning")
 	state_changed.emit()
+	needs_changed.emit(food, warmth, energy)
+	clock_changed.emit(day, int(day_time))
+	objective_changed.emit(objective_text())
 
 func reset_run() -> void:
+	interaction_time_frozen = false
 	day = 1
 	day_time = 0.0
 	food = 78.0
@@ -161,13 +185,16 @@ func reset_run() -> void:
 	for key in relationships:
 		relationships[key] = 0
 	state_changed.emit()
+	needs_changed.emit(food, warmth, energy)
+	clock_changed.emit(day, int(day_time))
+	objective_changed.emit(objective_text())
 
 func save_game() -> bool:
 	if not persistence_enabled:
 		return true
 	var file := FileAccess.open(save_path, FileAccess.WRITE)
 	if file == null:
-		message_requested.emit("无法保存进度，但可以继续本次游戏。", "warning")
+		message_requested.emit(tr("MSG_SAVE_FAILED"), "warning")
 		return false
 	var data := {
 		"version": SAVE_VERSION,
@@ -197,6 +224,7 @@ func load_game() -> bool:
 	var parsed = JSON.parse_string(file.get_as_text())
 	if not parsed is Dictionary or int(parsed.get("version", -1)) != SAVE_VERSION:
 		return false
+	interaction_time_frozen = false
 	day = int(parsed.get("day", 1))
 	day_time = float(parsed.get("day_time", 0.0))
 	food = float(parsed.get("food", 78.0))
@@ -213,4 +241,7 @@ func load_game() -> bool:
 	completed_steps.assign(parsed.get("completed_steps", {}))
 	game_finished = bool(parsed.get("game_finished", false))
 	state_changed.emit()
+	needs_changed.emit(food, warmth, energy)
+	clock_changed.emit(day, int(day_time))
+	objective_changed.emit(objective_text())
 	return true

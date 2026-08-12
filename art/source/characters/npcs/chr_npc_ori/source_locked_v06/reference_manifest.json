@@ -1,0 +1,65 @@
+{
+  "schema": "reference_manifest.v1",
+  "asset_id": "chr_npc_ori",
+  "status": "SOURCE_LOCKED_USER_APPROVED",
+  "source_files": [
+    "reference/turnaround_source.png",
+    "reference/figure_view_0.png",
+    "reference/figure_view_1.png",
+    "reference/figure_view_2.png",
+    "reference/figure_view_3.png"
+  ],
+  "source_sha256": "3b3d2eca868b989b00ca6d0d4ac414f1e2ee5e86df0596abc0fc34b1d97c42c6",
+  "source_size": [1492, 1054],
+  "primary_view": "front",
+  "view_order": ["front", "character_left", "back", "character_right"],
+  "registration_status": "REGISTERED_TARGET_HEIGHT_PENDING",
+  "target_height_m": null,
+  "physical_side_map": {
+    "front_image_left": "character physical right",
+    "front_image_right": "character physical left",
+    "character_left_profile": "character physical left side facing image left",
+    "back_image_left": "character physical left",
+    "back_image_right": "character physical right",
+    "character_right_profile": "character physical right side facing image right"
+  },
+  "expected_primary_parts": {
+    "count": 23,
+    "labels": [
+      "crescent_outer_shell", "inner_segmented_arc_track",
+      "upper_blue_segmented_neck", "suspended_head_shell",
+      "four_eye_face_panel", "profile_green_neck_bridge", "torso_core",
+      "upper_arm_left", "upper_arm_right", "forearm_left", "forearm_right",
+      "hand_left_three_digit", "hand_right_three_digit",
+      "upper_leg_left", "upper_leg_right", "knee_left", "knee_right",
+      "lower_leg_left", "lower_leg_right", "ankle_left", "ankle_right",
+      "foot_left_three_lobe", "foot_right_three_lobe"
+    ]
+  },
+  "structural_parts": [
+    "one continuous crescent shell spanning above the full body",
+    "one short blue segmented crown connector suspending the head",
+    "profile green neck bridge continuous from crescent to torso but never touching the head",
+    "long jointed arms descending from the crescent endpoints",
+    "three digits per hand and broad three-lobed feet",
+    "tall narrow biological torso with no human shoulder or pelvic construction"
+  ],
+  "facial_parts": [
+    "one suspended tapered head shell",
+    "four horizontally aligned eye units",
+    "one short closed mouth line"
+  ],
+  "texture_regions": [
+    "tide_teal", "tide_cyan", "moss_mint", "dusk_indigo", "dust_cream"
+  ],
+  "validation_thresholds": {
+    "front_mask_iou_min": 0.9,
+    "bbox_center_tolerance_px": 12,
+    "part_count_exact": true,
+    "height_error_percent_max": 2.0,
+    "ground_line_error_percent_max": 1.0,
+    "front_back_height_difference_percent_max": 1.0
+  },
+  "generation_policy": "The locked v06 sheet is the immutable shape source. Derived crops and measurements may not repaint it.",
+  "runtime_export_allowed": false
+}

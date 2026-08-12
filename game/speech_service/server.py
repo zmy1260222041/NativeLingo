@@ -45,10 +45,10 @@ def transcribe(wav_path: str) -> str:
 
 def classify(target: str, text: str) -> tuple[bool, str]:
     words = set(re.findall(r"[a-z']+", text.lower()))
-    terms, label = INTENTS.get(target, (set(), "social intent"))
+    terms, _label = INTENTS.get(target, (set(), "social intent"))
     if words & terms:
-        return True, f"Recognized {label}."
-    return False, "意思还不够清楚；可以免费重说，或按 G 用手势确认。"
+        return True, "VOICE_REASON_ACCEPTED"
+    return False, "VOICE_REASON_CLARIFY"
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -66,7 +66,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         length = int(self.headers.get("Content-Length", "0"))
         if length <= 44 or length > 8 * 1024 * 1024:
-            self._json(400, {"accepted": False, "text": "", "reason": "录音为空或过长。"})
+            self._json(400, {"accepted": False, "text": "", "reason": "VOICE_REASON_LENGTH"})
             return
         target = self.headers.get("X-Stranger-Target", "")
         payload = self.rfile.read(length)
@@ -78,8 +78,9 @@ class Handler(BaseHTTPRequestHandler):
             text = transcribe(temp_path)
             accepted, reason = classify(target, text)
             self._json(200, {"accepted": accepted, "text": text, "reason": reason})
-        except Exception as exc:  # service boundary: return a safe retry result
-            self._json(503, {"accepted": False, "text": "", "reason": f"语音服务暂时不可用：{type(exc).__name__}"})
+        except Exception as exc:  # service boundary: log detail, return a localizable safe result
+            print(f"[speech] transcription failed: {type(exc).__name__}")
+            self._json(503, {"accepted": False, "text": "", "reason": "VOICE_REASON_SERVICE_UNAVAILABLE"})
         finally:
             if temp_path:
                 try:

@@ -1,0 +1,66 @@
+{
+  "schema": "orthographic_registration.v1",
+  "asset_id": "chr_npc_ori",
+  "source": "reference/turnaround_source.png",
+  "coordinate_contract": {
+    "front": "X/Z",
+    "character_left": "Y/Z depth envelope",
+    "back": "rear X/Z; must not rewrite front silhouette",
+    "character_right": "Y/Z depth envelope"
+  },
+  "shared_canvas_size": [512, 1024],
+  "shared_scale": 0.9715370018975332,
+  "views": [
+    {
+      "index": 0,
+      "name": "front",
+      "path": "reference/figure_view_0.png",
+      "bbox": [62, 79, 398, 874],
+      "bbox_center": [261.0, 516.0],
+      "centroid": [262.153, 478.226],
+      "top_y": 79,
+      "ground_y": 952
+    },
+    {
+      "index": 1,
+      "name": "character_left",
+      "path": "reference/figure_view_1.png",
+      "bbox": [122, 83, 267, 870],
+      "bbox_center": [255.5, 518.0],
+      "centroid": [259.067, 479.463],
+      "top_y": 83,
+      "ground_y": 952
+    },
+    {
+      "index": 2,
+      "name": "back",
+      "path": "reference/figure_view_2.png",
+      "bbox": [47, 78, 418, 875],
+      "bbox_center": [256.0, 515.5],
+      "centroid": [262.099, 473.699],
+      "top_y": 78,
+      "ground_y": 952
+    },
+    {
+      "index": 3,
+      "name": "character_right",
+      "path": "reference/figure_view_3.png",
+      "bbox": [92, 83, 316, 870],
+      "bbox_center": [250.0, 518.0],
+      "centroid": [220.954, 476.89],
+      "top_y": 83,
+      "ground_y": 952
+    }
+  ],
+  "gate": {
+    "baseline_drift_px": 0,
+    "front_back_height_difference_px": 1,
+    "bbox_center_tolerance_px": 12,
+    "result": "PASS"
+  },
+  "notes": [
+    "No top view exists in the approved sheet.",
+    "Front brand read wins if a future depth interpretation conflicts with the profiles.",
+    "Metrics are derived from deterministic registered masks with Pillow/NumPy because the generic helper's OpenCV dependency was unavailable."
+  ]
+}

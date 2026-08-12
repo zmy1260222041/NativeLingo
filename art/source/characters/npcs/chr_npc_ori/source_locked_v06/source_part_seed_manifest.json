@@ -1,0 +1,15 @@
+{
+  "schema": "source_part_seed_manifest.v1",
+  "asset_id": "chr_npc_ori",
+  "source": "reference/turnaround_source.png",
+  "output_dir": "reference",
+  "view_order": ["front", "character_left", "back", "character_right"],
+  "view_x_ranges": [[0, 425], [425, 700], [700, 1130], [1130, 1492]],
+  "ground_line_y": 973,
+  "ground_line_radius": 3,
+  "canvas_width": 512,
+  "canvas_height": 1024,
+  "background_distance_threshold": 18,
+  "alpha_feather": 10,
+  "horizontal_padding_px": 12
+}

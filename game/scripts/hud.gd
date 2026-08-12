@@ -1,102 +1,549 @@
 extends CanvasLayer
 
-var title_label: Label
-var day_label: Label
-var objective_label: Label
-var needs_label: Label
-var prompt_label: Label
-var message_panel: PanelContainer
-var message_label: Label
-var message_timer: Timer
+const COLOR_GOOD := Color("78c9a4")
+const COLOR_NEUTRAL := Color("91b9c2")
+const COLOR_WARNING := Color("f2a85b")
+const COLOR_URGENT := Color("ff8b7f")
+const SETTINGS_PATH := "user://stranger_accessibility.cfg"
+const UI_SCALES := [0.8, 0.9, 1.0, 1.1, 1.25, 1.5]
+
+@onready var ui_root: Control = $UIRoot
+@onready var clock_label: Label = $UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor/ClockChip/ClockLabel
+@onready var objective_card: PanelContainer = $UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor/ObjectiveCard
+@onready var objective_label: Label = $UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor/ObjectiveCard/Content/ObjectiveLabel
+@onready var food_label: Label = $UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/FoodRow/Content/Label
+@onready var food_meter: NeedMeter = $UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/FoodRow/Content/Meter
+@onready var food_icon: NeedIcon = $UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/FoodRow/Icon
+@onready var warmth_label: Label = $UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/WarmthRow/Content/Label
+@onready var warmth_meter: NeedMeter = $UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/WarmthRow/Content/Meter
+@onready var warmth_icon: NeedIcon = $UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/WarmthRow/Icon
+@onready var energy_label: Label = $UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/EnergyRow/Content/Label
+@onready var energy_meter: NeedMeter = $UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/EnergyRow/Content/Meter
+@onready var energy_icon: NeedIcon = $UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/EnergyRow/Icon
+@onready var interaction_card: PanelContainer = $UIRoot/SafeAreaRoot/HudRoot/InteractionAnchor/InteractionCard
+@onready var interaction_label: Label = $UIRoot/SafeAreaRoot/HudRoot/InteractionAnchor/InteractionCard/Content/InteractionLabel
+@onready var voice_status_icon: VoiceStatusIcon = $UIRoot/SafeAreaRoot/HudRoot/InteractionAnchor/InteractionCard/Content/VoiceStatusIcon
+@onready var toast_panel: PanelContainer = $UIRoot/SafeAreaRoot/HudRoot/ToastAnchor/ToastPanel
+@onready var toast_label: Label = $UIRoot/SafeAreaRoot/HudRoot/ToastAnchor/ToastPanel/ToastLabel
+@onready var safe_area: MarginContainer = $UIRoot/SafeAreaRoot
+@onready var day_transition_overlay: ColorRect = $UIRoot/DayTransitionOverlay
+@onready var day_label: Label = $UIRoot/DayTransitionOverlay/Center/Content/DayLabel
+@onready var day_body: Label = $UIRoot/DayTransitionOverlay/Center/Content/Body
+@onready var pause_overlay: ColorRect = $UIRoot/PauseOverlay
+@onready var resume_button: Button = $UIRoot/PauseOverlay/Center/Card/Content/ResumeButton
+@onready var reduce_motion_button: Button = $UIRoot/PauseOverlay/Center/Card/Content/ReduceMotionButton
+@onready var ui_scale_button: Button = $UIRoot/PauseOverlay/Center/Card/Content/UIScaleButton
+@onready var speech_mode_button: Button = $UIRoot/PauseOverlay/Center/Card/Content/SpeechModeButton
+@onready var controls_button: Button = $UIRoot/PauseOverlay/Center/Card/Content/ControlsButton
+@onready var input_remap_overlay: InputRemapPanel = $UIRoot/InputRemapOverlay
+@onready var completion_overlay: ColorRect = $UIRoot/CompletionOverlay
+@onready var continue_button: Button = $UIRoot/CompletionOverlay/Center/Card/Content/ContinueButton
+@onready var restart_button: Button = $UIRoot/CompletionOverlay/Center/Card/Content/RestartButton
+
+var player: PlayerController
+var toast_timer: Timer
+var voice_status_timer: Timer
+var day_transition_timer: Timer
+var toast_tween: Tween
+var objective_tween: Tween
+var interaction_tween: Tween
+var overlay_tween: Tween
+var toast_queue: Array[Dictionary] = []
+var toast_active := false
+var gamepad_active := false
+var gamepad_device_id := -1
+var reduce_motion := false
+var restart_armed := false
+var ui_scale_index := 2
+var speech_toggle_mode := false
+var voice_state := "idle"
+var voice_target_name := ""
+var voice_elapsed := 0.0
+var voice_transcript := ""
+var voice_reason := ""
+var day_transition_started_msec := 0
 
 func _ready() -> void:
-	_build_ui()
-	GameState.state_changed.connect(_refresh)
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	ui_root.theme = ui_root.theme.duplicate()
+	_create_timers()
+	_connect_domain_signals()
+	_connect_buttons()
+	_configure_focus_cycles()
+	_load_settings()
+	get_viewport().size_changed.connect(_apply_safe_frame)
+	call_deferred("_bind_player")
+	call_deferred("_apply_safe_frame")
+	_update_clock(GameState.day, int(GameState.day_time))
+	_update_objective(GameState.objective_text())
+	_update_needs(GameState.food, GameState.warmth, GameState.energy)
+
+func _create_timers() -> void:
+	toast_timer = Timer.new()
+	toast_timer.one_shot = true
+	toast_timer.timeout.connect(_hide_toast)
+	add_child(toast_timer)
+	voice_status_timer = Timer.new()
+	voice_status_timer.one_shot = true
+	voice_status_timer.timeout.connect(_clear_voice_status)
+	add_child(voice_status_timer)
+	day_transition_timer = Timer.new()
+	day_transition_timer.one_shot = true
+	day_transition_timer.timeout.connect(_dismiss_day_transition)
+	add_child(day_transition_timer)
+
+func _connect_domain_signals() -> void:
+	GameState.state_changed.connect(_on_state_changed)
+	GameState.needs_changed.connect(_update_needs)
+	GameState.clock_changed.connect(_update_clock)
+	GameState.objective_changed.connect(_update_objective)
 	GameState.message_requested.connect(_show_message)
 	GameState.run_completed.connect(_show_completion)
-	_refresh()
+	GameState.day_started.connect(_show_day_transition)
+	SpeechAdapter.recording_state_changed.connect(_on_recording_state_changed)
+	SpeechAdapter.recording_progress.connect(_on_recording_progress)
+	SpeechAdapter.recognition_pending.connect(_on_recognition_pending)
+	SpeechAdapter.recognition_finished.connect(_on_recognition_finished)
+	SpeechAdapter.session_cancelled.connect(_on_speech_cancelled)
 
-func _process(_delta: float) -> void:
-	var player := get_tree().get_first_node_in_group("player") as PlayerController
+func _connect_buttons() -> void:
+	continue_button.pressed.connect(_dismiss_completion)
+	restart_button.pressed.connect(_request_restart)
+	resume_button.pressed.connect(_close_pause)
+	reduce_motion_button.pressed.connect(_toggle_reduce_motion)
+	ui_scale_button.pressed.connect(_cycle_ui_scale)
+	speech_mode_button.pressed.connect(_toggle_speech_mode)
+	controls_button.pressed.connect(_open_input_remap)
+	input_remap_overlay.closed.connect(_on_input_remap_closed)
+	input_remap_overlay.bindings_changed.connect(_on_bindings_changed)
+
+func _configure_focus_cycles() -> void:
+	_link_focus_cycle([resume_button, reduce_motion_button, ui_scale_button, speech_mode_button, controls_button])
+	_link_focus_cycle([continue_button, restart_button])
+
+func _link_focus_cycle(buttons: Array[Button]) -> void:
+	for index in range(buttons.size()):
+		var current := buttons[index]
+		var previous := buttons[(index - 1 + buttons.size()) % buttons.size()]
+		var next := buttons[(index + 1) % buttons.size()]
+		current.focus_neighbor_top = current.get_path_to(previous)
+		current.focus_neighbor_left = current.get_path_to(previous)
+		current.focus_neighbor_bottom = current.get_path_to(next)
+		current.focus_neighbor_right = current.get_path_to(next)
+
+func _unhandled_input(event: InputEvent) -> void:
+	_update_active_device(event)
+	if day_transition_overlay.visible:
+		if _is_overlay_cancel_event(event):
+			if reduce_motion or Time.get_ticks_msec() - day_transition_started_msec >= 300:
+				_dismiss_day_transition()
+			get_viewport().set_input_as_handled()
+		return
+	if completion_overlay.visible:
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause"):
+			_dismiss_completion()
+			get_viewport().set_input_as_handled()
+		return
+	if SpeechAdapter.is_interaction_active() and event.is_action_pressed("ui_cancel"):
+		SpeechAdapter.cancel_recording()
+		get_viewport().set_input_as_handled()
+		return
+	if pause_overlay.visible and event.is_action_pressed("ui_cancel"):
+		_close_pause()
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("pause"):
+		if pause_overlay.visible:
+			_close_pause()
+		else:
+			_open_pause()
+		get_viewport().set_input_as_handled()
+
+func _is_overlay_cancel_event(event: InputEvent) -> bool:
+	return event.is_action_pressed("ui_accept") or event.is_action_pressed("ui_cancel") or event.is_action_pressed("interact") or event.is_action_pressed("pause")
+
+func _update_active_device(event: InputEvent) -> void:
+	var next_gamepad := gamepad_active
+	if event is InputEventJoypadButton and event.pressed:
+		next_gamepad = true
+		gamepad_device_id = event.device
+	elif event is InputEventJoypadMotion and absf(event.axis_value) > 0.28:
+		next_gamepad = true
+		gamepad_device_id = event.device
+	elif event is InputEventKey and event.pressed:
+		next_gamepad = false
+	elif event is InputEventMouseButton and event.pressed:
+		next_gamepad = false
+	elif event is InputEventMouseMotion and event.relative.length() > 1.5:
+		next_gamepad = false
+	if next_gamepad != gamepad_active:
+		gamepad_active = next_gamepad
+		_refresh_interaction_prompt()
+
+func _bind_player() -> void:
+	player = get_tree().get_first_node_in_group("player") as PlayerController
 	if player:
-		prompt_label.text = player.interaction_prompt()
+		player.interaction_prompt_changed.connect(_on_interaction_prompt_changed)
+		player.set_speech_toggle_mode(speech_toggle_mode)
+		player.set_reduce_motion(reduce_motion)
+		_refresh_interaction_prompt()
 
-func _build_ui() -> void:
-	var root := Control.new()
-	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(root)
+func _update_clock(day_value: int, elapsed_seconds: int) -> void:
+	clock_label.text = tr("HUD_CLOCK") % [day_value, 7 + int(elapsed_seconds / 60.0), elapsed_seconds % 60]
 
-	var top_panel := PanelContainer.new()
-	top_panel.position = Vector2(28, 24)
-	top_panel.custom_minimum_size = Vector2(465, 0)
-	root.add_child(top_panel)
-	var top_box := VBoxContainer.new()
-	top_box.add_theme_constant_override("separation", 6)
-	top_panel.add_child(top_box)
-	title_label = Label.new()
-	title_label.text = "异乡人  /  STRANGER"
-	title_label.add_theme_font_size_override("font_size", 28)
-	top_box.add_child(title_label)
-	day_label = Label.new()
-	day_label.add_theme_font_size_override("font_size", 17)
-	top_box.add_child(day_label)
-	objective_label = Label.new()
-	objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	objective_label.custom_minimum_size = Vector2(430, 42)
-	objective_label.add_theme_font_size_override("font_size", 18)
-	top_box.add_child(objective_label)
+func _update_objective(objective: String) -> void:
+	objective_label.text = objective
+	if GameState.game_finished and not completion_overlay.visible:
+		call_deferred("_show_completion")
+	if reduce_motion:
+		objective_card.modulate.a = 1.0
+		return
+	if objective_tween and objective_tween.is_valid():
+		objective_tween.kill()
+	objective_card.modulate.a = 0.5
+	objective_tween = create_tween()
+	objective_tween.tween_property(objective_card, "modulate:a", 1.0, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
-	needs_label = Label.new()
-	needs_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	needs_label.position = Vector2(-330, 28)
-	needs_label.size = Vector2(300, 90)
-	needs_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	needs_label.add_theme_font_size_override("font_size", 17)
-	root.add_child(needs_label)
+func _update_needs(food: float, warmth: float, energy: float) -> void:
+	_update_need(food_label, food_meter, food_icon, tr("NEED_FOOD"), food)
+	_update_need(warmth_label, warmth_meter, warmth_icon, tr("NEED_WARMTH"), warmth)
+	_update_need(energy_label, energy_meter, energy_icon, tr("NEED_ENERGY"), energy)
 
-	prompt_label = Label.new()
-	prompt_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	prompt_label.position = Vector2(-330, -92)
-	prompt_label.size = Vector2(660, 44)
-	prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	prompt_label.add_theme_font_size_override("font_size", 20)
-	root.add_child(prompt_label)
+func _update_need(label: Label, meter: NeedMeter, icon: NeedIcon, title: String, value: float) -> void:
+	var state := tr("NEED_STABLE") if value > 50.0 else (tr("NEED_CAUTION") if value > 25.0 else tr("NEED_CRITICAL"))
+	var tone := COLOR_GOOD if value > 50.0 else (COLOR_WARNING if value > 25.0 else COLOR_URGENT)
+	label.text = tr("NEED_FORMAT") % [title, int(value), state]
+	label.modulate = tone
+	icon.set_tone(tone)
+	meter.set_need(value, reduce_motion)
 
-	var help := Label.new()
-	help.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	help.position = Vector2(26, -62)
-	help.size = Vector2(650, 34)
-	help.text = "WASD 移动 · Shift 冲刺 · Space 跳跃 · 鼠标观察 · Esc 释放鼠标 · F9 重置切片"
-	help.add_theme_font_size_override("font_size", 14)
-	root.add_child(help)
+func _on_interaction_prompt_changed(_prompt: String) -> void:
+	if voice_state in ["clarify", "unavailable"] and SpeechAdapter.is_recovery_active():
+		return
+	_refresh_interaction_prompt()
 
-	message_panel = PanelContainer.new()
-	message_panel.set_anchors_preset(Control.PRESET_CENTER)
-	message_panel.position = Vector2(-330, 120)
-	message_panel.custom_minimum_size = Vector2(660, 74)
-	message_panel.visible = false
-	root.add_child(message_panel)
-	message_label = Label.new()
-	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	message_label.add_theme_font_size_override("font_size", 19)
-	message_panel.add_child(message_label)
-	message_timer = Timer.new()
-	message_timer.one_shot = true
-	message_timer.wait_time = 4.5
-	message_timer.timeout.connect(func(): message_panel.visible = false)
-	add_child(message_timer)
+func _refresh_interaction_prompt() -> void:
+	if voice_state != "idle":
+		_refresh_voice_card()
+		return
+	voice_status_icon.set_state("idle")
+	if not player:
+		return
+	var prompt := player.interaction_prompt("gamepad" if gamepad_active else "keyboard", gamepad_device_id)
+	_set_interaction_text(prompt)
 
-func _refresh() -> void:
-	day_label.text = "第 %d 天  ·  %02d:%02d" % [GameState.day, 7 + int(GameState.day_time / 60.0), int(GameState.day_time) % 60]
-	objective_label.text = "当前目标：%s" % GameState.objective_text()
-	needs_label.text = "食物  %3d%%\n温暖  %3d%%\n精力  %3d%%" % [GameState.food, GameState.warmth, GameState.energy]
+func _set_interaction_text(text: String) -> void:
+	if text.is_empty():
+		if reduce_motion:
+			interaction_card.visible = false
+			return
+		if not interaction_card.visible:
+			return
+		if interaction_tween and interaction_tween.is_valid():
+			interaction_tween.kill()
+		interaction_tween = create_tween()
+		interaction_tween.tween_property(interaction_card, "modulate:a", 0.0, 0.1)
+		interaction_tween.tween_callback(func(): interaction_card.visible = false)
+		return
+	interaction_label.text = text
+	if interaction_card.visible:
+		interaction_card.modulate.a = 1.0
+		return
+	interaction_card.visible = true
+	if reduce_motion:
+		interaction_card.modulate.a = 1.0
+		return
+	interaction_card.modulate.a = 0.0
+	if interaction_tween and interaction_tween.is_valid():
+		interaction_tween.kill()
+	interaction_tween = create_tween()
+	interaction_tween.tween_property(interaction_card, "modulate:a", 1.0, 0.12).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
-func _show_message(text: String, _tone: String) -> void:
-	message_label.text = text
-	message_panel.visible = true
-	message_timer.start()
+func _on_recording_state_changed(active: bool) -> void:
+	if active:
+		voice_state = "listening"
+		voice_target_name = player.current_target_name() if player else tr("NEARBY_RESIDENT")
+		voice_elapsed = 0.0
+		voice_transcript = ""
+		voice_reason = ""
+		_refresh_voice_card()
+	elif voice_state == "listening":
+		voice_state = "idle"
+		_refresh_interaction_prompt()
+
+func _on_recording_progress(elapsed_seconds: float, _maximum_seconds: float) -> void:
+	voice_elapsed = elapsed_seconds
+	if voice_state == "listening":
+		_refresh_voice_card()
+
+func _on_recognition_pending(_target_id: String) -> void:
+	voice_state = "transcribing"
+	_refresh_voice_card()
+
+func _on_recognition_finished(_target_id: String, accepted: bool, transcript: String, reason: String) -> void:
+	if voice_target_name.is_empty():
+		voice_target_name = player.current_target_name() if player else tr("NEARBY_RESIDENT")
+	voice_transcript = transcript
+	voice_reason = tr(reason)
+	if accepted:
+		voice_state = "accepted"
+		_refresh_voice_card()
+		voice_status_timer.start(3.2)
+	else:
+		voice_state = "unavailable" if _is_unavailable_reason(reason) else "clarify"
+		_refresh_voice_card()
+
+func _is_unavailable_reason(reason_key: String) -> bool:
+	return reason_key in ["VOICE_REASON_MIC_UNAVAILABLE", "VOICE_REASON_SERVICE_UNAVAILABLE", "VOICE_REASON_SAVE_FAILED", "VOICE_REASON_READ_FAILED", "VOICE_REASON_RESULT_INVALID"]
+
+func _on_speech_cancelled(_target_id: String) -> void:
+	_clear_voice_status()
+
+func _clear_voice_status() -> void:
+	voice_state = "idle"
+	voice_target_name = ""
+	voice_transcript = ""
+	voice_reason = ""
+	_refresh_interaction_prompt()
+
+func _refresh_voice_card() -> void:
+	voice_status_icon.set_state(voice_state)
+	var talk_glyph := InputGlyphs.for_action("push_to_talk", gamepad_active, gamepad_device_id)
+	var gesture_glyph := InputGlyphs.for_action("gesture", gamepad_active, gamepad_device_id)
+	var cancel_glyph := InputGlyphs.for_action("ui_cancel", gamepad_active, gamepad_device_id)
+	match voice_state:
+		"listening":
+			var finish_verb := tr("VOICE_FINISH_TOGGLE") if speech_toggle_mode else tr("VOICE_FINISH_HOLD")
+			_set_interaction_text("%s\n%s" % [tr("VOICE_LISTENING") % [voice_target_name, voice_elapsed], tr("VOICE_LISTENING_ACTIONS") % [talk_glyph, finish_verb, gesture_glyph, cancel_glyph]])
+		"transcribing":
+			_set_interaction_text("%s\n%s" % [tr("VOICE_TRANSCRIBING") % voice_target_name, tr("VOICE_TRANSCRIBING_ACTIONS") % [gesture_glyph, cancel_glyph]])
+		"accepted":
+			var heard := "\n%s" % (tr("VOICE_HEARD") % voice_transcript) if not voice_transcript.is_empty() else ""
+			_set_interaction_text("%s%s" % [tr("VOICE_ACCEPTED") % voice_target_name, heard])
+		"clarify", "unavailable":
+			var status := tr("VOICE_UNAVAILABLE") % voice_target_name if voice_state == "unavailable" else tr("VOICE_CLARIFY") % voice_target_name
+			var heard := "\n%s" % (tr("VOICE_HEARD") % voice_transcript) if not voice_transcript.is_empty() else ""
+			_set_interaction_text("%s%s\n%s\n%s" % [status, heard, voice_reason, tr("VOICE_RECOVERY_ACTIONS") % [talk_glyph, gesture_glyph, cancel_glyph]])
+		_:
+			_refresh_interaction_prompt()
+
+func _show_message(message_text: String, tone: String) -> void:
+	var item := {"text": message_text, "tone": tone}
+	if toast_active:
+		if toast_queue.size() >= 2:
+			toast_queue.pop_front()
+		toast_queue.append(item)
+		return
+	_display_toast(item)
+
+func _display_toast(item: Dictionary) -> void:
+	toast_active = true
+	var tone := str(item.get("tone", "neutral"))
+	var prefix := tr("TOAST_INFO")
+	var color := COLOR_NEUTRAL
+	var duration := 3.2
+	if tone == "good":
+		prefix = tr("TOAST_DONE")
+		color = COLOR_GOOD
+	elif tone == "warning":
+		prefix = tr("TOAST_WARNING")
+		color = COLOR_WARNING
+		duration = 6.0
+	toast_label.text = "%s · %s" % [prefix, str(item.get("text", ""))]
+	toast_label.modulate = color
+	toast_panel.visible = true
+	toast_panel.modulate.a = 0.0
+	if toast_tween and toast_tween.is_valid():
+		toast_tween.kill()
+	toast_tween = create_tween()
+	toast_tween.tween_property(toast_panel, "modulate:a", 1.0, 0.08 if reduce_motion else 0.18)
+	toast_timer.start(duration)
+
+func _hide_toast() -> void:
+	if not toast_panel.visible:
+		_finish_toast()
+		return
+	if reduce_motion:
+		toast_panel.visible = false
+		_finish_toast()
+		return
+	if toast_tween and toast_tween.is_valid():
+		toast_tween.kill()
+	toast_tween = create_tween()
+	toast_tween.tween_property(toast_panel, "modulate:a", 0.0, 0.14)
+	toast_tween.tween_callback(_finish_toast)
+
+func _finish_toast() -> void:
+	toast_panel.visible = false
+	toast_active = false
+	if not toast_queue.is_empty():
+		_display_toast(toast_queue.pop_front())
+
+func _show_day_transition(day_value: int) -> void:
+	if completion_overlay.visible:
+		return
+	day_label.text = tr("DAY_LABEL") % day_value
+	day_body.text = tr("DAY_TWO_BODY") if day_value == 2 else tr("DAY_THREE_BODY")
+	day_transition_overlay.visible = true
+	day_transition_overlay.modulate.a = 0.0
+	day_transition_started_msec = Time.get_ticks_msec()
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if overlay_tween and overlay_tween.is_valid():
+		overlay_tween.kill()
+	overlay_tween = create_tween()
+	overlay_tween.tween_property(day_transition_overlay, "modulate:a", 1.0, 0.08 if reduce_motion else 0.22)
+	day_transition_timer.start(0.75 if reduce_motion else 1.25)
+
+func _dismiss_day_transition() -> void:
+	if not day_transition_overlay.visible:
+		return
+	day_transition_timer.stop()
+	if reduce_motion:
+		_finish_day_transition()
+		return
+	if overlay_tween and overlay_tween.is_valid():
+		overlay_tween.kill()
+	overlay_tween = create_tween()
+	overlay_tween.tween_property(day_transition_overlay, "modulate:a", 0.0, 0.18)
+	overlay_tween.tween_callback(_finish_day_transition)
+
+func _finish_day_transition() -> void:
+	day_transition_overlay.visible = false
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func _on_state_changed() -> void:
+	if GameState.game_finished and not completion_overlay.visible:
+		_show_completion()
 
 func _show_completion() -> void:
-	_show_message("你活过了三天，也第一次被这里的人称作朋友。\n《异乡人 / Stranger》纵向切片完成。", "good")
+	if completion_overlay.visible:
+		return
+	day_transition_overlay.visible = false
+	pause_overlay.visible = false
+	completion_overlay.visible = true
+	completion_overlay.modulate.a = 0.0
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	var tween := create_tween()
+	tween.tween_property(completion_overlay, "modulate:a", 1.0, 0.1 if reduce_motion else 0.28)
+	continue_button.grab_focus.call_deferred()
+
+func _dismiss_completion() -> void:
+	completion_overlay.visible = false
+	_release_ui_focus()
+	get_tree().paused = false
+	restart_armed = false
+	restart_button.text = tr("BTN_RESTART")
+	continue_button.text = tr("BTN_COMPLETE_CONTINUE")
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func _request_restart() -> void:
+	if not restart_armed:
+		restart_armed = true
+		restart_button.text = tr("BTN_RESTART_CONFIRM")
+		continue_button.text = tr("BTN_RESTART_CANCEL")
+		continue_button.grab_focus()
+		return
+	get_tree().paused = false
+	GameState.reset_run()
+	GameState.save_game()
+	get_tree().reload_current_scene()
+
+func _open_pause() -> void:
+	SpeechAdapter.cancel_recording()
+	pause_overlay.visible = true
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	resume_button.grab_focus.call_deferred()
+
+func _close_pause() -> void:
+	pause_overlay.visible = false
+	_release_ui_focus()
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func _release_ui_focus() -> void:
+	var focus_owner := get_viewport().gui_get_focus_owner()
+	if focus_owner:
+		focus_owner.release_focus()
+
+func _toggle_reduce_motion() -> void:
+	reduce_motion = not reduce_motion
+	reduce_motion_button.text = tr("SETTING_REDUCE_MOTION") % (tr("SETTING_ON") if reduce_motion else tr("SETTING_OFF"))
+	if player:
+		player.set_reduce_motion(reduce_motion)
+	_update_needs(GameState.food, GameState.warmth, GameState.energy)
+	_save_settings()
+	reduce_motion_button.grab_focus()
+
+func _cycle_ui_scale() -> void:
+	ui_scale_index = (ui_scale_index + 1) % UI_SCALES.size()
+	_apply_ui_scale()
+	_save_settings()
+	ui_scale_button.grab_focus()
+
+func _apply_ui_scale() -> void:
+	var scale_value: float = UI_SCALES[ui_scale_index]
+	ui_root.theme.default_base_scale = scale_value
+	ui_scale_button.text = tr("SETTING_UI_SCALE") % int(scale_value * 100.0)
+	call_deferred("_apply_safe_frame")
+
+func _toggle_speech_mode() -> void:
+	speech_toggle_mode = not speech_toggle_mode
+	if player:
+		player.set_speech_toggle_mode(speech_toggle_mode)
+	speech_mode_button.text = tr("SETTING_SPEECH_MODE") % (tr("SETTING_TOGGLE") if speech_toggle_mode else tr("SETTING_HOLD"))
+	_refresh_interaction_prompt()
+	_save_settings()
+	speech_mode_button.grab_focus()
+
+func _open_input_remap() -> void:
+	pause_overlay.visible = false
+	input_remap_overlay.open_panel(gamepad_device_id if gamepad_active else -1)
+
+func _on_input_remap_closed() -> void:
+	pause_overlay.visible = true
+	_refresh_interaction_prompt()
+	controls_button.grab_focus.call_deferred()
+
+func _on_bindings_changed() -> void:
+	_refresh_interaction_prompt()
+
+func _apply_safe_frame() -> void:
+	var viewport_size := get_viewport().get_visible_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+	var target_aspect := 16.0 / 9.0
+	var frame_size := viewport_size
+	if viewport_size.x / viewport_size.y > target_aspect:
+		frame_size.x = viewport_size.y * target_aspect
+	elif viewport_size.x / viewport_size.y < target_aspect:
+		frame_size.y = viewport_size.x / target_aspect
+	var base_margin := clampf(viewport_size.x * 0.04, 24.0, 72.0)
+	var scale_value: float = UI_SCALES[ui_scale_index]
+	var left_right := ((viewport_size.x - frame_size.x) * 0.5 + base_margin) / scale_value
+	var top_bottom := ((viewport_size.y - frame_size.y) * 0.5 + base_margin * 0.78) / scale_value
+	safe_area.add_theme_constant_override("margin_left", int(left_right))
+	safe_area.add_theme_constant_override("margin_right", int(left_right))
+	safe_area.add_theme_constant_override("margin_top", int(top_bottom))
+	safe_area.add_theme_constant_override("margin_bottom", int(top_bottom))
+
+func _load_settings() -> void:
+	var config := ConfigFile.new()
+	if config.load(SETTINGS_PATH) == OK:
+		reduce_motion = bool(config.get_value("accessibility", "reduce_motion", false))
+		ui_scale_index = clampi(int(config.get_value("accessibility", "ui_scale_index", 2)), 0, UI_SCALES.size() - 1)
+		speech_toggle_mode = bool(config.get_value("accessibility", "speech_toggle_mode", false))
+	reduce_motion_button.text = tr("SETTING_REDUCE_MOTION") % (tr("SETTING_ON") if reduce_motion else tr("SETTING_OFF"))
+	speech_mode_button.text = tr("SETTING_SPEECH_MODE") % (tr("SETTING_TOGGLE") if speech_toggle_mode else tr("SETTING_HOLD"))
+	_apply_ui_scale()
+
+func _save_settings() -> void:
+	var config := ConfigFile.new()
+	config.load(SETTINGS_PATH)
+	config.set_value("accessibility", "reduce_motion", reduce_motion)
+	config.set_value("accessibility", "ui_scale_index", ui_scale_index)
+	config.set_value("accessibility", "speech_toggle_mode", speech_toggle_mode)
+	config.save(SETTINGS_PATH)

@@ -1,0 +1,40 @@
+{
+  "stage": "c1",
+  "outputs": {
+    "glb": "game/assets/characters/chr_player_juvenile.glb",
+    "glb_size_kb": 2602.5,
+    "armature_bones": 28,
+    "deform_bones": 28,
+    "meshes": [
+      {
+        "name": "lod0__body",
+        "verts": 5648,
+        "faces": 11293,
+        "vertex_groups": 22
+      },
+      {
+        "name": "lod1__body",
+        "verts": 4448,
+        "faces": 8905,
+        "vertex_groups": 22
+      },
+      {
+        "name": "lod2__body",
+        "verts": 2850,
+        "faces": 5698,
+        "vertex_groups": 22
+      }
+    ],
+    "animations": {
+      "anim_chr_player_idle_neutral": "mounted frames 1-121 loop=True",
+      "anim_chr_player_walk_forward": "mounted frames 1-74 loop=True",
+      "anim_chr_player_gesture_greet": "mounted frames 1-193 loop=False",
+      "anim_chr_player_gesture_offer": "mounted frames 1-193 loop=False",
+      "anim_chr_player_gesture_clarify": "mounted frames 1-193 loop=False"
+    },
+    "material": "mat_chr_player_juvenile",
+    "known_gaps": [
+      "facial blend shapes blink/jaw/viseme (manual, C3) — Gate D test red until authored"
+    ]
+  }
+}

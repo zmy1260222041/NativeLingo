@@ -5,6 +5,7 @@ const GameStateScript = preload("res://scripts/game_state.gd")
 var failures := 0
 
 func _init() -> void:
+	TranslationServer.set_locale("zh_CN")
 	var state = GameStateScript.new()
 	state.persistence_enabled = false
 	root.add_child(state)
@@ -12,7 +13,10 @@ func _init() -> void:
 	_test_day_two(state)
 	_test_language_fallback(state)
 	_test_faint_preserves_relationships(state)
+	_test_voice_wait_has_no_survival_cost()
+	_test_npc_reply_is_distinct_from_transcript(state)
 	_test_save_round_trip(state)
+	_test_localization_resources()
 	if failures == 0:
 		print("PASS: Stranger game-state smoke suite")
 	quit(failures)
@@ -47,6 +51,20 @@ func _test_faint_preserves_relationships(state: Node) -> void:
 	_expect(state.relationships["rowan"] == before, "Fainting never damages relationships")
 	_expect(state.berries == 1 and state.scrap == 1, "Fainting loses only small common items")
 
+func _test_voice_wait_has_no_survival_cost() -> void:
+	var state = GameStateScript.new()
+	state.persistence_enabled = false
+	root.add_child(state)
+	var before := Vector4(state.day_time, state.food, state.warmth, state.energy)
+	state.set_interaction_time_frozen(true)
+	state._process(18.0)
+	var after := Vector4(state.day_time, state.food, state.warmth, state.energy)
+	_expect(before == after, "Voice listening, transcription, and recovery never drain survival state")
+
+func _test_npc_reply_is_distinct_from_transcript(state: Node) -> void:
+	var reply: String = state._communication_reply("Mira", "voice", "Welcome, stranger.")
+	_expect(reply.contains("Mira") and reply.contains("Welcome, stranger.") and not reply.contains("你的英语"), "NPC reply is not mislabeled as the player's transcript")
+
 func _test_save_round_trip(state: Node) -> void:
 	state.persistence_enabled = true
 	state.save_path = "user://stranger_smoke_test_save.json"
@@ -58,6 +76,16 @@ func _test_save_round_trip(state: Node) -> void:
 	_expect(restored.load_game(), "Versioned save can be loaded")
 	_expect(restored.day == state.day and restored.relationships == state.relationships, "Save preserves day and relationships")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(state.save_path))
+
+func _test_localization_resources() -> void:
+	TranslationServer.set_locale("en")
+	var localized_state = GameStateScript.new()
+	localized_state.persistence_enabled = false
+	root.add_child(localized_state)
+	_expect(localized_state.objective_text().contains("Mira"), "English objective resolves from a string ID")
+	_expect(TranslationServer.translate("BTN_RESUME") == "Resume", "English UI translation resource is loaded")
+	TranslationServer.set_locale("zh_CN")
+	_expect(TranslationServer.translate("BTN_RESUME") == "继续游戏", "Chinese UI translation resource is loaded")
 
 func _expect(condition: bool, label: String) -> void:
 	if condition:
