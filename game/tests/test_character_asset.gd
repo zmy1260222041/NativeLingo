@@ -1,18 +1,19 @@
 extends SceneTree
 ## Gate D contract for the player character runtime assembly.
-## The runtime asset is assembled in code (character_visual.gd): the Tencent
-## cloud FBX provides the rig + idle; walk comes from a second cloud FBX; LOD1/2
-## from metre GLBs; a named material is assigned at runtime. This test drives the
-## same loader path the game uses (CharacterVisual.configure(..., true)) and
-## checks the resulting runtime scene.
+## The runtime asset is assembled in code (character_visual.gd): the target rig
+## plus idle and the selected Mixamo-retargeted actions come from the player
+## FBX; LOD1/2 are added from metre GLBs; a named material is assigned at
+## runtime. This test drives the same loader path the game uses.
 
-const CHARACTER_PATH := "res://assets/characters/chr_player_juvenile.fbx"
+const CHARACTER_PATH := "res://assets/characters/chr_player_juvenile_mixamo.fbx"
 const MAX_DEFORM_BONES := 72
 const MAX_MATERIAL_SLOTS := 3
 const MIN_LOD0_FACIAL_MORPHS := 3
 const EXPECTED_ANIMATIONS := [
 	"anim_chr_player_idle_neutral",
 	"anim_chr_player_walk_forward",
+	"anim_chr_player_run_forward",
+	"anim_chr_player_gesture_point",
 	"anim_chr_player_gesture_greet",
 	"anim_chr_player_gesture_offer",
 	"anim_chr_player_gesture_clarify",
@@ -57,7 +58,7 @@ func _do_checks() -> void:
 		print("IMPORTED_ANIMATIONS=", imported_names)
 		for expected in EXPECTED_ANIMATIONS:
 			_check(expected in imported_names, "animation imported: %s" % expected)
-		for looping_name in ["anim_chr_player_idle_neutral", "anim_chr_player_walk_forward"]:
+		for looping_name in ["anim_chr_player_idle_neutral", "anim_chr_player_walk_forward", "anim_chr_player_run_forward"]:
 			var animation := animation_player.get_animation(looping_name)
 			_check(animation != null and animation.loop_mode != Animation.LOOP_NONE, "loop suffix configures looping: %s" % looping_name)
 

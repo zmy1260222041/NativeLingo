@@ -53,7 +53,9 @@ in the Godot editor.
 4. `mat_chr_player_body`, `mat_chr_player_sail`, optional wear slot; body 2K, sail 1K.
 5. `sk_chr_player_juvenile`: ≤72 deform bones with three digits per hand and three toes per foot.
 6. Facial controls for lids, brows, jaw, mouth corners and required visemes.
-7. Five 30 fps in-place actions: idle, walk, greet, offer and clarify.
+7. Runtime currently exposes nine 30 fps in-place actions: idle, walk, run, point, turn 180,
+   jump, greet, offer and clarify; the five user-authored actions are rest-corrected Mixamo
+   imports.
 8. Final `game/assets/characters/chr_player_juvenile.glb` only after Gate D.
 
 ## Validation gates
@@ -62,5 +64,6 @@ in the Godot editor.
 2. Three rear sails, three digits and three toes remain readable at 96 px.
 3. Retopology contains continuous eye/mouth/joint loops and passes extreme-pose tests.
 4. LOD/material/bone/influence budgets pass.
-5. Godot imports the final GLB with three LOD groups, facial morphs and five exact animations.
+5. Godot imports the runtime character with three LOD groups, facial morphs and the nine exact
+   runtime animations.
 6. Morning/night and fixed-camera captures preserve the Art Bible silhouette and materials.

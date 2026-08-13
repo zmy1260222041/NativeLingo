@@ -31,12 +31,12 @@ static func _ensure() -> void:
 
 static func set_file(path: String) -> void:
 	## Route log output to `path` and force-enable logging (CLI/tests).
+	_initialized = true
 	_path = path
 	_enabled = true
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
-	_file = FileAccess.open(path, FileAccess.WRITE)
-	if _file != null:
-		_file.store_line("== debug log start ==")
+	_file = null
+	_append_line("== debug log start ==")
 static func set_level(level: String) -> void:
 	_min_level = LEVELS.get(level, 1)
 
@@ -54,14 +54,22 @@ static func write(level: String, tag: String, msg: String) -> void:
 	var line := "%s [%s] (%s) %s" % [Time.get_datetime_string_from_system(false, true), level.to_upper(), tag, msg]
 	if _mirror_stdout:
 		print(line)
-	if _file == null and not _path.is_empty():
-		DirAccess.make_dir_recursive_absolute(_path.get_base_dir())
-		_file = FileAccess.open(_path, FileAccess.READ_WRITE)
-		if _file != null:
-			_file.seek_end()
-	if _file != null:
-		_file.store_line(line)
-		_file.flush()
+	_append_line(line)
+
+static func _append_line(line: String) -> void:
+	if _path.is_empty():
+		return
+	# The running game and 6507 headless tests share this file. A short-lived
+	# append handle avoids truncation, stale offsets and cross-process handles
+	# that can block the test RPC's synchronous child process.
+	DirAccess.make_dir_recursive_absolute(_path.get_base_dir())
+	var file := FileAccess.open(_path, FileAccess.READ_WRITE) if FileAccess.file_exists(_path) else FileAccess.open(_path, FileAccess.WRITE)
+	if file == null:
+		return
+	file.seek_end()
+	file.store_line(line)
+	file.flush()
+	file.close()
 
 static func debug(tag: String, msg: String) -> void:
 	write("debug", tag, msg)

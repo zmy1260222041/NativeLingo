@@ -25,6 +25,7 @@ func simulate_key(params: Dictionary) -> Dictionary:
 
 	var event = InputEventKey.new()
 	event.keycode = keycode_value
+	event.physical_keycode = keycode_value
 	event.pressed = pressed
 	event.meta_pressed = modifiers.get("meta", false)
 	event.ctrl_pressed = modifiers.get("ctrl", false)
@@ -130,12 +131,17 @@ func _parse_event_from_dict(event_data: Dictionary) -> InputEvent:
 		var event = InputEventKey.new()
 		var keycode = event_data.get("keycode", "")
 		if keycode != "":
-			event.keycode = OS.find_keycode_from_string(keycode)
+			var keycode_value = OS.find_keycode_from_string(keycode)
+			if keycode_value == 0:
+				return null
+			event.keycode = keycode_value
+			event.physical_keycode = keycode_value
 		else:
 			var raw_keycode = event_data.get("keycode_value", 0)
 			if raw_keycode == 0:
 				return null
 			event.keycode = raw_keycode
+			event.physical_keycode = raw_keycode
 		event.pressed = event_data.get("pressed", true)
 		event.meta_pressed = event_data.get("meta_pressed", false)
 		event.ctrl_pressed = event_data.get("ctrl_pressed", false)

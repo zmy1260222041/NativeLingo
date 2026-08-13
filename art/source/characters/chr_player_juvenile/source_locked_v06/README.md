@@ -34,13 +34,28 @@ baked to fresh actions (Mixamo-modern 52-bone → Mixamo-legacy 28-bone mapping;
 normalizes to 1.78 m with feet at the origin, assigns the Art Bible base-color material, mounts
 all five actions on NLA tracks, and exports the GLB. See `assemble_c1_report.json`.
 
+## User-authored Mixamo action overlay
+
+The same LOD0 mesh was exported to `../mixamo/chr_player_juvenile_tpose.fbx` and used to author
+the five FBX actions in `anime/`: `Walking.fbx`, `Standard Run.fbx`, `Pointing Gesture.fbx`,
+`Walking Turn 180.fbx`, and `Jumping.fbx`.
+`../blender/retarget_mixamo_actions.py` maps the 22 shared deform bones onto the target 28-bone
+rig, evaluates both local-basis and world-rest retargeting, and selects the lower-error result
+using per-frame world-space bone orientation after rest-axis calibration. The exported actions
+select the lowest-error `pose_direction` result and are written
+in-place to `game/assets/characters/chr_player_juvenile_mixamo.fbx`.
+
+Runtime names include Walk, Run, Point, Turn 180, and Jump. `PlayerController` chooses walk below
+the sprint threshold, run above it, uses Point for grounded gestures, and synchronizes Turn/Jump
+with movement and contact markers; CharacterBody3D remains responsible for world movement.
+
 ## Gate D status (`game/tests/test_character_asset.gd`)
 
 ```
 CHARACTER_ASSET_EVIDENCE bones=28 lods=[1,1,1] materials=["mat_chr_player_juvenile"] morphs=0
 ```
 
-Passing (15): GLB loads · Skeleton3D · 28 deform bones ≤72 · AnimationPlayer · all 5 animation
+Passing (15): GLB loads · Skeleton3D · 28 deform bones ≤72 · AnimationPlayer · all 5 cloud animation
 names present · idle + walk loop mode · LOD0/LOD1/LOD2 mesh groups (double-underscore substring)
 · 1 named material with non-empty resource_name.
 

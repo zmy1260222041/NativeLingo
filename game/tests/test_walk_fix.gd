@@ -1,114 +1,152 @@
 extends SceneTree
-## Automated test for the walk-animation fix (issue: head yaws ~90° and hips
-## ~180° while walking, feet normal).
+## Runtime smoke test for the user-authored Mixamo action overlay.
 ##
-## The walk source FBX is a different cloud generation with a different
-## skeleton rest pose; its keys played on the runtime rig twist the torso.
-## CharacterVisual._add_walk_from_source re-bases the walk cycle neutral onto
-## the idle pose (WalkAnimFix "rebase"). This test plays idle and walk on the
-## real CharacterVisual runtime rig, compares their cycle-mean poses, and
-## asserts the walk neutral sits near the idle standing pose.
-##
-## Run: Godot --headless -s res://tests/test_walk_fix.gd
+## Retargeting quality is measured offline by
+## ``blender/retarget_mixamo_actions.py``. This Godot test verifies that the
+## selected actions survive FBX import, have the expected loop semantics, and
+## remain in-place so PlayerController owns world movement.
 
-const TORSO := ["Hips", "Spine", "Spine1", "Spine2", "Neck", "Head"]
-const LIMBS := ["LeftArm", "LeftForeArm", "LeftHand", "RightArm", "RightForeArm", "RightHand",
-	"LeftUpLeg", "LeftLeg", "LeftFoot", "RightUpLeg", "RightLeg", "RightFoot"]
-const TORSO_LIMIT := 35.0
-const LIMB_LIMIT := 40.0
-const FRAMES := 100
-const EVERY := 4
-
-const DebugLog := preload("res://scripts/debug_log.gd")
+const REQUIRED := [
+	"anim_chr_player_walk_forward",
+	"anim_chr_player_run_forward",
+	"anim_chr_player_gesture_point",
+	"anim_chr_player_turn_180",
+	"anim_chr_player_jump",
+]
+const RETARGET_REPORT := "res://assets/characters/chr_player_juvenile_mixamo_retarget.json"
+const PROBE_PHASES := [0.0, 0.25, 0.5, 0.75]
 
 func _init() -> void:
-	DebugLog.set_file("user://logs/test_walk_fix.log")
-	DebugLog.info("test", "start")
 	var visual := CharacterVisual.new()
 	root.add_child(visual)
 	visual.configure(Color("bfa982"), Color("5a3f58"), 0, true)
-	for i in 6:
+	for _i in 6:
 		await process_frame
-	var sk := _find(visual, "Skeleton3D") as Skeleton3D
+
 	var ap := _find(visual, "AnimationPlayer") as AnimationPlayer
-	if sk == null or ap == null:
-		print("FAIL: no skeleton/animplayer under CharacterVisual")
-		DebugLog.error("test", "missing skeleton or animation player")
+	if ap == null:
+		print("FAIL: no AnimationPlayer under CharacterVisual")
 		quit(1)
 		return
-	if not ap.has_animation("anim_chr_player_idle_neutral"):
-		print("FAIL: idle anim missing; have ", ap.get_animation_list())
-		quit(1)
-		return
-	if not ap.has_animation("anim_chr_player_walk_forward"):
-		print("FAIL: walk anim missing; have ", ap.get_animation_list())
-		quit(1)
-		return
-	var idle_means := await _pose_means(ap, sk, "anim_chr_player_idle_neutral")
-	var walk_means := await _pose_means(ap, sk, "anim_chr_player_walk_forward")
-	var torso_mean := _pose_mean_angle(idle_means, walk_means, TORSO)
-	var limb_mean := _pose_mean_angle(idle_means, walk_means, LIMBS)
-	print("walk fix: torsoMean=%.1f limbMean=%.1f (limits %.0f/%.0f)" % [torso_mean, limb_mean, TORSO_LIMIT, LIMB_LIMIT])
-	DebugLog.info("test", "torso=%s limb=%s" % [torso_mean, limb_mean])
-	if torso_mean < TORSO_LIMIT and limb_mean < LIMB_LIMIT:
-		print("PASS: walk neutral aligns with idle standing pose")
-		DebugLog.info("test", "PASS")
+
+	var failures: Array[String] = []
+	if not FileAccess.file_exists(RETARGET_REPORT):
+		failures.append("retarget fidelity report missing")
+	else:
+		var report = JSON.parse_string(FileAccess.get_file_as_string(RETARGET_REPORT))
+		if not report is Dictionary:
+			failures.append("retarget fidelity report is invalid JSON")
+		else:
+			var actions: Dictionary = report.get("actions", {})
+			for name in REQUIRED:
+				var action_report: Dictionary = actions.get(name, {})
+				if action_report.get("selected_algorithm", "") != "pose_direction":
+					failures.append("%s did not select pose_direction" % name)
+				var candidates: Dictionary = action_report.get("candidates", {})
+				var selected: Dictionary = candidates.get("pose_direction", {})
+				var metrics: Dictionary = selected.get("metrics", {})
+				if float(metrics.get("direction_p95_deg", 999.0)) > 0.5:
+					failures.append("%s source pose direction error exceeds 0.5 degrees" % name)
+				if float(metrics.get("endpoint_max_m", 999.0)) > 0.005:
+					failures.append("%s endpoint error exceeds 5 mm" % name)
+			var jump_report: Dictionary = actions.get("anim_chr_player_jump", {})
+			var jump_markers: Dictionary = jump_report.get("motion_markers", {})
+			var takeoff_frame := int(jump_markers.get("takeoff_frame", -1))
+			var landing_frame := int(jump_markers.get("landing_frame", -1))
+			if takeoff_frame != 40 or landing_frame != 59:
+				failures.append("jump foot contacts changed: expected takeoff 40 / landing 59, got %d / %d" % [takeoff_frame, landing_frame])
+			if float(jump_markers.get("authored_airborne_lift_m", 0.0)) <= 0.0:
+				failures.append("jump report is missing positive authored airborne lift")
+	for name in REQUIRED:
+		if not ap.has_animation(name):
+			failures.append("missing %s" % name)
+		else:
+			var animation := ap.get_animation(name)
+			var has_dynamic_hips_position := false
+			for track_index in animation.get_track_count():
+				var track_type := animation.track_get_type(track_index)
+				if track_type == Animation.TYPE_SCALE_3D:
+					failures.append("%s contains a scale track" % name)
+				if track_type == Animation.TYPE_POSITION_3D:
+					var path: NodePath = animation.track_get_path(track_index)
+					var subname: String = path.get_subname(path.get_subname_count() - 1) if path.get_subname_count() > 0 else ""
+					if subname != "Hips":
+						failures.append("%s contains a non-Hips position track: %s" % [name, path])
+					else:
+						var first := animation.track_get_key_value(track_index, 0) as Vector3
+						var max_offset := 0.0
+						for key_index in animation.track_get_key_count(track_index):
+							max_offset = maxf(max_offset, (animation.track_get_key_value(track_index, key_index) as Vector3).distance_to(first))
+						has_dynamic_hips_position = max_offset > 0.001
+			if name in ["anim_chr_player_walk_forward", "anim_chr_player_run_forward", "anim_chr_player_turn_180", "anim_chr_player_jump"] and not has_dynamic_hips_position:
+				failures.append("%s lost dynamic Hips position" % name)
+	var walk := ap.get_animation("anim_chr_player_walk_forward")
+	var run := ap.get_animation("anim_chr_player_run_forward")
+	var point := ap.get_animation("anim_chr_player_gesture_point")
+	var turn := ap.get_animation("anim_chr_player_turn_180")
+	var jump := ap.get_animation("anim_chr_player_jump")
+	if walk == null or walk.loop_mode == Animation.LOOP_NONE:
+		failures.append("walk is not looping")
+	if run == null or run.loop_mode == Animation.LOOP_NONE:
+		failures.append("run is not looping")
+	if point != null and point.loop_mode != Animation.LOOP_NONE:
+		failures.append("pointing gesture should be non-looping")
+	if turn != null and turn.loop_mode != Animation.LOOP_NONE:
+		failures.append("180 turn should be non-looping")
+	if jump != null and jump.loop_mode != Animation.LOOP_NONE:
+		failures.append("jump should be non-looping")
+	if walk != null and walk.length <= 0.0:
+		failures.append("walk has no duration")
+	if run != null and run.length <= 0.0:
+		failures.append("run has no duration")
+
+	var armature := visual.get_node_or_null("OrganicPlayerModel/Armature") as Node3D
+	if armature == null:
+		failures.append("runtime armature missing")
+	else:
+		for action_name in ["anim_chr_player_walk_forward", "anim_chr_player_gesture_point", "anim_chr_player_turn_180", "anim_chr_player_jump"]:
+			ap.play(action_name)
+			await process_frame
+			if armature.scale.distance_to(Vector3.ONE) > 0.01:
+				failures.append("%s changes armature scale to %s" % [action_name, armature.scale])
+
+	var skeleton := _find(visual, "Skeleton3D") as Skeleton3D
+	if skeleton == null or walk == null:
+		failures.append("runtime skeleton missing for limb probe")
+	else:
+		ap.play("anim_chr_player_walk_forward")
+		for phase in PROBE_PHASES:
+			ap.seek(walk.length * phase, true)
+			await process_frame
+			var left_hand := _bone_global_position(skeleton, "LeftHand")
+			var right_hand := _bone_global_position(skeleton, "RightHand")
+			var left_knee := _bone_global_position(skeleton, "LeftLeg")
+			var right_knee := _bone_global_position(skeleton, "RightLeg")
+			var left_foot := _bone_global_position(skeleton, "LeftFoot")
+			var right_foot := _bone_global_position(skeleton, "RightFoot")
+			if left_hand.x - right_hand.x < 0.35:
+				failures.append("walk phase %.2f folds hands across the body" % phase)
+			if left_knee.x - right_knee.x < 0.05:
+				failures.append("walk phase %.2f crosses left/right knees" % phase)
+			if left_foot.x - right_foot.x < 0.06:
+				failures.append("walk phase %.2f crosses left/right feet" % phase)
+
+	if failures.is_empty():
+		print("PASS: Mixamo walk/run/point/turn/jump actions imported with safe tracks and loop semantics")
 		quit(0)
 	else:
-		print("FAIL: walk neutral drifts from idle pose")
-		DebugLog.error("test", "FAIL torso=%s limb=%s" % [torso_mean, limb_mean])
+		print("FAIL: ", failures)
 		quit(1)
 
-## Cycle-mean global pose per bone while an animation plays.
-func _pose_means(ap: AnimationPlayer, sk: Skeleton3D, anim_name: String) -> Dictionary:
-	ap.play(anim_name)
-	await process_frame
-	var acc: Dictionary = {}
-	var sign_ref: Dictionary = {}
-	for i in sk.get_bone_count():
-		acc[sk.get_bone_name(i)] = Vector4.ZERO
-		sign_ref[sk.get_bone_name(i)] = Quaternion.IDENTITY
-	var count := 0
-	for f in FRAMES:
-		await process_frame
-		if f % EVERY != 0:
-			continue
-		count += 1
-		for i in sk.get_bone_count():
-			var q: Quaternion = sk.get_bone_global_pose(i).basis.get_rotation_quaternion()
-			if count == 1:
-				sign_ref[sk.get_bone_name(i)] = q
-				acc[sk.get_bone_name(i)] = Vector4(q.x, q.y, q.z, q.w)
-			else:
-				var v: Vector4 = acc[sk.get_bone_name(i)]
-				if q.dot(sign_ref[sk.get_bone_name(i)] as Quaternion) < 0.0:
-					q = Quaternion(-q.x, -q.y, -q.z, -q.w)
-				acc[sk.get_bone_name(i)] = v + Vector4(q.x, q.y, q.z, q.w)
-	var out: Dictionary = {}
-	for bone in acc:
-		var v: Vector4 = acc[bone] / float(count)
-		var len := v.length()
-		if len > 0.0001:
-			out[bone] = Quaternion(v.x / len, v.y / len, v.z / len, v.w / len).normalized()
-	return out
+func _bone_global_position(skeleton: Skeleton3D, bone_name: String) -> Vector3:
+	var index := skeleton.find_bone(bone_name)
+	return skeleton.get_bone_global_pose(index).origin if index >= 0 else Vector3.ZERO
 
-func _pose_mean_angle(idle: Dictionary, other: Dictionary, bones: Array) -> float:
-	var sum := 0.0
-	var count := 0
-	for bone in bones:
-		if idle.has(bone) and other.has(bone):
-			var a: Quaternion = idle[bone]
-			var b: Quaternion = other[bone]
-			var rel := a.inverse() * b
-			sum += rad_to_deg(2.0 * acos(clampf(absf(rel.w), 0.0, 1.0)))
-			count += 1
-	return sum / maxf(1.0, float(count))
-
-func _find(n: Node, t: String) -> Node:
-	if n.is_class(t):
-		return n
-	for c in n.get_children():
-		var r := _find(c, t)
-		if r:
-			return r
+func _find(node: Node, type_name: String) -> Node:
+	if node.is_class(type_name):
+		return node
+	for child in node.get_children():
+		var found := _find(child, type_name)
+		if found:
+			return found
 	return null

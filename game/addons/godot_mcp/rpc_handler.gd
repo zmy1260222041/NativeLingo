@@ -5,6 +5,7 @@ const ScriptEditorClass = preload("res://addons/godot_mcp/editors/script_editor.
 const ProjectEditorClass = preload("res://addons/godot_mcp/editors/project_editor.gd")
 const RuntimeCommandsClass = preload("res://addons/godot_mcp/editors/runtime_commands.gd")
 const InputCommandsClass = preload("res://addons/godot_mcp/editors/input_commands.gd")
+const TestCommandsClass = preload("res://addons/godot_mcp/editors/test_commands.gd")
 const Utils = preload("res://addons/godot_mcp/utils.gd")
 
 var scene_editor_inst: SceneEditorClass
@@ -12,6 +13,7 @@ var script_editor_inst: ScriptEditorClass
 var project_editor_inst: ProjectEditorClass
 var runtime_commands: RuntimeCommandsClass
 var input_commands: InputCommandsClass
+var test_commands: TestCommandsClass
 
 func _init():
     scene_editor_inst = SceneEditorClass.new()
@@ -19,8 +21,9 @@ func _init():
     project_editor_inst = ProjectEditorClass.new()
     runtime_commands = RuntimeCommandsClass.new()
     input_commands = InputCommandsClass.new()
+    test_commands = TestCommandsClass.new()
 
-func handle(message: String) -> String:
+func handle(message: String, channel := "control") -> String:
     var parsed = JSON.parse_string(message)
     if parsed == null or typeof(parsed) != TYPE_DICTIONARY:
         return _error_response(null, -32700, "Parse error")
@@ -39,7 +42,7 @@ func handle(message: String) -> String:
         var req_log = "[MCP] → %s" % method
         print(req_log)
         project_editor_inst.append_log(req_log)
-    var result = await _route(method, params)
+    var result = await _route(method, params, channel)
 
     if result.has("error"):
         if method != "log.print":
@@ -54,7 +57,7 @@ func handle(message: String) -> String:
         project_editor_inst.append_log(ok_log)
     return _success_response(id, result.get("result", {}))
 
-func _route(method: String, params: Dictionary) -> Dictionary:
+func _route(method: String, params: Dictionary, channel := "control") -> Dictionary:
     match method:
         "scene.get_tree":
             return scene_editor_inst.get_tree(params)
@@ -84,6 +87,14 @@ func _route(method: String, params: Dictionary) -> Dictionary:
             return project_editor_inst.get_settings()
         "project.get_info":
             return { "result": Utils.get_engine_info() }
+        "control.run":
+            return project_editor_inst.run_project(params)
+        "control.stop":
+            if EditorInterface.is_playing_scene():
+                EditorInterface.stop_playing_scene()
+            return { "result": { "stopping": true } }
+        "control.freeze":
+            return { "result": { "frozen": false, "message": "Runtime bridge owns freeze while the game is running" } }
         "handshake":
             return { "result": { "version": Utils.PLUGIN_VERSION, "godot_version": Engine.get_version_info()["string"] } }
         # game.* routes for runtime commands (19 tools)
@@ -157,6 +168,26 @@ func _route(method: String, params: Dictionary) -> Dictionary:
             return scene_editor_inst.find_nodes_in_group(params)
         "log.print":
             return project_editor_inst.print_log(params)
+        "log.tail":
+            return project_editor_inst.get_output_log(params)
+        "log.subscribe":
+            return { "result": { "subscribed": true, "message": "Editor log subscriptions are polled with log.tail" } }
+        "animation.get_state", "animation.sample":
+            return { "error": { "code": -32102, "message": "Game is not running; start the project first" } }
+        "animation.subscribe":
+            return { "error": { "code": -32102, "message": "Game is not running; start the project first" } }
+        "control.animation_probe", "control.capture_sequence":
+            return { "error": { "code": -32102, "message": "Game is not running; start the project first" } }
+        "test.list":
+            return test_commands.list_tests(params)
+        "test.write_inline":
+            return test_commands.write_inline(params)
+        "test.run":
+            return test_commands.run_test(params)
+        "test.status", "test.result":
+            return test_commands.status(params)
+        "test.stop":
+            return { "error": { "code": -32101, "message": "Synchronous test runs cannot be stopped after launch" } }
         _:
             return { "error": { "code": -32601, "message": "Method not found: %s" % method } }
 

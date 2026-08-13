@@ -2,9 +2,35 @@ class_name CharacterVisual
 extends Node3D
 
 const IDLE_BREATH_DURATION := 2.4
-const PLAYER_MODEL_PATH := "res://assets/characters/chr_player_juvenile.fbx"
+const PLAYER_MODEL_PATH := "res://assets/characters/chr_player_juvenile_mixamo.fbx"
 const RUNTIME_IDLE := "anim_chr_player_idle_neutral"
 const RUNTIME_WALK := "anim_chr_player_walk_forward"
+const RUNTIME_RUN := "anim_chr_player_run_forward"
+const RUNTIME_POINT := "anim_chr_player_gesture_point"
+const RUNTIME_TURN_180 := "anim_chr_player_turn_180"
+const RUNTIME_JUMP := "anim_chr_player_jump"
+const RUNTIME_JUMP_CHAIN := "anim_chr_player_jump_chain_internal"
+const RETARGET_REPORT_PATH := "res://assets/characters/chr_player_juvenile_mixamo_retarget.json"
+const WALK_CYCLE_DISTANCE_M := 5.562
+const RUN_CYCLE_DISTANCE_M := 11.726
+const JUMP_ANTICIPATION_SPEED := 1.6
+const JUMP_RECOVERY_SPEED := 1.25
+const JUMP_DEFAULT_TAKEOFF_TIME := 1.3
+const JUMP_DEFAULT_LANDING_TIME := 1.933333
+const JUMP_CHAIN_BLEND_SECONDS := 0.18
+const JUMP_CHAIN_PHASE_SAMPLE_COUNT := 40
+const JUMP_CHAIN_ROTATION_WEIGHT_M := 0.05
+const JUMP_CHAIN_MATCH_BONES := [
+	"Hips", "Spine", "Spine1", "Spine2",
+	"LeftUpLeg", "LeftLeg", "LeftFoot", "LeftToeBase",
+	"RightUpLeg", "RightLeg", "RightFoot", "RightToeBase",
+	"LeftArm", "LeftForeArm", "LeftHand",
+	"RightArm", "RightForeArm", "RightHand",
+]
+const JUMP_CHAIN_FOOT_BONES := ["LeftFoot", "LeftToeBase", "RightFoot", "RightToeBase"]
+const TURN_PHASE_SAMPLE_COUNT := 64
+const TURN_PHASE_ROTATION_WEIGHT_M := 0.05
+const TURN_TRANSITION_CORRECTION_DURATION := 0.2
 
 var torso_pivot: Node3D
 var head_pivot: Node3D
@@ -35,38 +61,369 @@ var runtime_animation_player: AnimationPlayer
 var runtime_lod_groups: Array = [[], [], []]
 var runtime_lod := -1
 var runtime_animation := ""
+var debug_animation_override := ""
+var debug_probe_active := false
+var turn_active := false
+var jump_active := false
+var jump_expected_duration := 1.4
+var jump_stage := "idle"
+var jump_takeoff_time := JUMP_DEFAULT_TAKEOFF_TIME
+var jump_landing_time := JUMP_DEFAULT_LANDING_TIME
+var jump_authored_airborne_lift_m := 0.0
+var jump_chain_entry_time := 0.0
+var jump_chain_pose_error_m := 0.0
+var jump_chain_rotation_error_deg := 0.0
+var jump_chain_count := 0
+var jump_last_valid_position := 0.0
+var turn_to_locomotion_phase_seconds := {}
+var turn_to_locomotion_foot_error_m := {}
+var turn_to_locomotion_aligned_foot_error_m := {}
+var turn_to_locomotion_rotation_error_deg := {}
+var turn_to_locomotion_translation := {}
+var runtime_root_base_position := Vector3.ZERO
+var turn_transition_correction := Vector3.ZERO
+var turn_transition_elapsed := TURN_TRANSITION_CORRECTION_DURATION
+var turn_phase_matches_ready := false
 
 func configure(base_color: Color, accent_color: Color, style_profile := 0, player_character := false) -> void:
 	profile = clampi(style_profile, 0, 4)
 	personality_phase = float(profile) * 0.73
 	is_player_character = player_character
 	idle_segment_remaining = 1.0 + fmod(personality_phase, 1.8)
+	add_to_group("character_visual")
 	_build(base_color, accent_color)
+	var bridge := _get_debug_bridge()
+	if bridge != null and bridge.has_method("register_character"):
+		bridge.register_character(self)
 
 func set_motion(speed: float, is_airborne: bool) -> void:
 	motion_speed = speed
 	airborne = is_airborne
 
-func play_reaction(kind := "greet") -> void:
-	gesture_kind = kind if kind in ["greet", "offer", "clarify"] else "greet"
+func has_turn_around_animation() -> bool:
+	return runtime_animation_player != null and runtime_animation_player.has_animation(RUNTIME_TURN_180)
+
+func start_turn_around() -> float:
+	if not has_turn_around_animation():
+		return 0.0
+	turn_active = true
+	jump_active = false
+	gesture_clock = -1.0
+	runtime_animation_player.speed_scale = 1.0
+	_play_runtime_animation(RUNTIME_TURN_180, 0.08, "large_direction_change")
+	var animation := runtime_animation_player.get_animation(RUNTIME_TURN_180)
+	return animation.length if animation != null else 0.0
+
+func finish_turn_around(resume_motion_speed := 0.0) -> void:
+	if not turn_active:
+		return
+	turn_active = false
+	# PlayerController changes CharacterVisual's outer yaw at the same instant.
+	# Match the outgoing feet to the nearest locomotion phase and switch with no
+	# pose blend.  The outer 180-degree yaw and the removal of the authored Hips
+	# yaw happen atomically, while the selected phase keeps both feet in place.
+	if resume_motion_speed > 0.25:
+		motion_speed = resume_motion_speed
+		var locomotion_animation := RUNTIME_RUN if resume_motion_speed > 6.4 and runtime_animation_player.has_animation(RUNTIME_RUN) else RUNTIME_WALK
+		runtime_animation_player.speed_scale = _locomotion_speed_scale(locomotion_animation, resume_motion_speed)
+		_play_runtime_animation(locomotion_animation, 0.0, "turn_complete_phase_match")
+		var phase_time := float(turn_to_locomotion_phase_seconds.get(locomotion_animation, 0.0))
+		runtime_animation_player.seek(phase_time, true, true)
+		turn_transition_correction = turn_to_locomotion_translation.get(locomotion_animation, Vector3.ZERO) as Vector3
+		turn_transition_elapsed = 0.0
+		if runtime_root != null:
+			runtime_root.position = runtime_root_base_position + turn_transition_correction
+	else:
+		runtime_animation_player.speed_scale = 1.0
+		_play_runtime_animation(RUNTIME_IDLE, 0.0, "turn_complete")
+	runtime_animation_player.advance(0.0)
+
+func start_jump_sequence() -> bool:
+	if runtime_animation_player == null or not runtime_animation_player.has_animation(RUNTIME_JUMP):
+		return false
+	if jump_active:
+		if jump_stage == "recovery" and _is_jump_animation(runtime_animation):
+			return _start_chained_jump_sequence()
+		return false
+	jump_active = true
+	jump_stage = "anticipation"
+	jump_last_valid_position = 0.0
+	turn_active = false
+	gesture_clock = -1.0
+	runtime_animation_player.speed_scale = JUMP_ANTICIPATION_SPEED
+	_play_runtime_animation(RUNTIME_JUMP, 0.08, "jump_anticipation")
+	return true
+
+func _start_chained_jump_sequence() -> bool:
+	## A chain jump begins while the previous jump is still in its authored
+	## landing recovery. Match that exact outgoing pose to the closest planted
+	## anticipation phase, then crossfade instead of hard-resetting to frame 1.
+	var skeleton := _find_skeleton(runtime_root)
+	if skeleton == null:
+		return false
+	var bone_indices: Array[int] = []
+	var foot_pose_indices: Array[int] = []
+	for bone_name in JUMP_CHAIN_MATCH_BONES:
+		var bone_index := skeleton.find_bone(String(bone_name))
+		if bone_index < 0:
+			continue
+		if bone_name in JUMP_CHAIN_FOOT_BONES:
+			foot_pose_indices.append(bone_indices.size())
+		bone_indices.append(bone_index)
+	if bone_indices.is_empty() or foot_pose_indices.is_empty():
+		return false
+
+	var outgoing_animation := runtime_animation
+	var outgoing_time := runtime_animation_player.current_animation_position
+	var outgoing_poses: Array[Transform3D] = []
+	for bone_index in bone_indices:
+		outgoing_poses.append(_bone_pose_in_visual_space(skeleton, bone_index))
+
+	var best_time := 0.0
+	var best_position_error := INF
+	var best_rotation_error := INF
+	var best_score := INF
+	for sample_index in JUMP_CHAIN_PHASE_SAMPLE_COUNT:
+		var sample_time := jump_takeoff_time * float(sample_index) / float(JUMP_CHAIN_PHASE_SAMPLE_COUNT)
+		runtime_animation_player.play(RUNTIME_JUMP, 0.0)
+		runtime_animation_player.seek(sample_time, true, true)
+		runtime_animation_player.advance(0.0)
+		var candidate_poses: Array[Transform3D] = []
+		for bone_index in bone_indices:
+			candidate_poses.append(_bone_pose_in_visual_space(skeleton, bone_index))
+		var foot_translation := Vector3.ZERO
+		for pose_index in foot_pose_indices:
+			foot_translation += outgoing_poses[pose_index].origin - candidate_poses[pose_index].origin
+		foot_translation /= float(foot_pose_indices.size())
+		var position_error := 0.0
+		var rotation_error := 0.0
+		for pose_index in bone_indices.size():
+			position_error += outgoing_poses[pose_index].origin.distance_to(candidate_poses[pose_index].origin + foot_translation)
+			rotation_error += outgoing_poses[pose_index].basis.get_rotation_quaternion().angle_to(candidate_poses[pose_index].basis.get_rotation_quaternion())
+		position_error /= float(bone_indices.size())
+		rotation_error /= float(bone_indices.size())
+		var score := position_error + rotation_error * JUMP_CHAIN_ROTATION_WEIGHT_M
+		if score < best_score:
+			best_score = score
+			best_time = sample_time
+			best_position_error = position_error
+			best_rotation_error = rotation_error
+
+	# Re-evaluate the exact outgoing pose before starting the blend; pose-search
+	# temporarily moved the player through the source animation.
+	runtime_animation_player.play(outgoing_animation, 0.0)
+	runtime_animation_player.seek(outgoing_time, true, true)
+	runtime_animation_player.advance(0.0)
+	var target_animation := RUNTIME_JUMP_CHAIN if outgoing_animation == RUNTIME_JUMP else RUNTIME_JUMP
+	jump_stage = "anticipation"
+	turn_active = false
+	gesture_clock = -1.0
+	runtime_animation_player.speed_scale = JUMP_ANTICIPATION_SPEED
+	runtime_animation = target_animation
+	runtime_animation_player.play(target_animation, JUMP_CHAIN_BLEND_SECONDS)
+	runtime_animation_player.seek(best_time, true, true)
+	runtime_animation_player.advance(0.0)
+	jump_chain_entry_time = best_time
+	jump_chain_pose_error_m = best_position_error
+	jump_chain_rotation_error_deg = rad_to_deg(best_rotation_error)
+	jump_chain_count += 1
+	jump_last_valid_position = best_time
+	_debug_log_animation_transition(target_animation, "jump_chain_phase_match")
+	DebugLog.info("animation", "jump_chain_match count=%d from_time=%.3f entry_time=%.3f pose_error_m=%.4f rotation_error_deg=%.2f blend=%.3f" % [jump_chain_count, outgoing_time, best_time, best_position_error, jump_chain_rotation_error_deg, JUMP_CHAIN_BLEND_SECONDS])
+	return true
+
+func _is_jump_animation(animation_name: String) -> bool:
+	return animation_name == RUNTIME_JUMP or animation_name == RUNTIME_JUMP_CHAIN
+
+func _ensure_jump_animation_for_stage() -> void:
+	## Defense in depth: no reaction or other one-shot may strand jump_active on
+	## a non-jump clip. This also repairs an already-corrupted runtime state.
+	if runtime_animation_player == null or _is_jump_animation(runtime_animation):
+		return
+	var resume_time := jump_last_valid_position
+	match jump_stage:
+		"anticipation":
+			resume_time = clampf(resume_time, 0.0, jump_takeoff_time)
+			runtime_animation_player.speed_scale = JUMP_ANTICIPATION_SPEED
+		"airborne":
+			resume_time = clampf(resume_time, jump_takeoff_time, jump_landing_time)
+			var authored_airtime := maxf(0.01, jump_landing_time - jump_takeoff_time)
+			runtime_animation_player.speed_scale = clampf(authored_airtime / maxf(0.1, jump_expected_duration), 0.2, 2.0)
+		"recovery":
+			resume_time = maxf(jump_landing_time, resume_time)
+			runtime_animation_player.speed_scale = JUMP_RECOVERY_SPEED
+		_:
+			resume_time = 0.0
+	runtime_animation = RUNTIME_JUMP
+	runtime_animation_player.play(RUNTIME_JUMP, 0.0)
+	runtime_animation_player.seek(resume_time, true, true)
+	runtime_animation_player.advance(0.0)
+	DebugLog.info("animation", "jump_animation_guard restored_stage=%s restored_time=%.3f" % [jump_stage, resume_time])
+
+func is_jump_takeoff_due() -> bool:
+	return jump_active and jump_stage == "anticipation" and _is_jump_animation(runtime_animation) and runtime_animation_player.current_animation_position >= jump_takeoff_time - 0.001
+
+func mark_jump_launched(expected_airtime: float) -> void:
+	if not jump_active:
+		return
+	_ensure_jump_animation_for_stage()
+	jump_stage = "airborne"
+	jump_expected_duration = maxf(0.1, expected_airtime)
+	# Remove frame scheduling jitter: physics launch and the first authored
+	# airborne pose both start at the exact measured takeoff marker.
+	runtime_animation_player.seek(jump_takeoff_time, true, true)
+	var authored_airtime := maxf(0.01, jump_landing_time - jump_takeoff_time)
+	runtime_animation_player.speed_scale = clampf(authored_airtime / jump_expected_duration, 0.2, 2.0)
+	_debug_log_jump_stage("airborne")
+
+func mark_jump_landed() -> void:
+	if not jump_active:
+		return
+	jump_stage = "recovery"
+	_ensure_jump_animation_for_stage()
+	# CharacterBody3D floor contact is authoritative. Align the authored feet to
+	# their measured contact frame, then play the crouch recovery independently.
+	runtime_animation_player.seek(jump_landing_time, true, true)
+	runtime_animation_player.speed_scale = JUMP_RECOVERY_SPEED
+	_debug_log_jump_stage("recovery")
+
+func get_jump_authored_airborne_lift_m() -> float:
+	return maxf(0.0, jump_authored_airborne_lift_m)
+
+func play_jump(expected_airtime: float) -> bool:
+	## Compatibility/debug helper: start at takeoff without the anticipation.
+	if not start_jump_sequence():
+		return false
+	mark_jump_launched(expected_airtime)
+	return true
+
+func can_play_reaction() -> bool:
+	return not jump_active and not airborne and not turn_active
+
+func play_reaction(kind := "greet") -> bool:
+	if not can_play_reaction():
+		DebugLog.info("animation", "reaction_rejected kind=%s jump_active=%s jump_stage=%s airborne=%s turn_active=%s" % [kind, jump_active, jump_stage, airborne, turn_active])
+		return false
+	gesture_kind = kind if kind in ["greet", "offer", "clarify", "point"] else "greet"
 	gesture_clock = 0.0
 	if runtime_animation_player:
 		runtime_animation_player.speed_scale = 1.0
-		_play_runtime_animation(_runtime_gesture_animation(), 0.12)
+		_play_runtime_animation(_runtime_gesture_animation(), 0.12, "reaction")
+	return true
+
+func debug_play_animation(animation_name: String, blend := 0.0) -> bool:
+	if runtime_animation_player == null or not runtime_animation_player.has_animation(animation_name):
+		return false
+	debug_animation_override = animation_name
+	debug_probe_active = true
+	runtime_animation_player.speed_scale = 1.0
+	_play_runtime_animation(animation_name, blend, "debug_probe")
+	return true
+
+func debug_clear_animation_override() -> void:
+	debug_animation_override = ""
+	debug_probe_active = false
+
+func get_debug_animation_names() -> Array[String]:
+	var names: Array[String] = []
+	if runtime_animation_player == null:
+		return names
+	for name in runtime_animation_player.get_animation_list():
+		names.append(name)
+	return names
+
+func get_animation_debug_state(bone_names: Array = []) -> Dictionary:
+	var state := {
+		"animation": runtime_animation,
+		"animation_position": 0.0,
+		"animation_length": 0.0,
+		"speed_scale": runtime_animation_player.speed_scale if runtime_animation_player else 1.0,
+		"motion_speed": motion_speed,
+		"airborne": airborne,
+		"turn_active": turn_active,
+		"jump_active": jump_active,
+		"jump_stage": jump_stage,
+		"jump_takeoff_time": jump_takeoff_time,
+		"jump_landing_time": jump_landing_time,
+		"jump_authored_airborne_lift_m": jump_authored_airborne_lift_m,
+		"jump_chain_entry_time": jump_chain_entry_time,
+		"jump_chain_pose_error_m": jump_chain_pose_error_m,
+		"jump_chain_rotation_error_deg": jump_chain_rotation_error_deg,
+		"jump_chain_count": jump_chain_count,
+		"reaction_locked": not can_play_reaction(),
+		"turn_to_locomotion_phase_seconds": turn_to_locomotion_phase_seconds.duplicate(),
+		"turn_to_locomotion_foot_error_m": turn_to_locomotion_foot_error_m.duplicate(),
+		"turn_to_locomotion_aligned_foot_error_m": turn_to_locomotion_aligned_foot_error_m.duplicate(),
+		"turn_to_locomotion_rotation_error_deg": turn_to_locomotion_rotation_error_deg.duplicate(),
+		"turn_to_locomotion_translation": turn_to_locomotion_translation.duplicate(),
+		"turn_transition_correction": turn_transition_correction,
+		"global_position": global_position,
+		"debug_override": debug_animation_override,
+		"debug_probe_active": debug_probe_active,
+		"armature_scale": Vector3.ONE,
+		"hips_position": Vector3.ZERO,
+		"bones": {},
+	}
+	if runtime_animation_player != null:
+		state["animation_position"] = runtime_animation_player.current_animation_position
+		var current := runtime_animation_player.get_animation(runtime_animation)
+		if current != null:
+			state["animation_length"] = current.length
+	if runtime_root == null:
+		return state
+	var armature := runtime_root.get_node_or_null("Armature") as Node3D
+	if armature != null:
+		state["armature_scale"] = armature.scale
+	var skeleton := _find_skeleton(runtime_root)
+	if skeleton == null:
+		return state
+	var selected: Array = bone_names
+	if selected.is_empty():
+		selected = ["Hips", "Head", "LeftFoot", "RightFoot"]
+	for bone_name in selected:
+		var index := skeleton.find_bone(String(bone_name))
+		if index < 0:
+			continue
+		var rotation := skeleton.get_bone_pose_rotation(index)
+		var global_pose := skeleton.get_bone_global_pose(index)
+		var world_pose := skeleton.global_transform * global_pose
+		state["bones"][String(bone_name)] = {
+			"rotation": rotation,
+			"position": skeleton.get_bone_pose_position(index),
+			"global_rotation": global_pose.basis.get_rotation_quaternion(),
+			"global_position": global_pose.origin,
+			"world_rotation": world_pose.basis.get_rotation_quaternion(),
+			"world_position": world_pose.origin,
+		}
+		if bone_name == "Hips":
+			state["hips_position"] = skeleton.get_bone_pose_position(index)
+	return state
 
 func _process(delta: float) -> void:
 	if is_player_character and runtime_root == null:
 		return
 	animation_clock += delta
+	_update_turn_transition_correction(delta)
 	locomotion_blend = move_toward(locomotion_blend, clampf(motion_speed / 8.2, 0.0, 1.0), delta * 4.8)
 	airborne_blend = move_toward(airborne_blend, 1.0 if airborne else 0.0, delta * 7.0)
 	if gesture_clock >= 0.0:
 		gesture_clock += delta
 		if gesture_clock > _gesture_duration():
 			gesture_clock = -1.0
+	if jump_active and runtime_animation_player != null and _is_jump_animation(runtime_animation):
+		jump_last_valid_position = runtime_animation_player.current_animation_position
+	if jump_active and jump_stage == "recovery" and runtime_animation_player != null and _is_jump_animation(runtime_animation):
+		var jump_animation := runtime_animation_player.get_animation(runtime_animation)
+		if jump_animation != null and runtime_animation_player.current_animation_position >= jump_animation.length - 0.02:
+			jump_active = false
+			jump_stage = "idle"
 	if runtime_root:
 		_update_runtime_lod()
-		_update_runtime_animation()
+		if not debug_animation_override.is_empty():
+			if runtime_animation != debug_animation_override:
+				_play_runtime_animation(debug_animation_override, 0.0)
+		else:
+			_update_runtime_animation()
 		return
 	_update_idle_segment(delta)
 	_apply_pose()
@@ -126,6 +483,7 @@ func _try_build_runtime_model() -> bool:
 	if runtime_root == null:
 		return false
 	runtime_root.name = "OrganicPlayerModel"
+	runtime_root_base_position = runtime_root.position
 	# The Tencent FBX is Z-up; Godot's importer already rotates the root -90°X
 	# so the model stands on +Y. It faces +Z by default; the third-person rig
 	# needs -Z (away from camera), so turn 180° around Godot's up axis.
@@ -140,11 +498,23 @@ func _try_build_runtime_model() -> bool:
 		runtime_root = null
 		return false
 	_rename_cloud_animations()
-	_add_walk_from_source()
+	_sanitize_runtime_animation_tracks()
+	_restore_hips_position_tracks()
+	# New player FBX files contain the selected Mixamo retarget. Keep the old
+	# cloud walk source as a compatibility fallback for older local assets.
+	if not runtime_animation_player.has_animation(RUNTIME_WALK):
+		_add_walk_from_source()
+		_sanitize_runtime_animation_tracks()
+		_restore_hips_position_tracks()
+	_add_jump_chain_animation()
 	_add_procedural_gestures()
 	_add_lod_meshes()
 	_assign_named_material()
 	_set_runtime_lod(0)
+	if is_inside_tree():
+		_prepare_turn_locomotion_phase_matches()
+	else:
+		call_deferred("_prepare_turn_locomotion_phase_matches")
 	_play_runtime_animation(RUNTIME_IDLE, 0.0)
 	return true
 
@@ -340,21 +710,140 @@ func _rename_cloud_animations() -> void:
 	if lib == null:
 		return
 	var rename := {
-		"87863afffd9fcbef3afb7f04b6005c1d": "anim_chr_player_idle_neutral",
-		"32795ddb244644eac67ccfd8b84060c3": "anim_chr_player_walk_forward",
+		"87863afffd9fcbef3afb7f04b6005c1d": RUNTIME_IDLE,
+		"32795ddb244644eac67ccfd8b84060c3": RUNTIME_WALK,
+		RUNTIME_IDLE: RUNTIME_IDLE,
+		RUNTIME_WALK: RUNTIME_WALK,
+		RUNTIME_RUN: RUNTIME_RUN,
+		RUNTIME_POINT: RUNTIME_POINT,
+		RUNTIME_TURN_180: RUNTIME_TURN_180,
+		RUNTIME_JUMP: RUNTIME_JUMP,
 	}
 	for cloud_name in lib.get_animation_list():
 		if cloud_name == "RESET":
 			continue
-		for hash_key in rename:
-			if cloud_name.contains(hash_key):
-				var target: String = rename[hash_key]
-				var anim := lib.get_animation(cloud_name)
-				if anim != null:
-					if target.contains("idle") or target.contains("walk"):
-						anim.loop_mode = Animation.LOOP_LINEAR
-				lib.rename_animation(cloud_name, target)
+		var target := cloud_name
+		for marker in rename:
+			if cloud_name.contains(marker):
+				target = rename[marker]
 				break
+		var anim := lib.get_animation(cloud_name)
+		if anim != null and (target == RUNTIME_IDLE or target == RUNTIME_WALK or target == RUNTIME_RUN):
+			anim.loop_mode = Animation.LOOP_LINEAR
+			if target == RUNTIME_WALK:
+				anim.set_meta("cycle_distance_m", WALK_CYCLE_DISTANCE_M)
+			elif target == RUNTIME_RUN:
+				anim.set_meta("cycle_distance_m", RUN_CYCLE_DISTANCE_M)
+		if target != cloud_name and not lib.has_animation(target):
+			lib.rename_animation(cloud_name, target)
+
+func _sanitize_runtime_animation_tracks() -> void:
+	## Imported FBX actions must not animate object scale or Armature position.
+	## Blender's FBX bake can emit the armature's centimeter conversion as a
+	## root scale track (Godot reads it as 100x), which makes the player pop
+	## larger when walk/run/gesture starts. CharacterBody3D owns world
+	## translation, while the Hips bone is allowed to retain in-place motion.
+	var lib := runtime_animation_player.get_animation_library("")
+	if lib == null:
+		return
+	for anim_name in lib.get_animation_list():
+		var animation := lib.get_animation(anim_name)
+		if animation == null:
+			continue
+		for track_index in range(animation.get_track_count() - 1, -1, -1):
+			var track_type := animation.track_get_type(track_index)
+			if track_type == Animation.TYPE_SCALE_3D:
+				animation.remove_track(track_index)
+				continue
+			if track_type == Animation.TYPE_POSITION_3D:
+				var path := animation.track_get_path(track_index)
+				# Armature/Skeleton3D:Hips is valid local motion. A one-node
+				# path is the imported Armature object transform and is unsafe.
+				if path.get_name_count() <= 1 and not _is_safe_in_place_position(animation, track_index):
+					animation.remove_track(track_index)
+
+func _restore_hips_position_tracks() -> void:
+	## Godot's FBX importer does not reliably preserve root-bone position
+	## channels. The Blender retarget report is the authoritative, already
+	## de-drifted Hips key stream; restore it as a bone track after import.
+	if runtime_animation_player == null or not FileAccess.file_exists(RETARGET_REPORT_PATH):
+		return
+	var file := FileAccess.open(RETARGET_REPORT_PATH, FileAccess.READ)
+	if file == null:
+		return
+	var parsed = JSON.parse_string(file.get_as_text())
+	if not parsed is Dictionary:
+		return
+	var actions: Dictionary = parsed.get("actions", {})
+	_load_jump_motion_markers(actions)
+	var lib := runtime_animation_player.get_animation_library("")
+	if lib == null:
+		return
+	var skeleton := _find_skeleton(runtime_root)
+	var hips_index := skeleton.find_bone("Hips") if skeleton != null else -1
+	var hips_rest_position: Vector3 = skeleton.get_bone_rest(hips_index).origin if hips_index >= 0 else Vector3.ZERO
+	for animation_name in actions:
+		var animation := lib.get_animation(String(animation_name))
+		var keys: Array = actions[animation_name].get("hips_position_keys", [])
+		if animation == null or keys.is_empty():
+			continue
+		var has_hips_position := false
+		for track_index in animation.get_track_count():
+			if animation.track_get_type(track_index) == Animation.TYPE_POSITION_3D:
+				var path := animation.track_get_path(track_index)
+				if path.get_subname_count() > 0 and path.get_subname(path.get_subname_count() - 1) == "Hips":
+					has_hips_position = true
+					break
+			if has_hips_position:
+				break
+		if has_hips_position:
+			continue
+		var track := animation.add_track(Animation.TYPE_POSITION_3D)
+		animation.track_set_path(track, NodePath("Armature/Skeleton3D:Hips"))
+		var first_frame := float(keys[0].get("frame", 1))
+		for item in keys:
+			var position_values: Array = item.get("position", [0.0, 0.0, 0.0])
+			var position := hips_rest_position + Vector3(float(position_values[0]), float(position_values[1]), float(position_values[2]))
+			animation.track_insert_key(track, (float(item.get("frame", first_frame)) - first_frame) / 30.0, position)
+
+func _add_jump_chain_animation() -> void:
+	## AnimationPlayer resumes rather than blends when play() receives the same
+	## animation name. A duplicate lets consecutive jumps alternate names while
+	## preserving the exact same authored tracks and rest-space interpretation.
+	if runtime_animation_player == null or not runtime_animation_player.has_animation(RUNTIME_JUMP):
+		return
+	var lib := runtime_animation_player.get_animation_library("")
+	if lib == null or lib.has_animation(RUNTIME_JUMP_CHAIN):
+		return
+	var source := lib.get_animation(RUNTIME_JUMP)
+	var duplicate := source.duplicate(true) as Animation
+	if duplicate == null:
+		return
+	duplicate.loop_mode = Animation.LOOP_NONE
+	lib.add_animation(RUNTIME_JUMP_CHAIN, duplicate)
+
+func _load_jump_motion_markers(actions: Dictionary) -> void:
+	var jump_data = actions.get(RUNTIME_JUMP, {})
+	if not jump_data is Dictionary:
+		return
+	var markers = jump_data.get("motion_markers", {})
+	if not markers is Dictionary or markers.is_empty():
+		return
+	jump_takeoff_time = float(markers.get("takeoff_time_seconds", JUMP_DEFAULT_TAKEOFF_TIME))
+	jump_landing_time = float(markers.get("landing_time_seconds", JUMP_DEFAULT_LANDING_TIME))
+	jump_authored_airborne_lift_m = maxf(0.0, float(markers.get("authored_airborne_lift_m", 0.0)))
+	DebugLog.info("animation", "jump_markers takeoff=%.3f landing=%.3f authored_lift=%.3f" % [jump_takeoff_time, jump_landing_time, jump_authored_airborne_lift_m])
+
+func _is_safe_in_place_position(animation: Animation, track_index: int) -> bool:
+	if animation.track_get_key_count(track_index) < 2:
+		return false
+	var first := animation.track_get_key_value(track_index, 0) as Vector3
+	var last := animation.track_get_key_value(track_index, animation.track_get_key_count(track_index) - 1) as Vector3
+	var max_offset := 0.0
+	for key_index in animation.track_get_key_count(track_index):
+		var value := animation.track_get_key_value(track_index, key_index) as Vector3
+		max_offset = maxf(max_offset, value.distance_to(first))
+	return max_offset > 0.001 and max_offset < 0.5 and last.distance_to(first) < 0.02
 
 func _collect_runtime_nodes(node: Node) -> void:
 	if node is AnimationPlayer and runtime_animation_player == null:
@@ -384,14 +873,132 @@ func _set_runtime_lod(next_lod: int) -> void:
 		for mesh_instance in runtime_lod_groups[lod]:
 			(mesh_instance as MeshInstance3D).visible = lod == runtime_lod
 
+func _prepare_turn_locomotion_phase_matches() -> void:
+	if turn_phase_matches_ready or not is_inside_tree():
+		return
+	if runtime_animation_player == null or not runtime_animation_player.has_animation(RUNTIME_TURN_180):
+		return
+	var skeleton := _find_skeleton(runtime_root)
+	if skeleton == null:
+		return
+	var bone_indices: Array[int] = []
+	for bone_name in ["LeftFoot", "LeftToeBase", "RightFoot", "RightToeBase"]:
+		var bone_index := skeleton.find_bone(bone_name)
+		if bone_index >= 0:
+			bone_indices.append(bone_index)
+	if bone_indices.is_empty():
+		return
+
+	var turn_animation := runtime_animation_player.get_animation(RUNTIME_TURN_180)
+	runtime_animation_player.play(RUNTIME_TURN_180, 0.0)
+	runtime_animation_player.seek(turn_animation.length, true, true)
+	runtime_animation_player.advance(0.0)
+	var turn_poses: Array[Transform3D] = []
+	for bone_index in bone_indices:
+		turn_poses.append(_bone_pose_in_visual_space(skeleton, bone_index))
+
+	var yaw_180 := Basis(Vector3.UP, PI)
+	for locomotion_name in [RUNTIME_WALK, RUNTIME_RUN]:
+		if not runtime_animation_player.has_animation(locomotion_name):
+			continue
+		var locomotion := runtime_animation_player.get_animation(locomotion_name)
+		var best_time := 0.0
+		var best_position_error := INF
+		var best_aligned_position_error := INF
+		var best_rotation_error := INF
+		var best_translation := Vector3.ZERO
+		var best_score := INF
+		for sample_index in TURN_PHASE_SAMPLE_COUNT:
+			var sample_time := locomotion.length * float(sample_index) / float(TURN_PHASE_SAMPLE_COUNT)
+			runtime_animation_player.play(locomotion_name, 0.0)
+			runtime_animation_player.seek(sample_time, true, true)
+			runtime_animation_player.advance(0.0)
+			var position_deltas: Array[Vector3] = []
+			var rotation_error := 0.0
+			for pose_index in bone_indices.size():
+				var locomotion_pose := _bone_pose_in_visual_space(skeleton, bone_indices[pose_index])
+				var matched_origin := yaw_180 * locomotion_pose.origin
+				var matched_basis := yaw_180 * locomotion_pose.basis
+				position_deltas.append(turn_poses[pose_index].origin - matched_origin)
+				rotation_error += turn_poses[pose_index].basis.get_rotation_quaternion().angle_to(matched_basis.get_rotation_quaternion())
+			var translation := Vector3.ZERO
+			for delta_position in position_deltas:
+				translation += delta_position
+			translation /= float(position_deltas.size())
+			var position_error := 0.0
+			var aligned_position_error := 0.0
+			for delta_position in position_deltas:
+				position_error += delta_position.length()
+				aligned_position_error += (delta_position - translation).length()
+			position_error /= float(position_deltas.size())
+			aligned_position_error /= float(position_deltas.size())
+			rotation_error /= float(bone_indices.size())
+			var score := aligned_position_error + rotation_error * TURN_PHASE_ROTATION_WEIGHT_M
+			if score < best_score:
+				best_score = score
+				best_time = sample_time
+				best_position_error = position_error
+				best_aligned_position_error = aligned_position_error
+				best_rotation_error = rotation_error
+				best_translation = translation
+		turn_to_locomotion_phase_seconds[locomotion_name] = best_time
+		turn_to_locomotion_foot_error_m[locomotion_name] = best_position_error
+		turn_to_locomotion_aligned_foot_error_m[locomotion_name] = best_aligned_position_error
+		turn_to_locomotion_rotation_error_deg[locomotion_name] = rad_to_deg(best_rotation_error)
+		# The correction was measured in the pre-turn CharacterVisual basis. At
+		# handoff the outer node has rotated 180 degrees, so express it in that
+		# new local basis before applying it to runtime_root.
+		var correction_in_new_facing := yaw_180 * best_translation
+		turn_to_locomotion_translation[locomotion_name] = correction_in_new_facing
+		DebugLog.info("animation", "turn_phase_match animation=%s time=%.3f foot_error=%.4f aligned_error=%.4f correction=%s rotation_error_deg=%.2f" % [locomotion_name, best_time, best_position_error, best_aligned_position_error, correction_in_new_facing, rad_to_deg(best_rotation_error)])
+	turn_phase_matches_ready = true
+
+func _bone_pose_in_visual_space(skeleton: Skeleton3D, bone_index: int) -> Transform3D:
+	var bone_world := skeleton.global_transform * skeleton.get_bone_global_pose(bone_index)
+	return global_transform.affine_inverse() * bone_world
+
+func _update_turn_transition_correction(delta: float) -> void:
+	if runtime_root == null or turn_transition_elapsed >= TURN_TRANSITION_CORRECTION_DURATION:
+		return
+	turn_transition_elapsed = minf(TURN_TRANSITION_CORRECTION_DURATION, turn_transition_elapsed + delta)
+	var remaining_weight := 1.0 - turn_transition_elapsed / TURN_TRANSITION_CORRECTION_DURATION
+	runtime_root.position = runtime_root_base_position + turn_transition_correction * remaining_weight
+	if remaining_weight <= 0.0:
+		turn_transition_correction = Vector3.ZERO
+
+func _locomotion_speed_scale(animation_name: String, speed: float) -> float:
+	var animation := runtime_animation_player.get_animation(animation_name) if runtime_animation_player != null else null
+	var cycle_distance := RUN_CYCLE_DISTANCE_M if animation_name == RUNTIME_RUN else WALK_CYCLE_DISTANCE_M
+	if animation != null and animation.has_meta("cycle_distance_m"):
+		cycle_distance = float(animation.get_meta("cycle_distance_m"))
+	var cycle_reference_speed := cycle_distance / maxf(0.01, animation.length if animation else 1.0)
+	return clampf(speed / maxf(0.01, cycle_reference_speed), 0.72, 1.35)
+
 func _update_runtime_animation() -> void:
+	if turn_active:
+		# start_turn_around() owns this one-shot. Do not restart it when the
+		# AnimationPlayer reaches the final frame before PlayerController's timer.
+		return
+	if jump_active:
+		# start/launch/land methods own the three playback rates and markers.
+		_ensure_jump_animation_for_stage()
+		return
+	if airborne:
+		if runtime_animation_player.has_animation(RUNTIME_JUMP):
+			if runtime_animation != RUNTIME_JUMP:
+				runtime_animation_player.speed_scale = 1.0
+				_play_runtime_animation(RUNTIME_JUMP, 0.08, "fall")
+				runtime_animation_player.seek(jump_takeoff_time, true, true)
+			return
 	if gesture_clock >= 0.0:
 		runtime_animation_player.speed_scale = 1.0
 		_play_runtime_animation(_runtime_gesture_animation(), 0.12)
 		return
 	if motion_speed > 0.25:
-		runtime_animation_player.speed_scale = clampf(motion_speed / 3.1, 0.72, 1.8)
-		_play_runtime_animation(RUNTIME_WALK, 0.16)
+		var running := motion_speed > 6.4 and runtime_animation_player.has_animation(RUNTIME_RUN)
+		var locomotion_animation := RUNTIME_RUN if running else RUNTIME_WALK
+		runtime_animation_player.speed_scale = _locomotion_speed_scale(locomotion_animation, motion_speed)
+		_play_runtime_animation(locomotion_animation, 0.16)
 	else:
 		runtime_animation_player.speed_scale = 1.0
 		_play_runtime_animation(RUNTIME_IDLE, 0.18)
@@ -399,13 +1006,31 @@ func _update_runtime_animation() -> void:
 func _runtime_gesture_animation() -> String:
 	return "anim_chr_player_gesture_%s" % gesture_kind
 
-func _play_runtime_animation(animation_name: String, blend: float) -> void:
+func _play_runtime_animation(animation_name: String, blend: float, reason := "locomotion") -> void:
 	if runtime_animation_player == null or not runtime_animation_player.has_animation(animation_name):
 		return
 	if runtime_animation == animation_name and runtime_animation_player.is_playing():
 		return
 	runtime_animation = animation_name
 	runtime_animation_player.play(animation_name, blend)
+	_debug_log_animation_transition(animation_name, reason)
+
+func _debug_log_animation_transition(animation_name: String, reason: String) -> void:
+	DebugLog.info("animation", "transition=%s reason=%s speed=%.3f motion=%.3f" % [animation_name, reason, runtime_animation_player.speed_scale if runtime_animation_player else 1.0, motion_speed])
+	var bridge := _get_debug_bridge()
+	if bridge != null and bridge.has_method("record_animation_transition"):
+		bridge.record_animation_transition(self, animation_name, reason)
+
+func _debug_log_jump_stage(stage: String) -> void:
+	DebugLog.info("animation", "jump_stage=%s animation_time=%.3f speed=%.3f" % [stage, runtime_animation_player.current_animation_position if runtime_animation_player else 0.0, runtime_animation_player.speed_scale if runtime_animation_player else 1.0])
+
+func _get_debug_bridge() -> Node:
+	if not is_inside_tree():
+		return null
+	var tree := get_tree()
+	if tree == null or tree.root == null:
+		return null
+	return tree.root.get_node_or_null("AnimationDebugBridge")
 
 func _build_sail(node_name: String, local_position: Vector3, size: Vector3, yaw: float, color: Color) -> Node3D:
 	var pivot := Node3D.new()
@@ -533,6 +1158,8 @@ func _apply_pose() -> void:
 
 func _gesture_duration() -> float:
 	match gesture_kind:
+		"point":
+			return 2.8
 		"offer":
 			return 1.25
 		"clarify":

@@ -21,7 +21,7 @@ extends SceneTree
 ##
 ## Every command also writes a log via DebugLog (user://logs/debug_cli.log).
 
-const MODEL_FBX := "res://assets/characters/chr_player_juvenile.fbx"
+const MODEL_FBX := "res://assets/characters/chr_player_juvenile_mixamo.fbx"
 const WALK_FBX := "res://assets/characters/chr_player_walk_source.fbx"
 
 const DebugLog := preload("res://scripts/debug_log.gd")
