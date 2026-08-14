@@ -57,6 +57,9 @@ var idle_segment_remaining := 1.0
 var idle_is_breathing := false
 var procedural_root: Node3D
 var runtime_root: Node3D
+var authored_static_root: Node3D
+var authored_static_base_position := Vector3.ZERO
+var authored_static_base_rotation := Vector3.ZERO
 var runtime_animation_player: AnimationPlayer
 var runtime_lod_groups: Array = [[], [], []]
 var runtime_lod := -1
@@ -95,6 +98,49 @@ func configure(base_color: Color, accent_color: Color, style_profile := 0, playe
 	var bridge := _get_debug_bridge()
 	if bridge != null and bridge.has_method("register_character"):
 		bridge.register_character(self)
+
+
+## Replace an NPC's procedural placeholder with a source-authored static GLB.
+## The CharacterVisual node remains the interaction/reaction anchor; until a
+## proper rig exists, idle and reaction feedback are limited to subtle whole-
+## model motion so the A-pose mesh is never deformed incorrectly.
+func use_authored_static_model(
+	model_path: String,
+	source_height_m: float,
+	target_height_m: float,
+	local_ground_y: float,
+	yaw_degrees := 180.0,
+) -> bool:
+	if is_player_character or source_height_m <= 0.0 or not ResourceLoader.exists(model_path):
+		return false
+	var packed := load(model_path) as PackedScene
+	if packed == null:
+		return false
+	var instance := packed.instantiate() as Node3D
+	if instance == null:
+		return false
+	if authored_static_root != null:
+		authored_static_root.queue_free()
+	if procedural_root != null:
+		procedural_root.visible = false
+	instance.name = "AuthoredStaticModel"
+	var uniform_scale := target_height_m / source_height_m
+	instance.scale = Vector3.ONE * uniform_scale
+	instance.position = Vector3(0.0, local_ground_y, 0.0)
+	instance.rotation_degrees.y = yaw_degrees
+	add_child(instance)
+	authored_static_root = instance
+	authored_static_base_position = instance.position
+	authored_static_base_rotation = instance.rotation
+	_set_authored_mesh_shadows(instance)
+	return true
+
+
+func _set_authored_mesh_shadows(node: Node) -> void:
+	if node is MeshInstance3D:
+		(node as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	for child in node.get_children():
+		_set_authored_mesh_shadows(child)
 
 func set_motion(speed: float, is_airborne: bool) -> void:
 	motion_speed = speed
@@ -417,6 +463,12 @@ func _process(delta: float) -> void:
 		if jump_animation != null and runtime_animation_player.current_animation_position >= jump_animation.length - 0.02:
 			jump_active = false
 			jump_stage = "idle"
+	if authored_static_root:
+		var breath := (sin(animation_clock * 2.1 + personality_phase) + 1.0) * 0.0035
+		var reaction := _gesture_envelope() if gesture_clock >= 0.0 else 0.0
+		authored_static_root.position = authored_static_base_position + Vector3(0.0, breath + reaction * 0.018, 0.0)
+		authored_static_root.rotation = authored_static_base_rotation + Vector3(0.0, 0.0, reaction * 0.035)
+		return
 	if runtime_root:
 		_update_runtime_lod()
 		if not debug_animation_override.is_empty():

@@ -1,0 +1,858 @@
+{
+  "schema": "stranger.environment_asset_lock.v1",
+  "generated_at": "2026-08-15",
+  "policy": {
+    "hash_algorithm": "sha256",
+    "listed_files_are_immutable": true,
+    "edit_strategy": "create a new source_locked version or versioned .blend; never overwrite a listed file",
+    "credentials_must_not_be_stored": true,
+    "runtime_export_allowed": true,
+    "runtime_export_note": "Locked after playable Main.tscn settlement + Phase 4 lighting. Gate E original 10 assets remain green; MAIN_ENV_INTEGRATION_PASS covers huts/valley/collision/glow. Borrowed kits are structural drafts only; unstylized store assets and Japanese wood/brick identity must not ship."
+  },
+  "art_bible_authority": [
+    "design/art/art-bible.md \u00a71.3 shape vocabulary",
+    "design/art/art-bible.md \u00a72.1/\u00a72.4 palette + market zone temperature",
+    "design/art/art-bible.md \u00a73.1.B / \u00a73.2 toon rules + daytime lighting",
+    "design/art/art-bible.md \u00a73.4 depth stack (cool height fog, Glow, contact AO)",
+    "design/art/art-bible.md \u00a73.7 stylized rendering / borrowed-asset pipeline",
+    "design/art/art-bible.md \u00a73.8 human/agent responsibility",
+    "design/art/art-bible.md \u00a75.1-5.7 environment, clusters, terrain shader",
+    "design/art/art-bible.md \u00a78.1-8.8 budgets / naming / import / twelve-point env gate",
+    "design/art/art-bible.md \u00a79.5 frame #1 (daytime market corner)",
+    "design/art/environment-modeling-standard.md"
+  ],
+  "assets": [
+    {
+      "asset_id": "env_market_stall_a",
+      "source_lock": "source_locked_v01",
+      "category": "hero_facility",
+      "art_bible_budget": "\u00a78.2 hero interactive facility: LOD0 10k-16k tris, <=3 slots, 2K atlas",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_stall_a.py",
+          "bytes": 18619,
+          "sha256": "258bd7829d42f701cb573dc9387d2a61e865f58fc53cfa68b4a4fdff6fc541fe",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_stall_a.blend",
+          "bytes": 127805,
+          "sha256": "3b026fa5f0abc0d85c7cee39fb756dbf169a7cc92377f0ca656196ddc439ce32",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_market_stall_a.glb",
+          "bytes": 245284,
+          "sha256": "a85e5f0f7226da0dc5d8a3640aeee45e051beb81a8da06256521c58b4f92b691",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/bake_atlas_stall.py",
+          "bytes": 5216,
+          "sha256": "da02453a3462c4fce09cdfaf62e2c9f45c8ecddd736e72c86597b4780e13641c",
+          "role": "bake_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/textures/stall_atlas_2k.png",
+          "bytes": 96983,
+          "sha256": "50eec5ba179f3ef6e7ad6c9513a5c6b893d501710686f53e85d31d05f8b14edd",
+          "role": "albedo_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/textures/stall_orm_2k.png",
+          "bytes": 16914,
+          "sha256": "53bec951359a733f8199a65b1517cf451896d4364a2f4b575287438b6fa70454",
+          "role": "orm_atlas"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_hut_residential_a",
+      "source_lock": "source_locked_v02",
+      "category": "hero_building",
+      "art_bible_budget": "\u00a78.2 hero building: LOD0 <=30k tris, <=4 slots; coral shell + ridge crystals",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_huts_v02.py",
+          "bytes": 30983,
+          "sha256": "2f861e27600eaa4012a83c4ab7e2d1f0503ec3ae4889016ddf603341d6622aad",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_huts_v02.blend",
+          "bytes": 286340,
+          "sha256": "65508c9e5f13901359aced578ff3e0fb8d22e10e76fe1f55988706ff5c6aa9b4",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_hut_residential_a.glb",
+          "bytes": 542060,
+          "sha256": "7d1c0e66b698a2cfb48541edd606641e9e19922a0bf53c87b1ee7c04ce46f95a",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/paint_npr_tiles.py",
+          "bytes": 7972,
+          "sha256": "5d7ec23899201f499498a7840952378d8d21994c5c6031c85836eb6c23dd8ada",
+          "role": "tile_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/textures/tex_shell_tile_1k.png",
+          "bytes": 19384,
+          "sha256": "42579c622c667888f26ccc2e711a2adf4c944c98e96c91fee15a45812be08dfd",
+          "role": "shell_tile"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/textures/tex_clay_tile_1k.png",
+          "bytes": 10615,
+          "sha256": "15c1a41ced4303977a50a0fbe12b05115ba21b0f6566e06508a76364bdab5d2a",
+          "role": "clay_tile"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_hut_residential_b",
+      "source_lock": "source_locked_v02",
+      "category": "hero_building",
+      "art_bible_budget": "\u00a78.2 hero building: teal hex shell + seated crystal crown",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_huts_v02.py",
+          "bytes": 30983,
+          "sha256": "2f861e27600eaa4012a83c4ab7e2d1f0503ec3ae4889016ddf603341d6622aad",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_huts_v02.blend",
+          "bytes": 286340,
+          "sha256": "65508c9e5f13901359aced578ff3e0fb8d22e10e76fe1f55988706ff5c6aa9b4",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_hut_residential_b.glb",
+          "bytes": 335456,
+          "sha256": "12675170fb2f105679be67e20e082982ae7979216fee7b349457cb42670f1362",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/textures/tex_shell_teal_1k.png",
+          "bytes": 32605,
+          "sha256": "cccf19499b0ce39d061fdb63b20a4960701b608be9b6cc2ee1401a851488b34f",
+          "role": "shell_tile"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/textures/tex_clay_teal_1k.png",
+          "bytes": 10445,
+          "sha256": "89853955860806357c228128ebf7a3af473ea1d37e8f27b2b3698121e3fc421a",
+          "role": "clay_tile"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_hut_residential_c",
+      "source_lock": "source_locked_v02",
+      "category": "hero_building",
+      "art_bible_budget": "\u00a78.2 hero building: plum/orchid D-plan + amber arcs",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_huts_v02.py",
+          "bytes": 30983,
+          "sha256": "2f861e27600eaa4012a83c4ab7e2d1f0503ec3ae4889016ddf603341d6622aad",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_huts_v02.blend",
+          "bytes": 286340,
+          "sha256": "65508c9e5f13901359aced578ff3e0fb8d22e10e76fe1f55988706ff5c6aa9b4",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_hut_residential_c.glb",
+          "bytes": 216108,
+          "sha256": "33243fabde3c117f5eb49b9ebaa9fe6501a04b6bddabf9586c940d0284af6818",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/textures/tex_shell_plum_1k.png",
+          "bytes": 17837,
+          "sha256": "873de379dd36e848f2f3342c840a75874820ac67698805d3bfdefba623555f0e",
+          "role": "shell_tile"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/textures/tex_clay_amber_1k.png",
+          "bytes": 10858,
+          "sha256": "b1f8bc997d06112a72206f7896130bade91c2e0d9c038e674abb02ee7f734191",
+          "role": "clay_tile"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_shelter_distant_a",
+      "source_lock": "source_locked_v02",
+      "category": "building_proxy",
+      "art_bible_budget": "low crescent shelter + amber crystal window; <=3 slots",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_huts_v02.py",
+          "bytes": 30983,
+          "sha256": "2f861e27600eaa4012a83c4ab7e2d1f0503ec3ae4889016ddf603341d6622aad",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_huts_v02.blend",
+          "bytes": 286340,
+          "sha256": "65508c9e5f13901359aced578ff3e0fb8d22e10e76fe1f55988706ff5c6aa9b4",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_shelter_distant_a.glb",
+          "bytes": 155428,
+          "sha256": "91ad78d2d35758161f2e2c79d46f07ddce4d7f22bbfbd37f415853b8691f56ee",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/textures/tex_shell_cream_1k.png",
+          "bytes": 14799,
+          "sha256": "0f1074803d214aeb5eb2dcf3888f7fae4961b7eaf7b6cdf386efbcfea20efddb",
+          "role": "shell_tile"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_ground_market_a",
+      "source_lock": "source_locked_v02",
+      "category": "ground",
+      "art_bible_budget": "\u00a75.7 three-layer ground; 28m field + path ribbons; top at y\u22480",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_settlement.py",
+          "bytes": 34186,
+          "sha256": "b4089afcd33d16d5dcf11d1ae160570e7a4860795ea73838051aed43e12bcd56",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_settlement.blend",
+          "bytes": 273300,
+          "sha256": "fe9e5e589f289c90df1f3c0a2d5330b13d027dc1a1d3d005eec859ec27fd259b",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_ground_market_a.glb",
+          "bytes": 36216,
+          "sha256": "b8f228d34928ca1d0730d5bf053dbb0a5ad108c665924a9b0ae64cdfb4ddd963",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/textures/tex_ground_packed_1k.png",
+          "bytes": 19609,
+          "sha256": "a64de07bd4459228a4afbc42c05bbe3fca86f97b2b3aa32226cce1ac22f983a1",
+          "role": "ground_tile"
+        }
+      ]
+    },
+    {
+      "asset_id": "fol_ground_tufts_a",
+      "source_lock": "source_locked_v02",
+      "category": "vegetation",
+      "art_bible_budget": "layer-3 moss/rock rim tufts; separate from ground Gate E y\u22480 contract",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_settlement.py",
+          "bytes": 34186,
+          "sha256": "b4089afcd33d16d5dcf11d1ae160570e7a4860795ea73838051aed43e12bcd56",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_settlement.blend",
+          "bytes": 273300,
+          "sha256": "fe9e5e589f289c90df1f3c0a2d5330b13d027dc1a1d3d005eec859ec27fd259b",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/fol_ground_tufts_a.glb",
+          "bytes": 294912,
+          "sha256": "c7ed45200249666147f230c1a6c414e48f9e228f77dd5f926e0d03a197874673",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_crate_stack_a",
+      "source_lock": "source_locked_v02",
+      "category": "medium_prop",
+      "art_bible_budget": "\u00a78.2 medium prop usage-trace crate stack",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_settlement.py",
+          "bytes": 34186,
+          "sha256": "b4089afcd33d16d5dcf11d1ae160570e7a4860795ea73838051aed43e12bcd56",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_settlement.blend",
+          "bytes": 273300,
+          "sha256": "fe9e5e589f289c90df1f3c0a2d5330b13d027dc1a1d3d005eec859ec27fd259b",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/prp_crate_stack_a.glb",
+          "bytes": 54808,
+          "sha256": "c3fbd1639f3bb9f7172ebd075905b8ef33cdf7822ffcc37886e68c32657d1bb6",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_amphora_cluster_a",
+      "source_lock": "source_locked_v02",
+      "category": "medium_prop",
+      "art_bible_budget": "\u00a78.2 medium prop usage-trace amphora cluster",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_settlement.py",
+          "bytes": 34186,
+          "sha256": "b4089afcd33d16d5dcf11d1ae160570e7a4860795ea73838051aed43e12bcd56",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_settlement.blend",
+          "bytes": 273300,
+          "sha256": "fe9e5e589f289c90df1f3c0a2d5330b13d027dc1a1d3d005eec859ec27fd259b",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/prp_amphora_cluster_a.glb",
+          "bytes": 57608,
+          "sha256": "ef4959936346208c4fe11595c9ffb62b9429aca5a529924b02de3482595b7dba",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_drying_rack_a",
+      "source_lock": "source_locked_v02",
+      "category": "medium_prop",
+      "art_bible_budget": "\u00a78.2 medium prop usage-trace drying rack",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_settlement.py",
+          "bytes": 34186,
+          "sha256": "b4089afcd33d16d5dcf11d1ae160570e7a4860795ea73838051aed43e12bcd56",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_settlement.blend",
+          "bytes": 273300,
+          "sha256": "fe9e5e589f289c90df1f3c0a2d5330b13d027dc1a1d3d005eec859ec27fd259b",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/prp_drying_rack_a.glb",
+          "bytes": 42900,
+          "sha256": "8caaaf2d0bed7c3191b888a846109d1472f7e994040883e848cd6952d04aab67",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_terrace_market_a",
+      "source_lock": "source_locked_v01",
+      "category": "hero_facility",
+      "art_bible_budget": "Phase 3 market terrace; fitted collision",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_phase3.py",
+          "bytes": 8657,
+          "sha256": "ab9620b9decb227a8dcd2da9063c0850374932e7719d23610a2995bbe7d92b9e",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_phase3.blend",
+          "bytes": 104931,
+          "sha256": "726f1abc198df82f28335454f7b83258a8a10fba6776ef8f8ceb57a7039dd33e",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_terrace_market_a.glb",
+          "bytes": 39532,
+          "sha256": "00d632fdeea275f5330cb708618a30300ae227fa967be3d84432f8ec61050921",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_plaza_market_a",
+      "source_lock": "source_locked_v01",
+      "category": "ground",
+      "art_bible_budget": "Phase 3 plaza disc",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_phase3.py",
+          "bytes": 8657,
+          "sha256": "ab9620b9decb227a8dcd2da9063c0850374932e7719d23610a2995bbe7d92b9e",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_phase3.blend",
+          "bytes": 104931,
+          "sha256": "726f1abc198df82f28335454f7b83258a8a10fba6776ef8f8ceb57a7039dd33e",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_plaza_market_a.glb",
+          "bytes": 52688,
+          "sha256": "0c88962872546983137fc91daf504f2d6eedf34b2112e10069e0e05392597d93",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_heater_old",
+      "source_lock": "source_locked_v01",
+      "category": "hero_facility",
+      "art_bible_budget": "\u00a78.2 hero interactive facility; furnace glow",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_phase3.py",
+          "bytes": 8657,
+          "sha256": "ab9620b9decb227a8dcd2da9063c0850374932e7719d23610a2995bbe7d92b9e",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_phase3.blend",
+          "bytes": 104931,
+          "sha256": "726f1abc198df82f28335454f7b83258a8a10fba6776ef8f8ceb57a7039dd33e",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/prp_heater_old.glb",
+          "bytes": 38200,
+          "sha256": "7e8ded35d0477371d9119e3ae7c35b9060ce4163fce9db90717ae0e7353737ca",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_reservoir_a",
+      "source_lock": "source_locked_v01",
+      "category": "hero_facility",
+      "art_bible_budget": "\u00a78.2 hero interactive facility",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_phase3.py",
+          "bytes": 8657,
+          "sha256": "ab9620b9decb227a8dcd2da9063c0850374932e7719d23610a2995bbe7d92b9e",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_phase3.blend",
+          "bytes": 104931,
+          "sha256": "726f1abc198df82f28335454f7b83258a8a10fba6776ef8f8ceb57a7039dd33e",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/prp_reservoir_a.glb",
+          "bytes": 38236,
+          "sha256": "4a523bb3a0911cf396d2c462045fbb794493cc4f743e6cf82c433d82011ebb62",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_beacon_market_a",
+      "source_lock": "source_locked_v01",
+      "category": "medium_prop",
+      "art_bible_budget": "market beacon landmark",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_phase3.py",
+          "bytes": 8657,
+          "sha256": "ab9620b9decb227a8dcd2da9063c0850374932e7719d23610a2995bbe7d92b9e",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_phase3.blend",
+          "bytes": 104931,
+          "sha256": "726f1abc198df82f28335454f7b83258a8a10fba6776ef8f8ceb57a7039dd33e",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/prp_beacon_market_a.glb",
+          "bytes": 30356,
+          "sha256": "1201a1f3bf2bdab16acbf6f23ac511ed9524cf833e2a43c47d04117a57601397",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "fol_tree_stranger_a",
+      "source_lock": "source_locked_v01",
+      "category": "vegetation",
+      "art_bible_budget": "\u00a73.7.A spherical-normal canopy; lofted limbs from trunk rings",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_stylized.py",
+          "bytes": 21934,
+          "sha256": "137118f506c7ad14ba4afe00cffc221f56e00518bf3638dc070767124529adda",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_stylized.blend",
+          "bytes": 173537,
+          "sha256": "63e5c73e3892b5f2717ab54f6f39cf26175713f6095f91ab0d3e6e87cbf4ca63",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/fol_tree_stranger_a.glb",
+          "bytes": 74528,
+          "sha256": "02fd63f24727ec57ad870b072ad8aec9948917651af3bdb51f6cee0e11ef5b4f",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_ridge_distant_a",
+      "source_lock": "source_locked_v02",
+      "category": "skyline",
+      "art_bible_budget": "left/right valley ranges + valley floor; fitted collision; not a closed ring",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_stylized.py",
+          "bytes": 21934,
+          "sha256": "137118f506c7ad14ba4afe00cffc221f56e00518bf3638dc070767124529adda",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_stylized.blend",
+          "bytes": 173537,
+          "sha256": "63e5c73e3892b5f2717ab54f6f39cf26175713f6095f91ab0d3e6e87cbf4ca63",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_ridge_distant_a.glb",
+          "bytes": 108832,
+          "sha256": "6d385c1abdbc67d2c1c26954b4b3edb7dddc79851bdc717975490938c189cdd1",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_rock_facet_a",
+      "source_lock": "source_locked_v01",
+      "category": "rock",
+      "art_bible_budget": "\u00a73.7.B faceted rock A",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_stylized.py",
+          "bytes": 21934,
+          "sha256": "137118f506c7ad14ba4afe00cffc221f56e00518bf3638dc070767124529adda",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_stylized.blend",
+          "bytes": 173537,
+          "sha256": "63e5c73e3892b5f2717ab54f6f39cf26175713f6095f91ab0d3e6e87cbf4ca63",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_rock_facet_a.glb",
+          "bytes": 8100,
+          "sha256": "a0e74b1fa3f9f529e349dc34470d7036a0a35ee8f92c6e28fb6387c55e6851ad",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_rock_facet_b",
+      "source_lock": "source_locked_v01",
+      "category": "rock",
+      "art_bible_budget": "\u00a73.7.B faceted rock B wide",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_stylized.py",
+          "bytes": 21934,
+          "sha256": "137118f506c7ad14ba4afe00cffc221f56e00518bf3638dc070767124529adda",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_stylized.blend",
+          "bytes": 173537,
+          "sha256": "63e5c73e3892b5f2717ab54f6f39cf26175713f6095f91ab0d3e6e87cbf4ca63",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_rock_facet_b.glb",
+          "bytes": 7348,
+          "sha256": "b35b47e6c18d5b6b5ef11df19a57aabf597996f8cb4f2ec8afbc1141ea4752f4",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_lantern_market_a",
+      "source_lock": "source_locked_v01",
+      "category": "medium_prop",
+      "art_bible_budget": "\u00a78.2 medium prop; emissive bulb; no shadow",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_props.py",
+          "bytes": 13460,
+          "sha256": "cb311c50d2a1155dd05546a2c3df9337d6bea8bc13b336afdb297f7b4a8fcdf2",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_props.blend",
+          "bytes": 118166,
+          "sha256": "c402512de47e34027e58918e7ca3e45007c1dd45a4316ba40605a5c84d7a6bb9",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/prp_lantern_market_a.glb",
+          "bytes": 39784,
+          "sha256": "7a315cce9873ebb9b2103ed2eae140a94216ac102c2995eed944e7bc0a64d5ef",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_rock_market_a",
+      "source_lock": "source_locked_v01",
+      "category": "rock",
+      "art_bible_budget": "\u00a78.2 rock 500-4k",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_props.py",
+          "bytes": 13460,
+          "sha256": "cb311c50d2a1155dd05546a2c3df9337d6bea8bc13b336afdb297f7b4a8fcdf2",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_props.blend",
+          "bytes": 118166,
+          "sha256": "c402512de47e34027e58918e7ca3e45007c1dd45a4316ba40605a5c84d7a6bb9",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_rock_market_a.glb",
+          "bytes": 9744,
+          "sha256": "c735f2d2f9de317d94e08b839fdc79300cac40b106df0cecc91eada235289d37",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_rock_market_b",
+      "source_lock": "source_locked_v01",
+      "category": "rock",
+      "art_bible_budget": "\u00a78.2 rock variant B",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_props.py",
+          "bytes": 13460,
+          "sha256": "cb311c50d2a1155dd05546a2c3df9337d6bea8bc13b336afdb297f7b4a8fcdf2",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_props.blend",
+          "bytes": 118166,
+          "sha256": "c402512de47e34027e58918e7ca3e45007c1dd45a4316ba40605a5c84d7a6bb9",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/env_rock_market_b.glb",
+          "bytes": 9752,
+          "sha256": "e6fce1689c015bf96c434ab4e1d17b15aea3e9261b14baef25d85e60e918ef1c",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "fol_glowplant_a",
+      "source_lock": "source_locked_v01",
+      "category": "vegetation",
+      "art_bible_budget": "\u00a78.5 MultiMesh clusters; night fluorescence",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_props.py",
+          "bytes": 13460,
+          "sha256": "cb311c50d2a1155dd05546a2c3df9337d6bea8bc13b336afdb297f7b4a8fcdf2",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_props.blend",
+          "bytes": 118166,
+          "sha256": "c402512de47e34027e58918e7ca3e45007c1dd45a4316ba40605a5c84d7a6bb9",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/fol_glowplant_a.glb",
+          "bytes": 14200,
+          "sha256": "54b2b6bd3ab450e6d5943e3b8d107de1dbf21715ba4f9aded64d8786e9aec746",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_food_token_a",
+      "source_lock": "source_locked_v01",
+      "category": "small_pickup",
+      "art_bible_budget": "\u00a78.2 small pickup",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_props.py",
+          "bytes": 13460,
+          "sha256": "cb311c50d2a1155dd05546a2c3df9337d6bea8bc13b336afdb297f7b4a8fcdf2",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_props.blend",
+          "bytes": 118166,
+          "sha256": "c402512de47e34027e58918e7ca3e45007c1dd45a4316ba40605a5c84d7a6bb9",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/prp_food_token_a.glb",
+          "bytes": 10804,
+          "sha256": "3ad9a82c9fb0caa8e43545ed7e0e13a2764350265335231a4611723dc99e45e1",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_food_token_b",
+      "source_lock": "source_locked_v01",
+      "category": "small_pickup",
+      "art_bible_budget": "\u00a78.2 small pickup B",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_props.py",
+          "bytes": 13460,
+          "sha256": "cb311c50d2a1155dd05546a2c3df9337d6bea8bc13b336afdb297f7b4a8fcdf2",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_props.blend",
+          "bytes": 118166,
+          "sha256": "c402512de47e34027e58918e7ca3e45007c1dd45a4316ba40605a5c84d7a6bb9",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/prp_food_token_b.glb",
+          "bytes": 19556,
+          "sha256": "68d688579fd1ba732c054266dd37f2d6d404fa1fc8ad725c40e7c113faff7c21",
+          "role": "runtime_glb_source"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_food_token_c",
+      "source_lock": "source_locked_v01",
+      "category": "small_pickup",
+      "art_bible_budget": "\u00a78.2 small pickup C",
+      "lod_strategy": "manual name-substring lod0__/lod1__/lod2__",
+      "pipeline": "hand_modeled_blender_5.2 -> glb_export (-Z forward, origin base, Y-up, scale 1.0)",
+      "gate_e_status": "playable_main_env_integration_pass",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/blender/model_env_props.py",
+          "bytes": 13460,
+          "sha256": "cb311c50d2a1155dd05546a2c3df9337d6bea8bc13b336afdb297f7b4a8fcdf2",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/blender/env_props.blend",
+          "bytes": 118166,
+          "sha256": "c402512de47e34027e58918e7ca3e45007c1dd45a4316ba40605a5c84d7a6bb9",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/export/prp_food_token_c.glb",
+          "bytes": 12552,
+          "sha256": "ab823bffc8644aaa511e69b81f24bb0fb95f20419a009b47ba18c6cbb8c9da0e",
+          "role": "runtime_glb_source"
+        }
+      ]
+    }
+  ],
+  "concept_lock": {
+    "concept_spec": "art/source/environment/env_market_corner/CONCEPT.md",
+    "concept_reference_image": "art/source/environment/env_market_corner/concept/market_corner_concept_v01.png",
+    "status": "USER_CONFIRMED_PLAYABLE_SETTLEMENT",
+    "note": "User accepted the playable valley settlement look on 2026-08-15 (unique crystal huts, valley ranges, Phase 4 lighting)."
+  }
+}

@@ -1,24 +1,46 @@
 extends Node3D
 
 const InteractableScript = preload("res://scripts/interactable.gd")
+const EnvLodScript := preload("res://scripts/env_lod.gd")
+const ENV_DIR := "res://assets/environment/"
+const CEL_SHADER_PATH := "res://shaders/cel_base.gdshader"
+const MIRA_MODEL_PATH := "res://assets/characters/chr_npc_mira.glb"
+const MIRA_MODEL_SOURCE_HEIGHT_M := 1.117689013
+const MIRA_RUNTIME_HEIGHT_M := 1.72
 
 var palette := {
 	"sand": Color("a97d68"),
 	"rock": Color("4b5268"),
 	"coral": Color("d8665b"),
 	"teal": Color("2f8c87"),
-	"cream": Color("c8ae77"),
+	"cream": Color("b87a42"),
 	"night": Color("34335e"),
 }
 
 var environment: Environment
 var sky_material: ProceduralSkyMaterial
 var sun: DirectionalLight3D
+var _cel_shader: Shader
+var _white_tex: Texture2D
+var _used_market_stall := false
+var _used_lanterns := false
+var _used_glow_plants := false
+var _used_shelter := false
+var _used_ground := false
+var _glow_lanterns: Array[ShaderMaterial] = []
+var _glow_heaters: Array[ShaderMaterial] = []
+var _glow_plants: Array[ShaderMaterial] = []
+var _glow_windows: Array[ShaderMaterial] = []
+var _lantern_lights: Array[OmniLight3D] = []
+var _heater_light: OmniLight3D
 
 func _ready() -> void:
 	GameState.load_game()
+	_cel_shader = load(CEL_SHADER_PATH) as Shader
+	_white_tex = _make_white_texture()
 	_build_lighting()
 	_build_ground()
+	_build_authored_environment()
 	_build_settlement()
 	_build_landmarks()
 	_build_interactables()
@@ -48,9 +70,27 @@ func _build_lighting() -> void:
 	sun = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-52, -28, 0)
 	sun.light_color = Color("ffd7a0")
-	sun.light_energy = 0.78
+	sun.light_energy = 0.92
 	sun.shadow_enabled = true
+	sun.directional_shadow_max_distance = 35.0
+	sun.shadow_bias = 0.04
 	add_child(sun)
+	# §3.4 冷色高度雾：0–18 m 行动层清晰，18–35 m 导航，远山轮廓。负高度密度让高峰更退。
+	environment.fog_enabled = true
+	environment.fog_light_color = Color("6e8296")
+	environment.fog_light_energy = 1.0
+	environment.fog_density = 0.015
+	environment.fog_sky_affect = 0.32
+	environment.fog_aerial_perspective = 0.42
+	environment.fog_sun_scatter = 0.04
+	environment.fog_height = 6.0
+	environment.fog_height_density = -0.007
+	# Compatibility Glow：高阈值、无全屏 bloom，只让炉光/荧光/窗过线。
+	environment.glow_enabled = true
+	environment.glow_intensity = 0.42
+	environment.glow_bloom = 0.0
+	environment.glow_hdr_threshold = 1.05
+	environment.glow_hdr_scale = 1.35
 
 func _update_daylight() -> void:
 	if environment == null or sky_material == null or sun == null:
@@ -68,98 +108,234 @@ func _update_daylight() -> void:
 	sun.light_color = Color("ffc48a").lerp(Color("fff0ce"), daylight).lerp(Color("ef8a6f"), evening)
 	sun.light_energy = lerpf(0.66, 0.85, daylight) * lerpf(1.0, 0.48, evening)
 	sun.rotation_degrees.x = lerpf(-26.0, -68.0, daylight) + evening * 18.0
+	environment.fog_light_color = Color("6e8296").lerp(Color("7a90a4"), daylight).lerp(Color("4a4e72"), evening)
+	environment.fog_density = lerpf(0.016, 0.013, daylight) * lerpf(1.0, 1.22, evening)
+	_update_authored_glow(evening)
 
 func _build_ground() -> void:
-	_add_static_box("Ground", Vector3(34, 0.5, 34), Vector3(0, -0.25, 0), palette.sand)
+	# 80m 步行基座 + 28m 市场地表；山谷地板从市场边接到左右山脚（§3.4）
+	var ground := _add_static_box("Ground", Vector3(80, 0.5, 80), Vector3(0, -0.25, 0), palette.sand)
+	_used_ground = _try_load_env("env_ground_market_a.glb", Vector3.ZERO, false, Vector3.ZERO) != null
+	var _used_tufts := _try_load_env("fol_ground_tufts_a.glb", Vector3.ZERO, false, Vector3.ZERO)
+	if _used_ground:
+		_hide_meshes(ground)
+		_apply_ground_tile()
+	var terrace := _try_load_env("env_terrace_market_a.glb", Vector3(-3.2, 0, 1.6), true, Vector3.ZERO)
+	if terrace != null:
+		_add_fitted_collision(terrace)
+		_enable_mesh_shadows(terrace)
+		_add_asset_outlines(terrace, 2)
+	else:
+		push_error("Main: missing env_terrace_market_a.glb")
 	for data in [
-		[Vector3(-13, 0.5, -11), Vector3(4, 1, 7)],
-		[Vector3(12, 0.7, -10), Vector3(6, 1.4, 4)],
-		[Vector3(-12, 0.4, 12), Vector3(5, 0.8, 5)],
+		[Vector3(-13, 0.5, -11), "env_rock_facet_b.glb", Vector3(1.6, 0, 0.8)],
+		[Vector3(12, 0.7, -10), "env_rock_facet_a.glb", Vector3(1.6, 0, 0.8)],
+		[Vector3(-12, 0.4, 12), "env_rock_facet_b.glb", Vector3(1.6, 0, 0.8)],
 	]:
-		_add_static_box("Rock", data[1], data[0], palette.rock)
+		var rock_visual := _try_load_env(
+			data[1],
+			data[0] * Vector3(1, 0, 1) + data[2],
+			false,
+			Vector3.ZERO
+		)
+		if rock_visual == null:
+			push_error("Main: missing faceted rock %s" % data[1])
+			continue
+		_add_visual_mesh_collision(rock_visual)
+		_enable_mesh_shadows(rock_visual)
+		_add_asset_outlines(rock_visual, 2)
+	# 边缘采集区的两处新切面岩（§5.2 边缘只放功能设施，制造路线选择）
+	for accent in [
+		["env_rock_facet_b.glb", Vector3(14.6, 0, 3.2), 1.9],
+		["env_rock_facet_a.glb", Vector3(-14.8, 0, 3.8), 0.3],
+	]:
+		var edge_rock := _try_load_env(accent[0], accent[1], false, Vector3.ZERO)
+		if edge_rock != null:
+			edge_rock.rotation.y = accent[2]
+			_add_visual_mesh_collision(edge_rock)
+			_enable_mesh_shadows(edge_rock)
+			_add_asset_outlines(edge_rock, 2)
+
+func _build_authored_environment() -> void:
+	var stall := _try_load_env(
+		"env_market_stall_a.glb",
+		Vector3(-1.8, 0, -2.2),
+		true,
+		Vector3.ZERO
+	)
+	_used_market_stall = stall != null
+	if stall != null:
+		_add_fitted_collision(stall)
+		_enable_mesh_shadows(stall)
+		_ground_stall_counter(stall)
+		_detail_stall_bowls(stall)
+		for offset in [Vector3(-0.65, 1.12, 0.15), Vector3(0.65, 1.12, -0.1)]:
+			var token: Node3D = _instantiate_env("prp_food_token_c.glb")
+			if token != null:
+				stall.add_child(token)
+				token.position = offset
+				token.rotation.y = 0.7 if offset.x < 0 else -0.3
+				_enable_mesh_shadows(token)
+	var shelter := _try_load_env(
+		"env_shelter_distant_a.glb",
+		Vector3(-7, 0, 8.5),
+		false,
+		Vector3.ZERO
+	)
+	_used_shelter = shelter != null
+	if shelter != null:
+		_add_fitted_collision(shelter)
+		_enable_mesh_shadows(shelter)
+		_add_asset_outlines(shelter, 3)
+	var lantern_ok := 0
+	for position in [
+		Vector3(-3.2, 0, -2.2),
+		Vector3(3.2, 0, -0.2),
+		Vector3(-4.5, 0, 1.8),
+		Vector3(4.6, 0, -1.0),
+		Vector3(-1.7, 0, -7.5),
+	]:
+		var lantern := _try_load_env("prp_lantern_market_a.glb", position, false, Vector3.ZERO)
+		if lantern != null:
+			_add_fitted_collision(lantern)
+			_enable_mesh_shadows(lantern)
+			_add_lantern_light(position + Vector3(0, 1.8, 0))
+			lantern_ok += 1
+	_used_lanterns = lantern_ok > 0
+	_used_glow_plants = _add_authored_glow_plants()
 
 func _build_settlement() -> void:
-	_add_hut(Vector3(-6, 0, -5), palette.coral)
-	_add_hut(Vector3(5, 0, -7), palette.teal)
-	_add_hut(Vector3(8, 0, 3), palette.cream)
-	_add_hut(Vector3(-7, 0, 6), palette.night)
-	for i in range(12):
-		var angle := TAU * float(i) / 12.0
-		var position := Vector3(cos(angle) * 14.0, 0.8, sin(angle) * 14.0)
-		_add_glow_plant(position, i)
+	# §5.3 住宅构造：GLB 优先（陶基座+壳板墙+合金补片），缺失才回退图元
+	_add_residence("env_hut_residential_a.glb", Vector3(-6, 0, -5), PI, Vector3(4.7, 3.5, 3.9), palette.coral)
+	_add_residence("env_hut_residential_b.glb", Vector3(5, 0, -7), PI, Vector3(4.5, 4.5, 3.5), palette.teal)
+	_add_residence("env_hut_residential_c.glb", Vector3(8, 0, 3), 0.35, Vector3(3.4, 4.2, 4.3), palette.coral)
+	if not _used_shelter:
+		_add_residence("env_hut_residential_b.glb", Vector3(-7, 0, 6), 0.0, Vector3(4.5, 4.5, 3.5), palette.night)
+	_build_usage_traces()
+	_build_stylized_flora()
+	if not _used_glow_plants:
+		push_error("Main: fol_glowplant_a.glb missing; ring primitive fallback removed (art-bible §8.8)")
+
+
+func _add_residence(file: String, position: Vector3, rotation_y: float, _collision_size: Vector3, _fallback_color: Color) -> void:
+	var hut := _try_load_env(file, position, true, Vector3.ZERO)
+	if hut == null:
+		push_error("Main: missing residence %s (primitive hut fallback removed, art-bible §8.8)" % file)
+		return
+	hut.rotation.y = rotation_y
+	_add_fitted_collision(hut)
+	_enable_mesh_shadows(hut)
+	_add_asset_outlines(hut, 3)
+
+
+## §3.7.A 球形法线异星树：英雄树近广场 + 边缘树围出天际线（§5.2 边缘采集区）
+func _build_stylized_flora() -> void:
+	var trees := [
+		[Vector3(2.2, 0, 5.6), 0.4],
+		[Vector3(-10.5, 0, -6.5), 1.2],
+		[Vector3(10.8, 0, -3.6), -0.9],
+		[Vector3(-3.4, 0, 12.2), 2.4],
+		[Vector3(12.6, 0, 9.6), 0.7],
+		[Vector3(-5.5, 0, -9.5), 1.7],
+	]
+	for entry in trees:
+		var tree := _try_load_env("fol_tree_stranger_a.glb", entry[0], true, Vector3.ZERO)
+		if tree == null:
+			push_error("Main: missing fol_tree_stranger_a.glb (primitive tree fallback removed)")
+			continue
+		tree.rotation.y = entry[1]
+		_add_fitted_collision(tree, PackedStringArray(["canopy", "leaf"]))
+		_enable_mesh_shadows(tree)
+		_enable_tree_sway(tree)
+	# §3.4 远景轮廓层：左右山谷山脊 + 谷地地板，带碰撞
+	var ridge := _try_load_env("env_ridge_distant_a.glb", Vector3.ZERO, false, Vector3.ZERO)
+	if ridge != null:
+		_add_fitted_collision(ridge)
+		_apply_valley_ground_tile(ridge)
+	else:
+		push_error("Main: missing env_ridge_distant_a.glb")
+
+
+## 树冠切到 cel_foliage（§5.4 风动，振幅随高度）；树冠描边壳同步风摆参数，
+## 避免 inverted-hull 与摆动树冠分离（§3.7.A 验收）。材质经 material_override
+## 逐树实例化，phase 取自树位，保证各树相位错开。
+func _enable_tree_sway(tree: Node3D) -> void:
+	var foliage := load("res://shaders/cel_foliage.gdshader") as Shader
+	if foliage == null:
+		push_warning("Main: cel_foliage shader missing, tree sway disabled")
+		return
+	var phase := tree.position.x * 3.1 + tree.position.z * 2.3
+	_apply_tree_sway(tree, foliage, phase)
+
+
+func _apply_tree_sway(node: Node, foliage: Shader, phase: float) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		var lower := String(mi.name).to_lower()
+		if "canopy" in lower:
+			if lower.ends_with("_outline"):
+				var om := mi.material_override as ShaderMaterial
+				if om != null:
+					om.set_shader_parameter("sway_amp", 0.035)
+					om.set_shader_parameter("canopy_height", 4.0)
+					om.set_shader_parameter("phase_offset", phase)
+			else:
+				var mat := ShaderMaterial.new()
+				mat.shader = foliage
+				mat.set_shader_parameter("base_color", Color(1, 1, 1))
+				mat.set_shader_parameter("sway_amp", 0.035)
+				mat.set_shader_parameter("canopy_height", 4.0)
+				mat.set_shader_parameter("phase_offset", phase)
+				mi.material_override = mat
+	for child in node.get_children():
+		_apply_tree_sway(child, foliage, phase)
+
+
+## §5.5 使用痕迹 + §5.2 密度：每个 NPC 驻点 ≥1 组道具，市场核心 ≥2 组
+func _build_usage_traces() -> void:
+	var traces := [
+		["prp_crate_stack_a.glb", Vector3(-3.9, 0, -1.0), 0.6, Vector3(1.1, 0.9, 0.9)],
+		["prp_amphora_cluster_a.glb", Vector3(1.6, 0, -0.4), -0.4, Vector3(1.0, 1.1, 0.9)],
+		["prp_drying_rack_a.glb", Vector3(-3.8, 0, -0.6), 0.25, Vector3(1.5, 0.4, 0.5)],
+		["prp_crate_stack_a.glb", Vector3(2.6, 0, -8.2), 2.2, Vector3(1.1, 0.9, 0.9)],
+		["prp_drying_rack_a.glb", Vector3(-8.9, 0, 2.1), -0.9, Vector3(1.5, 0.4, 0.5)],
+		["prp_amphora_cluster_a.glb", Vector3(9.2, 0, 8.3), 1.3, Vector3(1.0, 1.1, 0.9)],
+		["prp_crate_stack_a.glb", Vector3(10.9, 0, 7.0), -0.5, Vector3(1.1, 0.9, 0.9)],
+		# v1.5 密度补组（§5.2 住宅带每 6×6 m ≤1 组、市场核心补前景锚）：
+		["prp_crate_stack_a.glb", Vector3(-4.2, 0, -7.6), 1.1, Vector3(1.1, 0.9, 0.9)],
+		["prp_amphora_cluster_a.glb", Vector3(3.4, 0, -8.6), 0.8, Vector3(1.0, 1.1, 0.9)],
+		["prp_crate_stack_a.glb", Vector3(6.4, 0, 4.4), -1.2, Vector3(1.1, 0.9, 0.9)],
+		["prp_amphora_cluster_a.glb", Vector3(1.2, 0, 3.4), 2.0, Vector3(1.0, 1.1, 0.9)],
+		["prp_drying_rack_a.glb", Vector3(-5.6, 0, 4.6), 0.9, Vector3(1.5, 0.4, 0.5)],
+		["prp_crate_stack_a.glb", Vector3(2.0, 0, -4.6), 0.35, Vector3(1.1, 0.9, 0.9)],
+		["prp_amphora_cluster_a.glb", Vector3(-8.6, 0, 6.8), -0.2, Vector3(1.0, 1.1, 0.9)],
+		["prp_crate_stack_a.glb", Vector3(9.6, 0, 5.4), 2.6, Vector3(1.1, 0.9, 0.9)],
+	]
+	for trace in traces:
+		var prop := _try_load_env(trace[0], trace[1], false, Vector3.ZERO)
+		if prop == null:
+			continue
+		prop.rotation.y = trace[2]
+		_enable_mesh_shadows(prop)
+		_add_fitted_collision(prop)
 
 func _build_landmarks() -> void:
-	var plaza := CylinderMesh.new()
-	plaza.top_radius = 5.2
-	plaza.bottom_radius = 5.45
-	plaza.height = 0.08
-	_add_mesh("MeetingPlaza", plaza, Vector3.ONE, Vector3(0, 0.015, 0), Color("c77a5e"), false)
-	for data in [
-		[Vector3(-6, 0.045, -5), Vector3(2.3, 0.06, 8.0), -0.85],
-		[Vector3(5, 0.045, -7), Vector3(2.2, 0.06, 9.0), 0.62],
-		[Vector3(7, 0.045, 4), Vector3(2.0, 0.06, 8.0), -0.92],
-		[Vector3(-6, 0.045, 7), Vector3(2.0, 0.06, 8.0), 0.72],
-	]:
-		var path_mesh := BoxMesh.new()
-		path_mesh.size = data[1]
-		var path := _add_mesh("SoftPath", path_mesh, Vector3.ONE, data[0] * Vector3(0.52, 1, 0.52), Color("d69a70"), false)
-		path.rotation.y = data[2]
-	_add_market_canopy(Vector3(-1.8, 0, -2.2))
-	_add_beacon(Vector3(4.4, 0, 4.4))
-	for position in [Vector3(-4.5, 0, 1.8), Vector3(4.6, 0, -1.0), Vector3(-1.7, 0, -7.5)]:
-		_add_lantern(position)
-
-func _add_market_canopy(position: Vector3) -> void:
-	for x in [-1.6, 1.6]:
-		for z in [-1.15, 1.15]:
-			var post_mesh := CylinderMesh.new()
-			post_mesh.top_radius = 0.075
-			post_mesh.bottom_radius = 0.11
-			post_mesh.height = 2.7
-			_add_mesh("CanopyPost", post_mesh, Vector3.ONE, position + Vector3(x, 1.35, z), Color("473b55"), true)
-	var canopy_mesh := PrismMesh.new()
-	canopy_mesh.size = Vector3(4.2, 1.0, 3.1)
-	var canopy := _add_mesh("MarketCanopy", canopy_mesh, Vector3.ONE, position + Vector3(0, 2.72, 0), Color("dd5b72"), true)
-	canopy.rotation.y = PI * 0.5
-	var counter_mesh := BoxMesh.new()
-	counter_mesh.size = Vector3(3.2, 0.22, 0.9)
-	_add_mesh("MarketCounter", counter_mesh, Vector3.ONE, position + Vector3(0, 0.92, 0), Color("6b5266"), true)
-
-func _add_beacon(position: Vector3) -> void:
-	var base_mesh := CylinderMesh.new()
-	base_mesh.top_radius = 0.6
-	base_mesh.bottom_radius = 0.86
-	base_mesh.height = 1.3
-	_add_mesh("BeaconBase", base_mesh, Vector3.ONE, position + Vector3(0, 0.65, 0), Color("35445c"), true)
-	var crystal_mesh := PrismMesh.new()
-	crystal_mesh.size = Vector3(0.78, 1.65, 0.58)
-	var crystal := _add_mesh("BeaconCrystal", crystal_mesh, Vector3.ONE, position + Vector3(0, 1.75, 0), Color("78c9a4"), false)
-	crystal.material_override = _material(Color("78c9a4"), Color("2f8c87"))
-
-func _add_lantern(position: Vector3) -> void:
-	var stem_mesh := CylinderMesh.new()
-	stem_mesh.top_radius = 0.055
-	stem_mesh.bottom_radius = 0.08
-	stem_mesh.height = 1.7
-	_add_mesh("LanternStem", stem_mesh, Vector3.ONE, position + Vector3(0, 0.85, 0), Color("30384c"), true)
-	var bulb_mesh := SphereMesh.new()
-	bulb_mesh.radius = 0.23
-	bulb_mesh.height = 0.46
-	var bulb := _add_mesh("LanternBulb", bulb_mesh, Vector3.ONE, position + Vector3(0, 1.82, 0), Color("ffcb78"), false)
-	bulb.material_override = _material(Color("ffcb78"), Color("ff9e63"))
-
-func _add_glow_plant(position: Vector3, index: int) -> void:
-	var stem_mesh := CylinderMesh.new()
-	stem_mesh.top_radius = 0.04
-	stem_mesh.bottom_radius = 0.08
-	stem_mesh.height = 1.25 + float(index % 3) * 0.18
-	_add_mesh("GlowStem", stem_mesh, Vector3.ONE, position - Vector3(0, 0.15, 0), Color("315f68"), false)
-	var bulb_mesh := SphereMesh.new()
-	bulb_mesh.radius = 0.25
-	bulb_mesh.height = 0.5
-	var tint := Color("78c9a4") if index % 2 == 0 else Color("2f8c87")
-	var bulb := _add_mesh("GlowBulb", bulb_mesh, Vector3(1.0, 0.76, 1.0), position + Vector3(0, 0.58, 0), tint, false)
-	bulb.material_override = _material(tint, tint)
+	var plaza := _try_load_env("env_plaza_market_a.glb", Vector3.ZERO, false, Vector3.ZERO)
+	if plaza == null:
+		push_error("Main: missing env_plaza_market_a.glb; primitive plaza removed")
+	else:
+		_add_fitted_collision(plaza)
+	if not _used_market_stall:
+		push_error("Main: env_market_stall_a.glb missing; primitive canopy fallback removed (art-bible §8.8)")
+	var beacon := _try_load_env("prp_beacon_market_a.glb", Vector3(4.4, 0, 4.4), true, Vector3.ZERO)
+	if beacon != null:
+		_add_fitted_collision(beacon)
+		_enable_mesh_shadows(beacon)
+		_add_asset_outlines(beacon, 2)
+	else:
+		push_error("Main: missing prp_beacon_market_a.glb")
+	if not _used_lanterns:
+		push_error("Main: prp_lantern_market_a.glb missing; primitive lantern fallback removed (art-bible §8.8)")
 
 func _build_interactables() -> void:
 	_add_npc("mira", tr("NPC_MIRA"), Vector3(-3, 1.0, -2), Color("f2a65a"), 0)
@@ -175,22 +351,6 @@ func _build_interactables() -> void:
 	_add_station("heater", "heater", tr("STATION_HEATER"), Vector3(-6, 0.7, 7), Color("e1724d"))
 	_add_station("shelter", "shelter", tr("STATION_SHELTER"), Vector3(-7, 0.8, 8.5), Color("f0d49b"))
 
-func _add_hut(position: Vector3, color: Color) -> void:
-	_add_static_box("Hut", Vector3(4.5, 2.8, 3.6), position + Vector3(0, 1.4, 0), color)
-	var roof := CylinderMesh.new()
-	roof.top_radius = 0.7
-	roof.bottom_radius = 3.0
-	roof.height = 1.8
-	_add_mesh("Roof", roof, Vector3.ONE, position + Vector3(0, 3.55, 0), color.darkened(0.28), false)
-	var door_mesh := BoxMesh.new()
-	door_mesh.size = Vector3(1.0, 1.65, 0.12)
-	_add_mesh("HutDoor", door_mesh, Vector3.ONE, position + Vector3(0, 0.9, 1.86), color.darkened(0.46), false)
-	var window_mesh := SphereMesh.new()
-	window_mesh.radius = 0.28
-	window_mesh.height = 0.56
-	var window := _add_mesh("HutWindow", window_mesh, Vector3(1.0, 1.0, 0.18), position + Vector3(1.35, 1.72, 1.84), Color("78c9a4"), false)
-	window.material_override = _material(Color("78c9a4"), Color("2f8c87"))
-
 func _add_npc(npc_id: String, npc_name: String, position: Vector3, color: Color, profile: int) -> void:
 	var npc := WorldInteractable.new()
 	npc.interaction_kind = "npc"
@@ -201,6 +361,13 @@ func _add_npc(npc_id: String, npc_name: String, position: Vector3, color: Color,
 	var actor_visual := CharacterVisual.new()
 	actor_visual.name = "CharacterVisual"
 	actor_visual.configure(color, color.darkened(0.28), profile, false)
+	if npc_id == "mira" and not actor_visual.use_authored_static_model(
+		MIRA_MODEL_PATH,
+		MIRA_MODEL_SOURCE_HEIGHT_M,
+		MIRA_RUNTIME_HEIGHT_M,
+		-position.y,
+	):
+		push_warning("Main: authored Mira model unavailable; using procedural fallback")
 	npc.add_child(actor_visual)
 
 func _add_pickup(kind: String, target_id: String, label: String, position: Vector3, color: Color, shape := "sphere") -> void:
@@ -211,6 +378,12 @@ func _add_pickup(kind: String, target_id: String, label: String, position: Vecto
 	pickup.one_shot = true
 	pickup.position = position
 	add_child(pickup)
+	var token := ""
+	if kind == "berry":
+		token = "prp_food_token_a.glb" if target_id.ends_with("a") else "prp_food_token_b.glb"
+	if token != "" and _attach_env_visual(pickup, token):
+		_enable_mesh_shadows(pickup)
+		return
 	var mesh: PrimitiveMesh = BoxMesh.new() if shape == "box" else SphereMesh.new()
 	_add_child_mesh(pickup, mesh, Vector3.ZERO, color, Vector3(0.55, 0.55, 0.55))
 
@@ -221,13 +394,26 @@ func _add_station(kind: String, target_id: String, label: String, position: Vect
 	station.display_name = label
 	station.position = position
 	add_child(station)
-	var mesh := CylinderMesh.new()
-	mesh.top_radius = 0.65
-	mesh.bottom_radius = 0.8
-	mesh.height = 1.4
-	_add_child_mesh(station, mesh, Vector3.ZERO, color)
+	if kind == "shelter" and _used_shelter:
+		return
+	var file := ""
+	if kind == "heater":
+		file = "prp_heater_old.glb"
+	elif kind == "water":
+		file = "prp_reservoir_a.glb"
+	if file != "" and _attach_env_visual(station, file):
+		var vis := station.get_child(station.get_child_count() - 1) as Node3D
+		if vis != null:
+			vis.position.y = -station.position.y
+		_enable_mesh_shadows(station)
+		_add_asset_outlines(station, 2)
+		_add_fitted_collision(station)
+		if kind == "heater":
+			_add_heater_light(station)
+		return
+	push_error("Main: missing station visual %s; primitive cylinder fallback removed" % kind)
 
-func _add_static_box(node_name: String, size: Vector3, position: Vector3, color: Color) -> void:
+func _add_static_box(node_name: String, size: Vector3, position: Vector3, color: Color) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.name = node_name
 	body.position = position
@@ -240,6 +426,7 @@ func _add_static_box(node_name: String, size: Vector3, position: Vector3, color:
 	shape.size = size
 	collision.shape = shape
 	body.add_child(collision)
+	return body
 
 func _add_mesh(node_name: String, mesh: PrimitiveMesh, scale_value: Vector3, position: Vector3, color: Color, cast_shadow: bool) -> MeshInstance3D:
 	var instance := MeshInstance3D.new()
@@ -257,15 +444,480 @@ func _add_child_mesh(parent: Node3D, mesh: PrimitiveMesh, position: Vector3, col
 	instance.mesh = mesh
 	instance.position = position
 	instance.scale = scale_value
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	instance.material_override = _material(color)
 	parent.add_child(instance)
 
-func _material(color: Color, emission := Color.TRANSPARENT) -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.roughness = 0.9
+func _material(color: Color, emission := Color.TRANSPARENT) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	if _cel_shader != null:
+		material.shader = _cel_shader
+		material.set_shader_parameter("base_color", color)
+		material.set_shader_parameter("albedo_tex", _white_tex)
+		material.set_shader_parameter("rough", 0.85)
+		if emission.a > 0.0:
+			material.set_shader_parameter("functional_rim", true)
+			material.set_shader_parameter("rim_color", emission)
+			material.set_shader_parameter("rim_strength", 0.55)
+		return material
+	var fallback := StandardMaterial3D.new()
+	fallback.albedo_color = color
+	fallback.roughness = 0.9
 	if emission.a > 0.0:
-		material.emission_enabled = true
-		material.emission = emission
-		material.emission_energy_multiplier = 0.36
-	return material
+		fallback.emission_enabled = true
+		fallback.emission = emission
+		fallback.emission_energy_multiplier = 0.36
+	var wrapped := ShaderMaterial.new()
+	wrapped.next_pass = fallback
+	return wrapped
+
+
+func _try_load_env(file: String, position: Vector3, hero: bool, collision_size: Vector3) -> Node3D:
+	var inst := _instantiate_env(file)
+	if inst == null:
+		return null
+	inst.position = position
+	add_child(inst)
+	if hero:
+		var lod := EnvLodScript.new()
+		lod.configure(true)
+		inst.add_child(lod)
+	if collision_size != Vector3.ZERO:
+		_add_env_collision(inst, collision_size)
+	return inst
+
+
+func _attach_env_visual(parent: Node3D, file: String) -> bool:
+	var inst := _instantiate_env(file)
+	if inst == null:
+		return false
+	inst.position = Vector3.ZERO
+	parent.add_child(inst)
+	return true
+
+
+func _instantiate_env(file: String) -> Node3D:
+	var path := ENV_DIR + file
+	if not ResourceLoader.exists(path):
+		return null
+	var packed := load(path) as PackedScene
+	if packed == null:
+		push_warning("Main: failed to load env asset ", path)
+		return null
+	var inst := packed.instantiate() as Node3D
+	if inst != null:
+		inst.name = file.get_basename()
+		_paint_env_asset(inst, file)
+	return inst
+
+
+func _add_env_collision(host: Node3D, size: Vector3) -> void:
+	var body := StaticBody3D.new()
+	body.name = "EnvCollision"
+	body.collision_layer = 1
+	body.position.y = size.y * 0.5
+	host.add_child(body)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collision.shape = shape
+	body.add_child(collision)
+
+
+func _add_authored_glow_plants() -> bool:
+	var packed := load(ENV_DIR + "fol_glowplant_a.glb") as PackedScene
+	if packed == null:
+		return false
+	var probe := packed.instantiate() as Node3D
+	_paint_env_asset(probe, "fol_glowplant_a.glb")
+	var source_mesh := _find_mesh(probe)
+	if source_mesh == null:
+		probe.queue_free()
+		return false
+	# §5.6 clusters: irregular groups, never i/N * TAU rings.
+	var clusters := [
+		[Vector3(-3.5, 0, -3.7), [Vector3(0.2, 0, 0.15), Vector3(-0.45, 0, 0.4), Vector3(0.55, 0, -0.35)]],
+		[Vector3(2.6, 0, 2.1), [Vector3(0.0, 0, 0.0), Vector3(0.7, 0, 0.35), Vector3(-0.4, 0, 0.55)]],
+		[Vector3(-5.0, 0, 5.2), [Vector3(0.15, 0, -0.2), Vector3(-0.6, 0, 0.25)]],
+		[Vector3(6.4, 0, 1.2), [Vector3(0.1, 0, 0.3), Vector3(0.55, 0, -0.4), Vector3(-0.35, 0, -0.15)]],
+		[Vector3(0.6, 0, -6.0), [Vector3(0.0, 0, 0.2), Vector3(-0.5, 0, -0.3)]],
+		[Vector3(9.1, 0, 6.4), [Vector3(0.25, 0, 0.1), Vector3(-0.4, 0, 0.45)]],
+	]
+	var root := Node3D.new()
+	root.name = "AuthoredGlowPlants"
+	add_child(root)
+	var idx := 0
+	for cluster in clusters:
+		var origin: Vector3 = cluster[0]
+		var offsets: Array = cluster[1]
+		for offset in offsets:
+			var xf := Transform3D(Basis(Vector3.UP, float(idx) * 0.7), origin + offset)
+			var inst := MultiMeshInstance3D.new()
+			var mm := MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.mesh = source_mesh.mesh
+			mm.instance_count = 1
+			mm.set_instance_transform(0, Transform3D.IDENTITY)
+			inst.multimesh = mm
+			inst.transform = xf
+			inst.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			root.add_child(inst)
+			idx += 1
+		var rock_file := "env_rock_facet_a.glb" if idx % 2 == 0 else "env_rock_facet_b.glb"
+		var anchor := _instantiate_env(rock_file)
+		if anchor != null:
+			root.add_child(anchor)
+			anchor.position = origin + Vector3(0.85, 0, -0.4)
+			anchor.scale = Vector3(0.28, 0.22, 0.28)
+			anchor.rotation.y = float(idx) * 0.5
+	probe.queue_free()
+	return true
+
+
+func _apply_ground_tile() -> void:
+	var ground := _find_named_child(self, "env_ground_market_a")
+	if ground == null:
+		return
+	var tex := load("res://assets/environment/tex_ground_packed_1k.png") as Texture2D
+	if tex == null:
+		return
+	_apply_ground_tex(ground, tex)
+
+
+func _apply_valley_ground_tile(ridge: Node) -> void:
+	var tex := load("res://assets/environment/tex_ground_packed_1k.png") as Texture2D
+	if tex == null:
+		return
+	_apply_named_ground_tex(ridge, tex, PackedStringArray(["valley_floor", "valley_foothill"]))
+
+
+func _apply_named_ground_tex(node: Node, tex: Texture2D, names: PackedStringArray) -> void:
+	if node is MeshInstance3D:
+		var lower := String(node.name).to_lower()
+		for token in names:
+			if String(token) in lower:
+				_apply_ground_tex(node, tex)
+				return
+	for child in node.get_children():
+		_apply_named_ground_tex(child, tex, names)
+
+
+func _apply_ground_tex(node: Node, tex: Texture2D) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.material_override is ShaderMaterial:
+			var sm := mi.material_override as ShaderMaterial
+			sm.set_shader_parameter("albedo_tex", tex)
+			sm.set_shader_parameter("use_triplanar", true)
+			sm.set_shader_parameter("base_color", Color(1, 1, 1))
+		if mi.mesh != null:
+			for s in range(mi.mesh.get_surface_count()):
+				var mat := mi.mesh.surface_get_material(s)
+				if mat is ShaderMaterial:
+					var sm2 := mat as ShaderMaterial
+					sm2.set_shader_parameter("albedo_tex", tex)
+					sm2.set_shader_parameter("use_triplanar", true)
+					sm2.set_shader_parameter("base_color", Color(1, 1, 1))
+	for child in node.get_children():
+		_apply_ground_tex(child, tex)
+
+
+func _add_lantern_light(position: Vector3) -> void:
+	var light := OmniLight3D.new()
+	light.name = "LanternLight"
+	light.position = position
+	light.light_color = Color("ffcb78")
+	light.light_energy = 0.12
+	light.omni_range = 3.4
+	light.shadow_enabled = false
+	add_child(light)
+	_lantern_lights.append(light)
+
+
+func _add_heater_light(station: Node3D) -> void:
+	var light := OmniLight3D.new()
+	light.name = "HeaterGlow"
+	light.position = Vector3(0.0, 0.35, 0.0)
+	light.light_color = Color("ff9a5c")
+	light.light_energy = 0.28
+	light.omni_range = 4.2
+	light.shadow_enabled = false
+	station.add_child(light)
+	_heater_light = light
+
+
+func _register_glow_mat(bucket: Array[ShaderMaterial], mat: ShaderMaterial) -> void:
+	if mat != null and bucket.find(mat) < 0:
+		bucket.append(mat)
+
+
+func _update_authored_glow(evening: float) -> void:
+	for mat in _glow_lanterns:
+		mat.set_shader_parameter("fill", lerpf(0.28, 0.85, evening))
+	for mat in _glow_heaters:
+		mat.set_shader_parameter("fill", lerpf(0.55, 0.90, evening))
+	for mat in _glow_plants:
+		mat.set_shader_parameter("fill", lerpf(0.06, 0.80, evening))
+	for mat in _glow_windows:
+		mat.set_shader_parameter("fill", lerpf(0.22, 0.70, evening))
+	for light in _lantern_lights:
+		light.light_energy = lerpf(0.10, 0.42, evening)
+	if _heater_light != null:
+		_heater_light.light_energy = lerpf(0.26, 0.55, evening)
+
+
+func _paint_env_asset(node: Node, file: String) -> void:
+	var stem := file.get_file().get_basename().to_lower()
+	_paint_env_node(node, stem)
+
+
+func _paint_env_node(node: Node, stem: String) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.material_override is ShaderMaterial:
+			_paint_shader_material(mi.material_override as ShaderMaterial, stem, String(mi.name))
+		if mi.mesh != null:
+			for s in range(mi.mesh.get_surface_count()):
+				var mat := mi.mesh.surface_get_material(s)
+				if mat is ShaderMaterial:
+					_paint_shader_material(mat as ShaderMaterial, stem, String(mi.name) + " " + mat.resource_name)
+	for child in node.get_children():
+		_paint_env_node(child, stem)
+
+
+func _paint_shader_material(mat: ShaderMaterial, stem: String, hint: String) -> void:
+	var key := (stem + " " + hint).to_lower()
+	var color := Color("c4a574")
+	var rim := Color.TRANSPARENT
+	var is_floor := "ground" in key or "path" in key or "plaza" in key \
+			or "valley" in key or "foothill" in key
+	mat.set_shader_parameter("contact_enabled", not is_floor)
+	if "hut" in key or "shelter" in key or "terrace" in key or "plaza" in key \
+			or "heater" in key or "reservoir" in key or "beacon" in key \
+			or "crate" in key or "drying" in key or "amphora" in key \
+			or "tufts" in key or "tree" in key or "rock_facet" in key:
+		# 住宅/庇护所走贴图 × 顶点色 tint，禁止再染成暮靛黑块。
+		mat.set_shader_parameter("base_color", Color(1, 1, 1))
+		if "amber" in key or "window" in key:
+			mat.set_shader_parameter("functional_rim", true)
+			mat.set_shader_parameter("rim_color", Color("f2a85b"))
+			mat.set_shader_parameter("rim_strength", 0.45)
+			mat.set_shader_parameter("fill", 0.28)
+			_register_glow_mat(_glow_windows, mat)
+		if "heater" in key:
+			mat.set_shader_parameter("fill", 0.55)
+			_register_glow_mat(_glow_heaters, mat)
+		return
+	if "stall" in key:
+		if "bowl" in key:
+			color = Color("8a5538")
+		elif "cap" in key:
+			color = Color("c49a52")
+		else:
+			return
+	elif "ground" in key or "path" in key or "valley" in key or "ridge" in key:
+		color = Color(1, 1, 1)
+	elif "grate" in key:
+		color = Color("17243b")
+	elif "rock" in key:
+		color = Color("4b5268")
+	elif "bulb" in key:
+		color = Color("f2a85b")
+		rim = Color("ff9e63")
+		mat.set_shader_parameter("fill", 0.45)
+		_register_glow_mat(_glow_lanterns, mat)
+	elif "lantern" in key or "alloy" in key:
+		color = Color("2a3144")
+		if "lantern" in key:
+			mat.set_shader_parameter("fill", 0.32)
+			_register_glow_mat(_glow_lanterns, mat)
+	elif "glow" in key or "plant" in key:
+		color = Color("4aa888")
+		rim = Color("78c9a4")
+		mat.set_shader_parameter("fill", 0.08)
+		_register_glow_mat(_glow_plants, mat)
+	elif "token" in key or "food" in key:
+		color = Color("78c9a4")
+		rim = Color("78c9a4")
+	mat.set_shader_parameter("base_color", color)
+	if rim.a > 0.0:
+		mat.set_shader_parameter("functional_rim", true)
+		mat.set_shader_parameter("rim_color", rim)
+		mat.set_shader_parameter("rim_strength", 0.45)
+
+
+func _find_named_child(node: Node, stem: String) -> Node:
+	if stem.to_lower() in String(node.name).to_lower():
+		return node
+	for child in node.get_children():
+		var found := _find_named_child(child, stem)
+		if found != null:
+			return found
+	return null
+
+
+func _ground_stall_counter(stall: Node3D) -> void:
+	var leg_color := Color("2a3144")
+	for x in [-1.42, 1.42]:
+		for z in [-0.36, 0.36]:
+			var mesh := CylinderMesh.new()
+			mesh.top_radius = 0.055
+			mesh.bottom_radius = 0.075
+			mesh.height = 0.82
+			var leg := MeshInstance3D.new()
+			leg.name = "CounterLeg"
+			leg.mesh = mesh
+			leg.position = Vector3(x, 0.41, z)
+			leg.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			leg.material_override = _material(leg_color)
+			stall.add_child(leg)
+			_add_inverted_outline(leg)
+
+
+func _detail_stall_bowls(stall: Node3D) -> void:
+	var bowls: Array[MeshInstance3D] = []
+	_collect_named_meshes(stall, "bowl", bowls)
+	for bowl in bowls:
+		bowl.material_override = _material(Color("8a5538"))
+		_add_inverted_outline(bowl)
+		var inner := CylinderMesh.new()
+		inner.top_radius = 0.11
+		inner.bottom_radius = 0.11
+		inner.height = 0.016
+		var disc := MeshInstance3D.new()
+		disc.name = "BowlInterior"
+		disc.mesh = inner
+		disc.position = Vector3(0.0, 0.04, 0.0)
+		disc.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		disc.material_override = _material(Color("3a2116"))
+		bowl.add_child(disc)
+
+
+func _collect_named_meshes(node: Node, stem: String, out: Array[MeshInstance3D]) -> void:
+	if node is MeshInstance3D and stem in String(node.name).to_lower():
+		if not String(node.name).ends_with("_outline"):
+			out.append(node as MeshInstance3D)
+	for child in node.get_children():
+		_collect_named_meshes(child, stem, out)
+
+
+func _disable_collisions(node: Node) -> void:
+	if node is CollisionShape3D:
+		(node as CollisionShape3D).disabled = true
+	if node is CollisionObject3D:
+		(node as CollisionObject3D).collision_layer = 0
+		(node as CollisionObject3D).collision_mask = 0
+	for child in node.get_children():
+		_disable_collisions(child)
+
+
+func _enable_mesh_shadows(node: Node) -> void:
+	if node is MeshInstance3D and not String(node.name).ends_with("_outline"):
+		(node as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	for child in node.get_children():
+		_enable_mesh_shadows(child)
+
+
+func _add_visual_mesh_collision(host: Node3D) -> void:
+	_add_fitted_collision(host)
+
+
+func _add_fitted_collision(host: Node3D, skip_tokens: PackedStringArray = PackedStringArray()) -> void:
+	var meshes: Array[MeshInstance3D] = []
+	_collect_meshes(host, meshes)
+	if meshes.is_empty():
+		return
+	var body := StaticBody3D.new()
+	body.name = "FittedCollision"
+	body.collision_layer = 1
+	body.collision_mask = 0
+	host.add_child(body)
+	var added := 0
+	for mi in meshes:
+		var lower := String(mi.name).to_lower()
+		var skip := false
+		for token in skip_tokens:
+			if String(token) in lower:
+				skip = true
+				break
+		if skip or mi.mesh == null:
+			continue
+		var shape: Shape3D = mi.mesh.create_trimesh_shape()
+		if shape == null:
+			shape = mi.mesh.create_convex_shape(true, true)
+		if shape == null:
+			continue
+		var collision := CollisionShape3D.new()
+		collision.name = String(mi.name) + "_col"
+		collision.shape = shape
+		body.add_child(collision)
+		collision.global_transform = mi.global_transform
+		added += 1
+	if added == 0:
+		body.queue_free()
+
+
+func _add_asset_outlines(host: Node, limit: int) -> void:
+	var meshes: Array[MeshInstance3D] = []
+	_collect_meshes(host, meshes)
+	meshes.sort_custom(func(a, b): return _mesh_vertex_count(a) > _mesh_vertex_count(b))
+	var count := mini(limit, meshes.size())
+	for i in range(count):
+		_add_inverted_outline(meshes[i])
+
+
+func _collect_meshes(node: Node, out: Array[MeshInstance3D]) -> void:
+	if node is MeshInstance3D and not String(node.name).ends_with("_outline"):
+		var lower := String(node.name).to_lower()
+		if "lod1__" in lower or "lod2__" in lower:
+			return
+		out.append(node as MeshInstance3D)
+	for child in node.get_children():
+		_collect_meshes(child, out)
+
+
+func _mesh_vertex_count(mi: MeshInstance3D) -> int:
+	if mi.mesh == null:
+		return 0
+	var total := 0
+	for s in range(mi.mesh.get_surface_count()):
+		total += mi.mesh.surface_get_arrays(s)[Mesh.ARRAY_VERTEX].size()
+	return total
+
+
+func _add_inverted_outline(mi: MeshInstance3D) -> void:
+	if mi == null or mi.mesh == null or mi.get_parent() == null:
+		return
+	var shader := load("res://shaders/cel_outline.gdshader") as Shader
+	if shader == null:
+		return
+	var outline := mi.duplicate() as MeshInstance3D
+	outline.name = String(mi.name) + "_outline"
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	outline.material_override = mat
+	outline.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.get_parent().add_child(outline)
+
+
+func _hide_meshes(node: Node) -> void:
+	if node is MeshInstance3D:
+		(node as MeshInstance3D).visible = false
+	for child in node.get_children():
+		_hide_meshes(child)
+
+
+func _find_mesh(node: Node) -> MeshInstance3D:
+	if node is MeshInstance3D:
+		return node as MeshInstance3D
+	for child in node.get_children():
+		var found := _find_mesh(child)
+		if found != null:
+			return found
+	return null
+
+
+func _make_white_texture() -> Texture2D:
+	var image := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	image.fill(Color.WHITE)
+	return ImageTexture.create_from_image(image)
