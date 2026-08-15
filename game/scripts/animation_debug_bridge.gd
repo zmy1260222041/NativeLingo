@@ -17,6 +17,7 @@ const CHANNEL_PORTS := {
 	"test": 6507,
 }
 const TELEMETRY_PATH := "user://logs/animation_telemetry.jsonl"
+const ANIMATION_PROBE_CAPTURE_DIR := "user://logs/animation_probe"
 const TEST_DIR := "user://mcp_tests"
 const MAX_INLINE_TEST_BYTES := 256 * 1024
 const DEFAULT_TELEMETRY_HZ := 30.0
@@ -176,8 +177,13 @@ func _route(method: String, params: Dictionary, channel: String, peer_id: int) -
 		"log.subscribe":
 			_log_subscribers[_peer_key(channel, peer_id)] = params.duplicate(true)
 			return {"result": {"subscribed": true, "hz": DEFAULT_TELEMETRY_HZ}}
-		"animation.get_state", "animation.sample":
+		"animation.get_state":
 			return {"result": _last_state if not _last_state.is_empty() else _sample_character_state(params)}
+		"animation.sample":
+			# A requested bone set must be sampled live. Returning the cached
+			# default frame here previously ignored hands/knees requested by the
+			# three-port visual regression client.
+			return {"result": _sample_character_state(params)}
 		"animation.subscribe":
 			_telemetry_subscribers[_peer_key(channel, peer_id)] = params.duplicate(true)
 			return {"result": {"subscribed": true, "hz": params.get("hz", DEFAULT_TELEMETRY_HZ)}}
@@ -219,7 +225,7 @@ func _animation_probe(params: Dictionary) -> Dictionary:
 		if capture:
 			var capture_result: Dictionary = _runtime_commands.capture_frames({})
 			if capture_result.has("result"):
-				sample["capture"] = capture_result.result
+				sample["capture"] = _store_animation_probe_capture(capture_result.result, animation_name, frame)
 		samples.append(sample)
 		await get_tree().create_timer(1.0 / fps).timeout
 	if visual.has_method("debug_clear_animation_override"):
@@ -228,6 +234,23 @@ func _animation_probe(params: Dictionary) -> Dictionary:
 	if player != null and player.has_method("set_debug_frozen"):
 		player.set_debug_frozen(previously_frozen)
 	return {"result": {"animation": animation_name, "frames": samples.size(), "samples": samples}}
+
+func _store_animation_probe_capture(payload: Dictionary, animation_name: String, frame: int) -> Dictionary:
+	## Keep large JPEG payloads off the WebSocket response. Returning a numbered
+	## local path makes multi-frame probes reliable and matches the protocol's
+	## screenshot-index contract.
+	if not payload.has("data"):
+		return {}
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(ANIMATION_PROBE_CAPTURE_DIR))
+	var safe_name := animation_name.replace("/", "_").replace(":", "_")
+	var path := "%s/%s_%03d_%d.jpg" % [ANIMATION_PROBE_CAPTURE_DIR, safe_name, frame, Time.get_ticks_msec()]
+	var bytes := Marshalls.base64_to_raw(String(payload.data))
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		return {}
+	file.store_buffer(bytes)
+	file.close()
+	return {"frame": frame, "format": "jpg", "path": path, "bytes": bytes.size()}
 
 func _find_character() -> Node:
 	for character in _characters:

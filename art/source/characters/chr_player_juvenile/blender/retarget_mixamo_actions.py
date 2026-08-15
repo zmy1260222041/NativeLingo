@@ -87,9 +87,12 @@ BONE_MAP = {
 }
 
 ACTION_SPECS = (
+    ("Standing Idle.fbx", "anim_chr_player_idle_neutral", True),
     ("Walking.fbx", "anim_chr_player_walk_forward", True),
     ("Standard Run.fbx", "anim_chr_player_run_forward", True),
     ("Pointing Gesture.fbx", "anim_chr_player_gesture_point", False),
+    ("Looking Around.fbx", "anim_chr_player_interact_observe", False),
+    ("Picking Up.fbx", "anim_chr_player_interact_gather", False),
     ("Walking Turn 180.fbx", "anim_chr_player_turn_180", False),
     ("Jumping.fbx", "anim_chr_player_jump", False),
 )
@@ -708,8 +711,13 @@ def main() -> None:
     # paths, so renaming this object would break those legacy gestures.
     target_rest_world = _world_rest_rotations(target)
     target_rest_local = _target_rest_local_rotations(target, target_rest_world)
-    idle_action = _active_action(target)
+    # The target FBX's cloud idle is intentionally not carried forward. The
+    # user-authored Standing Idle action below replaces it under the same
+    # runtime contract name. Clear imported NLA tracks as well so an old idle
+    # strip cannot be baked beside the replacement during FBX export.
     target.animation_data.action = None
+    for track in list(target.animation_data.nla_tracks):
+        target.animation_data.nla_tracks.remove(track)
 
     report: dict = {
         "target": str(TARGET_FBX.relative_to(PROJECT)),
@@ -722,7 +730,7 @@ def main() -> None:
         },
         "actions": {},
     }
-    selected_actions: list[tuple[bpy.types.Action, bool]] = [(idle_action, True)]
+    selected_actions: list[tuple[bpy.types.Action, bool]] = []
 
     for filename, contract_name, loop in ACTION_SPECS:
         source = _import_fbx(SOURCE_DIR / filename)

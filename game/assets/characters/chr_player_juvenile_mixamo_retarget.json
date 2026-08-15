@@ -31,9 +31,937 @@
     "pose_direction": "match source posed bone direction and transfer only local-Y twist"
   },
   "actions": {
+    "anim_chr_player_idle_neutral": {
+      "source": "art/source/characters/chr_player_juvenile/source_locked_v06/anime/Standing Idle.fbx",
+      "source_action": "Armature.001|mixamo.com|Layer0",
+      "frames": [
+        1,
+        96,
+        96
+      ],
+      "candidates": {
+        "local_delta": {
+          "metrics": {
+            "direction_mean_deg": 21.93365,
+            "direction_p95_deg": 68.83435,
+            "direction_max_deg": 75.97936,
+            "rotation_mean_deg": 23.40924,
+            "endpoint_mean_m": 0.078094,
+            "endpoint_max_m": 0.266821,
+            "samples": 2112,
+            "by_bone_direction_mean_deg": {
+              "Hips": 2.0548,
+              "Spine": 7.49613,
+              "Spine1": 8.34433,
+              "Spine2": 9.44273,
+              "Neck": 12.11876,
+              "Head": 20.84064,
+              "LeftShoulder": 11.46769,
+              "LeftArm": 71.31313,
+              "LeftForeArm": 62.30489,
+              "LeftHand": 67.51125,
+              "RightShoulder": 9.63904,
+              "RightArm": 63.1172,
+              "RightForeArm": 43.44879,
+              "RightHand": 47.72831,
+              "LeftUpLeg": 4.81301,
+              "LeftLeg": 14.28608,
+              "LeftFoot": 7.17797,
+              "LeftToeBase": 5.92927,
+              "RightUpLeg": 2.78241,
+              "RightLeg": 6.67842,
+              "RightFoot": 1.06549,
+              "RightToeBase": 2.97987
+            }
+          },
+          "hips_position": {
+            "mean_m": 0.0,
+            "max_m": 0.0,
+            "source_dynamic_range_m": 0.053651,
+            "retarget_dynamic_range_m": 0.053651,
+            "source_cycle_drift_m": 0.0,
+            "has_dynamic_position": true
+          },
+          "frames": [
+            1,
+            96,
+            96
+          ]
+        },
+        "world_rest": {
+          "metrics": {
+            "direction_mean_deg": 27.84716,
+            "direction_p95_deg": 77.84955,
+            "direction_max_deg": 82.28783,
+            "rotation_mean_deg": 27.91378,
+            "endpoint_mean_m": 0.093926,
+            "endpoint_max_m": 0.278104,
+            "samples": 2112,
+            "by_bone_direction_mean_deg": {
+              "Hips": 2.0548,
+              "Spine": 6.20243,
+              "Spine1": 7.30958,
+              "Spine2": 9.02665,
+              "Neck": 12.0234,
+              "Head": 16.91701,
+              "LeftShoulder": 7.3107,
+              "LeftArm": 76.05696,
+              "LeftForeArm": 69.32946,
+              "LeftHand": 74.8165,
+              "RightShoulder": 17.42315,
+              "RightArm": 82.22311,
+              "RightForeArm": 74.89573,
+              "RightHand": 77.6891,
+              "LeftUpLeg": 4.94208,
+              "LeftLeg": 13.53669,
+              "LeftFoot": 11.18358,
+              "LeftToeBase": 19.36686,
+              "RightUpLeg": 3.31776,
+              "RightLeg": 6.48991,
+              "RightFoot": 4.76047,
+              "RightToeBase": 15.76152
+            }
+          },
+          "hips_position": {
+            "mean_m": 0.0,
+            "max_m": 0.0,
+            "source_dynamic_range_m": 0.053651,
+            "retarget_dynamic_range_m": 0.053651,
+            "source_cycle_drift_m": 0.0,
+            "has_dynamic_position": true
+          },
+          "frames": [
+            1,
+            96,
+            96
+          ]
+        },
+        "pose_direction": {
+          "metrics": {
+            "direction_mean_deg": 0.0,
+            "direction_p95_deg": 0.0,
+            "direction_max_deg": 0.0,
+            "rotation_mean_deg": 1e-05,
+            "endpoint_mean_m": 0.0,
+            "endpoint_max_m": 3e-06,
+            "samples": 2112,
+            "by_bone_direction_mean_deg": {
+              "Hips": 0.0,
+              "Spine": 0.0,
+              "Spine1": 0.0,
+              "Spine2": 0.0,
+              "Neck": 0.0,
+              "Head": 0.0,
+              "LeftShoulder": 0.0,
+              "LeftArm": 0.0,
+              "LeftForeArm": 0.0,
+              "LeftHand": 0.0,
+              "RightShoulder": 0.0,
+              "RightArm": 0.0,
+              "RightForeArm": 0.0,
+              "RightHand": 0.0,
+              "LeftUpLeg": 0.0,
+              "LeftLeg": 0.0,
+              "LeftFoot": 0.0,
+              "LeftToeBase": 0.0,
+              "RightUpLeg": 0.0,
+              "RightLeg": 0.0,
+              "RightFoot": 0.0,
+              "RightToeBase": 0.0
+            }
+          },
+          "hips_position": {
+            "mean_m": 0.0,
+            "max_m": 0.0,
+            "source_dynamic_range_m": 0.053651,
+            "retarget_dynamic_range_m": 0.053651,
+            "source_cycle_drift_m": 0.0,
+            "has_dynamic_position": true
+          },
+          "frames": [
+            1,
+            96,
+            96
+          ]
+        }
+      },
+      "selected_algorithm": "pose_direction",
+      "bone_count": 22,
+      "in_place": true,
+      "hips_position_keys": [
+        {
+          "frame": 1,
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 2,
+          "position": [
+            -0.00108459,
+            0.00026816,
+            0.00106273
+          ]
+        },
+        {
+          "frame": 3,
+          "position": [
+            -0.00218504,
+            0.00055894,
+            0.00219684
+          ]
+        },
+        {
+          "frame": 4,
+          "position": [
+            -0.00330902,
+            0.00086897,
+            0.00341458
+          ]
+        },
+        {
+          "frame": 5,
+          "position": [
+            -0.00446498,
+            0.00120483,
+            0.00473222
+          ]
+        },
+        {
+          "frame": 6,
+          "position": [
+            -0.00566067,
+            0.0015709,
+            0.00615123
+          ]
+        },
+        {
+          "frame": 7,
+          "position": [
+            -0.00689846,
+            0.00197493,
+            0.00765604
+          ]
+        },
+        {
+          "frame": 8,
+          "position": [
+            -0.00817629,
+            0.00241857,
+            0.00921703
+          ]
+        },
+        {
+          "frame": 9,
+          "position": [
+            -0.00948803,
+            0.00290002,
+            0.0107992
+          ]
+        },
+        {
+          "frame": 10,
+          "position": [
+            -0.01082763,
+            0.00339874,
+            0.01236953
+          ]
+        },
+        {
+          "frame": 11,
+          "position": [
+            -0.0121914,
+            0.00388548,
+            0.01390097
+          ]
+        },
+        {
+          "frame": 12,
+          "position": [
+            -0.01358071,
+            0.00431313,
+            0.01537304
+          ]
+        },
+        {
+          "frame": 13,
+          "position": [
+            -0.01499563,
+            0.00464098,
+            0.01677138
+          ]
+        },
+        {
+          "frame": 14,
+          "position": [
+            -0.01643433,
+            0.00483541,
+            0.01808257
+          ]
+        },
+        {
+          "frame": 15,
+          "position": [
+            -0.01788568,
+            0.00489546,
+            0.01929759
+          ]
+        },
+        {
+          "frame": 16,
+          "position": [
+            -0.01933011,
+            0.00484438,
+            0.02041878
+          ]
+        },
+        {
+          "frame": 17,
+          "position": [
+            -0.02074324,
+            0.00474766,
+            0.02145913
+          ]
+        },
+        {
+          "frame": 18,
+          "position": [
+            -0.02211056,
+            0.00468077,
+            0.02244218
+          ]
+        },
+        {
+          "frame": 19,
+          "position": [
+            -0.02342042,
+            0.00469104,
+            0.02338468
+          ]
+        },
+        {
+          "frame": 20,
+          "position": [
+            -0.0246706,
+            0.0047829,
+            0.02430202
+          ]
+        },
+        {
+          "frame": 21,
+          "position": [
+            -0.02585796,
+            0.0049083,
+            0.02520265
+          ]
+        },
+        {
+          "frame": 22,
+          "position": [
+            -0.0269798,
+            0.00500105,
+            0.02609275
+          ]
+        },
+        {
+          "frame": 23,
+          "position": [
+            -0.02802538,
+            0.00502098,
+            0.02697772
+          ]
+        },
+        {
+          "frame": 24,
+          "position": [
+            -0.02898575,
+            0.00498116,
+            0.02786328
+          ]
+        },
+        {
+          "frame": 25,
+          "position": [
+            -0.02985328,
+            0.00492705,
+            0.02875303
+          ]
+        },
+        {
+          "frame": 26,
+          "position": [
+            -0.03063016,
+            0.00490792,
+            0.02964792
+          ]
+        },
+        {
+          "frame": 27,
+          "position": [
+            -0.03133379,
+            0.00495644,
+            0.03054721
+          ]
+        },
+        {
+          "frame": 28,
+          "position": [
+            -0.03198604,
+            0.00507354,
+            0.03144326
+          ]
+        },
+        {
+          "frame": 29,
+          "position": [
+            -0.03260516,
+            0.00523338,
+            0.03232073
+          ]
+        },
+        {
+          "frame": 30,
+          "position": [
+            -0.03319973,
+            0.00540825,
+            0.03315661
+          ]
+        },
+        {
+          "frame": 31,
+          "position": [
+            -0.0337755,
+            0.00557321,
+            0.03392584
+          ]
+        },
+        {
+          "frame": 32,
+          "position": [
+            -0.03434044,
+            0.00570023,
+            0.03460911
+          ]
+        },
+        {
+          "frame": 33,
+          "position": [
+            -0.0349096,
+            0.00575601,
+            0.03520028
+          ]
+        },
+        {
+          "frame": 34,
+          "position": [
+            -0.03550028,
+            0.00569755,
+            0.03570264
+          ]
+        },
+        {
+          "frame": 35,
+          "position": [
+            -0.03612691,
+            0.00549026,
+            0.03612089
+          ]
+        },
+        {
+          "frame": 36,
+          "position": [
+            -0.03678863,
+            0.00511096,
+            0.03644741
+          ]
+        },
+        {
+          "frame": 37,
+          "position": [
+            -0.03746468,
+            0.0045761,
+            0.03666294
+          ]
+        },
+        {
+          "frame": 38,
+          "position": [
+            -0.03811606,
+            0.0039237,
+            0.03674505
+          ]
+        },
+        {
+          "frame": 39,
+          "position": [
+            -0.0386974,
+            0.00322974,
+            0.03668582
+          ]
+        },
+        {
+          "frame": 40,
+          "position": [
+            -0.03917105,
+            0.00258886,
+            0.0365038
+          ]
+        },
+        {
+          "frame": 41,
+          "position": [
+            -0.03951414,
+            0.00208642,
+            0.0362314
+          ]
+        },
+        {
+          "frame": 42,
+          "position": [
+            -0.03972584,
+            0.00177543,
+            0.03590541
+          ]
+        },
+        {
+          "frame": 43,
+          "position": [
+            -0.03981071,
+            0.00166428,
+            0.03554807
+          ]
+        },
+        {
+          "frame": 44,
+          "position": [
+            -0.03977851,
+            0.00172743,
+            0.03517102
+          ]
+        },
+        {
+          "frame": 45,
+          "position": [
+            -0.03962884,
+            0.00191281,
+            0.0347767
+          ]
+        },
+        {
+          "frame": 46,
+          "position": [
+            -0.03934475,
+            0.00217499,
+            0.03437209
+          ]
+        },
+        {
+          "frame": 47,
+          "position": [
+            -0.03888969,
+            0.00247598,
+            0.03396302
+          ]
+        },
+        {
+          "frame": 48,
+          "position": [
+            -0.0382248,
+            0.00279745,
+            0.03354821
+          ]
+        },
+        {
+          "frame": 49,
+          "position": [
+            -0.03733224,
+            0.00313257,
+            0.03311911
+          ]
+        },
+        {
+          "frame": 50,
+          "position": [
+            -0.03622791,
+            0.00347731,
+            0.03265994
+          ]
+        },
+        {
+          "frame": 51,
+          "position": [
+            -0.03495814,
+            0.00382699,
+            0.03215384
+          ]
+        },
+        {
+          "frame": 52,
+          "position": [
+            -0.03358196,
+            0.00416711,
+            0.03158724
+          ]
+        },
+        {
+          "frame": 53,
+          "position": [
+            -0.0321505,
+            0.00448215,
+            0.03095157
+          ]
+        },
+        {
+          "frame": 54,
+          "position": [
+            -0.03069664,
+            0.00475,
+            0.03024145
+          ]
+        },
+        {
+          "frame": 55,
+          "position": [
+            -0.02923747,
+            0.0049466,
+            0.02945039
+          ]
+        },
+        {
+          "frame": 56,
+          "position": [
+            -0.02777678,
+            0.00504554,
+            0.02856736
+          ]
+        },
+        {
+          "frame": 57,
+          "position": [
+            -0.02631897,
+            0.00503178,
+            0.02757969
+          ]
+        },
+        {
+          "frame": 58,
+          "position": [
+            -0.02486987,
+            0.00490991,
+            0.02647808
+          ]
+        },
+        {
+          "frame": 59,
+          "position": [
+            -0.02343901,
+            0.00469447,
+            0.02526375
+          ]
+        },
+        {
+          "frame": 60,
+          "position": [
+            -0.02203377,
+            0.00442451,
+            0.02395645
+          ]
+        },
+        {
+          "frame": 61,
+          "position": [
+            -0.02066106,
+            0.00414716,
+            0.02259225
+          ]
+        },
+        {
+          "frame": 62,
+          "position": [
+            -0.01932387,
+            0.00391655,
+            0.02121061
+          ]
+        },
+        {
+          "frame": 63,
+          "position": [
+            -0.01801693,
+            0.0037737,
+            0.01984935
+          ]
+        },
+        {
+          "frame": 64,
+          "position": [
+            -0.01672272,
+            0.00372934,
+            0.01853607
+          ]
+        },
+        {
+          "frame": 65,
+          "position": [
+            -0.01541462,
+            0.00377003,
+            0.01729125
+          ]
+        },
+        {
+          "frame": 66,
+          "position": [
+            -0.01406987,
+            0.00384938,
+            0.01613045
+          ]
+        },
+        {
+          "frame": 67,
+          "position": [
+            -0.01268231,
+            0.00391166,
+            0.0150671
+          ]
+        },
+        {
+          "frame": 68,
+          "position": [
+            -0.0112692,
+            0.00391634,
+            0.0141059
+          ]
+        },
+        {
+          "frame": 69,
+          "position": [
+            -0.00986,
+            0.00385877,
+            0.01324048
+          ]
+        },
+        {
+          "frame": 70,
+          "position": [
+            -0.00848876,
+            0.00374951,
+            0.01245309
+          ]
+        },
+        {
+          "frame": 71,
+          "position": [
+            -0.00717987,
+            0.00361696,
+            0.0117205
+          ]
+        },
+        {
+          "frame": 72,
+          "position": [
+            -0.00594457,
+            0.00348531,
+            0.01102162
+          ]
+        },
+        {
+          "frame": 73,
+          "position": [
+            -0.00479343,
+            0.00336686,
+            0.01034421
+          ]
+        },
+        {
+          "frame": 74,
+          "position": [
+            -0.00373301,
+            0.00326828,
+            0.00967833
+          ]
+        },
+        {
+          "frame": 75,
+          "position": [
+            -0.00276809,
+            0.00317655,
+            0.00900842
+          ]
+        },
+        {
+          "frame": 76,
+          "position": [
+            -0.00190137,
+            0.00307242,
+            0.00831538
+          ]
+        },
+        {
+          "frame": 77,
+          "position": [
+            -0.00113432,
+            0.00293331,
+            0.00757934
+          ]
+        },
+        {
+          "frame": 78,
+          "position": [
+            -0.00046996,
+            0.00275158,
+            0.00678615
+          ]
+        },
+        {
+          "frame": 79,
+          "position": [
+            8.804e-05,
+            0.00251923,
+            0.00592893
+          ]
+        },
+        {
+          "frame": 80,
+          "position": [
+            0.00053804,
+            0.00222588,
+            0.00501016
+          ]
+        },
+        {
+          "frame": 81,
+          "position": [
+            0.00088664,
+            0.00185997,
+            0.00404233
+          ]
+        },
+        {
+          "frame": 82,
+          "position": [
+            0.00114579,
+            0.00141746,
+            0.00304654
+          ]
+        },
+        {
+          "frame": 83,
+          "position": [
+            0.00132522,
+            0.00092716,
+            0.00205439
+          ]
+        },
+        {
+          "frame": 84,
+          "position": [
+            0.00142522,
+            0.000435,
+            0.00110194
+          ]
+        },
+        {
+          "frame": 85,
+          "position": [
+            0.00144013,
+            5.92e-06,
+            0.00022801
+          ]
+        },
+        {
+          "frame": 86,
+          "position": [
+            0.00137466,
+            -0.00030854,
+            -0.0005262
+          ]
+        },
+        {
+          "frame": 87,
+          "position": [
+            0.00125733,
+            -0.00048443,
+            -0.00112537
+          ]
+        },
+        {
+          "frame": 88,
+          "position": [
+            0.00113562,
+            -0.0005411,
+            -0.00154787
+          ]
+        },
+        {
+          "frame": 89,
+          "position": [
+            0.00105215,
+            -0.00051684,
+            -0.00179124
+          ]
+        },
+        {
+          "frame": 90,
+          "position": [
+            0.00101623,
+            -0.00044992,
+            -0.00186447
+          ]
+        },
+        {
+          "frame": 91,
+          "position": [
+            0.00099327,
+            -0.00036061,
+            -0.00177932
+          ]
+        },
+        {
+          "frame": 92,
+          "position": [
+            0.00092572,
+            -0.00026156,
+            -0.00154703
+          ]
+        },
+        {
+          "frame": 93,
+          "position": [
+            0.00076299,
+            -0.0001611,
+            -0.00117871
+          ]
+        },
+        {
+          "frame": 94,
+          "position": [
+            0.00048912,
+            -7.419e-05,
+            -0.00069944
+          ]
+        },
+        {
+          "frame": 95,
+          "position": [
+            6.88e-05,
+            -7.81e-06,
+            -9.331e-05
+          ]
+        },
+        {
+          "frame": 96,
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
     "anim_chr_player_walk_forward": {
       "source": "art/source/characters/chr_player_juvenile/source_locked_v06/anime/Walking.fbx",
-      "source_action": "Armature.001|mixamo.com|Layer0",
+      "source_action": "Armature.001|mixamo.com|Layer0.001",
       "frames": [
         1,
         32,
@@ -449,7 +1377,7 @@
     },
     "anim_chr_player_run_forward": {
       "source": "art/source/characters/chr_player_juvenile/source_locked_v06/anime/Standard Run.fbx",
-      "source_action": "Armature.001|mixamo.com|Layer0.001",
+      "source_action": "Armature.001|mixamo.com|Layer0.002",
       "frames": [
         1,
         44,
@@ -961,7 +1889,7 @@
     },
     "anim_chr_player_gesture_point": {
       "source": "art/source/characters/chr_player_juvenile/source_locked_v06/anime/Pointing Gesture.fbx",
-      "source_action": "Armature.001|mixamo.com|Layer0.002",
+      "source_action": "Armature.001|mixamo.com|Layer0.003",
       "frames": [
         1,
         84,
@@ -1791,9 +2719,3025 @@
         }
       ]
     },
+    "anim_chr_player_interact_observe": {
+      "source": "art/source/characters/chr_player_juvenile/source_locked_v06/anime/Looking Around.fbx",
+      "source_action": "Armature.001|mixamo.com|Layer0.004",
+      "frames": [
+        1,
+        191,
+        191
+      ],
+      "candidates": {
+        "local_delta": {
+          "metrics": {
+            "direction_mean_deg": 29.72817,
+            "direction_p95_deg": 75.577,
+            "direction_max_deg": 94.73188,
+            "rotation_mean_deg": 33.36014,
+            "endpoint_mean_m": 0.106234,
+            "endpoint_max_m": 0.338637,
+            "samples": 4202,
+            "by_bone_direction_mean_deg": {
+              "Hips": 3.62662,
+              "Spine": 7.06135,
+              "Spine1": 9.38358,
+              "Spine2": 12.55325,
+              "Neck": 13.90185,
+              "Head": 17.54412,
+              "LeftShoulder": 6.59697,
+              "LeftArm": 63.67432,
+              "LeftForeArm": 58.08731,
+              "LeftHand": 62.96103,
+              "RightShoulder": 26.21056,
+              "RightArm": 86.08204,
+              "RightForeArm": 59.12114,
+              "RightHand": 63.29775,
+              "LeftUpLeg": 21.36717,
+              "LeftLeg": 34.4081,
+              "LeftFoot": 27.68227,
+              "LeftToeBase": 31.67742,
+              "RightUpLeg": 22.74391,
+              "RightLeg": 5.91714,
+              "RightFoot": 9.82809,
+              "RightToeBase": 10.29368
+            }
+          },
+          "hips_position": {
+            "mean_m": 0.0,
+            "max_m": 0.0,
+            "source_dynamic_range_m": 0.060143,
+            "retarget_dynamic_range_m": 0.060143,
+            "source_cycle_drift_m": 0.0,
+            "has_dynamic_position": true
+          },
+          "frames": [
+            1,
+            191,
+            191
+          ]
+        },
+        "world_rest": {
+          "metrics": {
+            "direction_mean_deg": 34.40833,
+            "direction_p95_deg": 78.51574,
+            "direction_max_deg": 82.28782,
+            "rotation_mean_deg": 35.15563,
+            "endpoint_mean_m": 0.116921,
+            "endpoint_max_m": 0.287013,
+            "samples": 4202,
+            "by_bone_direction_mean_deg": {
+              "Hips": 3.62662,
+              "Spine": 11.58053,
+              "Spine1": 12.91641,
+              "Spine2": 15.07635,
+              "Neck": 13.57246,
+              "Head": 14.47592,
+              "LeftShoulder": 38.33415,
+              "LeftArm": 74.56272,
+              "LeftForeArm": 68.72444,
+              "LeftHand": 73.95436,
+              "RightShoulder": 37.04527,
+              "RightArm": 81.68956,
+              "RightForeArm": 72.15435,
+              "RightHand": 75.11612,
+              "LeftUpLeg": 25.72283,
+              "LeftLeg": 30.75767,
+              "LeftFoot": 16.52595,
+              "LeftToeBase": 22.66441,
+              "RightUpLeg": 21.43972,
+              "RightLeg": 8.42639,
+              "RightFoot": 9.76425,
+              "RightToeBase": 28.85287
+            }
+          },
+          "hips_position": {
+            "mean_m": 0.0,
+            "max_m": 0.0,
+            "source_dynamic_range_m": 0.060143,
+            "retarget_dynamic_range_m": 0.060143,
+            "source_cycle_drift_m": 0.0,
+            "has_dynamic_position": true
+          },
+          "frames": [
+            1,
+            191,
+            191
+          ]
+        },
+        "pose_direction": {
+          "metrics": {
+            "direction_mean_deg": 0.0,
+            "direction_p95_deg": 0.0,
+            "direction_max_deg": 0.0,
+            "rotation_mean_deg": 1e-05,
+            "endpoint_mean_m": 0.0,
+            "endpoint_max_m": 2e-06,
+            "samples": 4202,
+            "by_bone_direction_mean_deg": {
+              "Hips": 0.0,
+              "Spine": 0.0,
+              "Spine1": 0.0,
+              "Spine2": 0.0,
+              "Neck": 0.0,
+              "Head": 0.0,
+              "LeftShoulder": 0.0,
+              "LeftArm": 0.0,
+              "LeftForeArm": 0.0,
+              "LeftHand": 0.0,
+              "RightShoulder": 0.0,
+              "RightArm": 0.0,
+              "RightForeArm": 0.0,
+              "RightHand": 0.0,
+              "LeftUpLeg": 0.0,
+              "LeftLeg": 0.0,
+              "LeftFoot": 0.0,
+              "LeftToeBase": 0.0,
+              "RightUpLeg": 0.0,
+              "RightLeg": 0.0,
+              "RightFoot": 0.0,
+              "RightToeBase": 0.0
+            }
+          },
+          "hips_position": {
+            "mean_m": 0.0,
+            "max_m": 0.0,
+            "source_dynamic_range_m": 0.060143,
+            "retarget_dynamic_range_m": 0.060143,
+            "source_cycle_drift_m": 0.0,
+            "has_dynamic_position": true
+          },
+          "frames": [
+            1,
+            191,
+            191
+          ]
+        }
+      },
+      "selected_algorithm": "pose_direction",
+      "bone_count": 22,
+      "in_place": true,
+      "hips_position_keys": [
+        {
+          "frame": 1,
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 2,
+          "position": [
+            5.986e-05,
+            -4.282e-05,
+            6.743e-05
+          ]
+        },
+        {
+          "frame": 3,
+          "position": [
+            8.634e-05,
+            3.277e-05,
+            0.00013082
+          ]
+        },
+        {
+          "frame": 4,
+          "position": [
+            0.00014637,
+            0.00010023,
+            0.00018562
+          ]
+        },
+        {
+          "frame": 5,
+          "position": [
+            0.00015133,
+            0.00025316,
+            0.00019202
+          ]
+        },
+        {
+          "frame": 6,
+          "position": [
+            0.00012855,
+            -3.169e-05,
+            0.00014047
+          ]
+        },
+        {
+          "frame": 7,
+          "position": [
+            0.00014022,
+            0.00014189,
+            -7.6e-07
+          ]
+        },
+        {
+          "frame": 8,
+          "position": [
+            0.00020832,
+            0.00028122,
+            -0.00021172
+          ]
+        },
+        {
+          "frame": 9,
+          "position": [
+            0.00026099,
+            0.00031236,
+            -0.00055144
+          ]
+        },
+        {
+          "frame": 10,
+          "position": [
+            0.00042838,
+            0.00029384,
+            -0.00113468
+          ]
+        },
+        {
+          "frame": 11,
+          "position": [
+            0.00131906,
+            -2.337e-05,
+            -0.00210344
+          ]
+        },
+        {
+          "frame": 12,
+          "position": [
+            0.00124875,
+            -0.00112587,
+            -0.0030384
+          ]
+        },
+        {
+          "frame": 13,
+          "position": [
+            0.00080679,
+            -0.00129708,
+            -0.00325386
+          ]
+        },
+        {
+          "frame": 14,
+          "position": [
+            0.00025295,
+            -0.00155723,
+            -0.00316148
+          ]
+        },
+        {
+          "frame": 15,
+          "position": [
+            0.00049849,
+            -0.00292001,
+            -0.00221573
+          ]
+        },
+        {
+          "frame": 16,
+          "position": [
+            0.00094142,
+            -0.00500869,
+            -0.00117869
+          ]
+        },
+        {
+          "frame": 17,
+          "position": [
+            0.00184211,
+            -0.00531344,
+            0.00072736
+          ]
+        },
+        {
+          "frame": 18,
+          "position": [
+            0.00258541,
+            -0.00547465,
+            0.00174021
+          ]
+        },
+        {
+          "frame": 19,
+          "position": [
+            0.00452766,
+            -0.00596531,
+            0.00392659
+          ]
+        },
+        {
+          "frame": 20,
+          "position": [
+            0.00569888,
+            -0.00440627,
+            0.00510135
+          ]
+        },
+        {
+          "frame": 21,
+          "position": [
+            0.00622344,
+            -0.00342898,
+            0.00492067
+          ]
+        },
+        {
+          "frame": 22,
+          "position": [
+            0.00680359,
+            -0.0029037,
+            0.00518793
+          ]
+        },
+        {
+          "frame": 23,
+          "position": [
+            0.00749231,
+            -0.00235035,
+            0.00563102
+          ]
+        },
+        {
+          "frame": 24,
+          "position": [
+            0.00815061,
+            -0.00117679,
+            0.00585252
+          ]
+        },
+        {
+          "frame": 25,
+          "position": [
+            0.0085194,
+            0.00081278,
+            0.0064648
+          ]
+        },
+        {
+          "frame": 26,
+          "position": [
+            0.00861291,
+            0.00145256,
+            0.00724367
+          ]
+        },
+        {
+          "frame": 27,
+          "position": [
+            0.00841205,
+            0.00259599,
+            0.00770035
+          ]
+        },
+        {
+          "frame": 28,
+          "position": [
+            0.00825071,
+            0.00302367,
+            0.00826492
+          ]
+        },
+        {
+          "frame": 29,
+          "position": [
+            0.00816306,
+            0.00332108,
+            0.00867476
+          ]
+        },
+        {
+          "frame": 30,
+          "position": [
+            0.00813658,
+            0.00311327,
+            0.00872322
+          ]
+        },
+        {
+          "frame": 31,
+          "position": [
+            0.00815029,
+            0.00223184,
+            0.00904986
+          ]
+        },
+        {
+          "frame": 32,
+          "position": [
+            0.00815372,
+            0.00120439,
+            0.00917651
+          ]
+        },
+        {
+          "frame": 33,
+          "position": [
+            0.00813552,
+            -0.00016924,
+            0.00916903
+          ]
+        },
+        {
+          "frame": 34,
+          "position": [
+            0.00801487,
+            -0.00202956,
+            0.00880508
+          ]
+        },
+        {
+          "frame": 35,
+          "position": [
+            0.00786632,
+            -0.00400652,
+            0.00803742
+          ]
+        },
+        {
+          "frame": 36,
+          "position": [
+            0.00713687,
+            -0.0053908,
+            0.00644693
+          ]
+        },
+        {
+          "frame": 37,
+          "position": [
+            0.00630493,
+            -0.00626794,
+            0.00320447
+          ]
+        },
+        {
+          "frame": 38,
+          "position": [
+            0.00532337,
+            -0.00702138,
+            -0.00098608
+          ]
+        },
+        {
+          "frame": 39,
+          "position": [
+            0.00453125,
+            -0.00790011,
+            -0.00568817
+          ]
+        },
+        {
+          "frame": 40,
+          "position": [
+            0.0042458,
+            -0.00869933,
+            -0.01051065
+          ]
+        },
+        {
+          "frame": 41,
+          "position": [
+            0.00439137,
+            -0.00901349,
+            -0.01482765
+          ]
+        },
+        {
+          "frame": 42,
+          "position": [
+            0.00439022,
+            -0.00788601,
+            -0.01832668
+          ]
+        },
+        {
+          "frame": 43,
+          "position": [
+            0.00457069,
+            -0.00640883,
+            -0.02127189
+          ]
+        },
+        {
+          "frame": 44,
+          "position": [
+            0.0043631,
+            -0.00481714,
+            -0.02331742
+          ]
+        },
+        {
+          "frame": 45,
+          "position": [
+            0.00387025,
+            -0.00425105,
+            -0.02417544
+          ]
+        },
+        {
+          "frame": 46,
+          "position": [
+            0.00326899,
+            -0.00469117,
+            -0.02409369
+          ]
+        },
+        {
+          "frame": 47,
+          "position": [
+            0.00254234,
+            -0.00520597,
+            -0.02325211
+          ]
+        },
+        {
+          "frame": 48,
+          "position": [
+            0.00178995,
+            -0.00512559,
+            -0.02192093
+          ]
+        },
+        {
+          "frame": 49,
+          "position": [
+            0.0013382,
+            -0.00441054,
+            -0.02060599
+          ]
+        },
+        {
+          "frame": 50,
+          "position": [
+            0.00098714,
+            -0.004041,
+            -0.01902708
+          ]
+        },
+        {
+          "frame": 51,
+          "position": [
+            0.00093951,
+            -0.00362559,
+            -0.0173974
+          ]
+        },
+        {
+          "frame": 52,
+          "position": [
+            0.0011668,
+            -0.00355226,
+            -0.01603754
+          ]
+        },
+        {
+          "frame": 53,
+          "position": [
+            0.00164956,
+            -0.00354968,
+            -0.01496368
+          ]
+        },
+        {
+          "frame": 54,
+          "position": [
+            0.00222659,
+            -0.00342916,
+            -0.01461706
+          ]
+        },
+        {
+          "frame": 55,
+          "position": [
+            0.00303384,
+            -0.0028948,
+            -0.01510527
+          ]
+        },
+        {
+          "frame": 56,
+          "position": [
+            0.00417706,
+            -0.00251092,
+            -0.0164976
+          ]
+        },
+        {
+          "frame": 57,
+          "position": [
+            0.00531873,
+            -0.00103878,
+            -0.01829962
+          ]
+        },
+        {
+          "frame": 58,
+          "position": [
+            0.00603198,
+            -0.00067373,
+            -0.02018059
+          ]
+        },
+        {
+          "frame": 59,
+          "position": [
+            0.0063292,
+            0.00021456,
+            -0.0216114
+          ]
+        },
+        {
+          "frame": 60,
+          "position": [
+            0.0057478,
+            0.00101127,
+            -0.02220251
+          ]
+        },
+        {
+          "frame": 61,
+          "position": [
+            0.00517203,
+            0.00316973,
+            -0.02145401
+          ]
+        },
+        {
+          "frame": 62,
+          "position": [
+            0.00447129,
+            0.00480841,
+            -0.01985782
+          ]
+        },
+        {
+          "frame": 63,
+          "position": [
+            0.00316821,
+            0.00607975,
+            -0.01749319
+          ]
+        },
+        {
+          "frame": 64,
+          "position": [
+            0.00255771,
+            0.00694516,
+            -0.01365631
+          ]
+        },
+        {
+          "frame": 65,
+          "position": [
+            0.00293969,
+            0.00814554,
+            -0.00914932
+          ]
+        },
+        {
+          "frame": 66,
+          "position": [
+            0.00174921,
+            0.00861117,
+            -0.00600696
+          ]
+        },
+        {
+          "frame": 67,
+          "position": [
+            0.00052626,
+            0.00966442,
+            -0.00354735
+          ]
+        },
+        {
+          "frame": 68,
+          "position": [
+            0.00122894,
+            0.00784558,
+            -0.00148249
+          ]
+        },
+        {
+          "frame": 69,
+          "position": [
+            0.00169359,
+            0.00642181,
+            0.00070281
+          ]
+        },
+        {
+          "frame": 70,
+          "position": [
+            0.00178248,
+            0.00523581,
+            0.00221081
+          ]
+        },
+        {
+          "frame": 71,
+          "position": [
+            0.00242995,
+            0.00422681,
+            0.00302904
+          ]
+        },
+        {
+          "frame": 72,
+          "position": [
+            0.00197365,
+            0.00326477,
+            0.00308762
+          ]
+        },
+        {
+          "frame": 73,
+          "position": [
+            0.0019797,
+            0.00098671,
+            0.00365303
+          ]
+        },
+        {
+          "frame": 74,
+          "position": [
+            0.00217616,
+            -0.00313067,
+            0.00407139
+          ]
+        },
+        {
+          "frame": 75,
+          "position": [
+            0.00207423,
+            -0.00510214,
+            0.00409591
+          ]
+        },
+        {
+          "frame": 76,
+          "position": [
+            0.00199537,
+            -0.00564066,
+            0.00397047
+          ]
+        },
+        {
+          "frame": 77,
+          "position": [
+            0.00179824,
+            -0.00534234,
+            0.00379364
+          ]
+        },
+        {
+          "frame": 78,
+          "position": [
+            0.00151975,
+            -0.00474089,
+            0.00344381
+          ]
+        },
+        {
+          "frame": 79,
+          "position": [
+            0.00112062,
+            -0.00412257,
+            0.00288333
+          ]
+        },
+        {
+          "frame": 80,
+          "position": [
+            0.00052792,
+            -0.00371057,
+            0.00229106
+          ]
+        },
+        {
+          "frame": 81,
+          "position": [
+            -3.409e-05,
+            -0.00328702,
+            0.00202507
+          ]
+        },
+        {
+          "frame": 82,
+          "position": [
+            -0.00036926,
+            -0.00298024,
+            0.00186963
+          ]
+        },
+        {
+          "frame": 83,
+          "position": [
+            -0.00146591,
+            -0.00246879,
+            0.00134221
+          ]
+        },
+        {
+          "frame": 84,
+          "position": [
+            -0.00268425,
+            -0.00199268,
+            0.00072797
+          ]
+        },
+        {
+          "frame": 85,
+          "position": [
+            -0.00413325,
+            -0.00065799,
+            0.00072589
+          ]
+        },
+        {
+          "frame": 86,
+          "position": [
+            -0.0051487,
+            0.00014019,
+            0.00076463
+          ]
+        },
+        {
+          "frame": 87,
+          "position": [
+            -0.0053617,
+            -0.00037796,
+            0.00096179
+          ]
+        },
+        {
+          "frame": 88,
+          "position": [
+            -0.00537773,
+            -0.00150204,
+            0.00121293
+          ]
+        },
+        {
+          "frame": 89,
+          "position": [
+            -0.00543435,
+            -0.00275591,
+            0.00221726
+          ]
+        },
+        {
+          "frame": 90,
+          "position": [
+            -0.00549618,
+            -0.00416739,
+            0.00336449
+          ]
+        },
+        {
+          "frame": 91,
+          "position": [
+            -0.005425,
+            -0.00676126,
+            0.00493999
+          ]
+        },
+        {
+          "frame": 92,
+          "position": [
+            -0.00550953,
+            -0.00862827,
+            0.00552354
+          ]
+        },
+        {
+          "frame": 93,
+          "position": [
+            -0.00467683,
+            -0.01040426,
+            0.00667056
+          ]
+        },
+        {
+          "frame": 94,
+          "position": [
+            -0.00379298,
+            -0.01061647,
+            0.00792211
+          ]
+        },
+        {
+          "frame": 95,
+          "position": [
+            -0.00195111,
+            -0.009665,
+            0.00944166
+          ]
+        },
+        {
+          "frame": 96,
+          "position": [
+            -0.00081769,
+            -0.00781114,
+            0.01000972
+          ]
+        },
+        {
+          "frame": 97,
+          "position": [
+            0.00016694,
+            -0.00648936,
+            0.01030083
+          ]
+        },
+        {
+          "frame": 98,
+          "position": [
+            0.00081044,
+            -0.00489518,
+            0.01035168
+          ]
+        },
+        {
+          "frame": 99,
+          "position": [
+            0.00114461,
+            -0.00247277,
+            0.01002236
+          ]
+        },
+        {
+          "frame": 100,
+          "position": [
+            0.00118299,
+            -0.00030114,
+            0.00919731
+          ]
+        },
+        {
+          "frame": 101,
+          "position": [
+            0.00081688,
+            0.00179076,
+            0.00809848
+          ]
+        },
+        {
+          "frame": 102,
+          "position": [
+            0.00027868,
+            0.00374581,
+            0.0070196
+          ]
+        },
+        {
+          "frame": 103,
+          "position": [
+            -3.026e-05,
+            0.00544781,
+            0.00630759
+          ]
+        },
+        {
+          "frame": 104,
+          "position": [
+            -0.00016352,
+            0.00656162,
+            0.00553301
+          ]
+        },
+        {
+          "frame": 105,
+          "position": [
+            -0.00019642,
+            0.00634857,
+            0.00467473
+          ]
+        },
+        {
+          "frame": 106,
+          "position": [
+            -2.253e-05,
+            0.00589587,
+            0.00364053
+          ]
+        },
+        {
+          "frame": 107,
+          "position": [
+            9.121e-05,
+            0.00550844,
+            0.00236179
+          ]
+        },
+        {
+          "frame": 108,
+          "position": [
+            0.00012993,
+            0.00545067,
+            0.00076113
+          ]
+        },
+        {
+          "frame": 109,
+          "position": [
+            5.604e-05,
+            0.00580754,
+            -0.00132546
+          ]
+        },
+        {
+          "frame": 110,
+          "position": [
+            0.00013433,
+            0.00525771,
+            -0.00419207
+          ]
+        },
+        {
+          "frame": 111,
+          "position": [
+            0.00029645,
+            0.00500308,
+            -0.007287
+          ]
+        },
+        {
+          "frame": 112,
+          "position": [
+            0.00136306,
+            0.0049554,
+            -0.00950804
+          ]
+        },
+        {
+          "frame": 113,
+          "position": [
+            0.00381973,
+            0.00281585,
+            -0.01009996
+          ]
+        },
+        {
+          "frame": 114,
+          "position": [
+            0.00723411,
+            0.00056243,
+            -0.00989302
+          ]
+        },
+        {
+          "frame": 115,
+          "position": [
+            0.01077586,
+            -0.00203531,
+            -0.00768722
+          ]
+        },
+        {
+          "frame": 116,
+          "position": [
+            0.01489537,
+            -0.00473068,
+            -0.00397536
+          ]
+        },
+        {
+          "frame": 117,
+          "position": [
+            0.01844253,
+            -0.00757644,
+            0.00037674
+          ]
+        },
+        {
+          "frame": 118,
+          "position": [
+            0.02152047,
+            -0.01112628,
+            0.00536777
+          ]
+        },
+        {
+          "frame": 119,
+          "position": [
+            0.02402091,
+            -0.01254777,
+            0.01101028
+          ]
+        },
+        {
+          "frame": 120,
+          "position": [
+            0.0257525,
+            -0.01534341,
+            0.01641674
+          ]
+        },
+        {
+          "frame": 121,
+          "position": [
+            0.02665654,
+            -0.02008153,
+            0.02198988
+          ]
+        },
+        {
+          "frame": 122,
+          "position": [
+            0.02679072,
+            -0.02322179,
+            0.02631317
+          ]
+        },
+        {
+          "frame": 123,
+          "position": [
+            0.02667844,
+            -0.0243393,
+            0.02978357
+          ]
+        },
+        {
+          "frame": 124,
+          "position": [
+            0.02667287,
+            -0.02493139,
+            0.03161594
+          ]
+        },
+        {
+          "frame": 125,
+          "position": [
+            0.02680597,
+            -0.02421463,
+            0.03270905
+          ]
+        },
+        {
+          "frame": 126,
+          "position": [
+            0.02734258,
+            -0.02256335,
+            0.03366096
+          ]
+        },
+        {
+          "frame": 127,
+          "position": [
+            0.02822838,
+            -0.02134502,
+            0.03431045
+          ]
+        },
+        {
+          "frame": 128,
+          "position": [
+            0.02938252,
+            -0.0197908,
+            0.03459011
+          ]
+        },
+        {
+          "frame": 129,
+          "position": [
+            0.03088715,
+            -0.0190763,
+            0.03501353
+          ]
+        },
+        {
+          "frame": 130,
+          "position": [
+            0.03279969,
+            -0.01811015,
+            0.03568104
+          ]
+        },
+        {
+          "frame": 131,
+          "position": [
+            0.03499743,
+            -0.01632247,
+            0.03602033
+          ]
+        },
+        {
+          "frame": 132,
+          "position": [
+            0.03719346,
+            -0.01450161,
+            0.03652977
+          ]
+        },
+        {
+          "frame": 133,
+          "position": [
+            0.03940621,
+            -0.01191536,
+            0.03712114
+          ]
+        },
+        {
+          "frame": 134,
+          "position": [
+            0.04136931,
+            -0.01000496,
+            0.0375865
+          ]
+        },
+        {
+          "frame": 135,
+          "position": [
+            0.04301744,
+            -0.00742992,
+            0.03750489
+          ]
+        },
+        {
+          "frame": 136,
+          "position": [
+            0.0443658,
+            -0.00568436,
+            0.03664096
+          ]
+        },
+        {
+          "frame": 137,
+          "position": [
+            0.04597919,
+            -0.00642202,
+            0.03668873
+          ]
+        },
+        {
+          "frame": 138,
+          "position": [
+            0.04798291,
+            -0.00543448,
+            0.03585097
+          ]
+        },
+        {
+          "frame": 139,
+          "position": [
+            0.0489687,
+            -0.00483175,
+            0.03417628
+          ]
+        },
+        {
+          "frame": 140,
+          "position": [
+            0.05010204,
+            -0.00153356,
+            0.03049998
+          ]
+        },
+        {
+          "frame": 141,
+          "position": [
+            0.05078328,
+            0.00167257,
+            0.0263241
+          ]
+        },
+        {
+          "frame": 142,
+          "position": [
+            0.05081774,
+            0.00497596,
+            0.02137649
+          ]
+        },
+        {
+          "frame": 143,
+          "position": [
+            0.05044351,
+            0.00811362,
+            0.0162135
+          ]
+        },
+        {
+          "frame": 144,
+          "position": [
+            0.04906424,
+            0.01049078,
+            0.01160986
+          ]
+        },
+        {
+          "frame": 145,
+          "position": [
+            0.04657239,
+            0.01260573,
+            0.00728465
+          ]
+        },
+        {
+          "frame": 146,
+          "position": [
+            0.0433671,
+            0.01437825,
+            0.00255721
+          ]
+        },
+        {
+          "frame": 147,
+          "position": [
+            0.03903032,
+            0.01457625,
+            -0.00094992
+          ]
+        },
+        {
+          "frame": 148,
+          "position": [
+            0.03437456,
+            0.01528799,
+            -0.00392132
+          ]
+        },
+        {
+          "frame": 149,
+          "position": [
+            0.0297164,
+            0.01608729,
+            -0.00602299
+          ]
+        },
+        {
+          "frame": 150,
+          "position": [
+            0.02566373,
+            0.01684022,
+            -0.00710238
+          ]
+        },
+        {
+          "frame": 151,
+          "position": [
+            0.02203816,
+            0.01694589,
+            -0.00794844
+          ]
+        },
+        {
+          "frame": 152,
+          "position": [
+            0.01877149,
+            0.01727689,
+            -0.00848663
+          ]
+        },
+        {
+          "frame": 153,
+          "position": [
+            0.0161428,
+            0.01698598,
+            -0.0095869
+          ]
+        },
+        {
+          "frame": 154,
+          "position": [
+            0.01464035,
+            0.01653402,
+            -0.01049106
+          ]
+        },
+        {
+          "frame": 155,
+          "position": [
+            0.0129133,
+            0.01527173,
+            -0.01137853
+          ]
+        },
+        {
+          "frame": 156,
+          "position": [
+            0.01121869,
+            0.01303115,
+            -0.01228446
+          ]
+        },
+        {
+          "frame": 157,
+          "position": [
+            0.00981758,
+            0.01000616,
+            -0.01301203
+          ]
+        },
+        {
+          "frame": 158,
+          "position": [
+            0.00910825,
+            0.00691874,
+            -0.01365595
+          ]
+        },
+        {
+          "frame": 159,
+          "position": [
+            0.00774112,
+            0.00351908,
+            -0.01446235
+          ]
+        },
+        {
+          "frame": 160,
+          "position": [
+            0.00608762,
+            0.0028351,
+            -0.01452649
+          ]
+        },
+        {
+          "frame": 161,
+          "position": [
+            0.00492466,
+            0.0027502,
+            -0.01432792
+          ]
+        },
+        {
+          "frame": 162,
+          "position": [
+            0.00420579,
+            0.0026486,
+            -0.01415997
+          ]
+        },
+        {
+          "frame": 163,
+          "position": [
+            0.00360666,
+            0.00305685,
+            -0.01397855
+          ]
+        },
+        {
+          "frame": 164,
+          "position": [
+            0.00287165,
+            0.00375704,
+            -0.01384793
+          ]
+        },
+        {
+          "frame": 165,
+          "position": [
+            0.00205423,
+            0.00386805,
+            -0.01376744
+          ]
+        },
+        {
+          "frame": 166,
+          "position": [
+            0.00129915,
+            0.0040614,
+            -0.01332008
+          ]
+        },
+        {
+          "frame": 167,
+          "position": [
+            0.00077587,
+            0.00389264,
+            -0.01289335
+          ]
+        },
+        {
+          "frame": 168,
+          "position": [
+            0.00028238,
+            0.00328901,
+            -0.01264613
+          ]
+        },
+        {
+          "frame": 169,
+          "position": [
+            6.05e-06,
+            0.00244281,
+            -0.01249142
+          ]
+        },
+        {
+          "frame": 170,
+          "position": [
+            -0.00010051,
+            0.00164118,
+            -0.01215325
+          ]
+        },
+        {
+          "frame": 171,
+          "position": [
+            -0.00044417,
+            0.00223968,
+            -0.01170248
+          ]
+        },
+        {
+          "frame": 172,
+          "position": [
+            -0.00076007,
+            0.00215304,
+            -0.01107809
+          ]
+        },
+        {
+          "frame": 173,
+          "position": [
+            -0.00089916,
+            0.00171499,
+            -0.0101617
+          ]
+        },
+        {
+          "frame": 174,
+          "position": [
+            -0.00115455,
+            0.0021799,
+            -0.00932933
+          ]
+        },
+        {
+          "frame": 175,
+          "position": [
+            -0.00110895,
+            0.00165203,
+            -0.00817815
+          ]
+        },
+        {
+          "frame": 176,
+          "position": [
+            -0.00117722,
+            0.00147296,
+            -0.00706655
+          ]
+        },
+        {
+          "frame": 177,
+          "position": [
+            -0.00148774,
+            0.00161059,
+            -0.00624176
+          ]
+        },
+        {
+          "frame": 178,
+          "position": [
+            -0.00179245,
+            0.00153462,
+            -0.00540248
+          ]
+        },
+        {
+          "frame": 179,
+          "position": [
+            -0.001986,
+            0.00187008,
+            -0.00471931
+          ]
+        },
+        {
+          "frame": 180,
+          "position": [
+            -0.00203254,
+            0.00181533,
+            -0.0039491
+          ]
+        },
+        {
+          "frame": 181,
+          "position": [
+            -0.00180593,
+            0.00151672,
+            -0.00316935
+          ]
+        },
+        {
+          "frame": 182,
+          "position": [
+            -0.00169771,
+            0.00169627,
+            -0.00235818
+          ]
+        },
+        {
+          "frame": 183,
+          "position": [
+            -0.0015698,
+            0.00182997,
+            -0.00183821
+          ]
+        },
+        {
+          "frame": 184,
+          "position": [
+            -0.00139888,
+            0.0018512,
+            -0.00139505
+          ]
+        },
+        {
+          "frame": 185,
+          "position": [
+            -0.00115346,
+            0.00189187,
+            -0.00095649
+          ]
+        },
+        {
+          "frame": 186,
+          "position": [
+            -0.00093249,
+            0.00179555,
+            -0.00062944
+          ]
+        },
+        {
+          "frame": 187,
+          "position": [
+            -0.00069957,
+            0.00110563,
+            -0.00044848
+          ]
+        },
+        {
+          "frame": 188,
+          "position": [
+            -0.00049779,
+            0.00086224,
+            -0.00025044
+          ]
+        },
+        {
+          "frame": 189,
+          "position": [
+            -0.00030439,
+            0.00048285,
+            -0.00018719
+          ]
+        },
+        {
+          "frame": 190,
+          "position": [
+            -0.00018798,
+            0.00019752,
+            -0.00011272
+          ]
+        },
+        {
+          "frame": 191,
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "anim_chr_player_interact_gather": {
+      "source": "art/source/characters/chr_player_juvenile/source_locked_v06/anime/Picking Up.fbx",
+      "source_action": "Armature.001|mixamo.com|Layer0.005",
+      "frames": [
+        1,
+        146,
+        146
+      ],
+      "candidates": {
+        "local_delta": {
+          "metrics": {
+            "direction_mean_deg": 31.95746,
+            "direction_p95_deg": 71.36953,
+            "direction_max_deg": 96.23062,
+            "rotation_mean_deg": 39.32463,
+            "endpoint_mean_m": 0.113047,
+            "endpoint_max_m": 0.539511,
+            "samples": 3212,
+            "by_bone_direction_mean_deg": {
+              "Hips": 9.4718,
+              "Spine": 24.77879,
+              "Spine1": 27.06791,
+              "Spine2": 30.15982,
+              "Neck": 36.83126,
+              "Head": 47.71234,
+              "LeftShoulder": 8.8052,
+              "LeftArm": 50.15241,
+              "LeftForeArm": 64.37024,
+              "LeftHand": 65.03133,
+              "RightShoulder": 36.50655,
+              "RightArm": 73.00149,
+              "RightForeArm": 37.01836,
+              "RightHand": 36.32639,
+              "LeftUpLeg": 39.85699,
+              "LeftLeg": 31.32667,
+              "LeftFoot": 22.51557,
+              "LeftToeBase": 22.80622,
+              "RightUpLeg": 20.98724,
+              "RightLeg": 6.65293,
+              "RightFoot": 5.75521,
+              "RightToeBase": 5.92932
+            }
+          },
+          "hips_position": {
+            "mean_m": 0.0,
+            "max_m": 0.0,
+            "source_dynamic_range_m": 0.19896,
+            "retarget_dynamic_range_m": 0.19896,
+            "source_cycle_drift_m": 0.0,
+            "has_dynamic_position": true
+          },
+          "frames": [
+            1,
+            146,
+            146
+          ]
+        },
+        "world_rest": {
+          "metrics": {
+            "direction_mean_deg": 34.70629,
+            "direction_p95_deg": 76.95195,
+            "direction_max_deg": 82.28458,
+            "rotation_mean_deg": 37.45668,
+            "endpoint_mean_m": 0.115371,
+            "endpoint_max_m": 0.33231,
+            "samples": 3212,
+            "by_bone_direction_mean_deg": {
+              "Hips": 9.4718,
+              "Spine": 30.57143,
+              "Spine1": 33.58896,
+              "Spine2": 37.76302,
+              "Neck": 40.83995,
+              "Head": 36.67084,
+              "LeftShoulder": 29.62974,
+              "LeftArm": 72.74312,
+              "LeftForeArm": 66.56056,
+              "LeftHand": 70.40752,
+              "RightShoulder": 11.83354,
+              "RightArm": 74.3283,
+              "RightForeArm": 57.24388,
+              "RightHand": 56.49823,
+              "LeftUpLeg": 28.34168,
+              "LeftLeg": 14.12861,
+              "LeftFoot": 18.27548,
+              "LeftToeBase": 27.89755,
+              "RightUpLeg": 20.68583,
+              "RightLeg": 7.87111,
+              "RightFoot": 4.19328,
+              "RightToeBase": 13.99406
+            }
+          },
+          "hips_position": {
+            "mean_m": 0.0,
+            "max_m": 0.0,
+            "source_dynamic_range_m": 0.19896,
+            "retarget_dynamic_range_m": 0.19896,
+            "source_cycle_drift_m": 0.0,
+            "has_dynamic_position": true
+          },
+          "frames": [
+            1,
+            146,
+            146
+          ]
+        },
+        "pose_direction": {
+          "metrics": {
+            "direction_mean_deg": 0.0,
+            "direction_p95_deg": 0.0,
+            "direction_max_deg": 0.0,
+            "rotation_mean_deg": 1e-05,
+            "endpoint_mean_m": 0.0,
+            "endpoint_max_m": 2e-06,
+            "samples": 3212,
+            "by_bone_direction_mean_deg": {
+              "Hips": 0.0,
+              "Spine": 0.0,
+              "Spine1": 0.0,
+              "Spine2": 0.0,
+              "Neck": 0.0,
+              "Head": 0.0,
+              "LeftShoulder": 0.0,
+              "LeftArm": 0.0,
+              "LeftForeArm": 0.0,
+              "LeftHand": 0.0,
+              "RightShoulder": 0.0,
+              "RightArm": 0.0,
+              "RightForeArm": 0.0,
+              "RightHand": 0.0,
+              "LeftUpLeg": 0.0,
+              "LeftLeg": 0.0,
+              "LeftFoot": 0.0,
+              "LeftToeBase": 0.0,
+              "RightUpLeg": 0.0,
+              "RightLeg": 0.0,
+              "RightFoot": 0.0,
+              "RightToeBase": 0.0
+            }
+          },
+          "hips_position": {
+            "mean_m": 0.0,
+            "max_m": 0.0,
+            "source_dynamic_range_m": 0.19896,
+            "retarget_dynamic_range_m": 0.19896,
+            "source_cycle_drift_m": 0.0,
+            "has_dynamic_position": true
+          },
+          "frames": [
+            1,
+            146,
+            146
+          ]
+        }
+      },
+      "selected_algorithm": "pose_direction",
+      "bone_count": 22,
+      "in_place": true,
+      "hips_position_keys": [
+        {
+          "frame": 1,
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 2,
+          "position": [
+            -5.108e-05,
+            -4.565e-05,
+            -0.00021417
+          ]
+        },
+        {
+          "frame": 3,
+          "position": [
+            -0.00013307,
+            -9.332e-05,
+            -0.00049881
+          ]
+        },
+        {
+          "frame": 4,
+          "position": [
+            -0.00017377,
+            -0.00013598,
+            -0.00078129
+          ]
+        },
+        {
+          "frame": 5,
+          "position": [
+            -0.00018226,
+            -0.0001998,
+            -0.00103754
+          ]
+        },
+        {
+          "frame": 6,
+          "position": [
+            -0.00020491,
+            -0.00028139,
+            -0.0012939
+          ]
+        },
+        {
+          "frame": 7,
+          "position": [
+            -0.00026716,
+            -0.00038254,
+            -0.00159065
+          ]
+        },
+        {
+          "frame": 8,
+          "position": [
+            -0.00036007,
+            -0.00052589,
+            -0.00193496
+          ]
+        },
+        {
+          "frame": 9,
+          "position": [
+            -0.00049794,
+            -0.0007226,
+            -0.00232346
+          ]
+        },
+        {
+          "frame": 10,
+          "position": [
+            -0.00070725,
+            -0.00097539,
+            -0.00275159
+          ]
+        },
+        {
+          "frame": 11,
+          "position": [
+            -0.00100744,
+            -0.00128567,
+            -0.00321884
+          ]
+        },
+        {
+          "frame": 12,
+          "position": [
+            -0.00145155,
+            -0.0016256,
+            -0.00379917
+          ]
+        },
+        {
+          "frame": 13,
+          "position": [
+            -0.00213016,
+            -0.0019706,
+            -0.00460548
+          ]
+        },
+        {
+          "frame": 14,
+          "position": [
+            -0.00311462,
+            -0.00232607,
+            -0.00571353
+          ]
+        },
+        {
+          "frame": 15,
+          "position": [
+            -0.00445885,
+            -0.00265822,
+            -0.0071691
+          ]
+        },
+        {
+          "frame": 16,
+          "position": [
+            -0.0062212,
+            -0.00297723,
+            -0.00911715
+          ]
+        },
+        {
+          "frame": 17,
+          "position": [
+            -0.00850719,
+            -0.0033405,
+            -0.01173451
+          ]
+        },
+        {
+          "frame": 18,
+          "position": [
+            -0.01148102,
+            -0.00394628,
+            -0.01511271
+          ]
+        },
+        {
+          "frame": 19,
+          "position": [
+            -0.01512176,
+            -0.00476914,
+            -0.01921842
+          ]
+        },
+        {
+          "frame": 20,
+          "position": [
+            -0.01941578,
+            -0.00579517,
+            -0.02408925
+          ]
+        },
+        {
+          "frame": 21,
+          "position": [
+            -0.02447973,
+            -0.00714129,
+            -0.02994104
+          ]
+        },
+        {
+          "frame": 22,
+          "position": [
+            -0.03026347,
+            -0.0089827,
+            -0.0367206
+          ]
+        },
+        {
+          "frame": 23,
+          "position": [
+            -0.03659269,
+            -0.01133704,
+            -0.04403337
+          ]
+        },
+        {
+          "frame": 24,
+          "position": [
+            -0.04329584,
+            -0.01405136,
+            -0.05125533
+          ]
+        },
+        {
+          "frame": 25,
+          "position": [
+            -0.05018926,
+            -0.01705489,
+            -0.05805679
+          ]
+        },
+        {
+          "frame": 26,
+          "position": [
+            -0.05702646,
+            -0.0203348,
+            -0.06452161
+          ]
+        },
+        {
+          "frame": 27,
+          "position": [
+            -0.06363855,
+            -0.02393846,
+            -0.0704966
+          ]
+        },
+        {
+          "frame": 28,
+          "position": [
+            -0.06996482,
+            -0.02800084,
+            -0.07561088
+          ]
+        },
+        {
+          "frame": 29,
+          "position": [
+            -0.07603773,
+            -0.03256376,
+            -0.07978573
+          ]
+        },
+        {
+          "frame": 30,
+          "position": [
+            -0.08190337,
+            -0.03739602,
+            -0.08311751
+          ]
+        },
+        {
+          "frame": 31,
+          "position": [
+            -0.08748122,
+            -0.04212004,
+            -0.0854528
+          ]
+        },
+        {
+          "frame": 32,
+          "position": [
+            -0.09257928,
+            -0.04674419,
+            -0.086655
+          ]
+        },
+        {
+          "frame": 33,
+          "position": [
+            -0.09697957,
+            -0.05147815,
+            -0.08696833
+          ]
+        },
+        {
+          "frame": 34,
+          "position": [
+            -0.10073808,
+            -0.05623119,
+            -0.08650544
+          ]
+        },
+        {
+          "frame": 35,
+          "position": [
+            -0.10412695,
+            -0.06071169,
+            -0.08495899
+          ]
+        },
+        {
+          "frame": 36,
+          "position": [
+            -0.10732733,
+            -0.06490797,
+            -0.08216456
+          ]
+        },
+        {
+          "frame": 37,
+          "position": [
+            -0.1104292,
+            -0.06904093,
+            -0.07849436
+          ]
+        },
+        {
+          "frame": 38,
+          "position": [
+            -0.11343037,
+            -0.07326436,
+            -0.07448854
+          ]
+        },
+        {
+          "frame": 39,
+          "position": [
+            -0.11629051,
+            -0.07763197,
+            -0.07041577
+          ]
+        },
+        {
+          "frame": 40,
+          "position": [
+            -0.11900739,
+            -0.08216362,
+            -0.06635936
+          ]
+        },
+        {
+          "frame": 41,
+          "position": [
+            -0.12167249,
+            -0.08694606,
+            -0.06234466
+          ]
+        },
+        {
+          "frame": 42,
+          "position": [
+            -0.1241831,
+            -0.09208666,
+            -0.05845416
+          ]
+        },
+        {
+          "frame": 43,
+          "position": [
+            -0.12646803,
+            -0.09769608,
+            -0.05497139
+          ]
+        },
+        {
+          "frame": 44,
+          "position": [
+            -0.1286104,
+            -0.10361998,
+            -0.05211417
+          ]
+        },
+        {
+          "frame": 45,
+          "position": [
+            -0.13066898,
+            -0.1096345,
+            -0.04992328
+          ]
+        },
+        {
+          "frame": 46,
+          "position": [
+            -0.13256967,
+            -0.11556754,
+            -0.04851729
+          ]
+        },
+        {
+          "frame": 47,
+          "position": [
+            -0.13423158,
+            -0.12113168,
+            -0.04798451
+          ]
+        },
+        {
+          "frame": 48,
+          "position": [
+            -0.1356653,
+            -0.12581362,
+            -0.04837979
+          ]
+        },
+        {
+          "frame": 49,
+          "position": [
+            -0.13676311,
+            -0.12873918,
+            -0.04979786
+          ]
+        },
+        {
+          "frame": 50,
+          "position": [
+            -0.13782093,
+            -0.1302672,
+            -0.05197632
+          ]
+        },
+        {
+          "frame": 51,
+          "position": [
+            -0.13878015,
+            -0.13059758,
+            -0.05454364
+          ]
+        },
+        {
+          "frame": 52,
+          "position": [
+            -0.13950703,
+            -0.12982523,
+            -0.0571678
+          ]
+        },
+        {
+          "frame": 53,
+          "position": [
+            -0.13978401,
+            -0.12800345,
+            -0.05984518
+          ]
+        },
+        {
+          "frame": 54,
+          "position": [
+            -0.13964841,
+            -0.12503767,
+            -0.06274322
+          ]
+        },
+        {
+          "frame": 55,
+          "position": [
+            -0.13928901,
+            -0.12104723,
+            -0.06585215
+          ]
+        },
+        {
+          "frame": 56,
+          "position": [
+            -0.13865323,
+            -0.11670376,
+            -0.06890545
+          ]
+        },
+        {
+          "frame": 57,
+          "position": [
+            -0.13761082,
+            -0.11246633,
+            -0.07184298
+          ]
+        },
+        {
+          "frame": 58,
+          "position": [
+            -0.1361597,
+            -0.10838978,
+            -0.07455732
+          ]
+        },
+        {
+          "frame": 59,
+          "position": [
+            -0.13450301,
+            -0.10440987,
+            -0.07711373
+          ]
+        },
+        {
+          "frame": 60,
+          "position": [
+            -0.13283229,
+            -0.10048316,
+            -0.07970233
+          ]
+        },
+        {
+          "frame": 61,
+          "position": [
+            -0.13103178,
+            -0.0966294,
+            -0.08221424
+          ]
+        },
+        {
+          "frame": 62,
+          "position": [
+            -0.12896664,
+            -0.09291359,
+            -0.08469567
+          ]
+        },
+        {
+          "frame": 63,
+          "position": [
+            -0.12657173,
+            -0.08947869,
+            -0.08706612
+          ]
+        },
+        {
+          "frame": 64,
+          "position": [
+            -0.12396279,
+            -0.08602396,
+            -0.08892678
+          ]
+        },
+        {
+          "frame": 65,
+          "position": [
+            -0.12115291,
+            -0.0824515,
+            -0.09027086
+          ]
+        },
+        {
+          "frame": 66,
+          "position": [
+            -0.11801013,
+            -0.07894055,
+            -0.09145556
+          ]
+        },
+        {
+          "frame": 67,
+          "position": [
+            -0.11467519,
+            -0.07563212,
+            -0.09262442
+          ]
+        },
+        {
+          "frame": 68,
+          "position": [
+            -0.1112844,
+            -0.07240836,
+            -0.09358669
+          ]
+        },
+        {
+          "frame": 69,
+          "position": [
+            -0.10778108,
+            -0.06900491,
+            -0.09424596
+          ]
+        },
+        {
+          "frame": 70,
+          "position": [
+            -0.10403194,
+            -0.06532422,
+            -0.09461907
+          ]
+        },
+        {
+          "frame": 71,
+          "position": [
+            -0.10001132,
+            -0.06151795,
+            -0.09455504
+          ]
+        },
+        {
+          "frame": 72,
+          "position": [
+            -0.09588355,
+            -0.05787366,
+            -0.09386408
+          ]
+        },
+        {
+          "frame": 73,
+          "position": [
+            -0.09173889,
+            -0.05447976,
+            -0.09260491
+          ]
+        },
+        {
+          "frame": 74,
+          "position": [
+            -0.08755458,
+            -0.0511507,
+            -0.09093527
+          ]
+        },
+        {
+          "frame": 75,
+          "position": [
+            -0.08330777,
+            -0.04779233,
+            -0.0887977
+          ]
+        },
+        {
+          "frame": 76,
+          "position": [
+            -0.07893941,
+            -0.04430393,
+            -0.08636363
+          ]
+        },
+        {
+          "frame": 77,
+          "position": [
+            -0.07448429,
+            -0.04063858,
+            -0.08363025
+          ]
+        },
+        {
+          "frame": 78,
+          "position": [
+            -0.06992945,
+            -0.03694481,
+            -0.08058161
+          ]
+        },
+        {
+          "frame": 79,
+          "position": [
+            -0.06513267,
+            -0.03334167,
+            -0.07705647
+          ]
+        },
+        {
+          "frame": 80,
+          "position": [
+            -0.06028178,
+            -0.02985834,
+            -0.07307783
+          ]
+        },
+        {
+          "frame": 81,
+          "position": [
+            -0.05555863,
+            -0.02668587,
+            -0.06870985
+          ]
+        },
+        {
+          "frame": 82,
+          "position": [
+            -0.05080296,
+            -0.02390327,
+            -0.06420834
+          ]
+        },
+        {
+          "frame": 83,
+          "position": [
+            -0.04597092,
+            -0.02143828,
+            -0.05989486
+          ]
+        },
+        {
+          "frame": 84,
+          "position": [
+            -0.04136619,
+            -0.01922567,
+            -0.05581861
+          ]
+        },
+        {
+          "frame": 85,
+          "position": [
+            -0.03720003,
+            -0.01730275,
+            -0.05194296
+          ]
+        },
+        {
+          "frame": 86,
+          "position": [
+            -0.03317482,
+            -0.01567226,
+            -0.0484477
+          ]
+        },
+        {
+          "frame": 87,
+          "position": [
+            -0.02910828,
+            -0.01418255,
+            -0.04538339
+          ]
+        },
+        {
+          "frame": 88,
+          "position": [
+            -0.02511637,
+            -0.01275467,
+            -0.04255106
+          ]
+        },
+        {
+          "frame": 89,
+          "position": [
+            -0.02125803,
+            -0.01132694,
+            -0.03968801
+          ]
+        },
+        {
+          "frame": 90,
+          "position": [
+            -0.01762294,
+            -0.00993097,
+            -0.0366658
+          ]
+        },
+        {
+          "frame": 91,
+          "position": [
+            -0.01430372,
+            -0.00859539,
+            -0.03368149
+          ]
+        },
+        {
+          "frame": 92,
+          "position": [
+            -0.01125703,
+            -0.00735721,
+            -0.03090313
+          ]
+        },
+        {
+          "frame": 93,
+          "position": [
+            -0.0085089,
+            -0.00621759,
+            -0.02834625
+          ]
+        },
+        {
+          "frame": 94,
+          "position": [
+            -0.00606343,
+            -0.00519183,
+            -0.02604146
+          ]
+        },
+        {
+          "frame": 95,
+          "position": [
+            -0.00376017,
+            -0.00434451,
+            -0.02392005
+          ]
+        },
+        {
+          "frame": 96,
+          "position": [
+            -0.00162961,
+            -0.00371079,
+            -0.02189936
+          ]
+        },
+        {
+          "frame": 97,
+          "position": [
+            0.00030543,
+            -0.00328477,
+            -0.01996577
+          ]
+        },
+        {
+          "frame": 98,
+          "position": [
+            0.00204325,
+            -0.00297873,
+            -0.01813099
+          ]
+        },
+        {
+          "frame": 99,
+          "position": [
+            0.0036059,
+            -0.00268172,
+            -0.01639531
+          ]
+        },
+        {
+          "frame": 100,
+          "position": [
+            0.00506361,
+            -0.00236406,
+            -0.01476001
+          ]
+        },
+        {
+          "frame": 101,
+          "position": [
+            0.00648087,
+            -0.00204756,
+            -0.01320163
+          ]
+        },
+        {
+          "frame": 102,
+          "position": [
+            0.00782022,
+            -0.00177144,
+            -0.01165936
+          ]
+        },
+        {
+          "frame": 103,
+          "position": [
+            0.00902051,
+            -0.00155847,
+            -0.01013526
+          ]
+        },
+        {
+          "frame": 104,
+          "position": [
+            0.01013651,
+            -0.00143925,
+            -0.00875285
+          ]
+        },
+        {
+          "frame": 105,
+          "position": [
+            0.01108205,
+            -0.00146982,
+            -0.00772664
+          ]
+        },
+        {
+          "frame": 106,
+          "position": [
+            0.01189362,
+            -0.00158766,
+            -0.00706846
+          ]
+        },
+        {
+          "frame": 107,
+          "position": [
+            0.01271287,
+            -0.00171878,
+            -0.00664524
+          ]
+        },
+        {
+          "frame": 108,
+          "position": [
+            0.01351364,
+            -0.0018151,
+            -0.00634048
+          ]
+        },
+        {
+          "frame": 109,
+          "position": [
+            0.01416594,
+            -0.0018485,
+            -0.00602042
+          ]
+        },
+        {
+          "frame": 110,
+          "position": [
+            0.01466876,
+            -0.00181781,
+            -0.00563797
+          ]
+        },
+        {
+          "frame": 111,
+          "position": [
+            0.01504795,
+            -0.00177376,
+            -0.00529459
+          ]
+        },
+        {
+          "frame": 112,
+          "position": [
+            0.01534171,
+            -0.00170281,
+            -0.00497323
+          ]
+        },
+        {
+          "frame": 113,
+          "position": [
+            0.01544719,
+            -0.00157237,
+            -0.00450203
+          ]
+        },
+        {
+          "frame": 114,
+          "position": [
+            0.01530855,
+            -0.00148535,
+            -0.00387014
+          ]
+        },
+        {
+          "frame": 115,
+          "position": [
+            0.01501429,
+            -0.00138547,
+            -0.00315
+          ]
+        },
+        {
+          "frame": 116,
+          "position": [
+            0.01465705,
+            -0.00123502,
+            -0.0024145
+          ]
+        },
+        {
+          "frame": 117,
+          "position": [
+            0.01426093,
+            -0.00107759,
+            -0.00176239
+          ]
+        },
+        {
+          "frame": 118,
+          "position": [
+            0.01384365,
+            -0.00088284,
+            -0.00120879
+          ]
+        },
+        {
+          "frame": 119,
+          "position": [
+            0.01342662,
+            -0.00069504,
+            -0.0007175
+          ]
+        },
+        {
+          "frame": 120,
+          "position": [
+            0.01293331,
+            -0.00055961,
+            -0.0004147
+          ]
+        },
+        {
+          "frame": 121,
+          "position": [
+            0.0122782,
+            -0.00045167,
+            -0.00019842
+          ]
+        },
+        {
+          "frame": 122,
+          "position": [
+            0.01154899,
+            -0.00035092,
+            5.391e-05
+          ]
+        },
+        {
+          "frame": 123,
+          "position": [
+            0.01093638,
+            -0.0002538,
+            0.00029187
+          ]
+        },
+        {
+          "frame": 124,
+          "position": [
+            0.01044807,
+            -0.00012317,
+            0.00050786
+          ]
+        },
+        {
+          "frame": 125,
+          "position": [
+            0.00994883,
+            1.79e-06,
+            0.00068208
+          ]
+        },
+        {
+          "frame": 126,
+          "position": [
+            0.00930131,
+            9.824e-05,
+            0.0007777
+          ]
+        },
+        {
+          "frame": 127,
+          "position": [
+            0.00856483,
+            0.0001777,
+            0.00079825
+          ]
+        },
+        {
+          "frame": 128,
+          "position": [
+            0.00781386,
+            0.00024358,
+            0.00079706
+          ]
+        },
+        {
+          "frame": 129,
+          "position": [
+            0.00708133,
+            0.00031661,
+            0.00078391
+          ]
+        },
+        {
+          "frame": 130,
+          "position": [
+            0.00640389,
+            0.00039104,
+            0.00068008
+          ]
+        },
+        {
+          "frame": 131,
+          "position": [
+            0.00573442,
+            0.00042897,
+            0.00047227
+          ]
+        },
+        {
+          "frame": 132,
+          "position": [
+            0.00504291,
+            0.00043648,
+            0.0002361
+          ]
+        },
+        {
+          "frame": 133,
+          "position": [
+            0.00437004,
+            0.00044854,
+            1.348e-05
+          ]
+        },
+        {
+          "frame": 134,
+          "position": [
+            0.00370237,
+            0.00048024,
+            -0.00015207
+          ]
+        },
+        {
+          "frame": 135,
+          "position": [
+            0.00304679,
+            0.00049278,
+            -0.00025563
+          ]
+        },
+        {
+          "frame": 136,
+          "position": [
+            0.00243232,
+            0.00047994,
+            -0.00035204
+          ]
+        },
+        {
+          "frame": 137,
+          "position": [
+            0.00193285,
+            0.00046575,
+            -0.00044384
+          ]
+        },
+        {
+          "frame": 138,
+          "position": [
+            0.00153211,
+            0.00045024,
+            -0.00052087
+          ]
+        },
+        {
+          "frame": 139,
+          "position": [
+            0.00121544,
+            0.00041498,
+            -0.00061267
+          ]
+        },
+        {
+          "frame": 140,
+          "position": [
+            0.00095752,
+            0.0003708,
+            -0.0007115
+          ]
+        },
+        {
+          "frame": 141,
+          "position": [
+            0.00070647,
+            0.0003315,
+            -0.0007435
+          ]
+        },
+        {
+          "frame": 142,
+          "position": [
+            0.00046311,
+            0.0002936,
+            -0.00066116
+          ]
+        },
+        {
+          "frame": 143,
+          "position": [
+            0.00025354,
+            0.00024952,
+            -0.00049626
+          ]
+        },
+        {
+          "frame": 144,
+          "position": [
+            9.266e-05,
+            0.00018916,
+            -0.00031892
+          ]
+        },
+        {
+          "frame": 145,
+          "position": [
+            -3.475e-05,
+            0.00010599,
+            -0.00017728
+          ]
+        },
+        {
+          "frame": 146,
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
     "anim_chr_player_turn_180": {
       "source": "art/source/characters/chr_player_juvenile/source_locked_v06/anime/Walking Turn 180.fbx",
-      "source_action": "Armature.001|mixamo.com|Layer0.003",
+      "source_action": "Armature.001|mixamo.com|Layer0.006",
       "frames": [
         1,
         31,
@@ -2201,7 +6145,7 @@
     },
     "anim_chr_player_jump": {
       "source": "art/source/characters/chr_player_juvenile/source_locked_v06/anime/Jumping.fbx",
-      "source_action": "Armature.001|mixamo.com|Layer0.004",
+      "source_action": "Armature.001|mixamo.com|Layer0.007",
       "frames": [
         1,
         98,

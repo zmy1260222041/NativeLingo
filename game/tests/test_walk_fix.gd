@@ -7,9 +7,12 @@ extends SceneTree
 ## remain in-place so PlayerController owns world movement.
 
 const REQUIRED := [
+	"anim_chr_player_idle_neutral",
 	"anim_chr_player_walk_forward",
 	"anim_chr_player_run_forward",
 	"anim_chr_player_gesture_point",
+	"anim_chr_player_interact_observe",
+	"anim_chr_player_interact_gather",
 	"anim_chr_player_turn_180",
 	"anim_chr_player_jump",
 ]
@@ -78,19 +81,28 @@ func _init() -> void:
 						for key_index in animation.track_get_key_count(track_index):
 							max_offset = maxf(max_offset, (animation.track_get_key_value(track_index, key_index) as Vector3).distance_to(first))
 						has_dynamic_hips_position = max_offset > 0.001
-			if name in ["anim_chr_player_walk_forward", "anim_chr_player_run_forward", "anim_chr_player_turn_180", "anim_chr_player_jump"] and not has_dynamic_hips_position:
+			if name in ["anim_chr_player_idle_neutral", "anim_chr_player_walk_forward", "anim_chr_player_run_forward", "anim_chr_player_interact_observe", "anim_chr_player_interact_gather", "anim_chr_player_turn_180", "anim_chr_player_jump"] and not has_dynamic_hips_position:
 				failures.append("%s lost dynamic Hips position" % name)
+	var idle := ap.get_animation("anim_chr_player_idle_neutral")
 	var walk := ap.get_animation("anim_chr_player_walk_forward")
 	var run := ap.get_animation("anim_chr_player_run_forward")
 	var point := ap.get_animation("anim_chr_player_gesture_point")
+	var observe := ap.get_animation("anim_chr_player_interact_observe")
+	var gather := ap.get_animation("anim_chr_player_interact_gather")
 	var turn := ap.get_animation("anim_chr_player_turn_180")
 	var jump := ap.get_animation("anim_chr_player_jump")
+	if idle == null or idle.loop_mode == Animation.LOOP_NONE:
+		failures.append("standing idle is not looping")
 	if walk == null or walk.loop_mode == Animation.LOOP_NONE:
 		failures.append("walk is not looping")
 	if run == null or run.loop_mode == Animation.LOOP_NONE:
 		failures.append("run is not looping")
 	if point != null and point.loop_mode != Animation.LOOP_NONE:
 		failures.append("pointing gesture should be non-looping")
+	if observe != null and observe.loop_mode != Animation.LOOP_NONE:
+		failures.append("observe interaction should be non-looping")
+	if gather != null and gather.loop_mode != Animation.LOOP_NONE:
+		failures.append("gather interaction should be non-looping")
 	if turn != null and turn.loop_mode != Animation.LOOP_NONE:
 		failures.append("180 turn should be non-looping")
 	if jump != null and jump.loop_mode != Animation.LOOP_NONE:
@@ -104,11 +116,27 @@ func _init() -> void:
 	if armature == null:
 		failures.append("runtime armature missing")
 	else:
-		for action_name in ["anim_chr_player_walk_forward", "anim_chr_player_gesture_point", "anim_chr_player_turn_180", "anim_chr_player_jump"]:
+		for action_name in REQUIRED:
 			ap.play(action_name)
 			await process_frame
 			if armature.scale.distance_to(Vector3.ONE) > 0.01:
 				failures.append("%s changes armature scale to %s" % [action_name, armature.scale])
+
+	var environment_expectations := {
+		"berry": "anim_chr_player_interact_gather",
+		"scrap": "anim_chr_player_interact_gather",
+		"water": "anim_chr_player_interact_gather",
+		"heater": "anim_chr_player_interact_observe",
+		"shelter": "anim_chr_player_interact_observe",
+	}
+	for interaction_kind in environment_expectations:
+		visual.gesture_clock = -1.0
+		if not visual.play_environment_interaction(interaction_kind):
+			failures.append("environment interaction rejected: %s" % interaction_kind)
+			continue
+		var actual_animation := String(visual.get_animation_debug_state().get("animation", ""))
+		if actual_animation != environment_expectations[interaction_kind]:
+			failures.append("%s maps to %s instead of %s" % [interaction_kind, actual_animation, environment_expectations[interaction_kind]])
 
 	var skeleton := _find(visual, "Skeleton3D") as Skeleton3D
 	if skeleton == null or walk == null:
@@ -132,7 +160,7 @@ func _init() -> void:
 				failures.append("walk phase %.2f crosses left/right feet" % phase)
 
 	if failures.is_empty():
-		print("PASS: Mixamo walk/run/point/turn/jump actions imported with safe tracks and loop semantics")
+		print("PASS: Mixamo idle/locomotion/interaction/turn/jump actions imported with safe tracks and loop semantics")
 		quit(0)
 	else:
 		print("FAIL: ", failures)

@@ -11,7 +11,9 @@
   "animation":"anim_chr_player_walk_forward","frames":32,"fps":30,"capture":true}}
 ```
 
-返回每帧的动作时间、角色状态和可选 JPEG base64 截图。常用方法：
+返回每帧的动作时间、角色状态和可选 JPEG 截图元数据。截图由运行进程写入
+`user://logs/animation_probe/`，响应只返回 `frame`、`format`、`path`、`bytes`，避免
+多帧 Base64 令 WebSocket 响应过大。常用方法：
 
 - `control.run` / `control.stop`
 - `control.freeze`，参数 `{ "frozen": true }`
@@ -22,15 +24,17 @@
 方向移动回归使用 `input.simulate_action` 依次按住一个方向、松开、再按相反方向。
 `anim_chr_player_turn_180` 和 `anim_chr_player_jump` 也可直接交给
 `control.animation_probe` 做确定性逐帧截图。
+探针激活期间拒绝外部 reaction，并强制显示蒙皮 LOD0；否则远距离静态 LOD 会让所有
+动作截图看起来都像同一个站姿。探针结束后恢复原冻结状态和正常 LOD 选择。
 键盘模拟同时设置逻辑和物理 keycode，适用于项目中 Space/G/W 这类
 `physical_keycode` InputMap；建议 one-shot 按键都发送 press 和 release。
 
 ## 6506 — telemetry
 
-只读状态端口。`animation.get_state` 返回当前动作、播放位置、速度倍率、角色速度、
+只读状态端口。`animation.get_state` 返回最近缓存帧的当前动作、播放位置、速度倍率、角色速度、
 Armature scale、Hips position 和默认的 Head/双脚姿态。请求参数可用
 `{"bones":["Hips","LeftHand","RightHand","LeftLeg","RightLeg","LeftFoot","RightFoot"]}`
-指定采样集合；每根骨骼返回 local `position`/`rotation` 以及 skeleton-space
+调用 `animation.sample` 做实时指定骨集合采样；每根骨骼返回 local `position`/`rotation` 以及 skeleton-space
 `global_position`/`global_rotation` 和实际场景中的 `world_position`/`world_rotation`。
 `animation.subscribe` 会以
 默认 30Hz 推送 `animation.frame` 通知；`log.subscribe` 会推送 `log.event`。

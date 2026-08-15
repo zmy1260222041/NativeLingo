@@ -37,17 +37,22 @@ all five actions on NLA tracks, and exports the GLB. See `assemble_c1_report.jso
 ## User-authored Mixamo action overlay
 
 The same LOD0 mesh was exported to `../mixamo/chr_player_juvenile_tpose.fbx` and used to author
-the five FBX actions in `anime/`: `Walking.fbx`, `Standard Run.fbx`, `Pointing Gesture.fbx`,
-`Walking Turn 180.fbx`, and `Jumping.fbx`.
+the eight FBX actions in `anime/`: `Standing Idle.fbx`, `Walking.fbx`, `Standard Run.fbx`,
+`Pointing Gesture.fbx`, `Looking Around.fbx`, `Picking Up.fbx`, `Walking Turn 180.fbx`,
+and `Jumping.fbx`.
 `../blender/retarget_mixamo_actions.py` maps the 22 shared deform bones onto the target 28-bone
-rig, evaluates both local-basis and world-rest retargeting, and selects the lower-error result
+rig, evaluates local-basis, world-rest, and direction-plus-twist retargeting, and selects the
+lower-error result
 using per-frame world-space bone orientation after rest-axis calibration. The exported actions
 select the lowest-error `pose_direction` result and are written
 in-place to `game/assets/characters/chr_player_juvenile_mixamo.fbx`.
 
-Runtime names include Walk, Run, Point, Turn 180, and Jump. `PlayerController` chooses walk below
-the sprint threshold, run above it, uses Point for grounded gestures, and synchronizes Turn/Jump
-with movement and contact markers; CharacterBody3D remains responsible for world movement.
+Runtime names include Idle, Walk, Run, Point, Observe, Gather, Turn 180, and Jump.
+`Standing Idle.fbx` replaces the cloud-generated idle under the existing
+`anim_chr_player_idle_neutral` contract. `PlayerController` chooses walk below the sprint
+threshold, run above it, uses Point for grounded gestures, Gather for berry/scrap/water,
+Observe for fixed facilities, and synchronizes Turn/Jump with movement and contact markers;
+CharacterBody3D remains responsible for world movement.
 
 ## Gate D status (`game/tests/test_character_asset.gd`)
 

@@ -7,6 +7,8 @@ const RUNTIME_IDLE := "anim_chr_player_idle_neutral"
 const RUNTIME_WALK := "anim_chr_player_walk_forward"
 const RUNTIME_RUN := "anim_chr_player_run_forward"
 const RUNTIME_POINT := "anim_chr_player_gesture_point"
+const RUNTIME_OBSERVE := "anim_chr_player_interact_observe"
+const RUNTIME_GATHER := "anim_chr_player_interact_gather"
 const RUNTIME_TURN_180 := "anim_chr_player_turn_180"
 const RUNTIME_JUMP := "anim_chr_player_jump"
 const RUNTIME_JUMP_CHAIN := "anim_chr_player_jump_chain_internal"
@@ -31,6 +33,7 @@ const JUMP_CHAIN_FOOT_BONES := ["LeftFoot", "LeftToeBase", "RightFoot", "RightTo
 const TURN_PHASE_SAMPLE_COUNT := 64
 const TURN_PHASE_ROTATION_WEIGHT_M := 0.05
 const TURN_TRANSITION_CORRECTION_DURATION := 0.2
+const GATHER_INTERACTION_KINDS := ["berry", "scrap", "water"]
 
 var torso_pivot: Node3D
 var head_pivot: Node3D
@@ -344,18 +347,24 @@ func play_jump(expected_airtime: float) -> bool:
 	return true
 
 func can_play_reaction() -> bool:
-	return not jump_active and not airborne and not turn_active
+	return not debug_probe_active and not jump_active and not airborne and not turn_active
 
 func play_reaction(kind := "greet") -> bool:
 	if not can_play_reaction():
 		DebugLog.info("animation", "reaction_rejected kind=%s jump_active=%s jump_stage=%s airborne=%s turn_active=%s" % [kind, jump_active, jump_stage, airborne, turn_active])
 		return false
-	gesture_kind = kind if kind in ["greet", "offer", "clarify", "point"] else "greet"
+	gesture_kind = kind if kind in ["greet", "offer", "clarify", "point", "observe", "gather"] else "greet"
 	gesture_clock = 0.0
 	if runtime_animation_player:
 		runtime_animation_player.speed_scale = 1.0
 		_play_runtime_animation(_runtime_gesture_animation(), 0.12, "reaction")
 	return true
+
+func play_environment_interaction(interaction_kind: String) -> bool:
+	## Pickups and water use the authored collect motion. Fixed facilities use
+	## the authored observation motion; NPC communication remains on the
+	## existing greet/offer/clarify/point reactions.
+	return play_reaction("gather" if interaction_kind in GATHER_INTERACTION_KINDS else "observe")
 
 func debug_play_animation(animation_name: String, blend := 0.0) -> bool:
 	if runtime_animation_player == null or not runtime_animation_player.has_animation(animation_name):
@@ -470,7 +479,13 @@ func _process(delta: float) -> void:
 		authored_static_root.rotation = authored_static_base_rotation + Vector3(0.0, 0.0, reaction * 0.035)
 		return
 	if runtime_root:
-		_update_runtime_lod()
+		# Animation probes must render the skinned LOD0. LOD1/2 are current
+		# static-mesh placeholders and would make every captured action look like
+		# the same standing pose even while skeleton telemetry is changing.
+		if debug_probe_active:
+			_set_runtime_lod(0)
+		else:
+			_update_runtime_lod()
 		if not debug_animation_override.is_empty():
 			if runtime_animation != debug_animation_override:
 				_play_runtime_animation(debug_animation_override, 0.0)
@@ -768,6 +783,8 @@ func _rename_cloud_animations() -> void:
 		RUNTIME_WALK: RUNTIME_WALK,
 		RUNTIME_RUN: RUNTIME_RUN,
 		RUNTIME_POINT: RUNTIME_POINT,
+		RUNTIME_OBSERVE: RUNTIME_OBSERVE,
+		RUNTIME_GATHER: RUNTIME_GATHER,
 		RUNTIME_TURN_180: RUNTIME_TURN_180,
 		RUNTIME_JUMP: RUNTIME_JUMP,
 	}
@@ -1056,6 +1073,10 @@ func _update_runtime_animation() -> void:
 		_play_runtime_animation(RUNTIME_IDLE, 0.18)
 
 func _runtime_gesture_animation() -> String:
+	if gesture_kind == "observe":
+		return RUNTIME_OBSERVE
+	if gesture_kind == "gather":
+		return RUNTIME_GATHER
 	return "anim_chr_player_gesture_%s" % gesture_kind
 
 func _play_runtime_animation(animation_name: String, blend: float, reason := "locomotion") -> void:
@@ -1209,9 +1230,11 @@ func _apply_pose() -> void:
 		_apply_gesture_pose(_gesture_envelope())
 
 func _gesture_duration() -> float:
+	if gesture_kind in ["point", "observe", "gather"] and runtime_animation_player != null:
+		var authored_animation := runtime_animation_player.get_animation(_runtime_gesture_animation())
+		if authored_animation != null:
+			return authored_animation.length
 	match gesture_kind:
-		"point":
-			return 2.8
 		"offer":
 			return 1.25
 		"clarify":

@@ -14,6 +14,8 @@ const EXPECTED_ANIMATIONS := [
 	"anim_chr_player_walk_forward",
 	"anim_chr_player_run_forward",
 	"anim_chr_player_gesture_point",
+	"anim_chr_player_interact_observe",
+	"anim_chr_player_interact_gather",
 	"anim_chr_player_gesture_greet",
 	"anim_chr_player_gesture_offer",
 	"anim_chr_player_gesture_clarify",

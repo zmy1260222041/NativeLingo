@@ -12,12 +12,16 @@ const IDLE_ACTION_HASH := "87863afffd9fcbef3afb7f04b6005c1d"
 const WALK_ACTION_HASH := "32795ddb244644eac67ccfd8b84060c3"
 const RUN_ACTION := "anim_chr_player_run_forward"
 const POINT_ACTION := "anim_chr_player_gesture_point"
+const OBSERVE_ACTION := "anim_chr_player_interact_observe"
+const GATHER_ACTION := "anim_chr_player_interact_gather"
 
 const RENAME_MAP := {
 	IDLE_ACTION_HASH: "anim_chr_player_idle_neutral",
 	WALK_ACTION_HASH: "anim_chr_player_walk_forward",
 	RUN_ACTION: RUN_ACTION,
 	POINT_ACTION: POINT_ACTION,
+	OBSERVE_ACTION: OBSERVE_ACTION,
+	GATHER_ACTION: GATHER_ACTION,
 }
 
 

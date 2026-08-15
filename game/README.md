@@ -36,8 +36,11 @@ conflicts require confirmation and can be restored to the project defaults.
 The prototype uses five distinct procedural NPC silhouettes, contextual character
 acting, and a responsive bilingual HUD. The player runtime uses the
 `chr_player_juvenile_mixamo.fbx` package: the same-mesh Mixamo actions are
-direction-and-twist retargeted offline, then selected at runtime as walk, run,
-pointing, 180-degree turn, or jump. The source Mixamo T-pose and the skinned game rig's arms-down
+direction-and-twist retargeted offline, then selected at runtime as standing idle,
+walk, run, pointing, environment observation, gathering, 180-degree turn, or jump.
+Berry/scrap/water interactions use `anim_chr_player_interact_gather`; fixed facilities
+(heater and shelter) use `anim_chr_player_interact_observe`; NPCs retain their social
+reactions. The source Mixamo T-pose and the skinned game rig's arms-down
 rest pose are intentionally not treated as interchangeable.
 For
 offline voice recognition, start `game/speech_service/server.py` as described in
@@ -92,13 +95,14 @@ The runtime GLB is exported only after Gate D; current evidence is recorded in
 The Blender FBX exporter can add an `Armature` scale track to baked actions.
 Because FBX centimeter conversion is read by Godot as `(100, 100, 100)`, the
 player previously popped to a much larger size when Walk or the `G` gesture
-started. `retarget_mixamo_actions.py` keeps the authored action data rotation-only;
-because Blender's FBX bake may still materialize a unit-conversion track,
+started. `retarget_mixamo_actions.py` keeps bone rotation plus valid in-place Hips
+motion while dropping unsafe object transforms and bone scale; because Blender's FBX
+bake may still materialize a unit-conversion track,
 `CharacterVisual._sanitize_runtime_animation_tracks()` removes imported Armature-object
 position and all scale tracks defensively after Godot import. Player translation remains owned by
 `PlayerController`/`CharacterBody3D`. `tests/test_walk_fix.gd` fails if walk, run,
-pointing, Turn 180, or Jump contains scale or non-Hips position, or if the motion
-actions lose dynamic Hips motion.
+pointing, Observe, Gather, Turn 180, or Jump contains scale or non-Hips position, or
+if the authored actions lose dynamic Hips motion.
 
 The final runtime rule is narrower: Armature object transforms and every scale track are
 removed, while authored Hips bounce/weight-shift motion is restored from
@@ -166,5 +170,9 @@ When the game is running, `AnimationDebugBridge` exposes localhost WebSocket JSO
 The telemetry stream is stored in `user://logs/animation_telemetry.jsonl`; the regular
 debug log is `user://logs/debug.log`. The editor plugin owns these ports only while no game
 is running and releases them when the play session starts.
+Animation probes force the skinned LOD0 and reject external reactions until the probe ends.
+Captured probe JPEGs are written to `user://logs/animation_probe/`; RPC responses return
+their numbered paths instead of embedding large Base64 payloads. Use `animation.sample` on
+6506 when an explicit live bone set is required.
 `input.simulate_key` and key events inside `input.simulate_sequence` set both logical and
 physical keycodes, matching this project's physical-key InputMap.

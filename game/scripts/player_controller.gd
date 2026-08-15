@@ -339,8 +339,12 @@ func _find_nearby_target() -> void:
 
 func _attempt_interaction(communication: String) -> void:
 	if is_instance_valid(nearby_target) and nearby_target.has_method("interact"):
-		var reaction := "point" if communication == "gesture" else ("offer" if nearby_target.target_id == "rowan" and GameState.water > 0 else "greet")
-		character_visual.play_reaction(reaction)
+		if communication == "gesture":
+			character_visual.play_reaction("point")
+		elif nearby_target.interaction_kind == "npc":
+			character_visual.play_reaction("offer" if nearby_target.target_id == "rowan" and GameState.water > 0 else "greet")
+		else:
+			character_visual.play_environment_interaction(String(nearby_target.interaction_kind))
 		nearby_target.interact(communication)
 	elif communication == "gesture":
 		# No target nearby: still play the user-authored pointing gesture so the

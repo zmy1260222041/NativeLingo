@@ -270,3 +270,33 @@ Mixamo 骨架，因此进入同一个 `pose_direction` 重定向和 FBX 安全�
 
 6507 的 headless 子进程仍可能输出既有 LOD reparent owner/global-transform 警告；只要
 动作断言退出码为 0，这些警告单独归入 LOD 管线，不作为本次方向/Jump 回归失败。
+
+## 2026-08-15：替换站立常态、观察与采集动作
+
+新增源文件为 `Standing Idle.fbx`（96 帧）、`Looking Around.fbx`（191 帧）和
+`Picking Up.fbx`（146 帧）。Blender 源探针确认三者都使用现有 Mixamo 骨架；新待机
+首尾回环，观察和采集都在完成动作后回到站姿。旧运行时 Idle 在四分之一到四分之三
+相位包含明显侧倾/转身，不适合作为站立常态，因此不再从目标 FBX 继承，而由
+`Standing Idle.fbx` 在同一个 `anim_chr_player_idle_neutral` 合约名下完整替换。
+
+运行时映射固定为：
+
+- `berry`、`scrap`、`water` → `anim_chr_player_interact_gather`；
+- `heater`、`shelter` 及其他固定环境设施 → `anim_chr_player_interact_observe`；
+- `npc` 继续使用 greet/offer/clarify/point，不被环境动作替换。
+
+Observe/Gather 是单次动作，持续时间直接读取导入动画长度，不再使用手写计时；Idle
+保持循环。三个动作继续只保留骨骼旋转和去漂移后的 Hips 局部位移，剥离所有 scale、
+Armature 对象变换和非 Hips 位移。最终 FBX 复导后，源/目标五相位独立 bone-direction
+对比结果为：Idle P95 `0.000225°`、Observe P95 `0.003912°`、Gather P95
+`0.005926°`；最大端点误差均小于 `0.075 mm`。`test_walk_fix.gd` 同时锁定动作存在性、
+循环语义、安全轨道、Armature scale 和环境类型映射。
+
+复现仍遵循固定闭环：先在 Blender 对源 FBX 与最终运行 FBX 以相同标准化相位截图，
+再用 6505 零混合播放 Idle/Observe/Gather、6506 读取 Hips/手脚/scale，最后由 6507
+运行 `res://tests/test_walk_fix.gd`。
+
+本次实机闭环还修正了两个会制造假阴性的探针缺陷：动画探针现在强制蒙皮 LOD0 并
+拒绝外部 reaction，避免远距离静态 LOD 把所有动作显示成站姿；逐帧 JPEG 写入
+`user://logs/animation_probe/`，RPC 只回路径和大小，避免多帧 Base64 响应挤断 6505。
+6506 的 `animation.sample` 也改为实时按请求骨集合采样，不再错误返回默认缓存骨集合。
