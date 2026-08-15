@@ -157,20 +157,19 @@ def build_tree(col, lod):
     seg = 7 if lod == 0 else 5
     bm_t = bmesh.new()
     _loft_trunk(bm_t, seg, 6 if lod == 0 else 5)
-    if lod == 0:
-        # Trunk centers at the bend rings; limbs start inside the bark and
-        # reach the side canopy lobes so they never float off the stem.
-        mid = Vector((0.24, 0.10, 1.55))
-        high = Vector((0.35, 0.20, 1.92))
-        tip = Vector((0.44, 0.28, 2.20))
-        for origin, target, r0, r1 in (
-            (high, Vector((1.15, -0.10, 2.80)), 0.095, 0.028),
-            (high, Vector((-0.20, 0.95, 2.85)), 0.092, 0.026),
-            (mid, Vector((-0.45, -0.60, 2.70)), 0.088, 0.024),
-            (high, Vector((0.95, 0.75, 2.75)), 0.080, 0.022),
-            (tip, Vector((0.44, 0.28, 3.05)), 0.070, 0.030),
-        ):
-            _grow_branch(bm_t, origin, target, r0, r1)
+    mid = Vector((0.24, 0.10, 1.55))
+    high = Vector((0.35, 0.20, 1.92))
+    tip = Vector((0.44, 0.28, 2.20))
+    branches = (
+        (high, Vector((1.15, -0.10, 2.80)), 0.095, 0.028),
+        (high, Vector((-0.20, 0.95, 2.85)), 0.092, 0.026),
+        (mid, Vector((-0.45, -0.60, 2.70)), 0.088, 0.024),
+        (high, Vector((0.95, 0.75, 2.75)), 0.080, 0.022),
+        (tip, Vector((0.44, 0.28, 3.05)), 0.070, 0.030),
+    )
+    # Keep the same limb layout on every LOD so the silhouette does not pop.
+    for origin, target, r0, r1 in branches[: 5 if lod == 0 else (4 if lod == 1 else 3)]:
+        _grow_branch(bm_t, origin, target, r0, r1, segs=5 if lod == 0 else 4, rings=5 if lod == 0 else 4)
     bmesh.ops.recalc_face_normals(bm_t, faces=bm_t.faces)
     trunk_mesh = bpy.data.meshes.new(p + "_trunk_mesh")
     bm_t.to_mesh(trunk_mesh)
@@ -200,18 +199,21 @@ def build_tree(col, lod):
 
     mint = PAL["lichen_mint"]
     teal = PAL["tide_teal"]
-    if lod == 0:
-        add_lobe(Vector((0.44, 0.28, 3.00)), 1.00, scale_color(mint, 0.98),  mix_color(teal, mint, 0.25), seed=11)
-        add_lobe(Vector((1.15, -0.10, 2.80)), 0.62, scale_color(mint, 0.92), mix_color(teal, mint, 0.20), seed=12)
-        add_lobe(Vector((-0.20, 0.95, 2.85)), 0.66, scale_color(mint, 0.90), mix_color(teal, mint, 0.20), seed=13)
-        add_lobe(Vector((-0.45, -0.60, 2.70)), 0.60, mix_color(teal, mint, 0.45), scale_color(teal, 0.95), seed=14)
-        add_lobe(Vector((0.95, 0.75, 2.75)), 0.58, scale_color(mint, 0.88), mix_color(teal, mint, 0.25), seed=15)
-        add_lobe(Vector((0.38, 0.24, 3.85)), 0.55, scale_color(mint, 1.10), mix_color(teal, mint, 0.35), seed=16)
-        add_lobe(Vector((0.10, -0.95, 2.42)), 0.46, scale_color(teal, 1.02), scale_color(teal, 0.80), seed=17)  # hanging skirt
-    else:
-        add_lobe(Vector((0.44, 0.28, 3.05)), 1.42 if lod == 1 else 1.30,
-                 scale_color(mint, 0.98), mix_color(teal, mint, 0.30), seed=21,
-                 u=8 if lod == 1 else 6, v=6 if lod == 1 else 5, jitter=0.09)
+    lobes = (
+        (Vector((0.44, 0.28, 3.00)), 1.00, scale_color(mint, 0.98), mix_color(teal, mint, 0.25), 11),
+        (Vector((1.15, -0.10, 2.80)), 0.62, scale_color(mint, 0.92), mix_color(teal, mint, 0.20), 12),
+        (Vector((-0.20, 0.95, 2.85)), 0.66, scale_color(mint, 0.90), mix_color(teal, mint, 0.20), 13),
+        (Vector((-0.45, -0.60, 2.70)), 0.60, mix_color(teal, mint, 0.45), scale_color(teal, 0.95), 14),
+        (Vector((0.95, 0.75, 2.75)), 0.58, scale_color(mint, 0.88), mix_color(teal, mint, 0.25), 15),
+        (Vector((0.38, 0.24, 3.85)), 0.55, scale_color(mint, 1.10), mix_color(teal, mint, 0.35), 16),
+        (Vector((0.10, -0.95, 2.42)), 0.46, scale_color(teal, 1.02), scale_color(teal, 0.80), 17),
+    )
+    keep = 7 if lod == 0 else (6 if lod == 1 else 4)
+    segs_u = 9 if lod == 0 else (7 if lod == 1 else 5)
+    segs_v = 7 if lod == 0 else (5 if lod == 1 else 4)
+    jitter = 0.11 if lod == 0 else 0.08
+    for center, radius, hi, lo, seed in lobes[:keep]:
+        add_lobe(center, radius, hi, lo, seed, u=segs_u, v=segs_v, jitter=jitter)
 
     # hanging seed pods (信号兰 异星生态 accent, §2.1)
     pod_sets = []
