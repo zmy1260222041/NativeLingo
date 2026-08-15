@@ -11,6 +11,8 @@ signal day_started(day_value: int)
 const SAVE_VERSION := 1
 const MAX_NEED := 100.0
 const DAY_DURATION := 300.0
+const DAY_START_HOUR := 8.0
+const DAY_END_HOUR := 22.0
 
 var day := 1
 var day_time := 0.0
@@ -56,6 +58,18 @@ func _process(delta: float) -> void:
 func set_interaction_time_frozen(active: bool) -> void:
 	interaction_time_frozen = active
 
+
+func clock_hours() -> float:
+	var span := DAY_END_HOUR - DAY_START_HOUR
+	return DAY_START_HOUR + clampf(day_time / DAY_DURATION, 0.0, 1.0) * span
+
+
+func clock_hms() -> Vector2i:
+	var hours := clock_hours()
+	var hour := int(hours)
+	var minute := int((hours - float(hour)) * 60.0)
+	return Vector2i(hour, minute)
+
 func objective_text() -> String:
 	if day == 1:
 		if not completed_steps.has("greet_mira"):
@@ -95,7 +109,11 @@ func interact(kind: String, target_id: String, communication: String = "action")
 			water = 1
 			message_requested.emit(tr("MSG_WATER_FILLED"), "good")
 		"heater":
-			if day >= 2 and scrap >= 2:
+			if heater_repaired:
+				message_requested.emit(tr("MSG_HEATER_ALREADY"), "good")
+			elif day < 2:
+				message_requested.emit(tr("MSG_HEATER_NOT_TODAY"), "neutral")
+			elif scrap >= 2:
 				heater_repaired = true
 				scrap -= 2
 				warmth = minf(MAX_NEED, warmth + 25.0)
@@ -114,7 +132,8 @@ func _interact_npc(npc_id: String, communication: String) -> void:
 		completed_steps["greet_mira"] = true
 		remember(npc_id, "MEMORY_GREET_MIRA", 2)
 		message_requested.emit(_communication_reply(tr("NPC_MIRA"), communication, "Welcome, stranger."), "good")
-	elif npc_id == "rowan" and day == 3 and water > 0 and not completed_steps.has("help_rowan"):
+		return
+	if npc_id == "rowan" and day == 3 and water > 0 and not completed_steps.has("help_rowan"):
 		water = 0
 		completed_steps["help_rowan"] = true
 		remember(npc_id, "MEMORY_HELP_ROWAN", 3)
@@ -122,16 +141,48 @@ func _interact_npc(npc_id: String, communication: String) -> void:
 		message_requested.emit(_communication_reply(tr("NPC_ROWAN"), communication, "You came back. Thank you."), "good")
 		save_game()
 		run_completed.emit()
-	else:
-		var known: int = relationships.get(npc_id, 0)
-		var reply := tr("MSG_NPC_REMEMBERS") if known > 0 else tr("MSG_NPC_WARY")
-		message_requested.emit(reply, "neutral")
+		return
+	var line := _npc_followup_line(npc_id)
+	var known: int = relationships.get(npc_id, 0)
+	var tone := "good" if known > 0 else "neutral"
+	message_requested.emit(_communication_reply(tr("NPC_%s" % npc_id.to_upper()), communication, line), tone)
+
+
+func _npc_followup_line(npc_id: String) -> String:
+	match npc_id:
+		"mira":
+			if completed_steps.has("greet_mira"):
+				if day == 1 and berries < 2:
+					return tr("NPC_MIRA_HINT_FOOD")
+				if day == 2 and not heater_repaired:
+					return tr("NPC_MIRA_HINT_HEAT")
+				if day == 3 and not completed_steps.has("help_rowan"):
+					return tr("NPC_MIRA_HINT_ROWAN")
+				return tr("NPC_MIRA_REMEMBERS")
+			return tr("MSG_NPC_WARY")
+		"rowan":
+			if day == 3 and water <= 0:
+				return tr("NPC_ROWAN_NEEDS_WATER")
+			if int(relationships.get("rowan", 0)) > 0:
+				return tr("NPC_ROWAN_REMEMBERS")
+			return tr("NPC_ROWAN_WARY")
+		"tavi":
+			return tr("NPC_TAVI_HINT_FOOD") if berries < 2 else tr("NPC_TAVI_SETTLED")
+		"vesh":
+			return tr("NPC_VESH_HINT_SCRAP") if scrap < 2 and not heater_repaired else tr("NPC_VESH_SETTLED")
+		"ori":
+			return tr("NPC_ORI_HINT_WATER") if water < 1 else tr("NPC_ORI_SETTLED")
+		_:
+			return tr("MSG_NPC_REMEMBERS") if int(relationships.get(npc_id, 0)) > 0 else tr("MSG_NPC_WARY")
 
 func _communication_reply(speaker: String, communication: String, line: String) -> String:
 	if communication == "voice":
 		return tr("NPC_REPLY_VOICE") % [speaker, line]
 	if communication == "gesture":
-		return tr("NPC_REPLY_GESTURE") % speaker
+		var understood := tr("NPC_REPLY_GESTURE") % speaker
+		if line.is_empty():
+			return understood
+		return "%s %s" % [understood, line]
 	return tr("NPC_REPLY_OBSERVE")
 
 func remember(npc_id: String, memory: String, relationship_gain: int) -> void:
@@ -153,7 +204,21 @@ func _try_sleep() -> void:
 		day_started.emit(day)
 		save_game()
 	else:
-		message_requested.emit(tr("MSG_SLEEP_BLOCKED"), "neutral")
+		message_requested.emit(tr(_sleep_block_key()), "neutral")
+
+
+func _sleep_block_key() -> String:
+	if day == 1:
+		if not completed_steps.has("greet_mira"):
+			return "MSG_SLEEP_NEED_MIRA"
+		if berries < 2:
+			return "MSG_SLEEP_NEED_FOOD"
+	elif day == 2:
+		if not heater_repaired:
+			return "MSG_SLEEP_NEED_HEATER"
+	elif day >= 3:
+		return "MSG_SLEEP_NEED_ROWAN"
+	return "MSG_SLEEP_BLOCKED"
 
 func faint() -> void:
 	food = 35.0

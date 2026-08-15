@@ -23,6 +23,16 @@ const ACTIONS := [
 	[&"pause", "ACTION_PAUSE"],
 ]
 
+## 首轮网页内测不包含语音：重映射面板不展示「说话」动作。
+## 桌面构建保持 15 行动作不变。
+func _active_actions() -> Array:
+	var actions: Array = []
+	for action_data in ACTIONS:
+		if action_data[0] == &"push_to_talk" and not SpeechAdapter.is_available():
+			continue
+		actions.append(action_data)
+	return actions
+
 @onready var status_label: Label = $Center/Card/Content/Status
 @onready var scroll_container: ScrollContainer = $Center/Card/Content/Scroll
 @onready var actions_container: VBoxContainer = $Center/Card/Content/Scroll/Actions
@@ -85,7 +95,7 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _capture_defaults() -> void:
-	for action_data in ACTIONS:
+	for action_data in _active_actions():
 		var action: StringName = action_data[0]
 		default_bindings[action] = {
 			"keyboard": _duplicate_event(_event_for_device(action, false)),
@@ -96,7 +106,7 @@ func _build_action_rows() -> void:
 	for child in actions_container.get_children():
 		child.queue_free()
 	binding_buttons.clear()
-	for action_data in ACTIONS:
+	for action_data in _active_actions():
 		var action: StringName = action_data[0]
 		var label_key: String = action_data[1]
 		var row := HBoxContainer.new()
@@ -126,7 +136,7 @@ func _configure_focus_graph() -> void:
 	var keyboard_buttons: Array[Button] = []
 	var gamepad_buttons: Array[Button] = []
 	var tab_order: Array[Button] = []
-	for action_data in ACTIONS:
+	for action_data in _active_actions():
 		var action: StringName = action_data[0]
 		var keyboard_button := binding_buttons[action]["keyboard"] as Button
 		var gamepad_button := binding_buttons[action]["gamepad"] as Button
@@ -261,7 +271,7 @@ func _replace_device_event(action: StringName, gamepad: bool, replacement: Input
 		InputMap.action_add_event(action, replacement)
 
 func _find_conflict(candidate: InputEvent, excluded_action: StringName) -> StringName:
-	for action_data in ACTIONS:
+	for action_data in _active_actions():
 		var action: StringName = action_data[0]
 		if action == excluded_action:
 			continue
@@ -282,7 +292,7 @@ func _is_gamepad_event(event: InputEvent) -> bool:
 	return event is InputEventJoypadButton or event is InputEventJoypadMotion
 
 func _refresh_buttons() -> void:
-	for action_data in ACTIONS:
+	for action_data in _active_actions():
 		var action: StringName = action_data[0]
 		if not binding_buttons.has(action):
 			continue
@@ -297,7 +307,7 @@ func _request_reset() -> void:
 		status_label.text = tr("REMAP_RESET_WARNING")
 		close_button.grab_focus()
 		return
-	for action_data in ACTIONS:
+	for action_data in _active_actions():
 		var action: StringName = action_data[0]
 		var defaults: Dictionary = default_bindings[action]
 		_replace_device_event(action, false, _duplicate_event(defaults["keyboard"]))
@@ -319,7 +329,7 @@ func _load_saved_bindings() -> void:
 	var config := ConfigFile.new()
 	if config.load(SETTINGS_PATH) != OK:
 		return
-	for action_data in ACTIONS:
+	for action_data in _active_actions():
 		var action: StringName = action_data[0]
 		for device_name in ["keyboard", "gamepad"]:
 			var data = config.get_value("input", "%s_%s" % [action, device_name], {})
@@ -330,7 +340,7 @@ func _load_saved_bindings() -> void:
 func _save_bindings() -> void:
 	var config := ConfigFile.new()
 	config.load(SETTINGS_PATH)
-	for action_data in ACTIONS:
+	for action_data in _active_actions():
 		var action: StringName = action_data[0]
 		config.set_value("input", "%s_keyboard" % action, _event_to_data(_event_for_device(action, false)))
 		config.set_value("input", "%s_gamepad" % action, _event_to_data(_event_for_device(action, true)))
@@ -372,7 +382,7 @@ func _event_signature(event: InputEvent) -> String:
 	return JSON.stringify(_event_to_data(event))
 
 func _action_label(action: StringName) -> String:
-	for action_data in ACTIONS:
+	for action_data in _active_actions():
 		if action_data[0] == action:
 			return tr(action_data[1])
 	return String(action)

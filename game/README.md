@@ -63,6 +63,9 @@ License; its license text is stored beside the font in `game/assets/fonts/`.
   --headless --path game res://tests/VoiceTargetCancelTest.tscn
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
+  --headless --path game res://tests/WebBetaNoVoiceTest.tscn
+
+/Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game --script res://tests/test_character_asset.gd
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
@@ -73,6 +76,21 @@ License; its license text is stored beside the font in `game/assets/fonts/`.
 
 python3 -m py_compile game/speech_service/server.py
 ```
+
+## Web Beta build
+
+The first web beta ships without voice: `web_beta_no_voice` disables
+`SpeechAdapter`, removes every speech UI entry, and leaves the three-day flow
+fully playable through `G` gestures. The reproducible build runs the test
+suites, exports the `Web Beta` preset, precompresses the payload, and writes
+`SHA256SUMS` + `build-info.json`:
+
+```sh
+scripts/build_stranger_web_beta.sh
+```
+
+Deployment/access-control tooling and the launch checklist live in
+`production/web-beta/`.
 
 ## Build the player character source
 

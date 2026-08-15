@@ -11,8 +11,10 @@ extends Node3D
 ## child (cel_outline.gdshader) that is hidden past the LOD0->LOD1 boundary
 ## (12m) — art-bible §3.1.B "远景可关闭，关闭后主形仍须成立".
 
-const LOD_DIST_HERO := [12.0, 26.0]
-const LOD_DIST_PROP := [12.0, 25.0]
+# Play-field trees/huts sit 10–18 m from the camera. Switching at 12 m made
+# lod1 (blob canopy / untextured plates) pop in the middle of the settlement.
+const LOD_DIST_HERO := [48.0, 80.0]
+const LOD_DIST_PROP := [40.0, 70.0]
 const OUTLINE_SHADER := "res://shaders/cel_outline.gdshader"
 
 var _lod_groups: Array = [[], [], []]

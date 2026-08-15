@@ -20,6 +20,7 @@ var palette := {
 var environment: Environment
 var sky_material: ProceduralSkyMaterial
 var sun: DirectionalLight3D
+var _day_cycle := DayCycleLighting.new()
 var _cel_shader: Shader
 var _white_tex: Texture2D
 var _used_market_stall := false
@@ -54,65 +55,34 @@ func _build_lighting() -> void:
 	environment = Environment.new()
 	environment.background_mode = Environment.BG_SKY
 	sky_material = ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = Color("121a35")
-	sky_material.sky_horizon_color = Color("6a436a")
-	sky_material.ground_horizon_color = Color("d27c68")
-	sky_material.ground_bottom_color = Color("34233f")
-	sky_material.sky_curve = 0.28
 	var sky := Sky.new()
 	sky.sky_material = sky_material
 	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color("7fa9b6")
-	environment.ambient_light_energy = 0.46
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	var world_environment := WorldEnvironment.new()
 	world_environment.environment = environment
 	add_child(world_environment)
 	sun = DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52, -28, 0)
-	sun.light_color = Color("ffd7a0")
-	sun.light_energy = 0.92
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 35.0
 	sun.shadow_bias = 0.04
 	add_child(sun)
-	# §3.4 冷色高度雾：0–18 m 行动层清晰，18–35 m 导航，远山轮廓。负高度密度让高峰更退。
 	environment.fog_enabled = true
-	environment.fog_light_color = Color("6e8296")
 	environment.fog_light_energy = 1.0
-	environment.fog_density = 0.015
-	environment.fog_sky_affect = 0.32
-	environment.fog_aerial_perspective = 0.42
-	environment.fog_sun_scatter = 0.04
-	environment.fog_height = 6.0
-	environment.fog_height_density = -0.007
-	# Compatibility Glow：高阈值、无全屏 bloom，只让炉光/荧光/窗过线。
 	environment.glow_enabled = true
-	environment.glow_intensity = 0.42
+	environment.glow_intensity = 0.36
 	environment.glow_bloom = 0.0
-	environment.glow_hdr_threshold = 1.05
-	environment.glow_hdr_scale = 1.35
+	environment.glow_hdr_threshold = 1.08
+	environment.glow_hdr_scale = 1.2
+	_update_daylight()
 
 func _update_daylight() -> void:
 	if environment == null or sky_material == null or sun == null:
 		return
-	var progress := clampf(GameState.day_time / GameState.DAY_DURATION, 0.0, 1.0)
-	var daylight := sin(progress * PI)
-	var evening := smoothstep(0.55, 1.0, progress)
-	var morning_top := Color("28365f")
-	var noon_top := Color("315d72")
-	var night_top := Color("17243b")
-	sky_material.sky_top_color = morning_top.lerp(noon_top, daylight).lerp(night_top, evening)
-	sky_material.sky_horizon_color = Color("a65f70").lerp(Color("e3a06d"), daylight).lerp(Color("34335e"), evening)
-	environment.ambient_light_color = Color("88a9b5").lerp(Color("9fc2bd"), daylight).lerp(Color("59618b"), evening)
-	environment.ambient_light_energy = lerpf(0.40, 0.50, daylight) * lerpf(1.0, 0.72, evening)
-	sun.light_color = Color("ffc48a").lerp(Color("fff0ce"), daylight).lerp(Color("ef8a6f"), evening)
-	sun.light_energy = lerpf(0.66, 0.85, daylight) * lerpf(1.0, 0.48, evening)
-	sun.rotation_degrees.x = lerpf(-26.0, -68.0, daylight) + evening * 18.0
-	environment.fog_light_color = Color("6e8296").lerp(Color("7a90a4"), daylight).lerp(Color("4a4e72"), evening)
-	environment.fog_density = lerpf(0.016, 0.013, daylight) * lerpf(1.0, 1.22, evening)
-	_update_authored_glow(evening)
+	var hours := GameState.clock_hours()
+	var glow := _day_cycle.apply(environment, sky_material, sun, hours)
+	_update_authored_glow(glow)
 
 func _build_ground() -> void:
 	# 80m 步行基座 + 28m 市场地表；山谷地板从市场边接到左右山脚（§3.4）
@@ -422,7 +392,7 @@ func _build_landmarks() -> void:
 		push_error("Main: prp_lantern_market_a.glb missing; primitive lantern fallback removed (art-bible §8.8)")
 
 func _build_interactables() -> void:
-	_add_npc("mira", tr("NPC_MIRA"), Vector3(-3, 1.0, -2), Color("f2a65a"), 0)
+	_add_npc("mira", tr("NPC_MIRA"), Vector3(-1.7, 1.0, -0.55), Color("f2a65a"), 0)
 	_add_npc("rowan", tr("NPC_ROWAN"), Vector3(3, 1.0, 0.5), Color("a56cc1"), 1)
 	_add_npc("tavi", tr("NPC_TAVI"), Vector3(-8, 1.0, 3), Color("ed6a5a"), 2)
 	_add_npc("vesh", tr("NPC_VESH"), Vector3(2, 1.0, -9), Color("6cc3a0"), 3)

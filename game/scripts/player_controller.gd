@@ -9,7 +9,7 @@ const SPRINT_SPEED := 8.2
 const ACCELERATION := 18.0
 const AIR_ACCELERATION := 5.0
 const JUMP_VELOCITY := 7.0
-const INTERACTION_DISTANCE := 3.2
+const INTERACTION_DISTANCE := 4.0
 const GAMEPAD_LOOK_SPEED := 2.35
 const DIRECTION_EPSILON_SQUARED := 0.01
 const SMALL_TURN_ANGULAR_SPEED := deg_to_rad(360.0)
@@ -48,9 +48,16 @@ func _ready() -> void:
 	facing_direction_world = (global_transform.basis * Vector3.FORWARD).normalized()
 	_apply_visual_facing()
 	SpeechAdapter.recognition_finished.connect(_on_recognition_finished)
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if not OS.has_feature("web"):
+		# 浏览器要求在用户手势中申请指针锁定；Web 构建延迟到第一次点击画布。
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event: InputEvent) -> void:
+	if OS.has_feature("web") and event is InputEventMouseButton and event.pressed \
+			and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		# First click on the canvas becomes the trusted gesture that captures
+		# the pointer; requesting it during engine startup throws in Chrome.
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if event.is_action_pressed("ui_cancel") and SpeechAdapter.is_interaction_active():
 		SpeechAdapter.cancel_recording()
 		get_viewport().set_input_as_handled()
@@ -73,6 +80,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		SpeechAdapter.cancel_recording()
 		_attempt_interaction("gesture")
 	if event.is_action_pressed("push_to_talk"):
+		if not SpeechAdapter.is_available():
+			# 首轮网页内测不包含语音：说话按键被整体忽略。
+			get_viewport().set_input_as_handled()
+			return
 		if toggle_to_talk and SpeechAdapter.is_recording():
 			SpeechAdapter.finish_recording()
 		else:
@@ -322,7 +333,8 @@ func _find_nearby_target() -> void:
 	for candidate in get_tree().get_nodes_in_group("interactable"):
 		if not candidate is Node3D or not candidate.visible:
 			continue
-		var distance := global_position.distance_to(candidate.global_position)
+		var offset: Vector3 = global_position - candidate.global_position
+		var distance := Vector2(offset.x, offset.z).length()
 		if distance < best_distance:
 			best_distance = distance
 			nearby_target = candidate
@@ -352,6 +364,8 @@ func _attempt_interaction(communication: String) -> void:
 		character_visual.play_reaction("point")
 
 func _start_voice_interaction() -> void:
+	if not SpeechAdapter.is_available():
+		return
 	if not is_instance_valid(nearby_target) or nearby_target.interaction_kind != "npc":
 		GameState.message_requested.emit(tr("MSG_NEAR_NPC_TO_SPEAK"), "neutral")
 		return

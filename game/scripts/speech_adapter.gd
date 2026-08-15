@@ -9,6 +9,8 @@ signal session_cancelled(target_id: String)
 const SERVICE_URL := "http://127.0.0.1:17831/transcribe"
 const RECORDING_PATH := "user://stranger_speech_attempt"
 const MAX_RECORDING_SECONDS := 15.0
+## Web Beta 首轮不包含语音：该自定义 feature 只在 Web Beta 导出预设中开启。
+const WEB_NO_VOICE_FEATURE := "web_beta_no_voice"
 
 var record_effect: AudioEffectRecord
 var microphone_player: AudioStreamPlayer
@@ -22,8 +24,19 @@ var recovery_active := false
 var session_generation := 0
 var recording_started_msec := 0
 var recording_session_active := false
+## 测试钩子：null 表示按 OS feature 自动判断；true/false 强制覆盖。
+var availability_override: Variant = null
+
+func is_available() -> bool:
+	## 桌面构建可用；无语音网页构建固定返回 false，且从不创建麦克风/HTTP 客户端。
+	if availability_override != null:
+		return bool(availability_override)
+	return not OS.has_feature(WEB_NO_VOICE_FEATURE)
 
 func _ready() -> void:
+	if not is_available():
+		# 首轮网页内测不包含语音：不创建 HTTPRequest，也不创建 AudioStreamMicrophone。
+		return
 	http_request = HTTPRequest.new()
 	http_request.timeout = 18.0
 	http_request.request_completed.connect(_on_request_completed)
@@ -51,6 +64,9 @@ func _exit_tree() -> void:
 	record_effect = null
 
 func start_recording(target_id: String) -> bool:
+	if not is_available():
+		# 无语音构建的防御路径：不进入录音、不冻结时间、不产生 HTTP 请求。
+		return false
 	if record_effect == null and DisplayServer.get_name() != "headless":
 		_setup_audio_input()
 	if record_effect == null:
@@ -153,6 +169,8 @@ func finish_recording() -> void:
 		recognition_pending.emit(target_id)
 
 func _setup_audio_input() -> void:
+	if not is_available():
+		return
 	var bus_index := AudioServer.get_bus_index("SpeechRecord")
 	if bus_index < 0:
 		AudioServer.add_bus()

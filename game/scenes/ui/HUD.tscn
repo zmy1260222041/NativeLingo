@@ -220,6 +220,25 @@ text = "TOAST_INFO"
 horizontal_alignment = 1
 autowrap_mode = 2
 
+[node name="BuildTag" type="Label" parent="UIRoot/SafeAreaRoot/HudRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -40.0
+offset_right = -12.0
+offset_bottom = -12.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.725, 0.769, 0.812, 1)
+theme_override_font_sizes/font_size = 18
+text = "web-beta.1"
+horizontal_alignment = 2
+
 [node name="DayTransitionOverlay" type="ColorRect" parent="UIRoot"]
 visible = false
 layout_mode = 1
@@ -286,7 +305,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Card" type="PanelContainer" parent="UIRoot/PauseOverlay/Center"]
-custom_minimum_size = Vector2(540, 470)
+custom_minimum_size = Vector2(540, 540)
 layout_mode = 2
 
 [node name="Content" type="VBoxContainer" parent="UIRoot/PauseOverlay/Center/Card"]
@@ -328,11 +347,34 @@ text = "SETTING_SPEECH_MODE"
 layout_mode = 2
 text = "BTN_CONTROLS"
 
+[node name="NoVoiceNotice" type="Label" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.949, 0.659, 0.357, 1)
+theme_override_font_sizes/font_size = 19
+text = "WEB_BETA_NO_VOICE_NOTICE"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="SurveyButton" type="Button" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+visible = false
+layout_mode = 2
+text = "BTN_SURVEY"
+
 [node name="Hint" type="Label" parent="UIRoot/PauseOverlay/Center/Card/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.725, 0.769, 0.812, 1)
 theme_override_font_sizes/font_size = 20
 text = "PAUSE_NAV_HINT"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="SaveNote" type="Label" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.694, 0.753, 0.82, 1)
+theme_override_font_sizes/font_size = 18
+text = "WEB_SAVE_NOTE"
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -445,7 +487,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Card" type="PanelContainer" parent="UIRoot/CompletionOverlay/Center"]
-custom_minimum_size = Vector2(650, 360)
+custom_minimum_size = Vector2(650, 420)
 layout_mode = 2
 
 [node name="Content" type="VBoxContainer" parent="UIRoot/CompletionOverlay/Center/Card"]
@@ -474,3 +516,8 @@ text = "BTN_COMPLETE_CONTINUE"
 [node name="RestartButton" type="Button" parent="UIRoot/CompletionOverlay/Center/Card/Content"]
 layout_mode = 2
 text = "BTN_RESTART"
+
+[node name="SurveyButton" type="Button" parent="UIRoot/CompletionOverlay/Center/Card/Content"]
+visible = false
+layout_mode = 2
+text = "BTN_SURVEY"

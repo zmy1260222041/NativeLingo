@@ -6,6 +6,10 @@ const COLOR_WARNING := Color("f2a85b")
 const COLOR_URGENT := Color("ff8b7f")
 const SETTINGS_PATH := "user://stranger_accessibility.cfg"
 const UI_SCALES := [0.8, 0.9, 1.0, 1.1, 1.25, 1.5]
+const WEB_BETA_FEATURE := "web_beta_no_voice"
+const WEB_BUILD_LABEL_SETTING := "web_beta/build_label"
+const WEB_BUILD_LABEL_DEFAULT := "web-beta.1"
+const WEB_SURVEY_URL_SETTING := "web_beta/survey_url"
 
 @onready var ui_root: Control = $UIRoot
 @onready var clock_label: Label = $UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor/ClockChip/ClockLabel
@@ -35,10 +39,15 @@ const UI_SCALES := [0.8, 0.9, 1.0, 1.1, 1.25, 1.5]
 @onready var ui_scale_button: Button = $UIRoot/PauseOverlay/Center/Card/Content/UIScaleButton
 @onready var speech_mode_button: Button = $UIRoot/PauseOverlay/Center/Card/Content/SpeechModeButton
 @onready var controls_button: Button = $UIRoot/PauseOverlay/Center/Card/Content/ControlsButton
+@onready var pause_survey_button: Button = $UIRoot/PauseOverlay/Center/Card/Content/SurveyButton
+@onready var no_voice_notice: Label = $UIRoot/PauseOverlay/Center/Card/Content/NoVoiceNotice
+@onready var save_note: Label = $UIRoot/PauseOverlay/Center/Card/Content/SaveNote
+@onready var build_tag: Label = $UIRoot/SafeAreaRoot/HudRoot/BuildTag
 @onready var input_remap_overlay: InputRemapPanel = $UIRoot/InputRemapOverlay
 @onready var completion_overlay: ColorRect = $UIRoot/CompletionOverlay
 @onready var continue_button: Button = $UIRoot/CompletionOverlay/Center/Card/Content/ContinueButton
 @onready var restart_button: Button = $UIRoot/CompletionOverlay/Center/Card/Content/RestartButton
+@onready var completion_survey_button: Button = $UIRoot/CompletionOverlay/Center/Card/Content/SurveyButton
 
 var player: PlayerController
 var toast_timer: Timer
@@ -62,6 +71,8 @@ var voice_elapsed := 0.0
 var voice_transcript := ""
 var voice_reason := ""
 var day_transition_started_msec := 0
+## 测试钩子：null 表示按 OS feature 自动判断；true/false 强制覆盖 Web UI。
+var web_beta_ui_override: Variant = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -69,8 +80,9 @@ func _ready() -> void:
 	_create_timers()
 	_connect_domain_signals()
 	_connect_buttons()
-	_configure_focus_cycles()
 	_load_settings()
+	_apply_web_beta_ui()
+	_configure_focus_cycles()
 	get_viewport().size_changed.connect(_apply_safe_frame)
 	call_deferred("_bind_player")
 	call_deferred("_apply_safe_frame")
@@ -114,12 +126,51 @@ func _connect_buttons() -> void:
 	ui_scale_button.pressed.connect(_cycle_ui_scale)
 	speech_mode_button.pressed.connect(_toggle_speech_mode)
 	controls_button.pressed.connect(_open_input_remap)
+	pause_survey_button.pressed.connect(_open_survey)
+	completion_survey_button.pressed.connect(_open_survey)
 	input_remap_overlay.closed.connect(_on_input_remap_closed)
 	input_remap_overlay.bindings_changed.connect(_on_bindings_changed)
 
 func _configure_focus_cycles() -> void:
-	_link_focus_cycle([resume_button, reduce_motion_button, ui_scale_button, speech_mode_button, controls_button])
-	_link_focus_cycle([continue_button, restart_button])
+	var pause_buttons: Array[Button] = [resume_button, reduce_motion_button, ui_scale_button]
+	if SpeechAdapter.is_available():
+		pause_buttons.append(speech_mode_button)
+	pause_buttons.append(controls_button)
+	if pause_survey_button.visible:
+		pause_buttons.append(pause_survey_button)
+	_link_focus_cycle(pause_buttons)
+	var completion_buttons: Array[Button] = [continue_button, restart_button]
+	if completion_survey_button.visible:
+		completion_buttons.append(completion_survey_button)
+	_link_focus_cycle(completion_buttons)
+
+func _is_web_beta_build() -> bool:
+	if web_beta_ui_override != null:
+		return bool(web_beta_ui_override)
+	return OS.has_feature("web") or OS.has_feature(WEB_BETA_FEATURE)
+
+func _apply_web_beta_ui() -> void:
+	var is_web_build := _is_web_beta_build()
+	build_tag.visible = is_web_build
+	if is_web_build:
+		build_tag.text = str(ProjectSettings.get_setting(WEB_BUILD_LABEL_SETTING, WEB_BUILD_LABEL_DEFAULT))
+	if not SpeechAdapter.is_available():
+		# 首轮网页内测不包含语音：隐藏语音入口，保留手势/观察完整流程。
+		speech_mode_button.visible = false
+		speech_toggle_mode = false
+	no_voice_notice.visible = not SpeechAdapter.is_available()
+	save_note.visible = is_web_build
+	var survey_url := str(ProjectSettings.get_setting(WEB_SURVEY_URL_SETTING, "")).strip_edges()
+	pause_survey_button.visible = not survey_url.is_empty()
+	completion_survey_button.visible = not survey_url.is_empty()
+
+func _open_survey() -> void:
+	var survey_url := str(ProjectSettings.get_setting(WEB_SURVEY_URL_SETTING, "")).strip_edges()
+	if survey_url.is_empty():
+		return
+	var error := OS.shell_open(survey_url)
+	if error != OK:
+		GameState.message_requested.emit(tr("WEB_SURVEY_OPEN_FAILED"), "warning")
 
 func _link_focus_cycle(buttons: Array[Button]) -> void:
 	for index in range(buttons.size()):
@@ -184,12 +235,14 @@ func _bind_player() -> void:
 	player = get_tree().get_first_node_in_group("player") as PlayerController
 	if player:
 		player.interaction_prompt_changed.connect(_on_interaction_prompt_changed)
-		player.set_speech_toggle_mode(speech_toggle_mode)
+		if SpeechAdapter.is_available():
+			player.set_speech_toggle_mode(speech_toggle_mode)
 		player.set_reduce_motion(reduce_motion)
 		_refresh_interaction_prompt()
 
-func _update_clock(day_value: int, elapsed_seconds: int) -> void:
-	clock_label.text = tr("HUD_CLOCK") % [day_value, 7 + int(elapsed_seconds / 60.0), elapsed_seconds % 60]
+func _update_clock(day_value: int, _elapsed_seconds: int) -> void:
+	var clock := GameState.clock_hms()
+	clock_label.text = tr("HUD_CLOCK") % [day_value, clock.x, clock.y]
 
 func _update_objective(objective: String) -> void:
 	objective_label.text = objective
@@ -260,6 +313,8 @@ func _set_interaction_text(text: String) -> void:
 	interaction_tween.tween_property(interaction_card, "modulate:a", 1.0, 0.12).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 func _on_recording_state_changed(active: bool) -> void:
+	if not SpeechAdapter.is_available():
+		return
 	if active:
 		voice_state = "listening"
 		voice_target_name = player.current_target_name() if player else tr("NEARBY_RESIDENT")
@@ -272,15 +327,21 @@ func _on_recording_state_changed(active: bool) -> void:
 		_refresh_interaction_prompt()
 
 func _on_recording_progress(elapsed_seconds: float, _maximum_seconds: float) -> void:
+	if not SpeechAdapter.is_available():
+		return
 	voice_elapsed = elapsed_seconds
 	if voice_state == "listening":
 		_refresh_voice_card()
 
 func _on_recognition_pending(_target_id: String) -> void:
+	if not SpeechAdapter.is_available():
+		return
 	voice_state = "transcribing"
 	_refresh_voice_card()
 
 func _on_recognition_finished(_target_id: String, accepted: bool, transcript: String, reason: String) -> void:
+	if not SpeechAdapter.is_available():
+		return
 	if voice_target_name.is_empty():
 		voice_target_name = player.current_target_name() if player else tr("NEARBY_RESIDENT")
 	voice_transcript = transcript
@@ -491,6 +552,8 @@ func _apply_ui_scale() -> void:
 	call_deferred("_apply_safe_frame")
 
 func _toggle_speech_mode() -> void:
+	if not SpeechAdapter.is_available():
+		return
 	speech_toggle_mode = not speech_toggle_mode
 	if player:
 		player.set_speech_toggle_mode(speech_toggle_mode)

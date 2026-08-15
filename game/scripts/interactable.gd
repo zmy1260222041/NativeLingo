@@ -79,8 +79,10 @@ func get_interaction_prompt(device := "keyboard", speech_toggle_mode := false, d
 	var gamepad := device == "gamepad"
 	var interact_glyph := InputGlyphs.for_action("interact", gamepad, device_id)
 	if interaction_kind == "npc":
-		var talk_glyph := InputGlyphs.for_action("push_to_talk", gamepad, device_id)
 		var gesture_glyph := InputGlyphs.for_action("gesture", gamepad, device_id)
+		if not SpeechAdapter.is_available():
+			return (tr("PROMPT_NPC_NO_VOICE") % [display_name, gesture_glyph, interact_glyph]).replace("\\n", "\n")
+		var talk_glyph := InputGlyphs.for_action("push_to_talk", gamepad, device_id)
 		var talk_verb := tr("PROMPT_TALK_TOGGLE") if speech_toggle_mode else tr("PROMPT_TALK_HOLD")
 		return (tr("PROMPT_NPC") % [display_name, talk_glyph, talk_verb, gesture_glyph, interact_glyph]).replace("\\n", "\n")
 	return tr("PROMPT_OBJECT") % [display_name, interact_glyph]

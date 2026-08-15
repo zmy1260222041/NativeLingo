@@ -3,10 +3,10 @@ extends Node
 ## interactable positions. Run as a scene so autoloads exist.
 
 const EXPECTED_TARGETS := {
-	"mira": Vector3(-3, 1.0, -2),
+	"mira": Vector3(-1.7, 1.0, -0.55),
 	"rowan": Vector3(3, 1.0, 0.5),
 	"berry_a": Vector3(-10, 0.65, -2),
-	"heater": Vector3(-6, 0.7, 7),
+	"heater": Vector3(-3.2, 0.7, 6.0),
 	"shelter": Vector3(-7, 0.8, 8.5),
 }
 

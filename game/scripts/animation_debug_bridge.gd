@@ -5,10 +5,10 @@ extends Node
 ## is running, the runtime bridge retries until it owns 6505/6506/6507 so the
 ## control, telemetry and test clients always talk to the process that owns
 ## the character.
+##
+## Web Beta 发布包不导出 addons/tools/tests，因此 addon 类只在桌面运行时按需
+## load；Web 构建在 _ready 直接短路，不触碰这些资源。
 
-const WebSocketServer = preload("res://addons/godot_mcp/websocket_server.gd")
-const RuntimeCommandsClass = preload("res://addons/godot_mcp/editors/runtime_commands.gd")
-const InputCommandsClass = preload("res://addons/godot_mcp/editors/input_commands.gd")
 const DebugLogClass = preload("res://scripts/debug_log.gd")
 
 const CHANNEL_PORTS := {
@@ -38,8 +38,12 @@ var _test_results: Dictionary = {}
 var _test_sequence := 0
 
 func _ready() -> void:
-	_runtime_commands = RuntimeCommandsClass.new()
-	_input_commands = InputCommandsClass.new()
+	if OS.has_feature("web"):
+		# Web 发布版不开放本地调试端口，也不做 30 Hz 采样与 user:// 日志写入。
+		set_process(false)
+		return
+	_runtime_commands = (load("res://addons/godot_mcp/editors/runtime_commands.gd") as GDScript).new()
+	_input_commands = (load("res://addons/godot_mcp/editors/input_commands.gd") as GDScript).new()
 	DebugLogClass.set_file("user://logs/debug.log")
 	DebugLogClass.info("debug_bridge", "runtime bridge starting ports=%s" % str(CHANNEL_PORTS))
 	_open_available_servers()
@@ -50,6 +54,8 @@ func _exit_tree() -> void:
 	_servers.clear()
 
 func _process(delta: float) -> void:
+	if OS.has_feature("web"):
+		return
 	for channel in _servers.keys():
 		_servers[channel].poll()
 	_retry_elapsed += delta
@@ -83,10 +89,13 @@ func is_game_frozen() -> bool:
 	return _frozen
 
 func _open_available_servers() -> void:
+	var websocket_server_class := load("res://addons/godot_mcp/websocket_server.gd") as GDScript
+	if websocket_server_class == null:
+		return
 	for channel in CHANNEL_PORTS:
 		if _servers.has(channel):
 			continue
-		var server := WebSocketServer.new()
+		var server = websocket_server_class.new()
 		var err: Error = server.start(int(CHANNEL_PORTS[channel]))
 		if err != OK:
 			continue
@@ -164,6 +173,19 @@ func _route(method: String, params: Dictionary, channel: String, peer_id: int) -
 			return _input_commands.set_input_action(params)
 		"game.capture_frames":
 			return _runtime_commands.capture_frames(params)
+		"game.debug_view":
+			return _debug_view(params)
+		"game.restore_view":
+			return _restore_view()
+		"game.set_property":
+			return _set_property(params)
+		"game.env_stats":
+			return _env_stats()
+		"game.capture_view":
+			return await _capture_view(params)
+		"game.bring_to_front":
+			DisplayServer.window_move_to_foreground(DisplayServer.MAIN_WINDOW_ID)
+			return {"result": {"front": true}}
 		"game.get_tree":
 			return _runtime_commands.get_tree(params)
 		"game.get_node_properties":
@@ -393,3 +415,160 @@ func _error_response(id: Variant, code: int, message: String, data: Variant = nu
 	if data != null:
 		error["data"] = data
 	return JSON.stringify({"jsonrpc": "2.0", "id": id, "error": error})
+
+
+## --- Environment art review helpers (art-bible §8.8 multi-view audit) ---
+
+func _parse_vec3(text: String) -> Variant:
+	var parts := text.strip_edges().split(",")
+	if parts.size() != 3:
+		return null
+	var values: Array[float] = []
+	for part in parts:
+		values.append(part.to_float())
+	return Vector3(values[0], values[1], values[2])
+
+
+func _debug_view(params: Dictionary) -> Dictionary:
+	var position_value: Variant = _parse_vec3(String(params.get("position", "")))
+	var look_value: Variant = _parse_vec3(String(params.get("look_at", "")))
+	if position_value == null or look_value == null:
+		return {"error": {"code": -32110, "message": "position/look_at must be 'x,y,z'"}}
+	var cam := get_tree().root.get_node_or_null(^"EnvDebugCamera") as Camera3D
+	if cam == null:
+		cam = Camera3D.new()
+		cam.name = "EnvDebugCamera"
+		get_tree().root.add_child(cam)
+	cam.position = position_value
+	cam.look_at(look_value)
+	if params.has("fov"):
+		cam.fov = clampf(float(params.fov), 20.0, 120.0)
+	cam.current = true
+	var player := get_tree().get_first_node_in_group("player")
+	if player != null and player.has_method("set_debug_frozen"):
+		player.call("set_debug_frozen", true)
+	return {"result": {
+		"camera": "EnvDebugCamera",
+		"position": [position_value.x, position_value.y, position_value.z],
+		"look_at": [look_value.x, look_value.y, look_value.z],
+	}}
+
+
+func _restore_view() -> Dictionary:
+	var cam := get_tree().root.get_node_or_null(^"EnvDebugCamera") as Camera3D
+	if cam != null:
+		cam.queue_free()
+	var player := get_tree().get_first_node_in_group("player")
+	if player != null:
+		var player_cam := _find_camera(player)
+		if player_cam != null:
+			player_cam.current = true
+		if player.has_method("set_debug_frozen"):
+			player.call("set_debug_frozen", false)
+	return {"result": {"restored": true}}
+
+
+func _find_camera(node: Node) -> Camera3D:
+	if node is Camera3D:
+		return node as Camera3D
+	for child in node.get_children():
+		var found := _find_camera(child)
+		if found != null:
+			return found
+	return null
+
+
+func _set_property(params: Dictionary) -> Dictionary:
+	var node_path := String(params.get("node_path", ""))
+	var property := String(params.get("property", ""))
+	var value: Variant = params.get("value", null)
+	var target := get_tree().root.get_node_or_null(NodePath(node_path))
+	if target == null:
+		return {"error": {"code": -32111, "message": "node not found: %s" % node_path}}
+	if property.is_empty() or not property in target:
+		return {"error": {"code": -32112, "message": "property not found: %s" % property}}
+	target.set(property, value)
+	return {"result": {"node": node_path, "property": property, "value": value}}
+
+
+func _env_stats() -> Dictionary:
+	var counters := {"meshes": 0, "lights": 0, "draw": 0}
+	for node in get_tree().root.get_children():
+		_count_env_nodes(node, counters)
+	return {"result": {
+		"meshes": counters.meshes,
+		"lights": counters.lights,
+		"draw_estimate": counters.draw,
+	}}
+
+
+func _count_env_nodes(node: Node, counters: Dictionary) -> void:
+	if node is MeshInstance3D:
+		counters.meshes = int(counters.meshes) + 1
+		var mi := node as MeshInstance3D
+		if mi.visible and mi.mesh != null:
+			counters.draw = int(counters.draw) + mi.mesh.get_surface_count()
+	if node is Light3D:
+		counters.lights = int(counters.lights) + 1
+	for child in node.get_children():
+		_count_env_nodes(child, counters)
+
+
+## Offscreen multi-view capture: renders through a SubViewport so screenshots
+## never depend on the game window being visible/occluded (the root-window
+## texture readback stalls when macOS stops compositing the window).
+func _capture_view(params: Dictionary) -> Dictionary:
+	var position_value: Variant = _parse_vec3(String(params.get("position", "")))
+	var look_value: Variant = _parse_vec3(String(params.get("look_at", "")))
+	if position_value == null or look_value == null:
+		return {"error": {"code": -32110, "message": "position/look_at must be 'x,y,z'"}}
+	var vp := get_tree().root.get_node_or_null(^"EnvReviewViewport") as SubViewport
+	if vp == null:
+		vp = SubViewport.new()
+		vp.name = "EnvReviewViewport"
+		vp.size = Vector2i(1280, 800)
+		vp.render_target_update_mode = SubViewport.UPDATE_ONCE
+		get_tree().root.add_child(vp)
+		var cam := Camera3D.new()
+		cam.name = "ReviewCamera"
+		vp.add_child(cam)
+	var camera := vp.get_node(^"ReviewCamera") as Camera3D
+	camera.position = position_value
+	camera.look_at(look_value)
+	camera.fov = clampf(float(params.get("fov", 60.0)), 20.0, 120.0)
+	var player := get_tree().get_first_node_in_group("player")
+	if player != null and player.has_method("set_debug_frozen"):
+		player.call("set_debug_frozen", true)
+	print("[capture_view] posing camera done")
+	vp.render_target_update_mode = SubViewport.UPDATE_ONCE
+	# bounded wait: frame_post_draw never fires while the window is fully
+	# occluded (macOS stops compositing), so poll process frames instead
+	for _i in range(6):
+		await get_tree().process_frame
+	print("[capture_view] frames awaited")
+	var image := vp.get_texture().get_image()
+	print("[capture_view] image=", image != null)
+	if image == null:
+		return {"error": {"code": -32113, "message": "subviewport capture returned no image"}}
+	var max_dim := clampi(int(params.get("max_dim", 800)), 160, 1280)
+	if image.get_width() > max_dim or image.get_height() > max_dim:
+		var new_width := image.get_width()
+		var new_height := image.get_height()
+		if new_width > new_height:
+			new_height = int(new_height * max_dim / float(new_width))
+			new_width = max_dim
+		else:
+			new_width = int(new_width * max_dim / float(new_height))
+			new_height = max_dim
+		image.resize(new_width, new_height)
+	# Write to disk and return the path only — large base64 responses get lost
+	# on the WebSocket trip, and file delivery works with the window in background.
+	var dir_path := OS.get_user_data_dir() + "/env_review"
+	DirAccess.make_dir_recursive_absolute(dir_path)
+	var file_name := String(params.get("name", "view_%d" % Time.get_ticks_msec()))
+	if file_name.contains("/") or file_name.contains(".."):
+		file_name = "view_safe"
+	var out_path := dir_path + "/" + file_name + ".jpg"
+	image.save_jpg(out_path)
+	print("[capture_view] saved ", out_path)
+	return {"result": {"format": "jpg", "path": out_path}}

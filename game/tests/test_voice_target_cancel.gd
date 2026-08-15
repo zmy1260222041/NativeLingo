@@ -45,7 +45,8 @@ func _test_recovery_cancel(player: PlayerController, target: Node3D) -> void:
 func _leave_target(player: PlayerController, target: Node3D) -> void:
 	player.nearby_target = target
 	player.previous_target_id = target.get_instance_id()
-	player.position = Vector3(0, 80, 0)
+	# Interaction range uses the XZ plane; move out horizontally, not vertically.
+	player.position = Vector3(80, 0, 0)
 	player._find_nearby_target()
 
 func _first_target() -> Node3D:

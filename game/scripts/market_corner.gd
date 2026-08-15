@@ -31,36 +31,39 @@ func _build_lighting() -> void:
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_SKY
 	sky_material = ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = Color("315d72")
-	sky_material.sky_horizon_color = Color("e3a06d")
-	sky_material.ground_horizon_color = Color("d27c68")
-	sky_material.ground_bottom_color = Color("34233f")
-	sky_material.sky_curve = 0.28
+	sky_material.sky_top_color = Color("2b86dc")
+	sky_material.sky_horizon_color = Color("c7e4f8")
+	sky_material.ground_horizon_color = Color("e4c48c")
+	sky_material.ground_bottom_color = Color("9a7348")
+	sky_material.sky_curve = 0.09
+	sky_material.sun_angle_max = 58.0
+	sky_material.sun_curve = 0.09
+	sky_material.energy_multiplier = 1.28
 	var sky := Sky.new()
 	sky.sky_material = sky_material
 	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color("9fc2bd")
-	environment.ambient_light_energy = 0.50
+	environment.ambient_light_color = Color("cfe3f4")
+	environment.ambient_light_energy = 0.62
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	var world_environment := WorldEnvironment.new()
 	world_environment.environment = environment
 	add_child(world_environment)
 	sun = DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52, -28, 0)
-	sun.light_color = Color("fff0ce")
-	sun.light_energy = 0.95
+	sun.rotation_degrees = Vector3(-62, -26, 0)
+	sun.light_color = Color("fff4cc")
+	sun.light_energy = 1.32
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 35.0
 	sun.shadow_bias = 0.04
 	add_child(sun)
 	environment.fog_enabled = true
-	environment.fog_light_color = Color("6e8296")
-	environment.fog_density = 0.014
-	environment.fog_sky_affect = 0.32
-	environment.fog_aerial_perspective = 0.42
-	environment.fog_height = 6.0
-	environment.fog_height_density = -0.007
+	environment.fog_light_color = Color("cde3f2")
+	environment.fog_density = 0.0034
+	environment.fog_sky_affect = 0.08
+	environment.fog_aerial_perspective = 0.06
+	environment.fog_height = 16.0
+	environment.fog_height_density = -0.0018
 	environment.glow_enabled = true
 	environment.glow_intensity = 0.42
 	environment.glow_bloom = 0.0
@@ -139,7 +142,7 @@ func _build_characters() -> void:
 		-1.0,
 	):
 		push_warning("MarketCorner: authored Mira model unavailable; using procedural fallback")
-	mira.position = Vector3(-3, 1, -2)
+	mira.position = Vector3(-1.7, 1.0, -0.55)
 	add_child(mira)
 
 
