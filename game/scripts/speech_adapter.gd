@@ -11,6 +11,8 @@ const RECORDING_PATH := "user://stranger_speech_attempt"
 const MAX_RECORDING_SECONDS := 15.0
 ## Web Beta 首轮不包含语音：该自定义 feature 只在 Web Beta 导出预设中开启。
 const WEB_NO_VOICE_FEATURE := "web_beta_no_voice"
+## Desktop Beta 同样以手势交付；语音增强版单独立项。
+const DESKTOP_NO_VOICE_FEATURE := "desktop_beta_no_voice"
 
 var record_effect: AudioEffectRecord
 var microphone_player: AudioStreamPlayer
@@ -28,10 +30,11 @@ var recording_session_active := false
 var availability_override: Variant = null
 
 func is_available() -> bool:
-	## 桌面构建可用；无语音网页构建固定返回 false，且从不创建麦克风/HTTP 客户端。
+	## 桌面普通构建可用；无语音 Web/Desktop Beta 构建固定返回 false，
+	## 且从不创建麦克风/HTTP 客户端。
 	if availability_override != null:
 		return bool(availability_override)
-	return not OS.has_feature(WEB_NO_VOICE_FEATURE)
+	return not OS.has_feature(WEB_NO_VOICE_FEATURE) and not OS.has_feature(DESKTOP_NO_VOICE_FEATURE)
 
 func _ready() -> void:
 	if not is_available():

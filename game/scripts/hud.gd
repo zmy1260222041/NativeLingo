@@ -10,6 +10,10 @@ const WEB_BETA_FEATURE := "web_beta_no_voice"
 const WEB_BUILD_LABEL_SETTING := "web_beta/build_label"
 const WEB_BUILD_LABEL_DEFAULT := "web-beta.1"
 const WEB_SURVEY_URL_SETTING := "web_beta/survey_url"
+const DESKTOP_BETA_FEATURE := "desktop_beta_no_voice"
+const DESKTOP_BUILD_LABEL_SETTING := "desktop_beta/build_label"
+const DESKTOP_BUILD_LABEL_DEFAULT := "desktop-beta.1"
+const DESKTOP_SURVEY_URL_SETTING := "desktop_beta/survey_url"
 
 @onready var ui_root: Control = $UIRoot
 @onready var clock_label: Label = $UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor/ClockChip/ClockLabel
@@ -73,6 +77,8 @@ var voice_reason := ""
 var day_transition_started_msec := 0
 ## 测试钩子：null 表示按 OS feature 自动判断；true/false 强制覆盖 Web UI。
 var web_beta_ui_override: Variant = null
+## 桌面版测试钩子，作用同上。
+var desktop_beta_ui_override: Variant = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -149,23 +155,39 @@ func _is_web_beta_build() -> bool:
 		return bool(web_beta_ui_override)
 	return OS.has_feature("web") or OS.has_feature(WEB_BETA_FEATURE)
 
+func _is_desktop_beta_build() -> bool:
+	if desktop_beta_ui_override != null:
+		return bool(desktop_beta_ui_override)
+	return OS.has_feature(DESKTOP_BETA_FEATURE)
+
+func _is_beta_build() -> bool:
+	return _is_web_beta_build() or _is_desktop_beta_build()
+
 func _apply_web_beta_ui() -> void:
-	var is_web_build := _is_web_beta_build()
-	build_tag.visible = is_web_build
-	if is_web_build:
-		build_tag.text = str(ProjectSettings.get_setting(WEB_BUILD_LABEL_SETTING, WEB_BUILD_LABEL_DEFAULT))
+	var is_beta := _is_beta_build()
+	var is_desktop := _is_desktop_beta_build()
+	build_tag.visible = is_beta
+	if is_beta:
+		var label_setting := DESKTOP_BUILD_LABEL_SETTING if is_desktop else WEB_BUILD_LABEL_SETTING
+		var label_default := DESKTOP_BUILD_LABEL_DEFAULT if is_desktop else WEB_BUILD_LABEL_DEFAULT
+		build_tag.text = str(ProjectSettings.get_setting(label_setting, label_default))
 	if not SpeechAdapter.is_available():
-		# 首轮网页内测不包含语音：隐藏语音入口，保留手势/观察完整流程。
+		# 首轮内测不包含语音：隐藏语音入口，保留手势/观察完整流程。
 		speech_mode_button.visible = false
 		speech_toggle_mode = false
+		no_voice_notice.text = tr("DESKTOP_NO_VOICE_NOTICE") if is_desktop else tr("WEB_BETA_NO_VOICE_NOTICE")
 	no_voice_notice.visible = not SpeechAdapter.is_available()
-	save_note.visible = is_web_build
-	var survey_url := str(ProjectSettings.get_setting(WEB_SURVEY_URL_SETTING, "")).strip_edges()
+	if is_beta:
+		save_note.text = tr("DESKTOP_SAVE_NOTE") if is_desktop else tr("WEB_SAVE_NOTE")
+	save_note.visible = is_beta
+	var survey_setting := DESKTOP_SURVEY_URL_SETTING if is_desktop else WEB_SURVEY_URL_SETTING
+	var survey_url := str(ProjectSettings.get_setting(survey_setting, "")).strip_edges()
 	pause_survey_button.visible = not survey_url.is_empty()
 	completion_survey_button.visible = not survey_url.is_empty()
 
 func _open_survey() -> void:
-	var survey_url := str(ProjectSettings.get_setting(WEB_SURVEY_URL_SETTING, "")).strip_edges()
+	var survey_setting := DESKTOP_SURVEY_URL_SETTING if _is_desktop_beta_build() else WEB_SURVEY_URL_SETTING
+	var survey_url := str(ProjectSettings.get_setting(survey_setting, "")).strip_edges()
 	if survey_url.is_empty():
 		return
 	var error := OS.shell_open(survey_url)

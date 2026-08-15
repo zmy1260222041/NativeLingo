@@ -149,3 +149,5 @@ WEB_BETA_NO_VOICE_NOTICE,"首轮网页内测暂不包含语音；请用 [G] 手�
 BTN_SURVEY,"填写内测问卷","Fill in the beta survey"
 WEB_SAVE_NOTE,"进度保存在当前浏览器本地；清除站点数据会重置进度。","Progress is saved in this browser only; clearing site data resets it."
 WEB_SURVEY_OPEN_FAILED,"问卷链接暂时打不开，请稍后再试。","The survey link could not be opened right now. Please try again."
+DESKTOP_NO_VOICE_NOTICE,"首轮桌面内测暂不包含语音；请用 [G] 手势与居民交流。","This desktop beta does not include voice; use [G] Gesture to talk to residents."
+DESKTOP_SAVE_NOTE,"进度保存在本机用户目录；卸载或删除应用数据会重置进度。","Progress is saved in this computer's user directory; removing the app or its data resets it."

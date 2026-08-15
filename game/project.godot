@@ -144,8 +144,14 @@ locale/fallback="zh_CN"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.035, 0.055, 0.09, 1)
+textures/vram_compression/import_etc2_astc=true
 
 [web_beta]
 
 build_label="web-beta.1"
+survey_url=""
+
+[desktop_beta]
+
+build_label="desktop-beta.1"
 survey_url=""
