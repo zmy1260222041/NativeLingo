@@ -1,0 +1,28 @@
+[
+  {
+    "clip": "infant-food-ask-bread-s03-01.wav",
+    "scenario": "food-ask-bread",
+    "tier": "infant",
+    "expected_keywords": ["bread", "want"],
+    "well_pronounced": ["bread", "want"],
+    "intended": "me want bread",
+    "transcript": "me want bread"
+  },
+  {
+    "clip": "infant-food-ask-bread-s03-02.wav",
+    "scenario": "food-ask-bread",
+    "tier": "infant",
+    "expected_keywords": ["bread", "want"],
+    "intended": "me want b'e",
+    "transcript": "me want bit"
+  },
+  {
+    "clip": "toddler-warmth-ask-blanket-s02-01.wav",
+    "scenario": "warmth-ask-blanket",
+    "tier": "toddler",
+    "expected_keywords": ["blanket", "cold"],
+    "well_pronounced": ["blanket", "please"],
+    "intended": "blanke, I cold(标注者误把 please 写进 well_pronounced —— 它不在 expected_keywords 里)",
+    "transcript": "blank it I cold"
+  }
+]

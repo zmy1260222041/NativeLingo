@@ -1,0 +1,28 @@
+{
+  "gate": "R-14/G4 size+latency",
+  "assets_dir": "/Users/a86138/Developer/NativeLingo-survival/desktop/backend/assets/wordlists",
+  "uncompressed_bytes": {
+    "CEFR-J Wordlist v1.6": 1097188,
+    "Octanove C1/C2 v1.0": 46462,
+    "NGSL 1.2 stats": 62566
+  },
+  "uncompressed_total_bytes": 1206216,
+  "missing_assets": [],
+  "cold_build_ms": 77.76,
+  "all_build_ms": [
+    77.76,
+    71.05,
+    66.67
+  ],
+  "latency_budget_ms": 1000.0,
+  "index_entries": 9962,
+  "distinct_headwords": 8827,
+  "homographs_collapsed_by_bare_headword": 1135,
+  "ngsl_ranks": 2809,
+  "regrade_conflicts": 95,
+  "tier_reachability": {
+    "required_slots": 109,
+    "unreachable_slots": 0
+  },
+  "complete": true
+}

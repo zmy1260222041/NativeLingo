@@ -1,0 +1,47 @@
+response_id,scenario_id,tier,response_text,delivered,origin,notes
+F01,food-ask-bread,infant,"I want bread, please.",1,synthetic,clean request
+F02,food-ask-bread,infant,Can I have some bread?,1,synthetic,polite request form
+F03,food-ask-bread,infant,give me food,1,synthetic,bare imperative but unambiguous
+F04,food-ask-bread,infant,I need something to eat.,1,synthetic,multi-word accept phrase
+F05,food-ask-bread,infant,me hungry,1,synthetic,"telegraphic L2 form; NPC would understand, no request verb"
+F06,food-ask-bread,infant,bread,1,synthetic,single noun after the NPC greeting is enough to get bread
+F07,food-ask-bread,infant,want eat,1,synthetic,ungrammatical but delivered (G7 inclusivity case)
+F08,food-ask-bread,infant,"I hungry, please",1,synthetic,missing copula
+F09,food-ask-bread,infant,hungry,1,synthetic,"answers the greeting ""Are you hungry?"" so meaning lands"
+F10,food-ask-bread,infant,I do not want bread.,0,synthetic,negation: matcher has no polarity handling
+F11,food-ask-bread,infant,"Please, I already ate bread.",0,synthetic,past-tense report not a request
+F12,food-ask-bread,infant,Is that bread? I need my mother.,0,synthetic,need is aimed at something else
+F13,food-ask-bread,infant,hello,0,synthetic,no content
+F14,food-ask-bread,infant,"good morning, nice day",0,synthetic,small talk only
+F15,food-ask-bread,infant,I want water.,0,synthetic,wrong need object for this scenario
+F16,food-ask-bread,infant,thank you,0,synthetic,optional politeness slot only
+F17,food-ask-bread,infant,"food, thanks",1,synthetic,object + thanks reads as a request to the elder
+F18,food-ask-bread,infant,"can I have something to eat, please?",1,synthetic,full polite request
+W01,warmth-ask-blanket,toddler,I am cold. Can I have a blanket?,1,synthetic,reference-style answer
+W02,warmth-ask-blanket,toddler,"cold, blanket please",1,synthetic,telegraphic but both units present
+W03,warmth-ask-blanket,toddler,I am freezing. Do you have a cover?,1,synthetic,synonym variants on both slots
+W04,warmth-ask-blanket,toddler,"shivering, something warm please",1,synthetic,multi-word accept on the object slot
+W05,warmth-ask-blanket,toddler,"cold night, I want cloth",1,synthetic,noun variant cloth
+W06,warmth-ask-blanket,toddler,blanket,1,synthetic,"at a blanket stall at night, naming the item gets it"
+W07,warmth-ask-blanket,toddler,me cold,0,synthetic,"state only; NPC partial response asks ""what do you need?"""
+W08,warmth-ask-blanket,toddler,It is cold but I do not need a blanket.,0,synthetic,negation again
+W09,warmth-ask-blanket,toddler,The blanket is cold.,0,synthetic,both slot words present but no request meaning
+W10,warmth-ask-blanket,toddler,"I want blanket, I am cold",1,synthetic,missing article
+W11,warmth-ask-blanket,toddler,"hello, good evening",0,synthetic,no content
+W12,warmth-ask-blanket,toddler,your stall is nice,0,synthetic,small talk only
+W13,warmth-ask-blanket,toddler,I am cold.,0,synthetic,state without the wanted object
+W14,warmth-ask-blanket,toddler,can I have that?,0,synthetic,request marker only (optional slot)
+W15,warmth-ask-blanket,toddler,"cover please, freezing",1,synthetic,reversed order still delivers
+W16,warmth-ask-blanket,toddler,"cold, cold, cloth?",1,synthetic,very rough but both units land
+W17,warmth-ask-blanket,toddler,"Blanket, please. Cold.",1,synthetic,fragmented word order
+W18,warmth-ask-blanket,toddler,I am cold. Where is the toilet?,0,synthetic,state present but a different need
+D01,water-ask-drink,infant,"water please",1,synthetic,minimal viable request
+D02,water-ask-drink,infant,me thirsty,1,synthetic,rough L2 form covered by accept
+D03,water-ask-drink,infant,I want something to drink.,1,synthetic,multi-word accept phrase
+D04,water-ask-drink,infant,The water is cold today.,0,synthetic,comment not a request; matcher has no intent model
+P01,food-point-fruit,infant,I want that one.,1,synthetic,deixis instead of the noun
+P02,food-point-fruit,infant,"apple, thank you",1,synthetic,noun + thanks
+S01,shelter-ask-sit-inside,infant,Can I come in? It is raining.,1,synthetic,multi-word accept on both slots
+S02,shelter-ask-sit-inside,infant,Your house is beautiful.,0,synthetic,"contains 'your house' but is not a request -- expected FP probe"
+C01,warmth-ask-coat,infant,"I am cold, can I have a coat?",1,synthetic,clean request
+C02,warmth-ask-coat,infant,"jacket, please",1,synthetic,synonym + politeness

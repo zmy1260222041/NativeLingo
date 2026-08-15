@@ -1,0 +1,18 @@
+[
+  {
+    "clip": "infant-nonexistent-scenario-s01-01.wav",
+    "tier": "infant",
+    "expected_keywords": ["bread", "want"],
+    "well_pronounced": ["bread", "want"],
+    "intended": "me want bread(两个词人耳都辨得出,仪器把 bread 写成 bit)",
+    "transcript": "me want bit"
+  },
+  {
+    "clip": "toddler-nonexistent-scenario-s01-01.wav",
+    "tier": "toddler",
+    "expected_keywords": ["blanket", "cold"],
+    "well_pronounced": ["blanket", "cold"],
+    "intended": "blanket, I cold(仪器把 blanket 拆成 blank it)",
+    "transcript": "blank it I cold"
+  }
+]

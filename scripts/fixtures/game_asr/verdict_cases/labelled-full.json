@@ -1,0 +1,47 @@
+[
+  {
+    "clip": "infant-food-ask-bread-s03-01.wav",
+    "scenario": "food-ask-bread",
+    "tier": "infant",
+    "expected_keywords": ["bread", "want"],
+    "well_pronounced": ["bread", "want"],
+    "intended": "me want bread",
+    "transcript": "me want bread"
+  },
+  {
+    "clip": "infant-food-ask-bread-s03-02.wav",
+    "scenario": "food-ask-bread",
+    "tier": "infant",
+    "expected_keywords": ["bread", "want"],
+    "well_pronounced": ["want"],
+    "intended": "me want b'e (bread 尾音吞掉,单听辨不出)",
+    "transcript": "me want bit"
+  },
+  {
+    "clip": "infant-food-ask-bread-s07-01.wav",
+    "scenario": "food-ask-bread",
+    "tier": "infant",
+    "expected_keywords": ["bread", "hungry"],
+    "well_pronounced": ["hungry"],
+    "intended": "I hungry, bre (bread 只发出首音)",
+    "transcript": "I hungry bear"
+  },
+  {
+    "clip": "toddler-warmth-ask-blanket-s02-01.wav",
+    "scenario": "warmth-ask-blanket",
+    "tier": "toddler",
+    "expected_keywords": ["blanket", "cold"],
+    "well_pronounced": ["blanket", "cold"],
+    "intended": "blanket, I cold",
+    "transcript": "blanket I cold"
+  },
+  {
+    "clip": "toddler-warmth-ask-blanket-s05-01.wav",
+    "scenario": "warmth-ask-blanket",
+    "tier": "toddler",
+    "expected_keywords": ["blanket", "cold"],
+    "well_pronounced": ["cold"],
+    "intended": "I cold, blanke (blanket 尾音吞掉)",
+    "transcript": "I cold blank it"
+  }
+]

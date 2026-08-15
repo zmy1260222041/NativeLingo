@@ -1,0 +1,523 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+[ext_resource type="Theme" path="res://ui/stranger_theme.tres" id="2_theme"]
+[ext_resource type="Script" path="res://scripts/need_icon.gd" id="3_icon"]
+[ext_resource type="Script" path="res://scripts/need_meter.gd" id="4_meter"]
+[ext_resource type="Script" path="res://scripts/input_remap_panel.gd" id="5_remap"]
+[ext_resource type="Script" path="res://scripts/voice_status_icon.gd" id="6_voice_icon"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="UIRoot" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+
+[node name="SafeAreaRoot" type="MarginContainer" parent="UIRoot"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 58
+theme_override_constants/margin_top = 44
+theme_override_constants/margin_right = 58
+theme_override_constants/margin_bottom = 44
+
+[node name="HudRoot" type="Control" parent="UIRoot/SafeAreaRoot"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ObjectiveAnchor" type="VBoxContainer" parent="UIRoot/SafeAreaRoot/HudRoot"]
+layout_mode = 1
+offset_right = 520.0
+offset_bottom = 166.0
+theme_override_constants/separation = 8
+
+[node name="ClockChip" type="PanelContainer" parent="UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor"]
+custom_minimum_size = Vector2(230, 38)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="ClockLabel" type="Label" parent="UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor/ClockChip"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.949, 0.827, 0.596, 1)
+theme_override_colors/font_outline_color = Color(0.027, 0.039, 0.078, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 21
+text = "HUD_CLOCK"
+
+[node name="ObjectiveCard" type="PanelContainer" parent="UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor"]
+layout_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor/ObjectiveCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Eyebrow" type="Label" parent="UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor/ObjectiveCard/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.471, 0.788, 0.643, 1)
+theme_override_font_sizes/font_size = 20
+text = "HUD_CURRENT_OBJECTIVE"
+
+[node name="ObjectiveLabel" type="Label" parent="UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor/ObjectiveCard/Content"]
+layout_mode = 2
+custom_minimum_size = Vector2(440, 52)
+theme_override_font_sizes/font_size = 23
+text = "OBJECTIVE_GREET_MIRA"
+autowrap_mode = 2
+
+[node name="NeedsAnchor" type="PanelContainer" parent="UIRoot/SafeAreaRoot/HudRoot"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -210.0
+offset_right = 340.0
+grow_vertical = 0
+
+[node name="NeedsRows" type="VBoxContainer" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor"]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="FoodRow" type="HBoxContainer" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="Control" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/FoodRow"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+script = ExtResource("3_icon")
+kind = "food"
+
+[node name="Content" type="VBoxContainer" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/FoodRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="Label" type="Label" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/FoodRow/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "NEED_FOOD"
+
+[node name="Meter" type="Control" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/FoodRow/Content"]
+custom_minimum_size = Vector2(240, 18)
+layout_mode = 2
+script = ExtResource("4_meter")
+kind = "food"
+
+[node name="WarmthRow" type="HBoxContainer" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="Control" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/WarmthRow"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+script = ExtResource("3_icon")
+kind = "warmth"
+
+[node name="Content" type="VBoxContainer" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/WarmthRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="Label" type="Label" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/WarmthRow/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "NEED_WARMTH"
+
+[node name="Meter" type="Control" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/WarmthRow/Content"]
+custom_minimum_size = Vector2(240, 18)
+layout_mode = 2
+script = ExtResource("4_meter")
+kind = "warmth"
+
+[node name="EnergyRow" type="HBoxContainer" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="Control" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/EnergyRow"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+script = ExtResource("3_icon")
+kind = "energy"
+
+[node name="Content" type="VBoxContainer" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/EnergyRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="Label" type="Label" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/EnergyRow/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "NEED_ENERGY"
+
+[node name="Meter" type="Control" parent="UIRoot/SafeAreaRoot/HudRoot/NeedsAnchor/NeedsRows/EnergyRow/Content"]
+custom_minimum_size = Vector2(240, 18)
+layout_mode = 2
+script = ExtResource("4_meter")
+kind = "energy"
+
+[node name="InteractionAnchor" type="CenterContainer" parent="UIRoot/SafeAreaRoot/HudRoot"]
+layout_mode = 1
+anchors_preset = 12
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -180.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="InteractionCard" type="PanelContainer" parent="UIRoot/SafeAreaRoot/HudRoot/InteractionAnchor"]
+custom_minimum_size = Vector2(620, 0)
+layout_mode = 2
+visible = false
+
+[node name="Content" type="HBoxContainer" parent="UIRoot/SafeAreaRoot/HudRoot/InteractionAnchor/InteractionCard"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="VoiceStatusIcon" type="Control" parent="UIRoot/SafeAreaRoot/HudRoot/InteractionAnchor/InteractionCard/Content"]
+visible = false
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+script = ExtResource("6_voice_icon")
+
+[node name="InteractionLabel" type="Label" parent="UIRoot/SafeAreaRoot/HudRoot/InteractionAnchor/InteractionCard/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 21
+text = "PROMPT_OBJECT"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ToastAnchor" type="CenterContainer" parent="UIRoot/SafeAreaRoot/HudRoot"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 6.0
+offset_bottom = 112.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="ToastPanel" type="PanelContainer" parent="UIRoot/SafeAreaRoot/HudRoot/ToastAnchor"]
+custom_minimum_size = Vector2(560, 0)
+layout_mode = 2
+visible = false
+
+[node name="ToastLabel" type="Label" parent="UIRoot/SafeAreaRoot/HudRoot/ToastAnchor/ToastPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "TOAST_INFO"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="BuildTag" type="Label" parent="UIRoot/SafeAreaRoot/HudRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -40.0
+offset_right = -12.0
+offset_bottom = -12.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.725, 0.769, 0.812, 1)
+theme_override_font_sizes/font_size = 18
+text = "web-beta.1"
+horizontal_alignment = 2
+
+[node name="DayTransitionOverlay" type="ColorRect" parent="UIRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.027, 0.039, 0.078, 0.94)
+
+[node name="Center" type="CenterContainer" parent="UIRoot/DayTransitionOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="VBoxContainer" parent="UIRoot/DayTransitionOverlay/Center"]
+custom_minimum_size = Vector2(640, 200)
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="DayLabel" type="Label" parent="UIRoot/DayTransitionOverlay/Center/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.949, 0.659, 0.357, 1)
+theme_override_font_sizes/font_size = 42
+text = "DAY_LABEL"
+horizontal_alignment = 1
+
+[node name="Body" type="Label" parent="UIRoot/DayTransitionOverlay/Center/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 23
+text = "DAY_TWO_BODY"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="SkipHint" type="Label" parent="UIRoot/DayTransitionOverlay/Center/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.694, 0.753, 0.82, 1)
+theme_override_font_sizes/font_size = 20
+text = "DAY_SKIP_HINT"
+horizontal_alignment = 1
+
+[node name="PauseOverlay" type="ColorRect" parent="UIRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.027, 0.039, 0.078, 0.78)
+
+[node name="Center" type="CenterContainer" parent="UIRoot/PauseOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="UIRoot/PauseOverlay/Center"]
+custom_minimum_size = Vector2(540, 540)
+layout_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="UIRoot/PauseOverlay/Center/Card"]
+layout_mode = 2
+theme_override_constants/separation = 13
+alignment = 1
+
+[node name="Title" type="Label" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.949, 0.659, 0.357, 1)
+theme_override_font_sizes/font_size = 32
+text = "PAUSE_TITLE"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.725, 0.769, 0.812, 1)
+theme_override_font_sizes/font_size = 20
+text = "PAUSE_SUBTITLE"
+horizontal_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+layout_mode = 2
+text = "BTN_RESUME"
+
+[node name="ReduceMotionButton" type="Button" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+layout_mode = 2
+text = "SETTING_REDUCE_MOTION"
+
+[node name="UIScaleButton" type="Button" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+layout_mode = 2
+text = "SETTING_UI_SCALE"
+
+[node name="SpeechModeButton" type="Button" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+layout_mode = 2
+text = "SETTING_SPEECH_MODE"
+
+[node name="ControlsButton" type="Button" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+layout_mode = 2
+text = "BTN_CONTROLS"
+
+[node name="NoVoiceNotice" type="Label" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.949, 0.659, 0.357, 1)
+theme_override_font_sizes/font_size = 19
+text = "WEB_BETA_NO_VOICE_NOTICE"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="SurveyButton" type="Button" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+visible = false
+layout_mode = 2
+text = "BTN_SURVEY"
+
+[node name="Hint" type="Label" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.725, 0.769, 0.812, 1)
+theme_override_font_sizes/font_size = 20
+text = "PAUSE_NAV_HINT"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="SaveNote" type="Label" parent="UIRoot/PauseOverlay/Center/Card/Content"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.694, 0.753, 0.82, 1)
+theme_override_font_sizes/font_size = 18
+text = "WEB_SAVE_NOTE"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="InputRemapOverlay" type="ColorRect" parent="UIRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.027, 0.039, 0.078, 0.94)
+script = ExtResource("5_remap")
+
+[node name="Center" type="CenterContainer" parent="UIRoot/InputRemapOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="UIRoot/InputRemapOverlay/Center"]
+custom_minimum_size = Vector2(780, 590)
+layout_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="UIRoot/InputRemapOverlay/Center/Card"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="UIRoot/InputRemapOverlay/Center/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.949, 0.659, 0.357, 1)
+theme_override_font_sizes/font_size = 30
+text = "REMAP_TITLE"
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="UIRoot/InputRemapOverlay/Center/Card/Content"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "REMAP_INSTRUCTIONS"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ColumnHeader" type="HBoxContainer" parent="UIRoot/InputRemapOverlay/Center/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Action" type="Label" parent="UIRoot/InputRemapOverlay/Center/Card/Content/ColumnHeader"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "REMAP_ACTION"
+
+[node name="Keyboard" type="Label" parent="UIRoot/InputRemapOverlay/Center/Card/Content/ColumnHeader"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "REMAP_KEYBOARD"
+horizontal_alignment = 1
+
+[node name="Gamepad" type="Label" parent="UIRoot/InputRemapOverlay/Center/Card/Content/ColumnHeader"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "REMAP_GAMEPAD"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="UIRoot/InputRemapOverlay/Center/Card/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Actions" type="VBoxContainer" parent="UIRoot/InputRemapOverlay/Center/Card/Content/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 7
+
+[node name="Footer" type="HBoxContainer" parent="UIRoot/InputRemapOverlay/Center/Card/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ResetButton" type="Button" parent="UIRoot/InputRemapOverlay/Center/Card/Content/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "REMAP_RESET"
+
+[node name="CloseButton" type="Button" parent="UIRoot/InputRemapOverlay/Center/Card/Content/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "REMAP_CLOSE"
+
+[node name="CompletionOverlay" type="ColorRect" parent="UIRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.027, 0.039, 0.078, 0.82)
+
+[node name="Center" type="CenterContainer" parent="UIRoot/CompletionOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="UIRoot/CompletionOverlay/Center"]
+custom_minimum_size = Vector2(650, 420)
+layout_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="UIRoot/CompletionOverlay/Center/Card"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Title" type="Label" parent="UIRoot/CompletionOverlay/Center/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.949, 0.659, 0.357, 1)
+theme_override_font_sizes/font_size = 33
+text = "COMPLETE_TITLE"
+horizontal_alignment = 1
+
+[node name="Body" type="Label" parent="UIRoot/CompletionOverlay/Center/Card/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 21
+text = "COMPLETE_BODY"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ContinueButton" type="Button" parent="UIRoot/CompletionOverlay/Center/Card/Content"]
+layout_mode = 2
+text = "BTN_COMPLETE_CONTINUE"
+
+[node name="RestartButton" type="Button" parent="UIRoot/CompletionOverlay/Center/Card/Content"]
+layout_mode = 2
+text = "BTN_RESTART"
+
+[node name="SurveyButton" type="Button" parent="UIRoot/CompletionOverlay/Center/Card/Content"]
+visible = false
+layout_mode = 2
+text = "BTN_SURVEY"

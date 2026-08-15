@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://scripts/market_corner.gd" type="Script" id="1_mc"]
+
+[node name="MarketCorner" type="Node3D"]
+script = ExtResource("1_mc")
+
+[node name="CameraRig" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+
+[node name="CameraPivot" type="Node3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 0.985, 0.174, 0, -0.174, 0.985, 0, 1.35, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraRig/CameraPivot"]
+spring_length = 5.5
+margin = 0.25
+collision_mask = 1
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig/CameraPivot/SpringArm3D"]
+current = true
+fov = 68.0

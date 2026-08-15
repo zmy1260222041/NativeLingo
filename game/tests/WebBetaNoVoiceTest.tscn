@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/Main.tscn" id="1_main"]
+[ext_resource type="Script" path="res://tests/test_web_beta_no_voice.gd" id="2_test"]
+
+[node name="WebBetaNoVoiceTest" type="Node"]
+script = ExtResource("2_test")
+
+[node name="Main" parent="." instance=ExtResource("1_main")]

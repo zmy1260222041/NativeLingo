@@ -1,0 +1,15 @@
+{
+  "gate": "R-14/G3 frequency_basis vs NGSL",
+  "ngsl_entries": 2809,
+  "band_lowest": 1000,
+  "band_lower_mid": 2000,
+  "scenarios": 42,
+  "claim_distribution": {
+    "measured": 23,
+    "lowest": 4,
+    "common": 14,
+    "unstated": 1
+  },
+  "named_word_failures": [],
+  "required_slot_failures": []
+}
