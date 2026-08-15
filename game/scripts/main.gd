@@ -31,6 +31,7 @@ var _glow_lanterns: Array[ShaderMaterial] = []
 var _glow_heaters: Array[ShaderMaterial] = []
 var _glow_plants: Array[ShaderMaterial] = []
 var _glow_windows: Array[ShaderMaterial] = []
+var _glow_relics: Array[ShaderMaterial] = []
 var _lantern_lights: Array[OmniLight3D] = []
 var _heater_light: OmniLight3D
 
@@ -42,6 +43,7 @@ func _ready() -> void:
 	_build_ground()
 	_build_authored_environment()
 	_build_settlement()
+	_build_alien_greens()
 	_build_landmarks()
 	_build_interactables()
 
@@ -260,35 +262,117 @@ func _build_stylized_flora() -> void:
 ## 避免 inverted-hull 与摆动树冠分离（§3.7.A 验收）。材质经 material_override
 ## 逐树实例化，phase 取自树位，保证各树相位错开。
 func _enable_tree_sway(tree: Node3D) -> void:
+	_attach_foliage_sway(tree, 0.035, 4.0)
+
+
+## §5.6 绿地外星点缀：卷蕨簇 / 光苇 / 遗迹独石。成组摆放不成阵列，
+## 只进绿地空档，不与市场核心抢轮廓。
+func _build_alien_greens() -> void:
+	for entry in [
+		[Vector3(-8.6, 0, -12.4), 0.7, 1.0],
+		[Vector3(7.2, 0, -12.6), 2.1, 0.9],
+		[Vector3(-15.4, 0, -2.6), 1.4, 1.05],
+		[Vector3(-16.2, 0, 8.4), 0.3, 0.95],
+		[Vector3(15.8, 0, -7.6), 1.9, 1.0],
+		[Vector3(5.6, 0, 12.8), 0.9, 0.9],
+		[Vector3(-0.9, 0, 14.2), 2.6, 1.1],
+		[Vector3(13.6, 0, 12.6), 1.2, 0.85],
+	]:
+		var frond := _try_load_env("fol_frond_alien_a.glb", entry[0], false, Vector3.ZERO)
+		if frond == null:
+			push_error("Main: missing fol_frond_alien_a.glb")
+			continue
+		frond.rotation.y = entry[1]
+		frond.scale = Vector3.ONE * entry[2]
+		_add_fitted_collision(frond, PackedStringArray(["canopy"]))
+		_enable_mesh_shadows(frond)
+		_attach_foliage_sway(frond, 0.055, 1.4)
+	for entry in [
+		[Vector3(-12.2, 0, -4.0), 0.4, 1.0],
+		[Vector3(12.4, 0, 6.2), 1.7, 0.9],
+		[Vector3(3.0, 0, -13.5), 0.9, 0.8],
+		[Vector3(-5.2, 0, -13.2), 2.3, 1.1],
+		[Vector3(16.4, 0, 0.2), 0.6, 0.85],
+		[Vector3(-16.0, 0, -7.4), 1.5, 0.75],
+		[Vector3(10.4, 0, -12.4), 2.8, 1.0],
+	]:
+		var reed := _try_load_env("fol_reed_glow_a.glb", entry[0], false, Vector3.ZERO)
+		if reed == null:
+			push_error("Main: missing fol_reed_glow_a.glb")
+			continue
+		reed.rotation.y = entry[1]
+		reed.scale = Vector3.ONE * entry[2]
+		_enable_mesh_shadows(reed)
+	# 遗迹角：西绿地主标（一立一倒），东侧远处立一块小的呼应
+	var mono_a := _try_load_env("prp_monolith_a.glb", Vector3(-16.8, 0, -10.8), false, Vector3.ZERO)
+	if mono_a != null:
+		mono_a.rotation = Vector3(0.0, 0.6, 0.05)
+		_add_fitted_collision(mono_a)
+		_enable_mesh_shadows(mono_a)
+		_add_asset_outlines(mono_a, 2)
+	else:
+		push_error("Main: missing prp_monolith_a.glb")
+	# v2 倒石板：恢复原先“斜插倾倒”姿态（姿态烘焙进资产：基座轮深埋接地、
+	# 铭文朝上、头端翘起），护坡碎 石全部半埋——无悬浮件、无接地闪黑
+	var mono_b := _try_load_env("prp_monolith_fallen_a.glb", Vector3(-14.9, 0, -12.9), false, Vector3.ZERO)
+	if mono_b != null:
+		mono_b.rotation.y = 0.7
+		_add_fitted_collision(mono_b)
+		_enable_mesh_shadows(mono_b)
+	var mono_c := _try_load_env("prp_monolith_a.glb", Vector3(16.2, 0, -12.0), false, Vector3.ZERO)
+	if mono_c != null:
+		mono_c.rotation = Vector3(0.0, -0.9, -0.04)
+		mono_c.scale = Vector3.ONE * 0.9
+		_add_fitted_collision(mono_c)
+		_enable_mesh_shadows(mono_c)
+		_add_asset_outlines(mono_c, 2)
+
+
+func _attach_foliage_sway(node: Node3D, sway_amp: float, canopy_height: float) -> void:
 	var foliage := load("res://shaders/cel_foliage.gdshader") as Shader
 	if foliage == null:
-		push_warning("Main: cel_foliage shader missing, tree sway disabled")
+		push_warning("Main: cel_foliage shader missing, sway disabled")
 		return
-	var phase := tree.position.x * 3.1 + tree.position.z * 2.3
-	_apply_tree_sway(tree, foliage, phase)
+	var phase := node.position.x * 3.1 + node.position.z * 2.3
+	_apply_tree_sway(node, foliage, phase, sway_amp, canopy_height)
 
 
-func _apply_tree_sway(node: Node, foliage: Shader, phase: float) -> void:
+func _apply_tree_sway(
+	node: Node, foliage: Shader, phase: float,
+	sway_amp := 0.035, canopy_height := 4.0,
+) -> void:
 	if node is MeshInstance3D:
 		var mi := node as MeshInstance3D
 		var lower := String(mi.name).to_lower()
-		if "canopy" in lower:
+		var is_trunk := "trunk" in lower
+		if "canopy" in lower or is_trunk:
 			if lower.ends_with("_outline"):
 				var om := mi.material_override as ShaderMaterial
 				if om != null:
-					om.set_shader_parameter("sway_amp", 0.035)
-					om.set_shader_parameter("canopy_height", 4.0)
+					om.set_shader_parameter("sway_amp", sway_amp)
+					om.set_shader_parameter("canopy_height", canopy_height)
 					om.set_shader_parameter("phase_offset", phase)
 			else:
 				var mat := ShaderMaterial.new()
 				mat.shader = foliage
 				mat.set_shader_parameter("base_color", Color(1, 1, 1))
-				mat.set_shader_parameter("sway_amp", 0.035)
-				mat.set_shader_parameter("canopy_height", 4.0)
+				var src := mi.material_override
+				if src == null and mi.mesh != null and mi.mesh.get_surface_count() > 0:
+					src = mi.mesh.surface_get_material(0)
+				if src is ShaderMaterial:
+					for pname in ["albedo_tex", "normal_tex", "orm_tex"]:
+						var tex = (src as ShaderMaterial).get_shader_parameter(pname)
+						if tex != null:
+							mat.set_shader_parameter(pname, tex)
+				mat.set_shader_parameter("sway_amp", sway_amp)
+				mat.set_shader_parameter("canopy_height", canopy_height)
 				mat.set_shader_parameter("phase_offset", phase)
+				# 树干与树冠同一光照模型（cel_foliage 禁环境光 + 暗影量化），
+				# 修复树干夜里被环境光洗白、与树冠色调脱节（v04 复查）。
+				mat.set_shader_parameter("vcol_strength", 0.92 if is_trunk else 0.55)
 				mi.material_override = mat
 	for child in node.get_children():
-		_apply_tree_sway(child, foliage, phase)
+		_apply_tree_sway(child, foliage, phase, sway_amp, canopy_height)
 
 
 ## §5.5 使用痕迹 + §5.2 密度：每个 NPC 驻点 ≥1 组道具，市场核心 ≥2 组
@@ -348,7 +432,8 @@ func _build_interactables() -> void:
 	_add_pickup("scrap", "scrap_a", tr("ITEM_SCRAP"), Vector3(11, 0.45, -5), Color("b8c1c8"), "box")
 	_add_pickup("scrap", "scrap_b", tr("ITEM_SCRAP"), Vector3(14, 0.45, 2), Color("b8c1c8"), "box")
 	_add_station("water", "reservoir", tr("STATION_RESERVOIR"), Vector3(10, 1.0, 9), Color("4fb6d3"))
-	_add_station("heater", "heater", tr("STATION_HEATER"), Vector3(-6, 0.7, 7), Color("e1724d"))
+	# v03: 加热器移出庇护所基座（庇护所 x∈[-9.9,-4.1]，此前 -6 处整台埋进台基里）
+	_add_station("heater", "heater", tr("STATION_HEATER"), Vector3(-3.2, 0.7, 6.0), Color("e1724d"))
 	_add_station("shelter", "shelter", tr("STATION_SHELTER"), Vector3(-7, 0.8, 8.5), Color("f0d49b"))
 
 func _add_npc(npc_id: String, npc_name: String, position: Vector3, color: Color, profile: int) -> void:
@@ -508,7 +593,49 @@ func _instantiate_env(file: String) -> Node3D:
 	if inst != null:
 		inst.name = file.get_basename()
 		_paint_env_asset(inst, file)
+		_mirror_lod_materials(inst)
 	return inst
+
+
+func _mirror_lod_materials(host: Node) -> void:
+	var groups := {}
+	_index_lod_meshes(host, groups)
+	for suffix in groups:
+		var pack: Dictionary = groups[suffix]
+		if not pack.has(0):
+			continue
+		var src := pack[0] as MeshInstance3D
+		if src == null or src.mesh == null:
+			continue
+		for lod in [1, 2]:
+			if not pack.has(lod):
+				continue
+			var dst := pack[lod] as MeshInstance3D
+			if dst == null or dst.mesh == null:
+				continue
+			var count := mini(src.mesh.get_surface_count(), dst.mesh.get_surface_count())
+			for s in range(count):
+				var mat := src.mesh.surface_get_material(s)
+				if mat != null:
+					dst.mesh.surface_set_material(s, mat)
+			if src.material_override != null:
+				dst.material_override = src.material_override
+
+
+func _index_lod_meshes(node: Node, groups: Dictionary) -> void:
+	if node is MeshInstance3D:
+		var raw := String(node.name)
+		var lower := raw.to_lower()
+		for lod in range(3):
+			var token := "lod%d__" % lod
+			if token in lower:
+				var suffix := lower.substr(lower.find(token) + token.length())
+				if not groups.has(suffix):
+					groups[suffix] = {}
+				groups[suffix][lod] = node
+				break
+	for child in node.get_children():
+		_index_lod_meshes(child, groups)
 
 
 func _add_env_collision(host: Node3D, size: Vector3) -> void:
@@ -660,6 +787,8 @@ func _update_authored_glow(evening: float) -> void:
 		mat.set_shader_parameter("fill", lerpf(0.06, 0.80, evening))
 	for mat in _glow_windows:
 		mat.set_shader_parameter("fill", lerpf(0.22, 0.70, evening))
+	for mat in _glow_relics:
+		mat.set_shader_parameter("fill", lerpf(0.10, 0.42, evening))
 	for light in _lantern_lights:
 		light.light_energy = lerpf(0.10, 0.42, evening)
 	if _heater_light != null:
@@ -695,15 +824,24 @@ func _paint_shader_material(mat: ShaderMaterial, stem: String, hint: String) -> 
 	if "hut" in key or "shelter" in key or "terrace" in key or "plaza" in key \
 			or "heater" in key or "reservoir" in key or "beacon" in key \
 			or "crate" in key or "drying" in key or "amphora" in key \
-			or "tufts" in key or "tree" in key or "rock_facet" in key:
-		# 住宅/庇护所走贴图 × 顶点色 tint，禁止再染成暮靛黑块。
+			or "tufts" in key or "tree" in key or "rock_facet" in key \
+			or "frond" in key or "monolith" in key:
+		# 住宅/庇护所/绿地组件走贴图 × 顶点色 tint，禁止再染成暮靛黑块。
 		mat.set_shader_parameter("base_color", Color(1, 1, 1))
+		if "tree" in key:
+			mat.set_shader_parameter("vcol_strength", 0.92)
 		if "amber" in key or "window" in key:
 			mat.set_shader_parameter("functional_rim", true)
 			mat.set_shader_parameter("rim_color", Color("f2a85b"))
 			mat.set_shader_parameter("rim_strength", 0.45)
 			mat.set_shader_parameter("fill", 0.28)
 			_register_glow_mat(_glow_windows, mat)
+		if "monolith" in key and "glyph" in key:
+			mat.set_shader_parameter("functional_rim", true)
+			mat.set_shader_parameter("rim_color", Color("9a6acb"))
+			mat.set_shader_parameter("rim_strength", 0.5)
+			mat.set_shader_parameter("fill", 0.14)
+			_register_glow_mat(_glow_relics, mat)
 		if "heater" in key:
 			mat.set_shader_parameter("fill", 0.55)
 			_register_glow_mat(_glow_heaters, mat)

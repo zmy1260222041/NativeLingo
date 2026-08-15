@@ -18,6 +18,7 @@ uniform float shadow_softness : hint_range(0.0, 0.2) = 0.02;
 uniform float rough : hint_range(0.0, 1.0) = 0.85;
 uniform float metal : hint_range(0.0, 1.0) = 0.0;
 uniform float fill : hint_range(0.0, 1.0) = 0.05;
+uniform float vcol_strength : hint_range(0.0, 1.0) = 0.55;
 uniform float sway_amp : hint_range(0.0, 0.2) = 0.035;
 uniform float canopy_height : hint_range(0.5, 10.0) = 4.0;
 uniform float phase_offset : hint_range(0.0, 100.0) = 0.0;
@@ -35,7 +36,7 @@ void fragment() {
 	vec3 albedo = texture(albedo_tex, UV).rgb * base_color;
 	bool authored_vcol = COLOR.a > 0.51 && (COLOR.r < 0.995 || COLOR.g < 0.995 || COLOR.b < 0.995);
 	if (authored_vcol) {
-		albedo *= mix(vec3(1.0), COLOR.rgb, 0.55);
+		albedo *= mix(vec3(1.0), COLOR.rgb, vcol_strength);
 	}
 	vec4 orm = texture(orm_tex, UV);
 	ALBEDO = albedo;
