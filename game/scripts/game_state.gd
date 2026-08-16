@@ -196,6 +196,8 @@ func interact(kind: String, target_id: String, communication: String = "action",
 				message_requested.emit(tr("MSG_HEATER_NEEDS_SCRAP"), "neutral")
 		"shelter":
 			_try_sleep()
+	if kind == "npc":
+		_report_dialogue(target_id, communication, expression)
 	onboarding_action("interact")
 	state_changed.emit()
 	needs_changed.emit(food, warmth, energy)
@@ -361,6 +363,29 @@ func voice_band_for_score(score: float) -> String:
 	if score >= SCORE_SPARSE_MIN:
 		return "sparse"
 	return "none"
+
+
+## FR-38: report the outcome of an NPC interaction to the Dialogue autoload.
+## A low voice score is a clarify state (free retry), never a failure state.
+func _report_dialogue(npc_id: String, communication: String, expression: Dictionary) -> void:
+	if not is_inside_tree():
+		return
+	var tree := get_tree()
+	if tree == null or tree.root == null:
+		return
+	var dialogue := tree.root.get_node_or_null(NodePath("Dialogue"))
+	if dialogue == null:
+		return
+	if communication == "action":
+		if dialogue.state_for(npc_id) == "idle":
+			dialogue.begin(npc_id)
+		return
+	if communication in ["voice", "gesture", "gesture_fallback"]:
+		var understood := true
+		if communication == "voice":
+			understood = _voice_score(expression) >= SCORE_SPARSE_MIN
+		dialogue.player_acted(npc_id, understood)
+
 
 func _emit_npc_followup(npc_id: String, communication: String) -> void:
 	_emit_npc_line(npc_id, communication, _npc_followup_line(npc_id))

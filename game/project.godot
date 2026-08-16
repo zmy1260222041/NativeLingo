@@ -24,6 +24,7 @@ GameState="*res://scripts/game_state.gd"
 SpeechAdapter="*res://scripts/speech_adapter.gd"
 NpcVoice="*res://scripts/npc_voice_adapter.gd"
 Vocabulary="*res://scripts/vocabulary_state.gd"
+Dialogue="*res://scripts/dialogue_state.gd"
 AnimationDebugBridge="*res://scripts/animation_debug_bridge.gd"
 
 [display]

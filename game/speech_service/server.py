@@ -255,18 +255,28 @@ INTENTS = {
 NPC_LINES = {
     "mira": {
         "greeting": "Hey, little one. Come to the market. No need to be afraid.",
+        "social_greeting": "Good morning. Did you sleep well?",
+        "social_reply_food": "Of course. Take two portions.",
     },
     "rowan": {
         "greeting": "You look tired. Find water and warmth first.",
+        "social_reply_water": "I am thirsty too. Bring me water, please.",
+        "social_ask_help": "I cannot walk far. Could you bring me water?",
     },
     "tavi": {
         "greeting": "Hungry? Tell me once you are settled.",
+        "social_reply_greeting": "I slept. Are you hungry?",
+        "social_ask_food": "Can I have some food, please?",
     },
     "vesh": {
         "greeting": "Cold nights are coming. Ask me for alloy parts.",
+        "social_ask_scrap": "The heater needs two alloy parts. Do you have any?",
     },
     "ori": {
         "greeting": "I keep the water. Ask me when you need it.",
+        "social_reply_scrap": "I have one. Ask Tavi for the other.",
+        "social_ask_water": "I need a canteen of water.",
+        "social_reply_help": "I will ask the little one to help.",
     },
 }
 

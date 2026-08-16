@@ -48,6 +48,11 @@ toddler (A1+A2) and is built at runtime from the unchanged CEFR-J, Octanove,
 and NGSL assets under `assets/wordlists/`; see `ATTRIBUTION.md` there for the
 two distinct licences.
 
+NPCs periodically play ambient need-expression scenes in the settlement and
+every named NPC belongs to a small family/partner unit. The static scenes are
+deliberately reviewed text so a coverage test can prove each survival-essential
+expression (greeting, food, alloy parts, water, offering help) is observable.
+
 The prototype uses five distinct procedural NPC silhouettes, contextual character
 acting, and a responsive bilingual HUD. The player runtime uses the
 `chr_player_juvenile_mixamo.fbx` package: the same-mesh Mixamo actions are
@@ -84,6 +89,9 @@ License; its license text is stored beside the font in `game/assets/fonts/`.
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game res://tests/VocabularyTest.tscn
+
+/Applications/Godot-4.6.app/Contents/MacOS/Godot \
+  --headless --path game res://tests/SocialDialogueTest.tscn
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game --script res://tests/test_voice_gated_rewards.gd
