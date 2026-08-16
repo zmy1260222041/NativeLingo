@@ -40,3 +40,26 @@ release; use `G` for the always-available gesture confirmation.
 Reference audio for the five intents lives in `reference_audio/` and is the
 same set deployed to the cloud `/game/evaluate` endpoint (FR-29), so dev and
 production score against identical audio.
+
+## NPC voice (FR-32, optional)
+
+`POST /game/tts` (also `/tts`) synthesises server-known NPC lines with Qwen
+`qwen-audio-3.0-tts-plus`. The game sends only `npc_id + line_id + voice +
+format`; the text comes from the server-side catalog and is never accepted
+from the client. Configure the provider key in the environment (never in git):
+
+```sh
+export QWEN_TTS_API_KEY=...   # or DASHSCOPE_API_KEY
+export QWEN_TTS_VOICE=Cherry  # optional
+.venv/bin/python game/speech_service/server.py
+```
+
+Without a key the endpoint returns 503 and the game silently falls back to
+subtitles. The cloud deployment uses the same endpoint contract and its own
+catalog/cache (`server/backend/core/{npc_lines,qwen_tts}.py`).
+
+Unit tests:
+
+```sh
+.venv/bin/python -m unittest game.speech_service.test_tts -v
+```

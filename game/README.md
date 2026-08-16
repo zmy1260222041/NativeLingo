@@ -74,6 +74,9 @@ License; its license text is stored beside the font in `game/assets/fonts/`.
   --headless --path game res://tests/NpcAttentionTest.tscn
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
+  --headless --path game res://tests/NpcVoiceTest.tscn
+
+/Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game --script res://tests/test_voice_gated_rewards.gd
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \

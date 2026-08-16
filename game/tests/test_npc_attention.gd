@@ -21,6 +21,7 @@ func _ready() -> void:
 	var handler := func(text: String, _tone: String) -> void:
 		messages.append(text)
 	GameState.message_requested.connect(handler)
+	NpcVoice.availability_override = false
 	npc._process(0.1)
 	_expect(npc.npc_greeted and messages.size() == 1, "NPC greets once when the player enters the social radius")
 	_expect(not messages[0].is_empty() and (messages[0].contains("米拉") or messages[0].contains("Mira")), "NPC greeting uses the localized friendly line")

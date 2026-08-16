@@ -24,6 +24,8 @@ import subprocess
 import sys
 import tempfile
 import threading
+import urllib.error
+import urllib.request
 import wave
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -244,6 +246,115 @@ INTENTS = {
         ],
     },
 }
+
+# --------------------------------------------------------------------------- #
+# NPC voice (FR-32): fixed line catalog for Qwen TTS. The local service only
+# synthesizes server-known lines; it never accepts free text from the game.
+# --------------------------------------------------------------------------- #
+
+NPC_LINES = {
+    "mira": {
+        "greeting": "Hey, little one. Come to the market. No need to be afraid.",
+    },
+    "rowan": {
+        "greeting": "You look tired. Find water and warmth first.",
+    },
+    "tavi": {
+        "greeting": "Hungry? Tell me once you are settled.",
+    },
+    "vesh": {
+        "greeting": "Cold nights are coming. Ask me for alloy parts.",
+    },
+    "ori": {
+        "greeting": "I keep the water. Ask me when you need it.",
+    },
+}
+
+QWEN_TTS_MODEL = os.environ.get("QWEN_TTS_MODEL", "qwen-audio-3.0-tts-plus")
+QWEN_TTS_VOICE = os.environ.get("QWEN_TTS_VOICE", "Cherry")
+QWEN_TTS_BASE_URL = os.environ.get(
+    "QWEN_TTS_BASE_URL",
+    "https://dashscope.aliyuncs.com/compatible-mode/v1/audio/speech",
+)
+QWEN_TTS_API_KEY = os.environ.get("QWEN_TTS_API_KEY") or os.environ.get("DASHSCOPE_API_KEY", "")
+_TTS_CACHE: dict[str, bytes] = {}
+_TTS_CACHE_LOCK = threading.Lock()
+_TTS_MAX_BYTES = 2 * 1024 * 1024
+
+
+def _tts_key(npc_id: str, line_id: str, voice: str) -> str:
+    return f"{npc_id}/{line_id}/{voice}"
+
+
+def synthesize_npc_line(npc_id: str, line_id: str, voice: str = "") -> bytes:
+    """Synthesize one server-known NPC line with the configured Qwen TTS model.
+
+    ``QWEN_TTS_API_KEY`` (or ``DASHSCOPE_API_KEY``) is read from the environment
+    and never returns to the caller. Missing key / upstream failure raises
+    ``RuntimeError`` so the HTTP boundary can return 503 without exposing the
+    provider detail to the game.
+    """
+    profile = NPC_LINES.get(npc_id or "")
+    if not profile or line_id not in profile:
+        raise KeyError(f"unknown npc line: {npc_id}/{line_id}")
+    if not QWEN_TTS_API_KEY:
+        raise RuntimeError("qwen tts is not configured")
+    selected_voice = voice.strip() or QWEN_TTS_VOICE
+    key = _tts_key(npc_id, line_id, selected_voice)
+    with _TTS_CACHE_LOCK:
+        cached = _TTS_CACHE.get(key)
+    if cached is not None:
+        return cached
+    payload = {
+        "model": QWEN_TTS_MODEL,
+        "input": profile[line_id],
+        "voice": selected_voice,
+        "response_format": "wav",
+    }
+    request = urllib.request.Request(
+        QWEN_TTS_BASE_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": "Bearer " + QWEN_TTS_API_KEY,
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            raw = response.read()
+            body = raw
+            # DashScope may answer with a JSON job descriptor containing a
+            # presigned audio URL instead of raw WAV bytes. Accept both shapes;
+            # the game still only ever receives audio/wav.
+            if raw.lstrip().startswith(b"{"):
+                descriptor = json.loads(raw.decode("utf-8", "replace"))
+                audio_url = (
+                    ((descriptor.get("output") or {}).get("audio") or {}).get("url")
+                    or descriptor.get("audio_url")
+                )
+                if not audio_url:
+                    raise RuntimeError("qwen tts returned json without audio url")
+                with urllib.request.urlopen(str(audio_url), timeout=30) as audio_response:
+                    body = audio_response.read()
+    except urllib.error.HTTPError as exc:
+        detail = ""
+        try:
+            detail = exc.read(256).decode("utf-8", "replace")
+        except OSError:
+            pass
+        print(f"[speech] qwen tts rejected line={npc_id}/{line_id} status={exc.code} {detail[:120]}")
+        raise RuntimeError("qwen tts request failed") from exc
+    except OSError as exc:
+        print(f"[speech] qwen tts unreachable line={npc_id}/{line_id}: {type(exc).__name__}")
+        raise RuntimeError("qwen tts request failed") from exc
+    if len(body) < 44 or len(body) > _TTS_MAX_BYTES:
+        raise RuntimeError("qwen tts returned invalid audio size")
+    with _TTS_CACHE_LOCK:
+        if len(_TTS_CACHE) >= 64:
+            _TTS_CACHE.pop(next(iter(_TTS_CACHE)))
+        _TTS_CACHE[key] = body
+    return body
 
 _model = None
 _model_lock = threading.Lock()
@@ -589,6 +700,9 @@ class Handler(BaseHTTPRequestHandler):
         self._json(200, {"ok": True, "model": str(MODEL_DIR), "protocol": 2})
 
     def do_POST(self):
+        if self.path in ("/tts", "/game/tts"):
+            self._handle_tts()
+            return
         if self.path != "/transcribe":
             self.send_error(404)
             return
@@ -633,6 +747,38 @@ class Handler(BaseHTTPRequestHandler):
                     os.unlink(temp_path)
                 except OSError:
                     pass
+
+    def _handle_tts(self) -> None:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length <= 0 or length > 64 * 1024:
+            self._json(400, {"ok": False, "reason": "VOICE_REASON_LENGTH"})
+            return
+        try:
+            body = json.loads(self.rfile.read(length).decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            self._json(400, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID"})
+            return
+        npc_id = str(body.get("npc_id", "")).strip().lower()
+        line_id = str(body.get("line_id", "")).strip().lower()
+        voice = str(body.get("voice", "")).strip()
+        if npc_id not in NPC_LINES or line_id not in NPC_LINES[npc_id]:
+            self._json(404, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID"})
+            return
+        try:
+            wav_body = synthesize_npc_line(npc_id, line_id, voice)
+        except KeyError:
+            self._json(404, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID"})
+            return
+        except Exception as exc:  # provider key/network/format failure: safe local fallback
+            print(f"[speech] tts unavailable for {npc_id}/{line_id}: {type(exc).__name__}")
+            self._json(503, {"ok": False, "reason": "VOICE_REASON_SERVICE_UNAVAILABLE"})
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", "audio/wav")
+        self.send_header("Content-Length", str(len(wav_body)))
+        self.send_header("Cache-Control", "private, max-age=86400")
+        self.end_headers()
+        self.wfile.write(wav_body)
 
     @staticmethod
     def _failure(reason: str) -> dict:
