@@ -22,6 +22,33 @@ func _ready() -> void:
 	_expect(not InputGlyphs.for_action("interact", true).is_empty(), "Gamepad glyph resolves from InputMap")
 	_expect(InputGlyphs.for_action("ui_cancel", false) != "?" and InputGlyphs.for_action("ui_cancel", true) != "?", "Semantic cancel glyph resolves for keyboard and gamepad")
 	_expect(InputGlyphs.label_for_button(JOY_BUTTON_A, "playstation") == "×" and InputGlyphs.label_for_button(JOY_BUTTON_A, "generic") == "South", "Controller glyphs distinguish PlayStation and generic layouts")
+	var objective_card_ref := hud.get_node("UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor/ObjectiveCard") as Control
+	hud._update_objective(GameState.objective_text())
+	_expect(objective_card_ref.visible, "Objective change announces the current action")
+	hud._collapse_objective()
+	await get_tree().create_timer(0.25).timeout
+	_expect(not objective_card_ref.visible, "FR-31: objective card folds away after the announcement")
+	var onboarding_panel := hud.get_node_or_null("UIRoot/OnboardingPanel") as PanelContainer
+	_expect(onboarding_panel != null and not onboarding_panel.visible, "Onboarding panel is built hidden while the guide is inactive")
+	var previous_persistence := GameState.persistence_enabled
+	GameState.persistence_enabled = false
+	GameState.begin_onboarding()
+	await get_tree().process_frame
+	_expect(onboarding_panel.visible and hud.onboarding_step_label.text.contains("移动"), "FR-30: active guide shows its first localized step")
+	var onboarding_interaction_card := hud.get_node("UIRoot/SafeAreaRoot/HudRoot/InteractionAnchor/InteractionCard") as Control
+	_expect(_inside_viewport(onboarding_panel, Vector2i(hud.get_viewport().get_visible_rect().size)) and not onboarding_panel.get_global_rect().intersects(onboarding_interaction_card.get_global_rect()), "FR-30/G8: onboarding band stays in viewport and clear of the interaction card")
+	GameState.skip_onboarding()
+	await get_tree().process_frame
+	_expect(not onboarding_panel.visible and GameState.onboarding_completed, "FR-30: skip folds the guide and releases the guard")
+	GameState.persistence_enabled = previous_persistence
+	var panel_style := hud.get_node("UIRoot").theme.get_stylebox("panel", "PanelContainer") as StyleBox
+	_expect(panel_style != null and not panel_style is StyleBoxFlat, "FR-37: panels use the Art Bible cut-corner silt-ink style instead of a flat modern card")
+	_expect(panel_style != null and panel_style.get_script() != null and panel_style.get_script().resource_path.ends_with("silt_ink_panel.gd"), "FR-37: panel outline is the project silt-ink drawer")
+	GameState.food = 40.0
+	hud._update_needs(GameState.food, GameState.warmth, GameState.energy)
+	_expect(hud.food_label.text.contains("找食物") or hud.food_label.text.contains("Find food"), "FR-37: caution needs expose the next survival action")
+	GameState.food = 78.0
+	hud._update_needs(GameState.food, GameState.warmth, GameState.energy)
 	for scale_index in [2, 5]:
 		hud.ui_scale_index = scale_index
 		hud._apply_ui_scale()

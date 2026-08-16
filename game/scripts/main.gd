@@ -38,6 +38,10 @@ var _heater_light: OmniLight3D
 
 func _ready() -> void:
 	GameState.load_game()
+	if not GameState.onboarding_completed:
+		# First run and pre-onboarding saves enter the guide once. Completed runs
+		# never show it again; F9 reset keeps the completion flag.
+		GameState.begin_onboarding()
 	_cel_shader = load(CEL_SHADER_PATH) as Shader
 	_white_tex = _make_white_texture()
 	_build_lighting()

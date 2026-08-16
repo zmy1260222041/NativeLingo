@@ -8,12 +8,17 @@ signal message_requested(text: String, tone: String)
 signal expression_evaluated(target_id: String, expression: Dictionary)
 signal run_completed
 signal day_started(day_value: int)
+signal onboarding_changed(step: String, active: bool)
 
 const SAVE_VERSION := 2
 const MAX_NEED := 100.0
 const DAY_DURATION := 300.0
 const DAY_START_HOUR := 8.0
 const DAY_END_HOUR := 22.0
+## FR-30: onboarding steps are advanced by the owning input/domain edge, never by
+## the UI. `speak` accepts voice, gesture, or the minimum-survival fallback so the
+## guide remains completable in no-voice builds.
+const ONBOARDING_STEPS: Array[String] = ["move", "look", "sprint", "jump", "interact", "speak", "sleep"]
 ## FR-28: voice-gated reward bands. Monotonic; below the sparse floor the NPC
 ## gives nothing but spends no opportunity and no state is harmed.
 const SCORE_GENEROUS_MIN := 70.0
@@ -41,9 +46,20 @@ var game_finished := false
 var persistence_enabled := true
 var save_path := "user://stranger_save.json"
 var interaction_time_frozen := false
+## FR-30: onboarding state. Active onboarding freezes survival decay; completing or
+## skipping it is the only way out. The field set stays SAVE_VERSION 2-safe because
+## missing keys default to false and old saves simply get the guide once.
+var onboarding_active := false
+var onboarding_step := "move"
+var onboarding_completed := false
 
 func _process(delta: float) -> void:
 	if game_finished or interaction_time_frozen:
+		return
+	# FR-30 G1: the guide must never let the three needs reach zero. Freezing all
+	# survival decay (and the compressed clock) during onboarding is the strongest
+	# form of that guard and is released by completing or skipping the guide.
+	if onboarding_active:
 		return
 	var previous_needs := Vector3(floorf(food), floorf(warmth), floorf(energy))
 	var previous_second := int(day_time)
@@ -62,6 +78,59 @@ func _process(delta: float) -> void:
 
 func set_interaction_time_frozen(active: bool) -> void:
 	interaction_time_frozen = active
+
+
+func begin_onboarding() -> void:
+	if onboarding_completed:
+		return
+	onboarding_active = true
+	onboarding_step = ONBOARDING_STEPS[0]
+	onboarding_changed.emit(onboarding_step, true)
+	state_changed.emit()
+
+
+func skip_onboarding() -> void:
+	if not onboarding_active:
+		return
+	onboarding_active = false
+	onboarding_completed = true
+	onboarding_changed.emit(onboarding_step, false)
+	state_changed.emit()
+	save_game()
+
+
+func complete_onboarding() -> void:
+	if not onboarding_active:
+		return
+	onboarding_active = false
+	onboarding_completed = true
+	onboarding_changed.emit(onboarding_step, false)
+	state_changed.emit()
+	save_game()
+
+
+## Domain-side step matcher. The UI never advances the guide directly; input and
+## world interactions call this with the observed player action. Wrong actions are
+## intentionally no-ops so exploration is never penalised.
+func onboarding_action(action: String) -> void:
+	if not onboarding_active:
+		return
+	var step_index := ONBOARDING_STEPS.find(onboarding_step)
+	if step_index < 0:
+		complete_onboarding()
+		return
+	if action != onboarding_step:
+		return
+	if step_index >= ONBOARDING_STEPS.size() - 1:
+		complete_onboarding()
+		return
+	onboarding_step = ONBOARDING_STEPS[step_index + 1]
+	onboarding_changed.emit(onboarding_step, true)
+	state_changed.emit()
+
+
+func onboarding_step_index() -> int:
+	return ONBOARDING_STEPS.find(onboarding_step)
 
 
 func clock_hours() -> float:
@@ -123,6 +192,7 @@ func interact(kind: String, target_id: String, communication: String = "action",
 				message_requested.emit(tr("MSG_HEATER_NEEDS_SCRAP"), "neutral")
 		"shelter":
 			_try_sleep()
+	onboarding_action("interact")
 	state_changed.emit()
 	needs_changed.emit(food, warmth, energy)
 	if objective_text() != previous_objective:
@@ -175,6 +245,10 @@ func _interact_rowan(communication: String, expression: Dictionary) -> void:
 	_emit_npc_followup("rowan", communication)
 
 func _interact_food_supplier(communication: String, expression: Dictionary) -> void:
+	if communication in ["voice", "gesture", "gesture_fallback"]:
+		# FR-30: the no-voice fallback counts as the guided "ask for food" step so
+		# the onboarding path never depends on a microphone or local service.
+		onboarding_action("speak")
 	if berries >= 2:
 		_emit_npc_line("tavi", communication, tr("NPC_TAVI_SETTLED"))
 		return
@@ -347,6 +421,7 @@ func _try_sleep() -> void:
 		warmth = minf(MAX_NEED, warmth + 30.0)
 		clock_changed.emit(day, 0)
 		day_started.emit(day)
+		onboarding_action("sleep")
 		save_game()
 	else:
 		message_requested.emit(tr(_sleep_block_key()), "neutral")
@@ -392,6 +467,8 @@ func reset_run() -> void:
 	completed_steps.clear()
 	memories.clear()
 	game_finished = false
+	onboarding_active = false
+	onboarding_step = ONBOARDING_STEPS[0]
 	for key in relationships:
 		relationships[key] = 0
 	state_changed.emit()
@@ -421,6 +498,9 @@ func save_game() -> bool:
 		"memories": memories,
 		"completed_steps": completed_steps,
 		"game_finished": game_finished,
+		"onboarding_completed": onboarding_completed,
+		"onboarding_active": onboarding_active,
+		"onboarding_step": onboarding_step,
 	}
 	file.store_string(JSON.stringify(data))
 	return true
@@ -455,8 +535,13 @@ func load_game() -> bool:
 	memories.assign(parsed.get("memories", []))
 	completed_steps.assign(parsed.get("completed_steps", {}))
 	game_finished = bool(parsed.get("game_finished", false))
+	onboarding_completed = bool(parsed.get("onboarding_completed", false))
+	onboarding_active = bool(parsed.get("onboarding_active", false)) and not onboarding_completed
+	var saved_step := str(parsed.get("onboarding_step", ONBOARDING_STEPS[0]))
+	onboarding_step = saved_step if saved_step in ONBOARDING_STEPS else ONBOARDING_STEPS[0]
 	state_changed.emit()
 	needs_changed.emit(food, warmth, energy)
 	clock_changed.emit(day, int(day_time))
 	objective_changed.emit(objective_text())
+	onboarding_changed.emit(onboarding_step, onboarding_active)
 	return true

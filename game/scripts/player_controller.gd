@@ -65,6 +65,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		rotate_y(-event.relative.x * 0.0026)
 		camera_pivot.rotation.x = clampf(camera_pivot.rotation.x - event.relative.y * 0.0022, -0.8, 0.45)
+		if GameState.onboarding_active:
+			GameState.onboarding_action("look")
 	if event.is_action_pressed("reset_prototype"):
 		GameState.reset_run()
 		GameState.save_game()
@@ -109,6 +111,17 @@ func _physics_process(delta: float) -> void:
 	var direction := (global_transform.basis * Vector3(input_vector.x, 0.0, input_vector.y)).normalized()
 	requested_move_direction_world = direction
 	var target_speed := SPRINT_SPEED if Input.is_action_pressed("sprint") else WALK_SPEED
+	if GameState.onboarding_active:
+		# FR-30: observed input advances the guide through the domain matcher.
+		# Wrong actions are no-ops, and the UI is never advanced from here.
+		if look_vector.length_squared() > 0.01:
+			GameState.onboarding_action("look")
+		if direction.length_squared() > DIRECTION_EPSILON_SQUARED:
+			GameState.onboarding_action("move")
+		if Input.is_action_just_pressed("sprint"):
+			GameState.onboarding_action("sprint")
+		if Input.is_action_just_pressed("jump"):
+			GameState.onboarding_action("jump")
 	if turning_around:
 		# Commit to the direction that started the one-shot. If input or camera
 		# changes mid-clip, evaluate that new intent after the turn completes;
@@ -139,7 +152,7 @@ func _physics_process(delta: float) -> void:
 		if _try_start_buffered_jump():
 			_update_jump_anticipation(delta)
 			return
-	if direction.length_squared() > 0.01 and not SpeechAdapter.is_interaction_active():
+	if direction.length_squared() > 0.01 and not SpeechAdapter.is_interaction_active() and not GameState.onboarding_active:
 		GameState.energy = maxf(0.0, GameState.energy - delta * (0.7 if target_speed == SPRINT_SPEED else 0.12))
 	move_and_slide()
 	_update_jump_landing_state()

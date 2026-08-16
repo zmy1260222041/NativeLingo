@@ -12,6 +12,9 @@ var highlighted := false
 var reduce_motion := false
 var marker: Node3D
 var marker_tween: Tween
+## FR-31 G2: an NPC greets the player once per scene when they first enter the
+## social radius. The greeting is a message only; it never mutates GameState.
+var npc_greeted := false
 
 func _ready() -> void:
 	base_height = position.y
@@ -28,6 +31,10 @@ func _process(delta: float) -> void:
 		position.y = base_height + (sin(animation_phase * 1.8) * 0.02 if highlighted and not reduce_motion else 0.0)
 	if interaction_kind == "npc":
 		var player := get_tree().get_first_node_in_group("player") as Node3D
+		if player and global_position.distance_to(player.global_position) < 6.0:
+			if not npc_greeted:
+				npc_greeted = true
+				GameState.message_requested.emit(tr("NPC_GREETING_%s" % target_id.to_upper()), "good")
 		if player and global_position.distance_to(player.global_position) < 5.0:
 			var direction := player.global_position - global_position
 			var target_angle := atan2(-direction.x, -direction.z)
@@ -86,6 +93,10 @@ func get_interaction_prompt(device := "keyboard", speech_toggle_mode := false, d
 		var talk_verb := tr("PROMPT_TALK_TOGGLE") if speech_toggle_mode else tr("PROMPT_TALK_HOLD")
 		return (tr("PROMPT_NPC") % [display_name, talk_glyph, talk_verb, gesture_glyph, interact_glyph]).replace("\\n", "\n")
 	return tr("PROMPT_OBJECT") % [display_name, interact_glyph]
+
+func has_greeted_player() -> bool:
+	return npc_greeted
+
 
 func interact(communication: String, expression: Dictionary = {}) -> void:
 	if interaction_kind != "npc" and communication != "action":

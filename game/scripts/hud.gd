@@ -14,6 +14,7 @@ const DESKTOP_BETA_FEATURE := "desktop_beta_no_voice"
 const DESKTOP_BUILD_LABEL_SETTING := "desktop_beta/build_label"
 const DESKTOP_BUILD_LABEL_DEFAULT := "desktop-beta.1"
 const DESKTOP_SURVEY_URL_SETTING := "desktop_beta/survey_url"
+const SiltInkPanelScript = preload("res://ui/silt_ink_panel.gd")
 
 @onready var ui_root: Control = $UIRoot
 @onready var clock_label: Label = $UIRoot/SafeAreaRoot/HudRoot/ObjectiveAnchor/ClockChip/ClockLabel
@@ -81,6 +82,11 @@ var cloud_code_edit: LineEdit
 var cloud_status_label: Label
 var cloud_activate_button: Button
 var cloud_close_button: Button
+var onboarding_panel: PanelContainer
+var onboarding_step_label: Label
+var onboarding_protected_label: Label
+var onboarding_skip_button: Button
+var objective_timer: Timer
 var day_transition_started_msec := 0
 ## 测试钩子：null 表示按 OS feature 自动判断；true/false 强制覆盖 Web UI。
 var web_beta_ui_override: Variant = null
@@ -90,12 +96,14 @@ var desktop_beta_ui_override: Variant = null
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	ui_root.theme = ui_root.theme.duplicate()
+	ui_root.theme.set_stylebox("panel", "PanelContainer", SiltInkPanelScript.new())
 	_create_timers()
 	_connect_domain_signals()
 	_connect_buttons()
 	_load_settings()
 	_apply_web_beta_ui()
 	_build_cloud_ui()
+	_build_onboarding_ui()
 	_configure_focus_cycles()
 	get_viewport().size_changed.connect(_apply_safe_frame)
 	call_deferred("_bind_player")
@@ -117,6 +125,10 @@ func _create_timers() -> void:
 	day_transition_timer.one_shot = true
 	day_transition_timer.timeout.connect(_dismiss_day_transition)
 	add_child(day_transition_timer)
+	objective_timer = Timer.new()
+	objective_timer.one_shot = true
+	objective_timer.timeout.connect(_collapse_objective)
+	add_child(objective_timer)
 
 func _connect_domain_signals() -> void:
 	GameState.state_changed.connect(_on_state_changed)
@@ -126,6 +138,7 @@ func _connect_domain_signals() -> void:
 	GameState.message_requested.connect(_show_message)
 	GameState.run_completed.connect(_show_completion)
 	GameState.day_started.connect(_show_day_transition)
+	GameState.onboarding_changed.connect(_on_onboarding_changed)
 	SpeechAdapter.recording_state_changed.connect(_on_recording_state_changed)
 	SpeechAdapter.recording_progress.connect(_on_recording_progress)
 	SpeechAdapter.recognition_pending.connect(_on_recognition_pending)
@@ -252,6 +265,62 @@ func _build_cloud_overlay() -> void:
 	cloud_activate_button.text = tr("CLOUD_ACTIVATE_BUTTON")
 	cloud_activate_button.pressed.connect(_submit_cloud_activation)
 	row.add_child(cloud_activate_button)
+
+func _build_onboarding_ui() -> void:
+	## FR-30: the guide is a non-modal, click-through band anchored above the
+	## interaction card. It never pauses the world and never captures movement keys.
+	if not is_instance_valid(ui_root):
+		return
+	onboarding_panel = PanelContainer.new()
+	onboarding_panel.name = "OnboardingPanel"
+	onboarding_panel.anchor_left = 0.5
+	onboarding_panel.anchor_right = 0.5
+	onboarding_panel.anchor_top = 1.0
+	onboarding_panel.anchor_bottom = 1.0
+	onboarding_panel.offset_left = -330.0
+	onboarding_panel.offset_right = 330.0
+	onboarding_panel.offset_top = -310.0
+	onboarding_panel.offset_bottom = -184.0
+	onboarding_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	onboarding_panel.visible = false
+	ui_root.add_child(onboarding_panel)
+	var content := VBoxContainer.new()
+	content.name = "Content"
+	content.add_theme_constant_override("separation", 6)
+	onboarding_panel.add_child(content)
+	var title := Label.new()
+	title.name = "Title"
+	title.text = tr("ONBOARDING_TITLE")
+	title.add_theme_font_size_override("font_size", 22)
+	content.add_child(title)
+	onboarding_step_label = Label.new()
+	onboarding_step_label.name = "Step"
+	onboarding_step_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	onboarding_step_label.add_theme_font_size_override("font_size", 20)
+	content.add_child(onboarding_step_label)
+	onboarding_protected_label = Label.new()
+	onboarding_protected_label.name = "Protected"
+	onboarding_protected_label.text = tr("ONBOARDING_PROTECTED")
+	onboarding_protected_label.add_theme_color_override("font_color", COLOR_NEUTRAL)
+	onboarding_protected_label.add_theme_font_size_override("font_size", 17)
+	content.add_child(onboarding_protected_label)
+	onboarding_skip_button = Button.new()
+	onboarding_skip_button.name = "SkipButton"
+	onboarding_skip_button.text = tr("ONBOARDING_SKIP")
+	onboarding_skip_button.pressed.connect(func(): GameState.skip_onboarding())
+	content.add_child(onboarding_skip_button)
+	_on_onboarding_changed(GameState.onboarding_step, GameState.onboarding_active)
+
+
+func _on_onboarding_changed(_step: String, active: bool) -> void:
+	if not is_instance_valid(onboarding_panel) or not is_instance_valid(onboarding_step_label):
+		return
+	if not active:
+		onboarding_panel.visible = false
+		return
+	onboarding_step_label.text = tr("ONBOARDING_STEP_%s" % GameState.onboarding_step.to_upper())
+	onboarding_panel.visible = true
+
 
 func _open_cloud_activation() -> void:
 	if not is_instance_valid(cloud_overlay):
@@ -383,8 +452,10 @@ func _update_objective(objective: String) -> void:
 	objective_label.text = objective
 	if GameState.game_finished and not completion_overlay.visible:
 		call_deferred("_show_completion")
+	objective_card.visible = true
+	objective_card.modulate.a = 1.0
+	objective_timer.start(3.5)
 	if reduce_motion:
-		objective_card.modulate.a = 1.0
 		return
 	if objective_tween and objective_tween.is_valid():
 		objective_tween.kill()
@@ -392,15 +463,36 @@ func _update_objective(objective: String) -> void:
 	objective_tween = create_tween()
 	objective_tween.tween_property(objective_card, "modulate:a", 1.0, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
-func _update_needs(food: float, warmth: float, energy: float) -> void:
-	_update_need(food_label, food_meter, food_icon, tr("NEED_FOOD"), food)
-	_update_need(warmth_label, warmth_meter, warmth_icon, tr("NEED_WARMTH"), warmth)
-	_update_need(energy_label, energy_meter, energy_icon, tr("NEED_ENERGY"), energy)
 
-func _update_need(label: Label, meter: NeedMeter, icon: NeedIcon, title: String, value: float) -> void:
+func _collapse_objective() -> void:
+	## FR-31 G2: after the change announcement the objective card folds away.
+	## The player keeps the clock chip and explores from NPC greetings/world cues.
+	if GameState.game_finished:
+		return
+	objective_timer.stop()
+	if not objective_card.visible:
+		return
+	if reduce_motion:
+		objective_card.visible = false
+		return
+	if objective_tween and objective_tween.is_valid():
+		objective_tween.kill()
+	objective_tween = create_tween()
+	objective_tween.tween_property(objective_card, "modulate:a", 0.0, 0.16)
+	objective_tween.tween_callback(func(): objective_card.visible = false)
+
+func _update_needs(food: float, warmth: float, energy: float) -> void:
+	_update_need(food_label, food_meter, food_icon, "FOOD", food)
+	_update_need(warmth_label, warmth_meter, warmth_icon, "WARMTH", warmth)
+	_update_need(energy_label, energy_meter, energy_icon, "ENERGY", energy)
+
+func _update_need(label: Label, meter: NeedMeter, icon: NeedIcon, kind: String, value: float) -> void:
+	var title := tr("NEED_" + kind)
 	var state := tr("NEED_STABLE") if value > 50.0 else (tr("NEED_CAUTION") if value > 25.0 else tr("NEED_CRITICAL"))
 	var tone := COLOR_GOOD if value > 50.0 else (COLOR_WARNING if value > 25.0 else COLOR_URGENT)
 	label.text = tr("NEED_FORMAT") % [title, int(value), state]
+	if value <= 50.0:
+		label.text += " · " + tr("NEED_%s_ACTION" % kind)
 	label.modulate = tone
 	icon.set_tone(tone)
 	meter.set_need(value, reduce_motion)
