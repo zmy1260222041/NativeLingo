@@ -176,6 +176,22 @@ func word_state(word: String) -> String:
 	return best
 
 
+## FR-36 UI hook: the NPC-guided repetition prompt chooses from words the
+## player has heard but not yet spoken. Newest observed entries sort first so the
+## prompt stays close to the social scene that introduced them.
+func candidate_words_for_practice(limit := 3) -> Array[String]:
+	var candidates: Array[String] = []
+	for key in entries:
+		var item: Dictionary = entries[key]
+		if str(item.get("state", "")) == "heard":
+			var headword: String = str(item.get("headword", ""))
+			if not headword.is_empty() and headword not in candidates:
+				candidates.append(headword)
+	if candidates.size() > limit:
+		candidates.resize(limit)
+	return candidates
+
+
 func _transcript_tokens(text: String) -> Array[String]:
 	var tokens: Array[String] = []
 	var current := ""

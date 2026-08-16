@@ -62,10 +62,11 @@ catalog/cache (`server/backend/core/{npc_lines,qwen_tts}.py`).
 
 `POST /score_word` (also `/game/score_word`) scores one short WAV against a
 server-catalog practice word. The client sends the lexical ID in
-`X-Stranger-Lexical`; text is never accepted from the client. Reference audio is
-synthesised with the bundled Piper voice (the cloud endpoint uses the same
-voice), and the Whisper-confidence proxy is always labelled when the SSL stack
-is unavailable.
+`X-Stranger-Lexical`; for NPC spoken-choice turns it sends a comma-separated
+list (`food,water,parts`) and the server matches the transcript before scoring.
+Text is never accepted from the client. Reference audio is synthesised with the
+bundled Piper voice (the cloud endpoint uses the same voice), and the
+Whisper-confidence proxy is always labelled when the SSL stack is unavailable.
 
 Unit tests:
 

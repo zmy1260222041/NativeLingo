@@ -28,6 +28,7 @@ var pending_line_key := ""
 var pending_npc_id := ""
 var pending_line_id := ""
 var pending_voice := ""
+var pending_options: Array = []
 
 
 func _ready() -> void:
@@ -57,7 +58,7 @@ func cloud_mode_enabled() -> bool:
 	return bool(ProjectSettings.get_setting(CLOUD_ENABLED_SETTING, false)) or OS.has_feature(CLOUD_VOICE_FEATURE)
 
 
-func request_line(npc_id: String, line_id: String, voice := "", response_format := "wav") -> bool:
+func request_line(npc_id: String, line_id: String, voice := "", response_format := "wav", options: Array = []) -> bool:
 	var npc := npc_id.strip_edges().to_lower()
 	var line := line_id.strip_edges().to_lower()
 	if npc.is_empty() or line.is_empty():
@@ -69,7 +70,7 @@ func request_line(npc_id: String, line_id: String, voice := "", response_format 
 	if cloud_mode_enabled() and cloud_token().is_empty():
 		line_audio_failed.emit(npc, line, "VOICE_REASON_CLOUD_NOT_ACTIVATED")
 		return false
-	var cache_path := _cache_path(npc, line, voice)
+	var cache_path := _cache_path(npc, line, voice, options)
 	if cache_enabled and FileAccess.file_exists(cache_path):
 		if _play_file(cache_path):
 			line_audio_ready.emit(npc, line)
@@ -84,15 +85,17 @@ func request_line(npc_id: String, line_id: String, voice := "", response_format 
 		"line_id": line,
 		"voice": voice,
 		"format": response_format,
+		"options": options,
 	})
 	var url := tts_url_for_line(npc, line)
 	if url.is_empty():
 		line_audio_failed.emit(npc, line, "VOICE_REASON_SERVICE_UNAVAILABLE")
 		return false
-	pending_line_key = _cache_key(npc, line, voice)
+	pending_line_key = _cache_key(npc, line, voice, options)
 	pending_npc_id = npc
 	pending_line_id = line
 	pending_voice = voice
+	pending_options = options.duplicate()
 	var error := http_request.request(url, headers, HTTPClient.METHOD_POST, body)
 	if error != OK:
 		_clear_pending()
@@ -119,13 +122,14 @@ func cloud_token() -> String:
 	return str(config.get_value("stranger_cloud", "token", "")).strip_edges()
 
 
-func _cache_key(npc_id: String, line_id: String, voice: String) -> String:
+func _cache_key(npc_id: String, line_id: String, voice: String, options: Array = []) -> String:
 	var selected_voice := voice.strip_edges()
-	return "%s/%s/%s" % [npc_id, line_id, selected_voice if not selected_voice.is_empty() else "default"]
+	var option_key := ",".join(options)
+	return "%s/%s/%s/%s" % [npc_id, line_id, selected_voice if not selected_voice.is_empty() else "default", option_key if not option_key.is_empty() else "single"]
 
 
-func _cache_path(npc_id: String, line_id: String, voice: String) -> String:
-	return CACHE_DIR.path_join(_cache_key(npc_id, line_id, voice).replace("/", "_") + ".wav")
+func _cache_path(npc_id: String, line_id: String, voice: String, options: Array = []) -> String:
+	return CACHE_DIR.path_join(_cache_key(npc_id, line_id, voice, options).replace("/", "_") + ".wav")
 
 
 func _play_file(path: String) -> bool:
@@ -141,6 +145,7 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 	var npc := pending_npc_id
 	var line := pending_line_id
 	var voice := pending_voice
+	var options: Array = pending_options.duplicate()
 	_clear_pending()
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200 or body.size() < 44 or body.size() > MAX_LINE_BYTES:
 		var reason := "VOICE_REASON_SERVICE_UNAVAILABLE"
@@ -151,7 +156,7 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 		line_audio_failed.emit(npc, line, reason)
 		return
 	if cache_enabled:
-		var path := _cache_path(npc, line, voice)
+		var path := _cache_path(npc, line, voice, options)
 		var dir := DirAccess.open(CACHE_DIR)
 		if dir == null:
 			DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(CACHE_DIR))
@@ -171,3 +176,4 @@ func _clear_pending() -> void:
 	pending_npc_id = ""
 	pending_line_id = ""
 	pending_voice = ""
+	pending_options.clear()

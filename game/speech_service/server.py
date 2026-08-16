@@ -49,6 +49,7 @@ _NSP_CEIL = 0.8
 
 INTENTS = {
     "mira": {
+        "word_practice_ask": "",
         "label": "greeting",
         "reference": "Hello Mira, it is good to meet you.",
         "slots": [
@@ -75,6 +76,7 @@ INTENTS = {
         ],
     },
     "tavi": {
+        "word_practice_ask": "",
         "label": "food request",
         "reference": "Can I have some food please?",
         "slots": [
@@ -121,6 +123,7 @@ INTENTS = {
         ],
     },
     "vesh": {
+        "word_practice_ask": "",
         "label": "scrap request",
         "reference": "I need two alloy parts for the heater.",
         "slots": [
@@ -165,6 +168,7 @@ INTENTS = {
         ],
     },
     "ori": {
+        "word_practice_ask": "",
         "label": "water request",
         "reference": "May I have some water please?",
         "slots": [
@@ -208,6 +212,7 @@ INTENTS = {
         ],
     },
     "rowan": {
+        "word_practice_ask": "",
         "label": "water delivery",
         "reference": "Here is water for you. Let me help you.",
         "slots": [
@@ -296,7 +301,22 @@ def _tts_key(npc_id: str, line_id: str, voice: str) -> str:
     return f"{npc_id}/{line_id}/{voice}"
 
 
-def synthesize_npc_line(npc_id: str, line_id: str, voice: str = "") -> bytes:
+def word_practice_ask_text(options: list[str]) -> str:
+    """Server-authored spoken question from catalog lexical IDs."""
+    clean = [str(option).strip().lower() for option in options if str(option).strip()]
+    if not clean:
+        raise KeyError("empty word practice options")
+    unknown = [option for option in clean if option not in WORD_LINES]
+    if unknown:
+        raise KeyError(f"unknown practice word: {unknown[0]}")
+    if len(clean) == 1:
+        return f"Do you want {clean[0]}?"
+    if len(clean) == 2:
+        return f"Do you want {clean[0]} or {clean[1]}?"
+    return "Do you want " + ", ".join(clean[:-1]) + ", or " + clean[-1] + "?"
+
+
+def synthesize_npc_line(npc_id: str, line_id: str, voice: str = "", options: list[str] | None = None) -> bytes:
     """Synthesize one server-known NPC line with the configured Qwen TTS model.
 
     ``QWEN_TTS_API_KEY`` (or ``DASHSCOPE_API_KEY``) is read from the environment
@@ -310,14 +330,15 @@ def synthesize_npc_line(npc_id: str, line_id: str, voice: str = "") -> bytes:
     if not QWEN_TTS_API_KEY:
         raise RuntimeError("qwen tts is not configured")
     selected_voice = voice.strip() or QWEN_TTS_VOICE
-    key = _tts_key(npc_id, line_id, selected_voice)
+    line_text = word_practice_ask_text(options or []) if line_id == "word_practice_ask" else profile[line_id]
+    key = _tts_key(npc_id, line_id, selected_voice) + "/" + ",".join(options or [])
     with _TTS_CACHE_LOCK:
         cached = _TTS_CACHE.get(key)
     if cached is not None:
         return cached
     payload = {
         "model": QWEN_TTS_MODEL,
-        "input": profile[line_id],
+        "input": line_text,
         "voice": selected_voice,
         "response_format": "wav",
     }
@@ -687,6 +708,43 @@ def score_word(lexical_id: str, wav_path: str) -> dict:
     }
 
 
+def match_word_choice(text: str, options: list[str]) -> str:
+    """One spoken option from the transcript; ambiguous or missing is clarify."""
+    clean = normalise(text)
+    tokens = clean.split(" ")
+    matches: list[str] = []
+    for option in options:
+        target = WORD_LINES.get(option, "").split(" ")
+        if all(token in tokens for token in target):
+            matches.append(option)
+    if len(matches) != 1:
+        return ""
+    return matches[0]
+
+
+def score_word_choice(options: list[str], wav_path: str) -> dict:
+    clean_options = [option for option in options if option in WORD_LINES]
+    if not clean_options:
+        raise KeyError("empty practice options")
+    text, _metrics = _transcribe_with_hotwords(wav_path, None)
+    matched = match_word_choice(text, clean_options)
+    if matched == "":
+        return {
+            "accepted": False,
+            "text": text,
+            "reason": "VOICE_REASON_CLARIFY",
+            "lexical_id": "",
+            "pronunciation": 0.0,
+            "score": 0.0,
+            "pronunciation_source": "none",
+            "band": "none",
+        }
+    verdict = score_word(matched, wav_path)
+    verdict["lexical_id"] = matched
+    verdict["text"] = text
+    return verdict
+
+
 def judge(target: str, text: str, wav_path: str | None, metrics: dict | None) -> dict:
     profile = INTENTS.get(target, {})
     verdict = delivery_score(profile, text) if profile else {
@@ -843,8 +901,9 @@ class Handler(BaseHTTPRequestHandler):
         if length <= 44 or length > 8 * 1024 * 1024:
             self._json(400, self._word_failure("VOICE_REASON_LENGTH"))
             return
-        lexical_id = self.headers.get("X-Stranger-Lexical", "").strip().lower()
-        if lexical_id not in WORD_LINES:
+        lexical_header = self.headers.get("X-Stranger-Lexical", "").strip().lower()
+        lexical_ids = [item.strip() for item in lexical_header.split(",") if item.strip()]
+        if not lexical_ids or any(item not in WORD_LINES for item in lexical_ids):
             self._json(404, self._word_failure("VOICE_REASON_RESULT_INVALID"))
             return
         payload = self.rfile.read(length)
@@ -853,7 +912,12 @@ class Handler(BaseHTTPRequestHandler):
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp:
                 temp.write(payload)
                 temp_path = temp.name
-            self._json(200, score_word(lexical_id, temp_path))
+            if len(lexical_ids) == 1:
+                verdict = score_word(lexical_ids[0], temp_path)
+                verdict["lexical_id"] = lexical_ids[0]
+            else:
+                verdict = score_word_choice(lexical_ids, temp_path)
+            self._json(200, verdict)
         except Exception as exc:  # service boundary: log detail, never expose provider detail
             print(f"[speech] word scoring failed: {type(exc).__name__}")
             self._json(503, self._word_failure("VOICE_REASON_SERVICE_UNAVAILABLE"))
@@ -889,11 +953,16 @@ class Handler(BaseHTTPRequestHandler):
         npc_id = str(body.get("npc_id", "")).strip().lower()
         line_id = str(body.get("line_id", "")).strip().lower()
         voice = str(body.get("voice", "")).strip()
+        raw_options = body.get("options") or []
+        options = [str(item).strip().lower() for item in raw_options if str(item).strip()]
         if npc_id not in NPC_LINES or line_id not in NPC_LINES[npc_id]:
             self._json(404, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID"})
             return
+        if line_id == "word_practice_ask" and not options:
+            self._json(400, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID"})
+            return
         try:
-            wav_body = synthesize_npc_line(npc_id, line_id, voice)
+            wav_body = synthesize_npc_line(npc_id, line_id, voice, options)
         except KeyError:
             self._json(404, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID"})
             return

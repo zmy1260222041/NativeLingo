@@ -37,6 +37,9 @@ func _process(delta: float) -> void:
 				GameState.message_requested.emit(tr("NPC_GREETING_%s" % target_id.to_upper()), "good")
 				NpcVoice.request_line(target_id, "greeting")
 				Dialogue.begin(target_id)
+				var practice_candidates := Vocabulary.candidate_words_for_practice(3)
+				if not practice_candidates.is_empty():
+					Dialogue.begin_word_practice(target_id, practice_candidates)
 		if player and global_position.distance_to(player.global_position) < 5.0:
 			var direction := player.global_position - global_position
 			var target_angle := atan2(-direction.x, -direction.z)

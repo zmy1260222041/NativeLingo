@@ -53,9 +53,11 @@ every named NPC belongs to a small family/partner unit. The static scenes are
 deliberately reviewed text so a coverage test can prove each survival-essential
 expression (greeting, food, alloy parts, water, offering help) is observable.
 
-New words move through heard → spoken → used. Spoken practice is scored through
-the independent `POST /score_word` protocol (local dev or cloud), and the HUD
-opens a spelling card on the first successful spoken unlock.
+New words move through heard → spoken → used. During social dialogue an NPC
+may ask by voice "Do you want xx, yy, or zz?"; the player holds V and says the
+chosen word. The server matches the spoken choice and scores it through the
+independent `POST /score_word` protocol (local dev or cloud). The first
+successful spoken unlock opens a spelling card.
 
 The prototype uses five distinct procedural NPC silhouettes, contextual character
 acting, and a responsive bilingual HUD. The player runtime uses the
@@ -102,6 +104,9 @@ License; its license text is stored beside the font in `game/assets/fonts/`.
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game res://tests/WordPracticeTest.tscn
+
+/Applications/Godot-4.6.app/Contents/MacOS/Godot \
+  --headless --path game res://tests/GuidedWordPracticeTest.tscn
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game --script res://tests/test_voice_gated_rewards.gd

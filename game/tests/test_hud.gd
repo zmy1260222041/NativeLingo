@@ -47,6 +47,19 @@ func _ready() -> void:
 	_expect(word_unlock != null and word_unlock.visible and get_tree().paused, "FR-36: spoken unlock pops the spelling card and pauses the world")
 	_expect(hud.word_unlock_label.text.contains("portions"), "FR-36: spelling card shows the newly spoken word")
 	hud._close_word_unlock()
+	Vocabulary.observe_word("alloy")
+	Vocabulary.observe_word("canteen")
+	Vocabulary.observe_word("morning")
+	Dialogue.begin_word_practice("tavi", Vocabulary.candidate_words_for_practice(3))
+	await get_tree().process_frame
+	var word_practice_panel := hud.get_node_or_null("UIRoot/WordPracticePanel") as PanelContainer
+	_expect(word_practice_panel != null and word_practice_panel.visible, "FR-36: NPC voice-guided practice prompt appears during dialogue")
+	_expect(hud.word_practice_prompt_label.text.contains("塔维") or hud.word_practice_prompt_label.text.contains("Tavi"), "FR-36: practice prompt names the speaking NPC")
+	_expect(hud.word_practice_prompt_label.text.contains("alloy") and hud.word_practice_prompt_label.text.contains("canteen"), "FR-36: spoken options are part of the NPC sentence, not buttons")
+	_expect(hud.get_node_or_null("UIRoot/WordPracticePanel/Content/Options") == null, "FR-36: no displayed-choice button row exists")
+	Dialogue.finish_word_practice()
+	await get_tree().process_frame
+	_expect(not word_practice_panel.visible, "FR-36: guided practice prompt closes when the turn ends")
 	GameState.persistence_enabled = previous_persistence
 	var panel_style := hud.get_node("UIRoot").theme.get_stylebox("panel", "PanelContainer") as StyleBox
 	_expect(panel_style != null and not panel_style is StyleBoxFlat, "FR-37: panels use the Art Bible cut-corner silt-ink style instead of a flat modern card")

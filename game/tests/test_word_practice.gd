@@ -17,6 +17,9 @@ func _ready() -> void:
 	SpeechAdapter.availability_override = false
 	_expect(not SpeechAdapter.start_word_recording("morning"), "Unavailable speech never starts a word recording")
 	_expect(failures_seen == ["VOICE_REASON_SERVICE_UNAVAILABLE"], "Word practice failure reports the safe localizable reason")
+	failures_seen.clear()
+	_expect(not SpeechAdapter.start_word_choice_recording(["food", "water", "parts"]), "Unavailable speech never starts a spoken-choice recording")
+	_expect(failures_seen == ["VOICE_REASON_SERVICE_UNAVAILABLE"], "Spoken-choice failure reports the same safe localizable reason")
 	SpeechAdapter.availability_override = previous_availability
 	SpeechAdapter.token_override = null
 	ProjectSettings.set_setting("stranger_cloud/enabled", previous_cloud_enabled)

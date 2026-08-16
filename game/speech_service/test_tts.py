@@ -69,6 +69,30 @@ class SynthesizeNpcLineTest(unittest.TestCase):
         self.assertEqual(second, WAV_HEADER)
         self.assertEqual(urlopen.call_count, 1)
 
+    def test_spoken_choice_matches_one_catalog_word(self):
+        with mock.patch.object(server, "_transcribe_with_hotwords", return_value=("I want food", {})), \
+             mock.patch.object(server, "score_word", return_value={
+                 "accepted": True, "text": "food", "reason": "VOICE_REASON_ACCEPTED",
+                 "pronunciation": 85.0, "score": 85.0, "pronunciation_source": "reference_dtw", "band": "generous",
+             }):
+            verdict = server.score_word_choice(["food", "water", "parts"], "/tmp/not-used.wav")
+        self.assertEqual(verdict["lexical_id"], "food")
+        self.assertTrue(verdict["accepted"])
+
+    def test_ambiguous_spoken_choice_is_clarify(self):
+        with mock.patch.object(server, "_transcribe_with_hotwords", return_value=("food water", {})):
+            verdict = server.score_word_choice(["food", "water"], "/tmp/not-used.wav")
+        self.assertFalse(verdict["accepted"])
+        self.assertEqual(verdict["lexical_id"], "")
+
+    def test_word_practice_ask_is_built_from_catalog_ids(self):
+        self.assertEqual(
+            server.word_practice_ask_text(["food", "water", "parts"]),
+            "Do you want food, water, or parts?",
+        )
+        with self.assertRaises(KeyError):
+            server.word_practice_ask_text(["free-text"])
+
 
 if __name__ == "__main__":
     unittest.main()

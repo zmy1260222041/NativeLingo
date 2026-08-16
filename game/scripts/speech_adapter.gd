@@ -40,7 +40,9 @@ var recovery_target_id := ""
 var recovery_active := false
 var word_mode := false
 var active_lexical_id := ""
+var active_lexical_options: Array = []
 var pending_word_lexical_id := ""
+var pending_word_options: Array = []
 var pending_word_mode := false
 var session_generation := 0
 var recording_started_msec := 0
@@ -161,6 +163,43 @@ func start_word_recording(lexical_id: String) -> bool:
 	session_generation += 1
 	active_generation = session_generation
 	active_lexical_id = lexical_id.strip_edges().to_lower()
+	active_lexical_options = [active_lexical_id]
+	word_mode = true
+	active_target_id = ""
+	last_unavailable_reason = ""
+	recording_started_msec = Time.get_ticks_msec()
+	record_effect.set_recording_active(true)
+	recording_session_active = true
+	GameState.set_interaction_time_frozen(true)
+	recording_state_changed.emit(true)
+	recording_progress.emit(0.0, MAX_RECORDING_SECONDS)
+	return true
+
+
+func start_word_choice_recording(options: Array) -> bool:
+	var clean: Array = []
+	for option in options:
+		var word := str(option).strip_edges().to_lower()
+		if not word.is_empty() and word not in clean:
+			clean.append(word)
+	if clean.is_empty():
+		word_score_finished.emit("", false, {}, "VOICE_REASON_RESULT_INVALID")
+		return false
+	if not is_available():
+		word_score_finished.emit(",".join(clean), false, {}, "VOICE_REASON_SERVICE_UNAVAILABLE")
+		return false
+	if record_effect == null and DisplayServer.get_name() != "headless":
+		_setup_audio_input()
+	if record_effect == null:
+		word_score_finished.emit(",".join(clean), false, {}, "VOICE_REASON_MIC_UNAVAILABLE")
+		return false
+	if is_recording() or _request_in_flight():
+		return false
+	_clear_recovery(false)
+	session_generation += 1
+	active_generation = session_generation
+	active_lexical_options = clean
+	active_lexical_id = ",".join(clean)
 	word_mode = true
 	active_target_id = ""
 	last_unavailable_reason = ""
@@ -205,7 +244,9 @@ func cancel_recording() -> void:
 	active_target_id = ""
 	pending_target_id = ""
 	active_lexical_id = ""
+	active_lexical_options.clear()
 	pending_word_lexical_id = ""
+	pending_word_options.clear()
 	pending_word_mode = false
 	word_mode = false
 	_clear_recovery(false)
@@ -226,6 +267,7 @@ func finish_recording() -> void:
 		return
 	var target_id := active_target_id
 	var lexical_id := active_lexical_id
+	var lexical_options: Array = active_lexical_options.duplicate()
 	var generation := active_generation
 	var was_word_mode := word_mode
 	var recording := record_effect.get_recording()
@@ -234,6 +276,7 @@ func finish_recording() -> void:
 	recording_state_changed.emit(false)
 	active_target_id = ""
 	active_lexical_id = ""
+	active_lexical_options.clear()
 	active_generation = -1
 	word_mode = false
 	if recording == null or recording.get_length() < 0.25:
@@ -266,13 +309,15 @@ func finish_recording() -> void:
 				_emit_word_failure(lexical_id, generation, "VOICE_REASON_CLOUD_NOT_ACTIVATED")
 				return
 			headers.append("Authorization: Bearer " + token)
-		headers.append("X-Stranger-Lexical: " + lexical_id)
+		headers.append("X-Stranger-Lexical: " + ",".join(lexical_options))
 		pending_word_lexical_id = lexical_id
+		pending_word_options = lexical_options.duplicate()
 		pending_word_mode = true
 		request_generation = generation
 		var word_error := http_request.request_raw(url, headers, HTTPClient.METHOD_POST, file.get_buffer(file.get_length()))
 		if word_error != OK:
 			pending_word_lexical_id = ""
+			pending_word_options.clear()
 			pending_word_mode = false
 			request_generation = -1
 			_emit_word_failure(lexical_id, generation, "VOICE_REASON_SERVICE_UNAVAILABLE")
@@ -460,8 +505,10 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 		return
 	if pending_word_mode:
 		var word_lexical := pending_word_lexical_id
+		var word_options: Array = pending_word_options.duplicate()
 		var word_generation := request_generation
 		pending_word_lexical_id = ""
+		pending_word_options.clear()
 		pending_word_mode = false
 		request_generation = -1
 		if word_generation != session_generation:
@@ -478,8 +525,11 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 		var word_expression := _extract_expression(word_parsed)
 		var word_text := str(word_parsed.get("text", ""))
 		word_expression["text"] = word_text
+		var matched_lexical := str(word_parsed.get("lexical_id", word_lexical))
+		if matched_lexical.is_empty() and word_options.size() == 1:
+			matched_lexical = word_options[0]
 		GameState.set_interaction_time_frozen(false)
-		word_score_finished.emit(word_lexical, word_accepted, word_expression, str(word_parsed.get("reason", "VOICE_REASON_CLARIFY")))
+		word_score_finished.emit(matched_lexical, word_accepted, word_expression, str(word_parsed.get("reason", "VOICE_REASON_CLARIFY")))
 		return
 	var target_id := pending_target_id
 	var generation := request_generation

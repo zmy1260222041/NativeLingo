@@ -89,6 +89,8 @@ var onboarding_skip_button: Button
 var word_unlock_overlay: ColorRect
 var word_unlock_label: Label
 var word_unlock_button: Button
+var word_practice_panel: PanelContainer
+var word_practice_prompt_label: Label
 var objective_timer: Timer
 var day_transition_started_msec := 0
 ## 测试钩子：null 表示按 OS feature 自动判断；true/false 强制覆盖 Web UI。
@@ -108,6 +110,7 @@ func _ready() -> void:
 	_build_cloud_ui()
 	_build_onboarding_ui()
 	_build_word_unlock_ui()
+	_build_word_practice_ui()
 	_configure_focus_cycles()
 	get_viewport().size_changed.connect(_apply_safe_frame)
 	call_deferred("_bind_player")
@@ -150,6 +153,8 @@ func _connect_domain_signals() -> void:
 	SpeechAdapter.session_cancelled.connect(_on_speech_cancelled)
 	SpeechAdapter.word_score_finished.connect(_on_word_score_finished)
 	Vocabulary.word_spoken.connect(_show_word_unlock)
+	Dialogue.word_practice_requested.connect(_on_word_practice_requested)
+	Dialogue.word_practice_finished.connect(_on_word_practice_finished)
 
 func _connect_buttons() -> void:
 	continue_button.pressed.connect(_dismiss_completion)
@@ -362,12 +367,16 @@ func _build_word_unlock_ui() -> void:
 
 func _on_word_score_finished(lexical_id: String, accepted: bool, expression: Dictionary, reason: String) -> void:
 	if not accepted:
+		if is_instance_valid(word_practice_prompt_label) and Dialogue.word_practice_active:
+			word_practice_prompt_label.text = tr("WORD_PRACTICE_SPEAK_HINT")
 		GameState.message_requested.emit(tr("WORD_PRACTICE_RETRY"), "neutral")
 		return
 	var score := 0.0
 	if expression.has("score"):
 		score = float(expression.get("score", 0.0))
 	Vocabulary.record_word_spoken(lexical_id, score)
+	if Dialogue.word_practice_active:
+		Dialogue.finish_word_practice()
 
 
 func _show_word_unlock(word: String, _score: float) -> void:
@@ -387,6 +396,56 @@ func _close_word_unlock() -> void:
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_release_ui_focus()
+
+
+func _build_word_practice_ui() -> void:
+	if not is_instance_valid(ui_root):
+		return
+	word_practice_panel = PanelContainer.new()
+	word_practice_panel.name = "WordPracticePanel"
+	word_practice_panel.anchor_left = 0.5
+	word_practice_panel.anchor_right = 0.5
+	word_practice_panel.anchor_top = 1.0
+	word_practice_panel.anchor_bottom = 1.0
+	word_practice_panel.offset_left = -360.0
+	word_practice_panel.offset_right = 360.0
+	word_practice_panel.offset_top = -322.0
+	word_practice_panel.offset_bottom = -198.0
+	word_practice_panel.visible = false
+	ui_root.add_child(word_practice_panel)
+	var content := VBoxContainer.new()
+	content.name = "Content"
+	content.add_theme_constant_override("separation", 8)
+	word_practice_panel.add_child(content)
+	word_practice_prompt_label = Label.new()
+	word_practice_prompt_label.name = "Prompt"
+	word_practice_prompt_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	word_practice_prompt_label.add_theme_font_size_override("font_size", 20)
+	content.add_child(word_practice_prompt_label)
+
+
+func _on_word_practice_requested(npc_id: String, options: Array) -> void:
+	if not is_instance_valid(word_practice_panel) or options.is_empty():
+		return
+	var words: Array[String] = []
+	for option in options:
+		words.append(str(option))
+	var joined := ""
+	if words.size() == 1:
+		joined = words[0]
+	elif words.size() == 2:
+		joined = tr("WORD_PRACTICE_OR_TWO") % [words[0], words[1]]
+	else:
+		joined = tr("WORD_PRACTICE_OR_MANY") % [", ".join(words.slice(0, words.size() - 1)), words[words.size() - 1]]
+	word_practice_prompt_label.text = tr("WORD_PRACTICE_NPC_ASK") % [tr("NPC_%s" % npc_id.to_upper()), joined]
+	word_practice_panel.visible = true
+	NpcVoice.request_line(npc_id, "word_practice_ask", "", "wav", words)
+
+
+func _on_word_practice_finished(_npc_id: String) -> void:
+	if not is_instance_valid(word_practice_panel):
+		return
+	word_practice_panel.visible = false
 
 
 func _open_cloud_activation() -> void:
