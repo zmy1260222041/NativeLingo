@@ -1,0 +1,70 @@
+{
+  "schema": "quadriflow_density_report.v1",
+  "asset_id": "chr_npc_mira",
+  "total_faces": 10814,
+  "total_area_m2": 4.3567,
+  "regions": {
+    "torso": {
+      "faces": 3611,
+      "pct_of_faces": 33.4,
+      "area_m2": 1.3839,
+      "pct_of_area": 31.8,
+      "faces_per_m2": 2609.3
+    },
+    "arm_forearm": {
+      "faces": 1739,
+      "pct_of_faces": 16.1,
+      "area_m2": 0.8506,
+      "pct_of_area": 19.5,
+      "faces_per_m2": 2044.5
+    },
+    "lower_leg": {
+      "faces": 1406,
+      "pct_of_faces": 13.0,
+      "area_m2": 0.4437,
+      "pct_of_area": 10.2,
+      "faces_per_m2": 3169.0
+    },
+    "head_face": {
+      "faces": 1163,
+      "pct_of_faces": 10.8,
+      "area_m2": 0.4627,
+      "pct_of_area": 10.6,
+      "faces_per_m2": 2513.6
+    },
+    "neck": {
+      "faces": 902,
+      "pct_of_faces": 8.3,
+      "area_m2": 0.3373,
+      "pct_of_area": 7.7,
+      "faces_per_m2": 2674.2
+    },
+    "upper_leg": {
+      "faces": 745,
+      "pct_of_faces": 6.9,
+      "area_m2": 0.3174,
+      "pct_of_area": 7.3,
+      "faces_per_m2": 2346.9
+    },
+    "hand": {
+      "faces": 697,
+      "pct_of_faces": 6.4,
+      "area_m2": 0.3388,
+      "pct_of_area": 7.8,
+      "faces_per_m2": 2057.2
+    },
+    "foot": {
+      "faces": 551,
+      "pct_of_faces": 5.1,
+      "area_m2": 0.2224,
+      "pct_of_area": 5.1,
+      "faces_per_m2": 2478.0
+    }
+  },
+  "summary": {
+    "head_face_pct": 10.8,
+    "two_hands_est_pct": 12.8,
+    "torso_pct": 33.4,
+    "verdict": "face/hands starved: head + 2 hands together < torso face share"
+  }
+}

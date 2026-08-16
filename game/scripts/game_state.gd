@@ -5,14 +5,19 @@ signal needs_changed(food_value: float, warmth_value: float, energy_value: float
 signal clock_changed(day_value: int, elapsed_seconds: int)
 signal objective_changed(objective: String)
 signal message_requested(text: String, tone: String)
+signal expression_evaluated(target_id: String, expression: Dictionary)
 signal run_completed
 signal day_started(day_value: int)
 
-const SAVE_VERSION := 1
+const SAVE_VERSION := 2
 const MAX_NEED := 100.0
 const DAY_DURATION := 300.0
 const DAY_START_HOUR := 8.0
 const DAY_END_HOUR := 22.0
+## FR-28: voice-gated reward bands. Monotonic; below the sparse floor the NPC
+## gives nothing but spends no opportunity and no state is harmed.
+const SCORE_GENEROUS_MIN := 70.0
+const SCORE_SPARSE_MIN := 40.0
 
 var day := 1
 var day_time := 0.0
@@ -75,39 +80,35 @@ func objective_text() -> String:
 		if not completed_steps.has("greet_mira"):
 			return tr("OBJECTIVE_GREET_MIRA")
 		if berries < 2:
-			return tr("OBJECTIVE_GATHER_FOOD") % berries
+			return tr("OBJECTIVE_ASK_FOOD") % berries
 		return tr("OBJECTIVE_SLEEP_DAY_ONE")
 	if day == 2:
 		if scrap < 2:
-			return tr("OBJECTIVE_GATHER_SCRAP") % scrap
+			return tr("OBJECTIVE_ASK_SCRAP") % scrap
 		if not heater_repaired:
 			return tr("OBJECTIVE_REPAIR_HEATER")
 		return tr("OBJECTIVE_SLEEP_DAY_TWO")
 	if day == 3:
 		if water < 1:
-			return tr("OBJECTIVE_FETCH_WATER")
+			return tr("OBJECTIVE_ASK_WATER")
 		if not completed_steps.has("help_rowan"):
 			return tr("OBJECTIVE_HELP_ROWAN")
 		return tr("OBJECTIVE_COMPLETE")
 	return tr("OBJECTIVE_EXPLORE")
 
-func interact(kind: String, target_id: String, communication: String = "action") -> void:
+func interact(kind: String, target_id: String, communication: String = "action", expression: Dictionary = {}) -> void:
 	var previous_objective := objective_text()
 	match kind:
 		"npc":
-			_interact_npc(target_id, communication)
+			_interact_npc(target_id, communication, expression)
 		"berry":
-			berries += 1
-			food = minf(MAX_NEED, food + 8.0)
-			completed_steps[target_id] = true
-			message_requested.emit(tr("MSG_BERRY_FOUND"), "good")
+			# FR-28: forage tokens are narrative guides now; resources come only
+			# from a spoken request judged by the NPC.
+			message_requested.emit(tr("MSG_FORAGE_REDIRECT"), "neutral")
 		"scrap":
-			scrap += 1
-			completed_steps[target_id] = true
-			message_requested.emit(tr("MSG_SCRAP_FOUND"), "good")
+			message_requested.emit(tr("MSG_FORAGE_REDIRECT"), "neutral")
 		"water":
-			water = 1
-			message_requested.emit(tr("MSG_WATER_FILLED"), "good")
+			message_requested.emit(tr("MSG_RESERVOIR_REDIRECT"), "neutral")
 		"heater":
 			if heater_repaired:
 				message_requested.emit(tr("MSG_HEATER_ALREADY"), "good")
@@ -127,22 +128,166 @@ func interact(kind: String, target_id: String, communication: String = "action")
 	if objective_text() != previous_objective:
 		objective_changed.emit(objective_text())
 
-func _interact_npc(npc_id: String, communication: String) -> void:
-	if npc_id == "mira" and day == 1 and not completed_steps.has("greet_mira"):
+func _interact_npc(npc_id: String, communication: String, expression: Dictionary) -> void:
+	match npc_id:
+		"mira":
+			_interact_mira(communication)
+			return
+		"rowan":
+			_interact_rowan(communication, expression)
+			return
+		"tavi":
+			_interact_food_supplier(communication, expression)
+			return
+		"vesh":
+			_interact_scrap_supplier(communication, expression)
+			return
+		"ori":
+			_interact_water_supplier(communication, expression)
+			return
+		_:
+			_emit_npc_followup(npc_id, communication)
+
+func _interact_mira(communication: String) -> void:
+	if day == 1 and not completed_steps.has("greet_mira"):
 		completed_steps["greet_mira"] = true
-		remember(npc_id, "MEMORY_GREET_MIRA", 2)
+		remember("mira", "MEMORY_GREET_MIRA", 2)
 		message_requested.emit(_communication_reply(tr("NPC_MIRA"), communication, "Welcome, stranger."), "good")
 		return
-	if npc_id == "rowan" and day == 3 and water > 0 and not completed_steps.has("help_rowan"):
+	_emit_npc_followup("mira", communication)
+
+func _interact_rowan(communication: String, expression: Dictionary) -> void:
+	if day == 3 and water > 0 and not completed_steps.has("help_rowan"):
+		if communication == "voice":
+			var score := _voice_score(expression)
+			if score < SCORE_SPARSE_MIN:
+				expression_evaluated.emit("rowan", expression)
+				message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_ROWAN"), "neutral")
+				return
 		water = 0
 		completed_steps["help_rowan"] = true
-		remember(npc_id, "MEMORY_HELP_ROWAN", 3)
+		remember("rowan", "MEMORY_HELP_ROWAN", 3)
 		game_finished = true
 		message_requested.emit(_communication_reply(tr("NPC_ROWAN"), communication, "You came back. Thank you."), "good")
 		save_game()
 		run_completed.emit()
 		return
-	var line := _npc_followup_line(npc_id)
+	_emit_npc_followup("rowan", communication)
+
+func _interact_food_supplier(communication: String, expression: Dictionary) -> void:
+	if berries >= 2:
+		_emit_npc_line("tavi", communication, tr("NPC_TAVI_SETTLED"))
+		return
+	if not completed_steps.has("greet_mira"):
+		message_requested.emit(tr("MSG_NEED_MIRA_FIRST"), "neutral")
+		return
+	match communication:
+		"voice":
+			var score := _voice_score(expression)
+			if score < SCORE_SPARSE_MIN:
+				expression_evaluated.emit("tavi", expression)
+				message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_TAVI"), "neutral")
+				return
+			if score >= SCORE_GENEROUS_MIN:
+				berries += 2
+				food = minf(MAX_NEED, food + 14.0)
+				expression_evaluated.emit("tavi", expression)
+				message_requested.emit(tr("MSG_REWARD_FOOD_2") % tr("NPC_TAVI"), "good")
+			else:
+				berries += 1
+				food = minf(MAX_NEED, food + 7.0)
+				expression_evaluated.emit("tavi", expression)
+				message_requested.emit(tr("MSG_REWARD_FOOD_1") % tr("NPC_TAVI"), "good")
+		"gesture":
+			message_requested.emit(tr("MSG_GESTURE_NO_RESOURCE") % tr("NPC_TAVI"), "neutral")
+		"gesture_fallback":
+			berries += 1
+			food = minf(MAX_NEED, food + 6.0)
+			message_requested.emit(tr("MSG_FALLBACK_FOOD") % tr("NPC_TAVI"), "good")
+		_:
+			_emit_npc_followup("tavi", communication)
+
+func _interact_scrap_supplier(communication: String, expression: Dictionary) -> void:
+	if day < 2:
+		message_requested.emit(tr("MSG_HEATER_NOT_TODAY"), "neutral")
+		return
+	if scrap >= 2 and (heater_repaired or day >= 2):
+		_emit_npc_line("vesh", communication, tr("NPC_VESH_SETTLED"))
+		return
+	match communication:
+		"voice":
+			var score := _voice_score(expression)
+			if score < SCORE_SPARSE_MIN:
+				expression_evaluated.emit("vesh", expression)
+				message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_VESH"), "neutral")
+				return
+			if score >= SCORE_GENEROUS_MIN:
+				scrap += 2
+				expression_evaluated.emit("vesh", expression)
+				message_requested.emit(tr("MSG_REWARD_SCRAP_2") % tr("NPC_VESH"), "good")
+			else:
+				scrap += 1
+				expression_evaluated.emit("vesh", expression)
+				message_requested.emit(tr("MSG_REWARD_SCRAP_1") % tr("NPC_VESH"), "good")
+		"gesture":
+			message_requested.emit(tr("MSG_GESTURE_NO_RESOURCE") % tr("NPC_VESH"), "neutral")
+		"gesture_fallback":
+			scrap += 1
+			message_requested.emit(tr("MSG_FALLBACK_SCRAP") % tr("NPC_VESH"), "good")
+		_:
+			_emit_npc_followup("vesh", communication)
+
+func _interact_water_supplier(communication: String, expression: Dictionary) -> void:
+	if day < 3:
+		message_requested.emit(tr("MSG_WATER_NOT_TODAY"), "neutral")
+		return
+	if water >= 1:
+		_emit_npc_line("ori", communication, tr("NPC_ORI_SETTLED"))
+		return
+	match communication:
+		"voice":
+			var score := _voice_score(expression)
+			if score < SCORE_SPARSE_MIN:
+				expression_evaluated.emit("ori", expression)
+				message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_ORI"), "neutral")
+				return
+			water = 1
+			if score >= SCORE_GENEROUS_MIN:
+				energy = minf(MAX_NEED, energy + 12.0)
+				expression_evaluated.emit("ori", expression)
+				message_requested.emit(tr("MSG_REWARD_WATER_2") % tr("NPC_ORI"), "good")
+			else:
+				energy = minf(MAX_NEED, energy + 6.0)
+				expression_evaluated.emit("ori", expression)
+				message_requested.emit(tr("MSG_REWARD_WATER_1") % tr("NPC_ORI"), "good")
+		"gesture":
+			message_requested.emit(tr("MSG_GESTURE_NO_RESOURCE") % tr("NPC_ORI"), "neutral")
+		"gesture_fallback":
+			water = 1
+			energy = minf(MAX_NEED, energy + 6.0)
+			message_requested.emit(tr("MSG_FALLBACK_WATER") % tr("NPC_ORI"), "good")
+		_:
+			_emit_npc_followup("ori", communication)
+
+func _voice_score(expression: Dictionary) -> float:
+	if expression.is_empty() or not expression.has("score"):
+		return -1.0
+	var raw: Variant = expression.get("score")
+	if typeof(raw) != TYPE_FLOAT and typeof(raw) != TYPE_INT:
+		return -1.0
+	return clampf(float(raw), 0.0, 100.0)
+
+func voice_band_for_score(score: float) -> String:
+	if score >= SCORE_GENEROUS_MIN:
+		return "generous"
+	if score >= SCORE_SPARSE_MIN:
+		return "sparse"
+	return "none"
+
+func _emit_npc_followup(npc_id: String, communication: String) -> void:
+	_emit_npc_line(npc_id, communication, _npc_followup_line(npc_id))
+
+func _emit_npc_line(npc_id: String, communication: String, line: String) -> void:
 	var known: int = relationships.get(npc_id, 0)
 	var tone := "good" if known > 0 else "neutral"
 	message_requested.emit(_communication_reply(tr("NPC_%s" % npc_id.to_upper()), communication, line), tone)
@@ -287,7 +432,12 @@ func load_game() -> bool:
 	if file == null:
 		return false
 	var parsed = JSON.parse_string(file.get_as_text())
-	if not parsed is Dictionary or int(parsed.get("version", -1)) != SAVE_VERSION:
+	if not parsed is Dictionary:
+		return false
+	# SAVE_VERSION 2 (FR-28) changes quest flow but not the field set, so a
+	# version-1 save migrates lazily by keeping every persisted value.
+	var saved_version := int(parsed.get("version", 1))
+	if saved_version < 1 or saved_version > SAVE_VERSION:
 		return false
 	interaction_time_frozen = false
 	day = int(parsed.get("day", 1))

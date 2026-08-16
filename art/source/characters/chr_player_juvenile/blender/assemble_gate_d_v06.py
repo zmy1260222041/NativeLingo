@@ -41,7 +41,20 @@ OUT_GLB = PROJECT / "game/assets/characters/chr_player_juvenile.glb"
 REPORT = CHAR_ROOT / "source_locked_v06/assemble_c1_report.json"
 
 TARGET_HEIGHT_M = 1.78
-BASE_COLOR_HEX = "BFA982"  # Art Bible §4.1 warm gray-apricot
+BASE_COLOR_HEX = "BFA982"  # Art Bible §4.1 warm gray-apricot (fallback; vcol overrides)
+
+# Art Bible §4.1 + locked turnaround vertex-color palette (hex → float RGBA)
+def _vcol_rgba(hex6: str) -> tuple:
+    h = hex6.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) / 255.0 for i in (0, 2, 4)) + (1.0,)
+
+VCOL_SKIN = _vcol_rgba("D1B898")        # warm tan skin
+VCOL_CREST_DARK = _vcol_rgba("4A456B")  # head crest deep slate indigo
+VCOL_CREST_LIGHT = _vcol_rgba("9B76C4") # head crest light lavender
+VCOL_ARM_MARK = _vcol_rgba("9C827D")    # inner-arm triangular markings
+VCOL_BELT = _vcol_rgba("856666")        # belt / rope sash dusty mauve
+VCOL_LEG_PURPLE = _vcol_rgba("6E576E")  # lower/inner leg muted purple
+VCOL_FOOT_STRAP = _vcol_rgba("8C7A6E")  # foot straps brown-grey
 IDLE_FBX = RAW / "autorig_m26_00.fbx"
 WALK_FBX = RAW / "autorig_m23_00.fbx"
 LOD1_GLB = RAW / "reduceface_medium_01.glb"
@@ -400,6 +413,59 @@ def _scale_rig_bake(armature: bpy.types.Object, meshes: list[bpy.types.Object], 
     print(f"[c1] baked rig scale {scale:.3f} into bone rest + mesh verts")
 
 
+def _assign_vcol_zones(obj: bpy.types.Object) -> None:
+    """Assign art-bible §4.1 vertex-color zones using the skeleton vertex groups
+    (from the AutoRig FBX, 22 deform bones) so zones follow the body — matches the
+    locked turnaround. Godot's cel_base.gdshader reads COLOR_0 as albedo."""
+    mesh = obj.data
+    # dominant vertex group per vertex
+    dom: dict[int, str] = {}
+    for v in mesh.vertices:
+        best, best_w = "", -1.0
+        for vg in v.groups:
+            if vg.weight > best_w:
+                best_w, best = vg.weight, obj.vertex_groups[vg.group].name
+        dom[v.index] = best
+    attr = mesh.color_attributes.new(name="Color", domain="POINT", type="FLOAT_COLOR")
+
+    def zone(v, grp: str) -> tuple:
+        z = v.co.z
+        if grp == "Head":
+            if z > 183.0:
+                return VCOL_CREST_DARK
+            if z > 177.0:
+                return VCOL_CREST_LIGHT
+            return VCOL_SKIN
+        if grp in ("LeftArm", "RightArm"):
+            # inner-arm triangular marking band (narrow mid-upper-arm)
+            lo, hi = (78.0, 126.0) if grp == "LeftArm" else (76.0, 122.0)
+            t = (z - lo) / (hi - lo) if hi > lo else 0.0
+            return VCOL_ARM_MARK if 0.42 < t < 0.52 else VCOL_SKIN
+        if grp in ("LeftForeArm", "RightForeArm"):
+            return VCOL_SKIN
+        if grp == "Hips":
+            lo, hi = 50.0, 103.0
+            t = (z - lo) / (hi - lo)
+            return VCOL_BELT if 0.42 < t < 0.55 else VCOL_SKIN
+        if grp in ("LeftUpLeg", "RightUpLeg"):
+            return VCOL_SKIN
+        if grp in ("LeftLeg", "RightLeg"):
+            lo, hi = 0.0, 84.0
+            t = (z - lo) / (hi - lo)
+            return VCOL_LEG_PURPLE if t < 0.55 else VCOL_SKIN
+        if grp in ("LeftFoot", "RightFoot"):
+            lo, hi = 0.0, 50.0
+            t = (z - lo) / (hi - lo)
+            return VCOL_FOOT_STRAP if 0.3 < t < 0.5 else VCOL_SKIN
+        if grp in ("LeftToeBase", "RightToeBase"):
+            return VCOL_SKIN
+        return VCOL_SKIN
+
+    for v in mesh.vertices:
+        attr.data[v.index].color = zone(v, dom[v.index])
+    print("[c1] assigned art-bible vertex-color zones")
+
+
 def step4_finalize(master_mesh: bpy.types.Object, lods: list[bpy.types.Object], armature: bpy.types.Object) -> None:
     # material
     mat = bpy.data.materials.new(name=MAT_NAME)
@@ -412,6 +478,11 @@ def step4_finalize(master_mesh: bpy.types.Object, lods: list[bpy.types.Object], 
     for m in [master_mesh, *lods]:
         m.data.materials.clear()
         m.data.materials.append(mat)
+
+    # assign art-bible vertex-color zones on LOD0 (the others inherit via LOD
+    # switches; COLOR_0 drives Godot's cel_base.gdshader albedo, so the runtime
+    # shows the locked turnaround palette exactly).
+    _assign_vcol_zones(master_mesh)
 
     # contract mesh names (double-underscore LOD substrings)
     master_mesh.name = "lod0__body"

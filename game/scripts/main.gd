@@ -430,7 +430,9 @@ func _add_pickup(kind: String, target_id: String, label: String, position: Vecto
 	pickup.interaction_kind = kind
 	pickup.target_id = target_id
 	pickup.display_name = label
-	pickup.one_shot = true
+	# FR-28: forage tokens are guidance objects now; they stay in the world and
+	# point the player to the NPC who trades resources for spoken requests.
+	pickup.one_shot = false
 	pickup.position = position
 	add_child(pickup)
 	var token := ""

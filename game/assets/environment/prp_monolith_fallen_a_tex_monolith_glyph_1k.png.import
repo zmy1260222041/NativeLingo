@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://brdsglg8i0asy"
 path.s3tc="res://.godot/imported/prp_monolith_fallen_a_tex_monolith_glyph_1k.png-aed2a161a0155ff0ab3846658ccf54c0.s3tc.ctex"
+path.etc2="res://.godot/imported/prp_monolith_fallen_a_tex_monolith_glyph_1k.png-aed2a161a0155ff0ab3846658ccf54c0.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/prp_monolith_fallen_a_tex_monolith_glyph_1k.png"
-dest_files=["res://.godot/imported/prp_monolith_fallen_a_tex_monolith_glyph_1k.png-aed2a161a0155ff0ab3846658ccf54c0.s3tc.ctex"]
+dest_files=["res://.godot/imported/prp_monolith_fallen_a_tex_monolith_glyph_1k.png-aed2a161a0155ff0ab3846658ccf54c0.s3tc.ctex", "res://.godot/imported/prp_monolith_fallen_a_tex_monolith_glyph_1k.png-aed2a161a0155ff0ab3846658ccf54c0.etc2.ctex"]
 
 [params]
 

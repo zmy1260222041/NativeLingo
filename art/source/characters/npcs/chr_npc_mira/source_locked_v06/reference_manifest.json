@@ -9,18 +9,41 @@
     "reference/figure_view_2.png",
     "reference/figure_view_3.png"
   ],
+  "registration_status": "REGISTERED_V03_GROUND_LINE_REPAIR_PASS",
+  "legacy_registration_status": "REFERENCE_V01_SUPERSEDED_FOOT_PIXEL_ERASURE_DEFECT",
+  "registration_validation": "source_analysis/ground_line_repair_v03.json",
   "primary_view": "front",
-  "view_order": ["front", "character_left", "back", "character_right"],
+  "view_order": [
+    "front",
+    "character_left",
+    "back",
+    "character_right"
+  ],
   "target_height_m": 1.72,
   "expected_primary_parts": {
     "count": 21,
     "labels": [
-      "head_seed_shell", "neck_notch", "shoulder_plate_center", "shoulder_plate_left",
-      "shoulder_plate_right", "torso_core", "pelvis_core", "upper_arm_left",
-      "upper_arm_right", "forearm_left", "forearm_right", "hand_left_three_digit",
-      "hand_right_three_digit", "upper_leg_left", "upper_leg_right", "lower_leg_left",
-      "lower_leg_right", "foot_left_split_wedge", "foot_right_split_wedge",
-      "crossbody_harness", "tool_pouch"
+      "head_seed_shell",
+      "neck_notch",
+      "shoulder_plate_center",
+      "shoulder_plate_left",
+      "shoulder_plate_right",
+      "torso_core",
+      "pelvis_core",
+      "upper_arm_left",
+      "upper_arm_right",
+      "forearm_left",
+      "forearm_right",
+      "hand_left_three_digit",
+      "hand_right_three_digit",
+      "upper_leg_left",
+      "upper_leg_right",
+      "lower_leg_left",
+      "lower_leg_right",
+      "foot_left_split_wedge",
+      "foot_right_split_wedge",
+      "crossbody_harness",
+      "tool_pouch"
     ]
   },
   "structural_parts": [
@@ -34,7 +57,13 @@
     "exactly three plum ovals on each outer upper arm",
     "two repair stitch groups on the harness/shoulder system"
   ],
-  "texture_regions": ["coral_clay", "dust_cream", "bark_plum", "dusk_indigo", "hearth_amber"],
+  "texture_regions": [
+    "coral_clay",
+    "dust_cream",
+    "bark_plum",
+    "dusk_indigo",
+    "hearth_amber"
+  ],
   "validation_thresholds": {
     "front_mask_iou_min": 0.9,
     "bbox_center_tolerance_px": 12,
@@ -42,5 +71,5 @@
     "height_error_percent_max": 2.0,
     "ground_line_error_percent_max": 1.0
   },
-  "generation_policy": "Rodin supplies a sculptable Gate A base only; it is not runtime-ready."
+  "generation_policy": "Only reference may be used for future Rodin work. The root reference/figure_view files are the promoted v03 modeling inputs."
 }

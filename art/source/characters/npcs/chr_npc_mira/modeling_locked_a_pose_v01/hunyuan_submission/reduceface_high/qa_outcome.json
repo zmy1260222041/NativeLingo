@@ -1,0 +1,99 @@
+{
+  "schema": "mira_reduceface_qa.v3",
+  "status": "PASS_STATIC_A_POSE_PBR_RUNTIME_REVIEW",
+  "scope": "A_POSE_ONLY_MODELING_LOCK",
+  "cloud_reduceface": {
+    "job_id": "1479745472872022016",
+    "status": "DONE",
+    "parameters": {
+      "historical_input_retention": "REMOVED_AFTER_VISUAL_REJECTION",
+      "historical_input_sha256": "3f7b9e46e370b18cd3bc66b0f9deac221ceb58673b76af531ee2afec02748973",
+      "face_level": "high",
+      "polygon_type": "triangle"
+    },
+    "raw_glb": {
+      "file": "reduceface_high_01.glb",
+      "sha256": "9f1aa85b218680113e733aa8d2536b295b3e19cfdc7177ca142c5297b6aeffb8",
+      "triangles": 12957,
+      "topology_note": "Visually preferred source. It retains one microscopic open flap, one four-face edge, and degenerate triangles; the cloud file remains immutable evidence."
+    }
+  },
+  "promoted_geometry": {
+    "file": "post_repair_candidates/minimal_topology_repair_v02/chr_npc_mira_a_pose_reduceface_high_minimal_topology_repair_v02.glb",
+    "sha256": "9048f01873d5157624e2157b25bbb3fcffe443e09a7fd73062432466a6841731",
+    "triangles": 12956,
+    "vertices": 6487,
+    "connected_components": 6,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "winding_conflict_edges": 0,
+    "degenerate_faces": 0,
+    "loose_vertices": 0,
+    "fresh_import_audit": "PASS",
+    "vertex_positions_moved": 0,
+    "bounds_changed": false,
+    "intended_use": "shape-preserving geometry review baseline for manual retopology, UV, texture, and rig preparation"
+  },
+  "visual_gate": {
+    "status": "PASS_PIXEL_COMPARISON",
+    "comparison": {
+      "front_changed_pixels": 0,
+      "character_left_changed_pixels": 8,
+      "back_changed_pixels": 0,
+      "character_right_changed_pixels": 0,
+      "profile_changed_fraction": 0.00001356
+    },
+    "preview": "post_repair_candidates/minimal_topology_repair_v02/inspection/mesh_neg_y_clay.png"
+  },
+  "texture_gate": {
+    "status": "PASS_2K_HUNYUAN_SELECTED_TO_ACTIVE_BAKE",
+    "source": "../mira_a_pose_hunyuan3d_pro.glb embedded 4096x4096 Base Color",
+    "method": "UV Smart Project on an unchanged duplicate, then selected-to-active Base Color, OpenGL tangent-space Normal and AO bake",
+    "maps": {
+      "base_color": {
+        "file": "post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_base_color_2k.png",
+        "sha256": "5bac3e3d9e802c8837ad14add706dd0b88b7077e9b2a91f66818773743c7be50"
+      },
+      "normal": {
+        "file": "post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_normal_2k.png",
+        "sha256": "e9bcac5252325323ba2dae0766044a8f2c9362c466cb652d12413725b41b2269"
+      },
+      "ao": {
+        "file": "post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_ao_2k.png",
+        "sha256": "a5d2c2868780099b26467171c1b224d673c804d3fd90d04f7850606787b00e97"
+      }
+    },
+    "geometry_change": {
+      "vertex_positions_moved": 0,
+      "topology_changed": false,
+      "bounds_changed": false
+    }
+  },
+  "runtime_gate": {
+    "status": "PASS_STATIC_A_POSE_REVIEW_ONLY",
+    "source_glb": {
+      "file": "post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_a_pose_reduceface_high_textured_v01.glb",
+      "bytes": 7145284,
+      "sha256": "53defd7dc1e1d032f3d9463e0ecc03603bcb65b433fe71920deadf25d7a6c5f0"
+    },
+    "game_glb": "game/assets/characters/chr_npc_mira.glb",
+    "godot_import": "PASS_BASE_COLOR_NORMAL_AO_UV_TANGENT",
+    "game_integration": "PASS_MAIN_AND_MARKET_CORNER_WITH_PROCEDURAL_FALLBACK",
+    "target_height_m": 1.72,
+    "remaining_gates": [
+      "rig",
+      "skinning",
+      "authored idle and interaction animations"
+    ]
+  },
+  "postprocess_policy": {
+    "whole_character_voxel_or_sdf_reconstruction": "PROHIBITED",
+    "global_surface_resampling": "PROHIBITED",
+    "approved_method": "bounded local topology repair with zero vertex movement, followed by fresh GLB re-import audit"
+  },
+  "source_locks": {
+    "original_2d_source_unchanged": true,
+    "a_pose_only": true,
+    "t_pose_unlocked": true
+  }
+}

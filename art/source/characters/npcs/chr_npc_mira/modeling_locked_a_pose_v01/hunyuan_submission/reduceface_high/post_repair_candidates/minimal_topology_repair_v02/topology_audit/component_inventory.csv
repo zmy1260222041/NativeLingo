@@ -1,0 +1,7 @@
+primitive,component_id,category,faces,vertices,boundary_edges,nonmanifold_edges,winding_conflict_edges,degenerate_faces,bbox_diagonal,relative_bbox_diagonal,material
+0:0,0,structural_shell,12746,6374,0,0,0,0,1.429349,1.0,
+0:0,1,small_fragment,68,36,0,0,0,0,0.022796,0.015948,
+0:0,2,small_fragment,36,20,0,0,0,0,0.014453,0.010112,
+0:0,3,micro_fragment,4,4,0,0,0,0,0.007364,0.005152,
+0:0,4,small_fragment,68,36,0,0,0,0,0.022796,0.015949,
+0:0,5,small_fragment,34,19,0,0,0,0,0.014453,0.010112,

@@ -1,0 +1,52 @@
+{
+  "asset_id": "chr_npc_ori",
+  "purpose": "modeling_only_four_view_graphic_sculptural_redraw",
+  "status": "MODELING_CANDIDATE_NOT_LOCKED",
+  "source_authority": {
+    "path": "art/source/characters/npcs/chr_npc_ori/source_locked_v06/reference/turnaround_source.png",
+    "sha256_before": "3b3d2eca868b989b00ca6d0d4ac414f1e2ee5e86df0596abc0fc34b1d97c42c6",
+    "sha256_after": "3b3d2eca868b989b00ca6d0d4ac414f1e2ee5e86df0596abc0fc34b1d97c42c6",
+    "modified": false
+  },
+  "style_reference": {
+    "path": "art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/sculptural_pbr_v03/chr_npc_mira_a_pose_turnaround.png",
+    "role": "style_only_modeling_redraw_method",
+    "identity_or_palette_authority": false
+  },
+  "visual_source_override": {
+    "issue": "legacy manifest says four eyes but locked pixels visibly show three",
+    "applied_rule": "locked image is the final visual authority",
+    "eye_count_used": 3,
+    "locked_manifest_modified": false
+  },
+  "generation": {
+    "mode": "built_in_imagegen_reference_guided_then_targeted_refinement",
+    "prompt": "prompt_v10_graphic_sculptural.md",
+    "candidate": "chr_npc_ori_four_view_graphic_sculptural_candidate_v10.png",
+    "candidate_sha256": "7e2a5b423da300e178b671127d22160aa6586c3d3772fd114445daafbe8e87ab",
+    "width_px": 1492,
+    "height_px": 1054,
+    "view_order": [
+      "front",
+      "character_left",
+      "back",
+      "character_right"
+    ]
+  },
+  "result": {
+    "arm_roots": "crescent_terminal_joints_only",
+    "original_palette_restored": true,
+    "graphic_primary_secondary_form_hierarchy": true,
+    "crescent_shell_thickness_and_planar_breaks": true,
+    "layered_head_and_recessed_face": true,
+    "interlocking_cartilage_joint_collars": true,
+    "modeled_hand_and_foot_structure": true,
+    "random_surface_noise": false,
+    "human_anatomy_added": false,
+    "floor_or_ground_line": false
+  },
+  "approval": {
+    "user_approved": false,
+    "promoted_to_modeling_locked": false
+  }
+}

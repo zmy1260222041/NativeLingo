@@ -1,6 +1,11 @@
 # Rowan Gate A review
 
-Verdict: `FAIL / SHAPE_REPAIR_REQUIRED`
+Verdict: `INVALIDATED / LEGACY_REFERENCE_PREP_DEFECT / RODIN RESUBMISSION REQUIRED`
+
+The reviewed mesh was generated from legacy registered views that erased supported
+sole pixels while removing the turnaround ground line. The repaired
+`reference/` set supersedes those inputs. The shape observations
+below remain historical evidence, but sculpt repair must not continue on this base.
 
 ## Verified technical state
 
@@ -22,5 +27,5 @@ Verdict: `FAIL / SHAPE_REPAIR_REQUIRED`
 6. Restore the suspended upper plate and lower loop as separate designed structures,
    while preserving the good long-limb proportions and negative space.
 
-Retopology, rigging, LOD and runtime export remain blocked until four-view overlays
-and the 0.90 front-mask IoU gate pass.
+Rodin resubmission, a fresh Gate A review, retopology, rigging, LOD and runtime
+export remain blocked until the repaired four-view set is used.

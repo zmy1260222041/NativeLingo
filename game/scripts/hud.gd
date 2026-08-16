@@ -74,6 +74,13 @@ var voice_target_name := ""
 var voice_elapsed := 0.0
 var voice_transcript := ""
 var voice_reason := ""
+var voice_expression := {}
+var cloud_button: Button
+var cloud_overlay: ColorRect
+var cloud_code_edit: LineEdit
+var cloud_status_label: Label
+var cloud_activate_button: Button
+var cloud_close_button: Button
 var day_transition_started_msec := 0
 ## 测试钩子：null 表示按 OS feature 自动判断；true/false 强制覆盖 Web UI。
 var web_beta_ui_override: Variant = null
@@ -88,6 +95,7 @@ func _ready() -> void:
 	_connect_buttons()
 	_load_settings()
 	_apply_web_beta_ui()
+	_build_cloud_ui()
 	_configure_focus_cycles()
 	get_viewport().size_changed.connect(_apply_safe_frame)
 	call_deferred("_bind_player")
@@ -141,6 +149,8 @@ func _configure_focus_cycles() -> void:
 	var pause_buttons: Array[Button] = [resume_button, reduce_motion_button, ui_scale_button]
 	if SpeechAdapter.is_available():
 		pause_buttons.append(speech_mode_button)
+	if is_instance_valid(cloud_button) and cloud_button.visible:
+		pause_buttons.append(cloud_button)
 	pause_buttons.append(controls_button)
 	if pause_survey_button.visible:
 		pause_buttons.append(pause_survey_button)
@@ -185,6 +195,104 @@ func _apply_web_beta_ui() -> void:
 	pause_survey_button.visible = not survey_url.is_empty()
 	completion_survey_button.visible = not survey_url.is_empty()
 
+func _build_cloud_ui() -> void:
+	## FR-29:云评分构建在暂停菜单提供激活入口,并在 UIRoot 下创建激活浮层。
+	## 所有节点程序化创建,不改动 HUD.tscn,便于 Web/桌面共用。
+	if not SpeechAdapter.cloud_mode_enabled() or not is_instance_valid(controls_button):
+		return
+	cloud_button = Button.new()
+	cloud_button.name = "CloudActivateButton"
+	cloud_button.text = tr("CLOUD_MENU_ACTIVATED") if SpeechAdapter.cloud_activated() else tr("CLOUD_MENU_ACTIVATE")
+	controls_button.get_parent().add_child(cloud_button)
+	controls_button.get_parent().move_child(cloud_button, controls_button.get_index())
+	cloud_button.pressed.connect(_open_cloud_activation)
+	_build_cloud_overlay()
+	SpeechAdapter.cloud_auth_finished.connect(_on_cloud_auth_finished)
+
+func _build_cloud_overlay() -> void:
+	cloud_overlay = ColorRect.new()
+	cloud_overlay.name = "CloudActivationOverlay"
+	cloud_overlay.color = Color(0.02, 0.03, 0.05, 0.94)
+	cloud_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cloud_overlay.visible = false
+	ui_root.add_child(cloud_overlay)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cloud_overlay.add_child(center)
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(520, 0)
+	center.add_child(card)
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", 12)
+	card.add_child(content)
+	var title := Label.new()
+	title.text = tr("CLOUD_TITLE")
+	title.add_theme_font_size_override("font_size", 26)
+	content.add_child(title)
+	var privacy := Label.new()
+	privacy.text = tr("CLOUD_PRIVACY")
+	privacy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(privacy)
+	cloud_code_edit = LineEdit.new()
+	cloud_code_edit.placeholder_text = tr("CLOUD_CODE_HINT")
+	cloud_code_edit.text_submitted.connect(func(_text: String): _submit_cloud_activation())
+	content.add_child(cloud_code_edit)
+	cloud_status_label = Label.new()
+	cloud_status_label.text = tr("CLOUD_STATUS_ACTIVATED") if SpeechAdapter.cloud_activated() else tr("CLOUD_STATUS_PENDING")
+	cloud_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(cloud_status_label)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	content.add_child(row)
+	cloud_close_button = Button.new()
+	cloud_close_button.text = tr("CLOUD_BACK")
+	cloud_close_button.pressed.connect(_close_cloud_activation)
+	row.add_child(cloud_close_button)
+	cloud_activate_button = Button.new()
+	cloud_activate_button.text = tr("CLOUD_ACTIVATE_BUTTON")
+	cloud_activate_button.pressed.connect(_submit_cloud_activation)
+	row.add_child(cloud_activate_button)
+
+func _open_cloud_activation() -> void:
+	if not is_instance_valid(cloud_overlay):
+		return
+	pause_overlay.visible = false
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	cloud_status_label.text = tr("CLOUD_STATUS_ACTIVATED") if SpeechAdapter.cloud_activated() else tr("CLOUD_STATUS_PENDING")
+	cloud_code_edit.text = ""
+	cloud_overlay.visible = true
+	cloud_code_edit.grab_focus.call_deferred()
+
+func _close_cloud_activation() -> void:
+	if not is_instance_valid(cloud_overlay):
+		return
+	SpeechAdapter.cancel_activation()
+	cloud_overlay.visible = false
+	pause_overlay.visible = true
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	resume_button.grab_focus.call_deferred()
+
+func _submit_cloud_activation() -> void:
+	if not is_instance_valid(cloud_code_edit) or SpeechAdapter.pending_activation:
+		return
+	cloud_activate_button.disabled = true
+	cloud_close_button.disabled = true
+	cloud_status_label.text = tr("CLOUD_STATUS_WORKING")
+	SpeechAdapter.activate_cloud(cloud_code_edit.text)
+
+func _on_cloud_auth_finished(success: bool, message: String) -> void:
+	if not is_instance_valid(cloud_status_label):
+		return
+	cloud_activate_button.disabled = false
+	cloud_close_button.disabled = false
+	cloud_status_label.text = message
+	if success:
+		cloud_button.text = tr("CLOUD_MENU_ACTIVATED")
+		if SpeechAdapter.last_unavailable_reason == "VOICE_REASON_CLOUD_NOT_ACTIVATED":
+			SpeechAdapter.last_unavailable_reason = ""
+
 func _open_survey() -> void:
 	var survey_setting := DESKTOP_SURVEY_URL_SETTING if _is_desktop_beta_build() else WEB_SURVEY_URL_SETTING
 	var survey_url := str(ProjectSettings.get_setting(survey_setting, "")).strip_edges()
@@ -206,6 +314,11 @@ func _link_focus_cycle(buttons: Array[Button]) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	_update_active_device(event)
+	if is_instance_valid(cloud_overlay) and cloud_overlay.visible:
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause"):
+			_close_cloud_activation()
+			get_viewport().set_input_as_handled()
+		return
 	if day_transition_overlay.visible:
 		if _is_overlay_cancel_event(event):
 			if reduce_motion or Time.get_ticks_msec() - day_transition_started_msec >= 300:
@@ -343,6 +456,7 @@ func _on_recording_state_changed(active: bool) -> void:
 		voice_elapsed = 0.0
 		voice_transcript = ""
 		voice_reason = ""
+		voice_expression = {}
 		_refresh_voice_card()
 	elif voice_state == "listening":
 		voice_state = "idle"
@@ -361,13 +475,14 @@ func _on_recognition_pending(_target_id: String) -> void:
 	voice_state = "transcribing"
 	_refresh_voice_card()
 
-func _on_recognition_finished(_target_id: String, accepted: bool, transcript: String, reason: String) -> void:
+func _on_recognition_finished(_target_id: String, accepted: bool, transcript: String, reason: String, expression: Dictionary) -> void:
 	if not SpeechAdapter.is_available():
 		return
 	if voice_target_name.is_empty():
 		voice_target_name = player.current_target_name() if player else tr("NEARBY_RESIDENT")
 	voice_transcript = transcript
 	voice_reason = tr(reason)
+	voice_expression = expression
 	if accepted:
 		voice_state = "accepted"
 		_refresh_voice_card()
@@ -387,6 +502,7 @@ func _clear_voice_status() -> void:
 	voice_target_name = ""
 	voice_transcript = ""
 	voice_reason = ""
+	voice_expression = {}
 	_refresh_interaction_prompt()
 
 func _refresh_voice_card() -> void:
@@ -402,13 +518,21 @@ func _refresh_voice_card() -> void:
 			_set_interaction_text("%s\n%s" % [tr("VOICE_TRANSCRIBING") % voice_target_name, tr("VOICE_TRANSCRIBING_ACTIONS") % [gesture_glyph, cancel_glyph]])
 		"accepted":
 			var heard := "\n%s" % (tr("VOICE_HEARD") % voice_transcript) if not voice_transcript.is_empty() else ""
-			_set_interaction_text("%s%s" % [tr("VOICE_ACCEPTED") % voice_target_name, heard])
+			_set_interaction_text("%s%s%s" % [tr("VOICE_ACCEPTED") % voice_target_name, heard, _voice_score_line()])
 		"clarify", "unavailable":
 			var status := tr("VOICE_UNAVAILABLE") % voice_target_name if voice_state == "unavailable" else tr("VOICE_CLARIFY") % voice_target_name
 			var heard := "\n%s" % (tr("VOICE_HEARD") % voice_transcript) if not voice_transcript.is_empty() else ""
-			_set_interaction_text("%s%s\n%s\n%s" % [status, heard, voice_reason, tr("VOICE_RECOVERY_ACTIONS") % [talk_glyph, gesture_glyph, cancel_glyph]])
+			_set_interaction_text("%s%s%s\n%s\n%s" % [status, heard, _voice_score_line(), voice_reason, tr("VOICE_RECOVERY_ACTIONS") % [talk_glyph, gesture_glyph, cancel_glyph]])
 		_:
 			_refresh_interaction_prompt()
+
+func _voice_score_line() -> String:
+	if voice_expression.is_empty() or not voice_expression.has("score"):
+		return ""
+	var score := int(voice_expression.get("score", 0))
+	var pronunciation := int(voice_expression.get("pronunciation", 0))
+	var delivery := int(voice_expression.get("delivery", 0))
+	return "\n%s" % (tr("VOICE_SCORED") % [score, pronunciation, delivery])
 
 func _show_message(message_text: String, tone: String) -> void:
 	var item := {"text": message_text, "tone": tone}
@@ -505,6 +629,8 @@ func _show_completion() -> void:
 		return
 	day_transition_overlay.visible = false
 	pause_overlay.visible = false
+	if is_instance_valid(cloud_overlay):
+		cloud_overlay.visible = false
 	completion_overlay.visible = true
 	completion_overlay.modulate.a = 0.0
 	get_tree().paused = true
@@ -536,6 +662,8 @@ func _request_restart() -> void:
 
 func _open_pause() -> void:
 	SpeechAdapter.cancel_recording()
+	if is_instance_valid(cloud_overlay):
+		cloud_overlay.visible = false
 	pause_overlay.visible = true
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

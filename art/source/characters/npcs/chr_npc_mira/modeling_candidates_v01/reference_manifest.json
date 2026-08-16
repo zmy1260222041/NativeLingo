@@ -1,0 +1,166 @@
+{
+  "schema": "mira_modeling_candidate_manifest.v1",
+  "asset_id": "chr_npc_mira",
+  "status": "MODELING_CANDIDATES_NOT_SOURCE_LOCKED",
+  "approval_required_for_promotion": true,
+  "immutable_design_authority": {
+    "path": "../source_locked_v06/reference/turnaround_source.png",
+    "sha256": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c",
+    "role": "sole identity, silhouette, proportion, component, palette, marking and handedness authority"
+  },
+  "view_order": [
+    "front",
+    "character_left",
+    "back",
+    "character_right"
+  ],
+  "handedness": {
+    "front_image_left": "physical_right",
+    "front_image_right": "physical_left",
+    "character_left_near_surface": "front_image_right",
+    "character_right_near_surface": "front_image_left"
+  },
+  "expected_primary_parts": {
+    "count": 21,
+    "labels": [
+      "head_seed_shell",
+      "neck_notch",
+      "shoulder_plate_center",
+      "shoulder_plate_left",
+      "shoulder_plate_right",
+      "torso_core",
+      "pelvis_core",
+      "upper_arm_left",
+      "upper_arm_right",
+      "forearm_left",
+      "forearm_right",
+      "hand_left_three_digit",
+      "hand_right_three_digit",
+      "upper_leg_left",
+      "upper_leg_right",
+      "lower_leg_left",
+      "lower_leg_right",
+      "foot_left_split_wedge",
+      "foot_right_split_wedge",
+      "crossbody_harness",
+      "tool_pouch"
+    ],
+    "explicit_equipment_subpart": "rigid_hearth_amber_support_clasp"
+  },
+  "surface_inventory": {
+    "oval_markings_total": 6,
+    "physical_left_outer_upper_arm": "exactly three, one above and two below",
+    "physical_right_outer_upper_arm": "exactly three, one above and two below",
+    "oval_markings_elsewhere": 0,
+    "repair_stitch_groups": 2
+  },
+  "output_contract": {
+    "poses": [
+      "a_pose",
+      "t_pose"
+    ],
+    "individual_view_size": [
+      1024,
+      1024
+    ],
+    "background_rgb": [
+      230,
+      230,
+      227
+    ],
+    "forbidden": [
+      "foot_ground_line",
+      "floor_plane",
+      "horizon",
+      "cast_or_contact_shadow",
+      "text_or_labels",
+      "grid_or_guides"
+    ]
+  },
+  "validation_thresholds": {
+    "height_error_percent_max": 2.0,
+    "bbox_center_drift_px_max_at_1024": 12,
+    "bbox_size_drift_ratio_max": 0.03,
+    "modeling_derivative_front_iou_target": 0.82,
+    "part_count_exact": true,
+    "background_exact": true,
+    "drawn_ground_line_allowed": false
+  },
+  "variants": [
+    {
+      "id": "graphic_volume_v01",
+      "role": "alternate graphic matte-volume interpretation",
+      "a_pose_registration": "graphic_volume_v01/a_pose/registration_report.json",
+      "t_pose_registration": "graphic_volume_v01/t_pose/registration_report.json",
+      "validation": "graphic_volume_v01/validation/validation_report.json",
+      "prompt": "graphic_volume_v01/prompt.md"
+    },
+    {
+      "id": "soft_pbr_v02",
+      "role": "second-pass semi-realistic soft-PBR modeling interpretation",
+      "a_pose_registration": "soft_pbr_v02/a_pose/registration_report.json",
+      "t_pose_registration": "soft_pbr_v02/t_pose/registration_report.json",
+      "validation": "soft_pbr_v02/validation/validation_report.json",
+      "prompt": "soft_pbr_v02/prompt.md",
+      "rejected_audit_input": "soft_pbr_v02/raw/chr_npc_mira_t_pose_raw_v02_rejected_contact.png"
+    },
+    {
+      "id": "sculptural_pbr_v03",
+      "role": "superseded higher-realism sculptural-PBR interpretation; retained before rigid multiview repair",
+      "a_pose_registration": "sculptural_pbr_v03/a_pose/registration_report.json",
+      "t_pose_registration": "sculptural_pbr_v03/t_pose/registration_report.json",
+      "validation": "sculptural_pbr_v03/validation/validation_report.json",
+      "style_analysis": "sculptural_pbr_v03/style_analysis.md",
+      "style_reference_manifest": "sculptural_pbr_v03/style_references/manifest.json",
+      "prompt": "sculptural_pbr_v03/prompt.md",
+      "rejected_audit_inputs": [
+        "sculptural_pbr_v03/raw/chr_npc_mira_a_pose_raw_v03_rejected_low_arms.png",
+        "sculptural_pbr_v03/raw/chr_npc_mira_t_pose_raw_v03_rejected_far_arm.png"
+      ]
+    },
+    {
+      "id": "rigid_multiview_v04",
+      "role": "superseded rigid-multiview repair; retained before right-profile strap projection repair",
+      "parent_variant": "sculptural_pbr_v03",
+      "a_pose_registration": "rigid_multiview_v04/a_pose/registration_report.json",
+      "t_pose_registration": "rigid_multiview_v04/t_pose/registration_report.json",
+      "validation": "rigid_multiview_v04/validation/validation_report.json",
+      "rigid_multiview_validation": "rigid_multiview_v04/validation/rigid_multiview_report.json",
+      "constraint_solver_validation": "rigid_multiview_v04/validation/head_constraint_solver_report.json",
+      "constraints": "rigid_multiview_v04/multiview_constraints.md",
+      "prompt": "rigid_multiview_v04/prompt.md",
+      "head_contract": "two nested rigid coral/cream shell volumes with matching front/profile/back projections",
+      "tool_pouch_physical_owner": "character physical left hip",
+      "tool_pouch_visibility": {
+        "front": true,
+        "character_left": true,
+        "back": true,
+        "character_right": false
+      },
+      "rejected_audit_input": "rigid_multiview_v04/raw/chr_npc_mira_a_pose_raw_v04_rejected_missing_left_pouch.png"
+    },
+    {
+      "id": "rigid_multiview_v05",
+      "role": "preferred rigid-multiview candidate with corrected character-right strap projection",
+      "parent_variant": "rigid_multiview_v04",
+      "a_pose_registration": "rigid_multiview_v05/a_pose/registration_report.json",
+      "t_pose_registration": "rigid_multiview_v05/t_pose/registration_report.json",
+      "validation": "rigid_multiview_v05/validation/validation_report.json",
+      "rigid_multiview_validation": "rigid_multiview_v05/validation/rigid_multiview_report.json",
+      "strap_projection_validation": "rigid_multiview_v05/validation/right_strap_projection_report.json",
+      "constraints": "rigid_multiview_v05/multiview_constraints.md",
+      "prompt": "rigid_multiview_v05/prompt.md",
+      "character_right_strap_projection": "gold clasp to physical-right shoulder, ascending upward/back; no descent toward near-side hip",
+      "tool_pouch_physical_owner": "character physical left hip",
+      "tool_pouch_visibility": {
+        "front": true,
+        "character_left": true,
+        "back": true,
+        "character_right": false
+      },
+      "unchanged_view_contract": "front, character-left and back in both poses are byte-identical to rigid_multiview_v04"
+    }
+  ],
+  "runtime_export_allowed": false,
+  "cloud_generation_run": false
+}

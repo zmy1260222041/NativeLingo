@@ -1,0 +1,242 @@
+{
+  "schema": "mira_modeling_views.v1",
+  "pose": "a_pose",
+  "source": "hunyuan_input/chr_npc_mira_a_pose_active_field.png",
+  "source_sha256": "64df7378dae275b7ee64ae220a4915fccf523b43855ee1aae56c241381deb56b",
+  "source_size": [
+    2172,
+    545
+  ],
+  "estimated_background_rgb": [
+    227.0,
+    227.0,
+    225.0
+  ],
+  "output_background_rgb": [
+    230,
+    230,
+    227
+  ],
+  "view_order": [
+    "front",
+    "character_left",
+    "back",
+    "character_right"
+  ],
+  "views": [
+    {
+      "index": 0,
+      "name": "front",
+      "source_x_range": [
+        100,
+        445
+      ],
+      "source_subject_bbox": [
+        100,
+        31,
+        345,
+        483
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        185,
+        62
+      ],
+      "scaled_subject_size": [
+        653,
+        900
+      ],
+      "output": "a_pose/chr_npc_mira_a_pose_front.png",
+      "sha256": "ae7b7c0abcac1ebf54edfa678de9e62253983747b4ae26ff999c035838976de3"
+    },
+    {
+      "index": 1,
+      "name": "character_left",
+      "source_x_range": [
+        748,
+        881
+      ],
+      "source_subject_bbox": [
+        748,
+        31,
+        133,
+        482
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        386,
+        62
+      ],
+      "scaled_subject_size": [
+        252,
+        900
+      ],
+      "output": "a_pose/chr_npc_mira_a_pose_character_left.png",
+      "sha256": "4cfc94fcf6fc4accff575364146cd9ab98afc93bed7471fa69e90d13b59b78a1"
+    },
+    {
+      "index": 2,
+      "name": "back",
+      "source_x_range": [
+        1181,
+        1534
+      ],
+      "source_subject_bbox": [
+        1181,
+        31,
+        353,
+        483
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        177,
+        62
+      ],
+      "scaled_subject_size": [
+        669,
+        900
+      ],
+      "output": "a_pose/chr_npc_mira_a_pose_back.png",
+      "sha256": "b836fb4f102a115c313647218f15362ec536e14aad4bf82c42e91abef829a612"
+    },
+    {
+      "index": 3,
+      "name": "character_right",
+      "source_x_range": [
+        1834,
+        1967
+      ],
+      "source_subject_bbox": [
+        1834,
+        30,
+        133,
+        483
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        386,
+        62
+      ],
+      "scaled_subject_size": [
+        252,
+        900
+      ],
+      "output": "a_pose/chr_npc_mira_a_pose_character_right.png",
+      "sha256": "a23b35ab48bf367021a4950f58ffe9d6149fedd42592dc3254850f1315a5b038"
+    }
+  ],
+  "contact_sheet": "chr_npc_mira_a_pose_turnaround.png",
+  "contact_sheet_sha256": "470f8db79a26b8a84b40dc269c6e142f82e153d23171e6d5cb073f89664938c4",
+  "source_height_error_percent": 0.2070393374741201,
+  "prepared_height_error_percent": 0.0,
+  "subject_height_registration": {
+    "method": "uniform scale from actual keyed subject bbox",
+    "target_height_px": 900,
+    "corrections": [
+      {
+        "view": "front",
+        "source_height": 886,
+        "target_height": 900,
+        "uniform_scale_ratio": 1.0158013544018059
+      },
+      {
+        "view": "character_left",
+        "source_height": 886,
+        "target_height": 900,
+        "uniform_scale_ratio": 1.0158013544018059
+      },
+      {
+        "view": "back",
+        "source_height": 885,
+        "target_height": 900,
+        "uniform_scale_ratio": 1.0169491525423728
+      },
+      {
+        "view": "character_right",
+        "source_height": 884,
+        "target_height": 900,
+        "uniform_scale_ratio": 1.0180995475113122
+      }
+    ]
+  },
+  "profile_depth_registration": {
+    "method": "symmetric mean-width x-only registration of exact profiles",
+    "target_width_px": 252,
+    "corrections": [
+      {
+        "view": "character_left",
+        "source_width": 252,
+        "target_width": 252,
+        "x_scale_ratio": 1.0
+      },
+      {
+        "view": "character_right",
+        "source_width": 252,
+        "target_width": 252,
+        "x_scale_ratio": 1.0
+      }
+    ]
+  },
+  "drawn_ground_line": false,
+  "lock_scope": "A_POSE_ONLY",
+  "t_pose_status": "UNLOCKED_NOT_INCLUDED",
+  "user_approved_source": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/raw/chr_npc_mira_a_pose_user_approved.png",
+  "user_approved_source_sha256": "bdc8e06d998877a3cd1d95eadd87a218c852d213d39c0c635e40ae60ff52f318",
+  "white_letterbox_crop_xyxy": [
+    0,
+    88,
+    2172,
+    633
+  ],
+  "active_field": "hunyuan_input/chr_npc_mira_a_pose_active_field.png",
+  "active_field_size": [
+    2172,
+    545
+  ],
+  "active_field_sha256": "64df7378dae275b7ee64ae220a4915fccf523b43855ee1aae56c241381deb56b",
+  "hunyuan_multiview_input": [
+    {
+      "view": "front",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_front.png",
+      "sha256": "ae7b7c0abcac1ebf54edfa678de9e62253983747b4ae26ff999c035838976de3"
+    },
+    {
+      "view": "character_left",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_character_left.png",
+      "sha256": "4cfc94fcf6fc4accff575364146cd9ab98afc93bed7471fa69e90d13b59b78a1"
+    },
+    {
+      "view": "back",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_back.png",
+      "sha256": "b836fb4f102a115c313647218f15362ec536e14aad4bf82c42e91abef829a612"
+    },
+    {
+      "view": "character_right",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_character_right.png",
+      "sha256": "a23b35ab48bf367021a4950f58ffe9d6149fedd42592dc3254850f1315a5b038"
+    }
+  ],
+  "hunyuan_contact_sheet": "hunyuan_input/chr_npc_mira_a_pose_turnaround.png",
+  "hunyuan_contact_sheet_sha256": "470f8db79a26b8a84b40dc269c6e142f82e153d23171e6d5cb073f89664938c4",
+  "processing": "crop external white bands; existing alpha key/background normalization/canvas registration only",
+  "forbidden_operations": [
+    "generation",
+    "inpainting",
+    "redrawing",
+    "mirroring",
+    "structural edit"
+  ],
+  "created_at_utc": "2026-08-14T05:56:28.685507+00:00"
+}

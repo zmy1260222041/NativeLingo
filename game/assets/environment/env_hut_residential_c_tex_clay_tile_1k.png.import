@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://clntmrk4llnb"
 path.s3tc="res://.godot/imported/env_hut_residential_c_tex_clay_tile_1k.png-f01541493a299c147d83eb215962136a.s3tc.ctex"
+path.etc2="res://.godot/imported/env_hut_residential_c_tex_clay_tile_1k.png-f01541493a299c147d83eb215962136a.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/env_hut_residential_c_tex_clay_tile_1k.png"
-dest_files=["res://.godot/imported/env_hut_residential_c_tex_clay_tile_1k.png-f01541493a299c147d83eb215962136a.s3tc.ctex"]
+dest_files=["res://.godot/imported/env_hut_residential_c_tex_clay_tile_1k.png-f01541493a299c147d83eb215962136a.s3tc.ctex", "res://.godot/imported/env_hut_residential_c_tex_clay_tile_1k.png-f01541493a299c147d83eb215962136a.etc2.ctex"]
 
 [params]
 

@@ -1,0 +1,111 @@
+{
+  "schema": "mira_reduceface_minimal_topology_repair.v2",
+  "source": {
+    "file": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/reduceface_high_01.glb",
+    "sha256": "9f1aa85b218680113e733aa8d2536b295b3e19cfdc7177ca142c5297b6aeffb8",
+    "modified": false,
+    "bounds": {
+      "min": [
+        -0.418853015,
+        -0.185353994,
+        0.000494
+      ],
+      "max": [
+        0.413664997,
+        0.132014006,
+        1.118183017
+      ],
+      "size": [
+        0.832517982,
+        0.317368001,
+        1.117689013
+      ]
+    }
+  },
+  "output": {
+    "file": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/chr_npc_mira_a_pose_reduceface_high_minimal_topology_repair_v02.glb",
+    "bytes": 156372,
+    "sha256": "9048f01873d5157624e2157b25bbb3fcffe443e09a7fd73062432466a6841731",
+    "bounds": {
+      "min": [
+        -0.418853015,
+        -0.185353994,
+        0.000494
+      ],
+      "max": [
+        0.413664997,
+        0.132014006,
+        1.118183017
+      ],
+      "size": [
+        0.832517982,
+        0.317368001,
+        1.117689013
+      ]
+    }
+  },
+  "method": {
+    "global_resampling": false,
+    "global_simplification": false,
+    "global_weld": false,
+    "vertex_positions_moved": 0,
+    "degenerate_distance_m": 1e-07,
+    "removed_visible_faces": 1,
+    "removed_visible_area_m2": 6.612390279769897e-07,
+    "removed_flap_vertices_world": [
+      [
+        0.376868993,
+        0.033124,
+        0.451249987
+      ],
+      [
+        0.376868993,
+        0.034274001,
+        0.451249987
+      ],
+      [
+        0.376868993,
+        0.034274001,
+        0.452399999
+      ]
+    ],
+    "split_four_face_edge_length_m": 0.005749999079853296,
+    "split_four_face_edge_midpoint_world": [
+      0.102621004,
+      0.022775,
+      0.684675992
+    ],
+    "flipped_closed_component_face_counts": [
+      4
+    ],
+    "normals": "face winding recalculated; normals omitted to match the source GLB attribute contract"
+  },
+  "topology_before_blender": {
+    "vertices": 6486,
+    "edges": 19435,
+    "faces": 12957,
+    "triangles": 12957,
+    "boundary_edges": 2,
+    "multi_face_edges": 2,
+    "wire_edges": 0,
+    "loose_vertices": 0,
+    "degenerate_faces": 1
+  },
+  "topology_after_blender": {
+    "vertices": 6487,
+    "edges": 19434,
+    "faces": 12956,
+    "triangles": 12956,
+    "boundary_edges": 0,
+    "multi_face_edges": 0,
+    "wire_edges": 0,
+    "loose_vertices": 0,
+    "degenerate_faces": 0
+  },
+  "gate": {
+    "local_only": true,
+    "bounds_unchanged": true,
+    "topology_pass_before_export": true,
+    "fresh_glb_reimport_audit_required": true
+  }
+}

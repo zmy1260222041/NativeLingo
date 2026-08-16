@@ -353,7 +353,14 @@ func _attempt_interaction(communication: String) -> void:
 	if is_instance_valid(nearby_target) and nearby_target.has_method("interact"):
 		if communication == "gesture":
 			character_visual.play_reaction("point")
-		elif nearby_target.interaction_kind == "npc":
+			# FR-28: with speech available a gesture only confirms goodwill and
+			# grants nothing. The fallback channel grants the minimum survival
+			# portions only when the build lacks speech or the last attempt
+			# proved the mic/service channel itself unavailable.
+			var gesture_channel := "gesture_fallback" if SpeechAdapter.runtime_speech_unavailable() else "gesture"
+			nearby_target.interact(gesture_channel)
+			return
+		if nearby_target.interaction_kind == "npc":
 			character_visual.play_reaction("offer" if nearby_target.target_id == "rowan" and GameState.water > 0 else "greet")
 		else:
 			character_visual.play_environment_interaction(String(nearby_target.interaction_kind))
@@ -366,6 +373,9 @@ func _attempt_interaction(communication: String) -> void:
 func _start_voice_interaction() -> void:
 	if not SpeechAdapter.is_available():
 		return
+	if SpeechAdapter.cloud_mode_enabled() and SpeechAdapter.cloud_token().is_empty():
+		GameState.message_requested.emit(tr("CLOUD_ACTIVATE_PROMPT"), "neutral")
+		return
 	if not is_instance_valid(nearby_target) or nearby_target.interaction_kind != "npc":
 		GameState.message_requested.emit(tr("MSG_NEAR_NPC_TO_SPEAK"), "neutral")
 		return
@@ -373,7 +383,7 @@ func _start_voice_interaction() -> void:
 		if not SpeechAdapter.is_interaction_active():
 			GameState.message_requested.emit(tr("MSG_SPEECH_BUSY"), "neutral")
 
-func _on_recognition_finished(target_id: String, accepted: bool, transcript: String, reason: String) -> void:
+func _on_recognition_finished(target_id: String, accepted: bool, transcript: String, reason: String, expression: Dictionary) -> void:
 	if not accepted:
 		for candidate in get_tree().get_nodes_in_group("interactable"):
 			if candidate.target_id == target_id and candidate.interaction_kind == "npc":
@@ -385,7 +395,7 @@ func _on_recognition_finished(target_id: String, accepted: bool, transcript: Str
 	for candidate in get_tree().get_nodes_in_group("interactable"):
 		if candidate.target_id == target_id and candidate.interaction_kind == "npc":
 			character_visual.play_reaction("offer" if target_id == "rowan" and GameState.water > 0 else "greet")
-			candidate.interact("voice")
+			candidate.interact("voice", expression)
 			return
 
 func _build_character() -> void:

@@ -2,11 +2,11 @@
 
 ## 文档状态
 
-- 版本：0.1（纵向切片）
-- 更新：2026-08-10
+- 版本：0.3（语音门控物资 + 云评分）
+- 更新：2026-08-16
 - 引擎：Godot 4.6.3-stable / GDScript
-- 覆盖：`game-concept.md`、`systems-index.md`
-- 评审：Solo；TD 自检通过，LP-FEASIBILITY 按模式跳过
+- 覆盖：`game-concept.md`、`systems-index.md`、FR-28 语音门控物资、FR-29 云评分
+- 评审：Solo；TD 自检通过，LP-FEASIBILITY 按模式跳过；R-17 / R-18 已放行(代码侧)
 
 ## 技术需求基线
 
@@ -56,8 +56,8 @@ Platform      Godot 4.6.3 / Jolt / InputMap / localhost process boundary
 | `PlayerController` | 移动速度、相机输入、最近交互对象 | `interaction_prompt` | InputMap、世界交互接口 | CharacterBody3D、SpringArm3D |
 | `WorldInteractable` | 世界对象身份和提示 | `interact`、`get_interaction_prompt` | GameState command | Node3D、groups |
 | `Main` | 当前关卡的场景构成 | 场景启动 | GameState load | MeshInstance3D、StaticBody3D |
-| `HUD` | UI 节点和短时消息展示 | 无状态视图 | GameState signals / player prompt | CanvasLayer、Control |
-| `SpeechAdapter` | 麦克风会话和 sidecar 连接 | `recognize(intent_context)` | localhost service | AudioEffectCapture、HTTPRequest（待实现） |
+| `HUD` | UI 节点和短时消息展示，云端激活浮层 | 无状态视图 + 激活码输入 | GameState signals / player prompt / SpeechAdapter auth | CanvasLayer、Control |
+| `SpeechAdapter` | 麦克风会话、本地服务或云端评分连接、设备激活与 token 存储 | `activate_cloud`、`recognition_finished(target, accepted, transcript, reason, expression)`、`cloud_auth_finished` | 本地 `127.0.0.1:17831` 或云 `/game/evaluate` | AudioEffectRecord、HTTPRequest、TLSOptions、ConfigFile |
 
 ## 关键数据流
 
@@ -78,10 +78,24 @@ Input action → nearest WorldInteractable → GameState.interact(kind, id, chan
 ### 语言互动
 
 ```text
-V → SpeechAdapter → recognized intent ─┐
-G → GestureAdapter → same intent ─────┼→ GameState.interact(..., channel)
-service/error/low confidence ─────────┘  (no negative state mutation)
+V → SpeechAdapter ── 本地开发: 127.0.0.1:17831 /transcribe
+                 └─ 云模式: POST /game/evaluate (Bearer token + X-Stranger-Target)
+                        → graded expression {pronunciation, delivery, score, band}
+G → gesture (善意,不产出资源) / gesture_fallback (无语音/未激活,给最低生存档) ─┐
+service/error/low confidence ─────────────────────────────────────────────────┘
+        → GameState.interact(kind, id, channel, expression)  (失败永不扣状态)
 ```
+
+### 远程评分模式(FR-29)
+
+- 构建判定:`stranger_cloud/enabled=true` 或导出 feature `stranger_cloud_voice`。
+- 激活:`POST /register`(激活码换每设备 token);token/设备 id 仅存 `user://`。
+- 传输:桌面 `TLSOptions.client(res://certs/nl_ca.pem)` 固定私有 CA;Web 同源
+  nginx `/game/` 反代,浏览器只信任 Let's Encrypt。
+- 降级:未激活、断网、超时、401/5xx → `VOICE_REASON_*` 失败态 →
+  `gesture_fallback`,三日主线保持完整可玩。
+- 本地开发模式保留:`stranger_cloud/enabled=false` → 可选本地服务,
+  参考音频 `game/speech_service/reference_audio/` 与云端同一批。
 
 ### 保存与启动
 
@@ -92,17 +106,22 @@ scene bootstrap → version check → field defaults/migration → GameState
 ```
 
 初始化顺序为：Godot autoload `GameState` → 主场景读取保存 → 构建世界 → 玩家/HUD 订阅信号。
-所有现有流程都在主线程；sidecar 工作必须异步，结果以 signal 回到主线程。
+录音/评分请求(本地服务或云端)必须异步,结果以 signal 回到主线程;HTTP 回调期间
+`GameState.interaction_time_frozen` 保证等待评分不消耗生存时间。
 
 ## API 边界与不变量
 
 ```gdscript
 # Domain command. Callers never mutate quest completion directly.
-GameState.interact(kind: String, target_id: String, channel: String) -> void
+# channel: "action" | "voice" | "gesture" | "gesture_fallback"
+# expression (voice only): {pronunciation, delivery, score, band, pronunciation_source, text}
+GameState.interact(kind: String, target_id: String, channel: String, expression: Dictionary) -> void
 
 # Optional adapter. Failure is a result, never a gameplay penalty.
-SpeechAdapter.recognize(context: Dictionary) -> void
-signal recognition_finished(result: Dictionary)
+SpeechAdapter.start_recording(target_id: String) -> bool
+SpeechAdapter.activate_cloud(code: String) -> bool
+signal recognition_finished(target_id, accepted, transcript, reason, expression)
+signal cloud_auth_finished(success, message)
 
 # Versioned persistence of plain values only.
 GameState.save_game() -> bool
@@ -111,11 +130,14 @@ GameState.load_game() -> bool
 
 必须保持的不变量：
 
-1. `channel == "voice"` 的失败不得减少需求、物品、关系或任务进度。
-2. 每个关键语言意图都存在 `gesture` 完成路径，且允许再次尝试语音。
-3. HUD 只读状态并发出用户意图，不直接写领域字段。
-4. 存档只包含 JSON 安全值，不包含 Node、Resource 或场景路径引用。
-5. 所有控制由 InputMap action 表达，不在脚本中轮询物理键码。
+1. `channel == "voice"` 的失败(低分/服务失败/未激活)不得减少需求、物品、关系或任务进度。
+2. 资源只能由 NPC 语音交互增加(FR-28 G1);`gesture` 在有语音能力时不产出资源。
+3. 语音不可用(无语音构建、未激活、麦克风/网络/服务失败)时 `gesture_fallback`
+   给最低生存档,每个关键语言意图都有该完成路径,且允许再次尝试语音。
+4. HUD 只读状态并发出用户意图,不直接写领域字段。
+5. 存档只包含 JSON 安全值,不包含 Node、Resource 或场景路径引用;
+   云 token/设备 id 存独立的 `user://stranger_cloud.cfg` / `stranger_device.cfg`。
+6. 所有控制由 InputMap action 表达,不在脚本中轮询物理键码。
 
 ## ADR 审计与待建 ADR
 

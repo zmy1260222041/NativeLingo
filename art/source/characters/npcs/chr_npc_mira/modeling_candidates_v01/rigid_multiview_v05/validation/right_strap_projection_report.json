@@ -1,0 +1,52 @@
+{
+  "schema": "mira_right_strap_projection_repair.v1",
+  "variant": "rigid_multiview_v05",
+  "status": "PASS_LOCAL_COMPOSITE_AND_MANUAL_VISUAL_INSPECTION",
+  "records": [
+    {
+      "pose": "a_pose",
+      "parent": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/a_pose/chr_npc_mira_a_pose_character_right.png",
+      "generated_inpaint_source": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v05/raw/chr_npc_mira_a_pose_right_strap_inpaint_source.png",
+      "output": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v05/a_pose/chr_npc_mira_a_pose_character_right.png",
+      "parent_sha256": "c0289ceb195779d64b6cc623b11de8af019591f4cffe40e0d8044fa20ed0921a",
+      "output_sha256": "a252effa78a5afc3ddd7a03d4b4097e73d94f9dab7132b94abd9cac7e4f71b2d",
+      "edited_bbox": [
+        376,
+        164,
+        640,
+        487
+      ],
+      "pixel_equality_fraction_outside_edit_mask": 1.0,
+      "physical_left_pouch_visible": false,
+      "strap_projection": "gold clasp to physical-right shoulder, ascending toward upper/back; no near-side hip segment",
+      "upper_strap_last_layer": true,
+      "upper_strap_continuity": "generated band composited uninterrupted from rear shoulder across shoulder top to gold clasp"
+    },
+    {
+      "pose": "t_pose",
+      "parent": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/t_pose/chr_npc_mira_t_pose_character_right.png",
+      "generated_inpaint_source": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v05/raw/chr_npc_mira_t_pose_right_strap_inpaint_source.png",
+      "output": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v05/t_pose/chr_npc_mira_t_pose_character_right.png",
+      "parent_sha256": "ee6152ab9f211ef8d7d0660b8ad2768bbae3180b980de84c0a65d5fdfc0526fd",
+      "output_sha256": "ada9b44b3717471d9ab2098aaf5e738ca30b3f6f073e58b10c3ef04860fafea3",
+      "edited_bbox": [
+        376,
+        164,
+        640,
+        540
+      ],
+      "pixel_equality_fraction_outside_edit_mask": 1.0,
+      "physical_left_pouch_visible": false,
+      "strap_projection": "gold clasp to physical-right shoulder, ascending toward upper/back; no near-side hip segment",
+      "upper_strap_last_layer": true,
+      "upper_strap_continuity": "generated band composited uninterrupted from rear shoulder across shoulder top to gold clasp"
+    }
+  ],
+  "invariants": {
+    "right_profile_pouch_hidden": true,
+    "upper_strap_ascends_over_physical_right_shoulder": true,
+    "upper_strap_uninterrupted_rear_shoulder_to_gold_clasp": true,
+    "lower_near_side_hip_strap_removed": true,
+    "head_pose_limbs_and_silhouette_inherited_from_v04_outside_edit_mask": true
+  }
+}

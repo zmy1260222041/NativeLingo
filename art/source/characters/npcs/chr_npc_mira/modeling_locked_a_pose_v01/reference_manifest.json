@@ -1,0 +1,29 @@
+{
+  "schema": "mira_modeling_lock.v1",
+  "status": "MODELING_LOCKED",
+  "scope": "A_POSE_ONLY",
+  "t_pose_status": "UNLOCKED_NOT_INCLUDED",
+  "approved_source": {
+    "file": "raw/chr_npc_mira_a_pose_user_approved.png",
+    "sha256": "bdc8e06d998877a3cd1d95eadd87a218c852d213d39c0c635e40ae60ff52f318",
+    "user_statement": "A-Pose is the correct four-view reference; ankle-ring shapes must remain consistent across front/side/back/right."
+  },
+  "original_2d_source_lock": {
+    "file": "../source_locked_v06/reference/turnaround_source.png",
+    "sha256": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c",
+    "must_remain_unchanged": true
+  },
+  "view_order": ["front", "character_left", "back", "character_right"],
+  "prepared_input_directory": "hunyuan_input",
+  "prepared_background_rgb": [230, 230, 227],
+  "processing_contract": {
+    "allowed": ["external letterbox crop", "near-uniform background key", "uniform canvas registration"],
+    "forbidden": ["generation", "inpainting", "redrawing", "mirroring", "structural edit"]
+  },
+  "structure_contract": {
+    "head": "two-layer shell volume is present and corresponding across all views",
+    "ankle_rings": "same ring shape and placement across front, character-left, back, character-right",
+    "pouch": "owned by the physical-left hip; absent from the character-right view",
+    "harness": "continuous and follows the approved physical shoulder path"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "mira_modeling_candidate_provenance.v1",
+  "design_source": "../../source_locked_v06/reference/turnaround_source.png",
+  "design_source_sha256_before": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c",
+  "design_source_sha256_after": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c",
+  "design_source_unchanged": true,
+  "generated_with": "built-in image generation",
+  "style_only_inputs": {
+    "variant": "sculptural_pbr_v03",
+    "manifest": "../sculptural_pbr_v03/style_references/manifest.json",
+    "allowed_role": "rendering finish, sculptural depth, material response and studio presentation only",
+    "identity_or_design_authority": false
+  },
+  "post_processing": [
+    "foreground extraction from generated near-uniform background",
+    "mechanical recentering and uniform-height scaling",
+    "solid #E6E6E3 background normalization",
+    "four-view contact-sheet composition without labels or lines",
+    "bright neutral studio-shadow residue removal for sculptural_pbr_v03",
+    "symmetric mean-width x-only registration of exact left/right profiles for sculptural_pbr_v03",
+    "actual keyed subject-height normalization to 900px for rigid_multiview_v04",
+    "symmetric mean-width x-only profile registration for rigid_multiview_v04",
+    "pixel-identical A-pose head core anchoring into corresponding T-pose views with a soft neck transition"
+  ],
+  "excluded_inputs": [
+    "all historical or superseded NPC turnarounds",
+    "Vesh candidates",
+    "Rodin or Hunyuan generated Mira geometry as a visual authority"
+  ],
+  "not_performed": [
+    "Hunyuan generation",
+    "ReduceFace",
+    "rigging",
+    "runtime export",
+    "source-lock promotion"
+  ]
+}

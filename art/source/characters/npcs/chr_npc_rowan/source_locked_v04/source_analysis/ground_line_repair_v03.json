@@ -1,0 +1,78 @@
+{
+  "schema": "ground_line_repair_validation.v2",
+  "asset_id": "chr_npc_rowan",
+  "current_reference_set": "reference/figure_view_{0,1,2,3}.png",
+  "registered_ground_band_y_range": [
+    941,
+    945
+  ],
+  "views": [
+    {
+      "index": 0,
+      "name": "front",
+      "unseeded_ground_fragment_pixels": 0,
+      "bbox": [
+        71,
+        73,
+        369,
+        880
+      ],
+      "ground_y": 952
+    },
+    {
+      "index": 1,
+      "name": "character_left",
+      "unseeded_ground_fragment_pixels": 0,
+      "bbox": [
+        171,
+        70,
+        172,
+        881
+      ],
+      "ground_y": 950
+    },
+    {
+      "index": 2,
+      "name": "back",
+      "unseeded_ground_fragment_pixels": 0,
+      "bbox": [
+        66,
+        74,
+        378,
+        877
+      ],
+      "ground_y": 950
+    },
+    {
+      "index": 3,
+      "name": "character_right",
+      "unseeded_ground_fragment_pixels": 0,
+      "bbox": [
+        165,
+        72,
+        181,
+        880
+      ],
+      "ground_y": 951
+    }
+  ],
+  "ground_line_removal": {
+    "band_y_range": [
+      970,
+      974
+    ],
+    "method": "audited_rgba_sole_reconstruction_patch",
+    "patch": "source_analysis/ground_line_foot_reconstruction_v03_rgba.png",
+    "patch_sha256": "affc4204b206af9159beb5e32e392fe847e7a81ddd6e6679a57b7e55358a432b",
+    "source_non_ground_changed_pixels": 0,
+    "ground_line_residual_pixels": 0,
+    "resampling_ground_fragments_removed": 0
+  },
+  "pixel_audit": "validation/ground_line_repair_v03_pixel_audit.png",
+  "gate": {
+    "source_non_ground_changed_pixels_max": 0,
+    "ground_line_residual_pixels_max": 0,
+    "unseeded_ground_fragment_pixels_per_view_max": 0,
+    "result": "PASS"
+  }
+}

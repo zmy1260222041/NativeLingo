@@ -71,18 +71,18 @@ func _gesture_completes_three_day_run() -> bool:
 	GameState.persistence_enabled = false
 	GameState.reset_run()
 	GameState.interact("npc", "mira", "gesture")
-	GameState.interact("berry", "berry_a")
-	GameState.interact("berry", "berry_b")
+	GameState.interact("npc", "tavi", "gesture_fallback")
+	GameState.interact("npc", "tavi", "gesture_fallback")
 	GameState.interact("shelter", "shelter")
 	if GameState.day != 2:
 		return false
-	GameState.interact("scrap", "scrap_a")
-	GameState.interact("scrap", "scrap_b")
+	GameState.interact("npc", "vesh", "gesture_fallback")
+	GameState.interact("npc", "vesh", "gesture_fallback")
 	GameState.interact("heater", "heater")
 	GameState.interact("shelter", "shelter")
 	if GameState.day != 3:
 		return false
-	GameState.interact("water", "reservoir")
+	GameState.interact("npc", "ori", "gesture_fallback")
 	GameState.interact("npc", "rowan", "gesture")
 	return GameState.game_finished
 

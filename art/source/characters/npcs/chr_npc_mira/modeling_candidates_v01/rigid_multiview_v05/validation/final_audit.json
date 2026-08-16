@@ -1,0 +1,92 @@
+{
+  "schema": "mira_v05_final_audit.v2",
+  "locked_source_sha256": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c",
+  "locked_source_unchanged": true,
+  "six_non_right_views_byte_identical_to_v04": {
+    "a_pose": {
+      "front": true,
+      "character_left": true,
+      "back": true
+    },
+    "t_pose": {
+      "front": true,
+      "character_left": true,
+      "back": true
+    }
+  },
+  "upper_right_strap_continuity": {
+    "a_pose": {
+      "component_count": 1,
+      "largest_component_pixels": 12315,
+      "largest_component_bbox": [
+        389,
+        156,
+        603,
+        309
+      ],
+      "rear_to_clasp_span_px": 214,
+      "pass_single_continuous_component": true
+    },
+    "t_pose": {
+      "component_count": 1,
+      "largest_component_pixels": 12824,
+      "largest_component_bbox": [
+        378,
+        156,
+        605,
+        320
+      ],
+      "rear_to_clasp_span_px": 227,
+      "pass_single_continuous_component": true
+    }
+  },
+  "right_profile_manual_visual_gate": {
+    "a_pose_complete_strap_over_right_shoulder": true,
+    "t_pose_complete_strap_over_right_shoulder": true,
+    "a_pose_no_lower_near_side_hip_strap": true,
+    "t_pose_no_lower_near_side_hip_strap": true,
+    "a_pose_pouch_hidden": true,
+    "t_pose_pouch_hidden": true,
+    "status": "PASS_MANUAL_VISUAL_INSPECTION"
+  },
+  "modeling_view_validation": {
+    "a_pose": {
+      "height_error_percent": 0.0,
+      "center_drift_px": [
+        0.5,
+        0.0
+      ],
+      "profile_depth_difference_percent": 0.0,
+      "profile_depth_pass": true,
+      "background_pass": true,
+      "ground_line_pass": true
+    },
+    "t_pose": {
+      "height_error_percent": 0.0,
+      "center_drift_px": [
+        0.5,
+        0.0
+      ],
+      "profile_depth_difference_percent": 0.0,
+      "profile_depth_pass": true,
+      "background_pass": true,
+      "ground_line_pass": true
+    }
+  },
+  "rigid_numeric_pass": true,
+  "cross_pose_head_core_pass": true,
+  "local_edit_outside_mask_equality": [
+    1.0,
+    1.0
+  ],
+  "contact_sheet_sizes": {
+    "a_pose": [
+      4096,
+      1024
+    ],
+    "t_pose": [
+      4096,
+      1024
+    ]
+  }
+}

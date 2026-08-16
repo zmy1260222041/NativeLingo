@@ -1,0 +1,29 @@
+{
+  "reference": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_0_rgba.png",
+  "candidate": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/sculptural_pbr_v03/a_pose/chr_npc_mira_a_pose_front.png",
+  "comparison": "bbox-normalized binary silhouettes",
+  "diagnostic_only": true,
+  "diagnostic_reason": "The locked source uses a relaxed arm pose and flat line art; the modeling candidate uses a neutral A-pose and rendered volume.",
+  "iou": 0.46059723518517615,
+  "reference_bbox": [
+    59,
+    134,
+    459,
+    916
+  ],
+  "candidate_bbox_before_alignment": [
+    189,
+    67,
+    835,
+    957
+  ],
+  "reference_centroid": [
+    255.5336787564767,
+    495.0917970553532
+  ],
+  "candidate_centroid_before_alignment": [
+    515.9600887149926,
+    464.9154801385126
+  ],
+  "overlay": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/sculptural_pbr_v03/validation/front_overlay_reference.png"
+}

@@ -1,0 +1,201 @@
+{
+  "schema": "mira_rigid_multiview_validation.v1",
+  "variant": "rigid_multiview_v04",
+  "canonical_policy": "front_side_canonical",
+  "head_contract": "two nested rigid coral/cream shell volumes above the short purple neck",
+  "head_probe_height_px": 110,
+  "per_pose_head_shared_axis_compatibility": {
+    "a_pose": {
+      "measurements": {
+        "front": {
+          "path": "a_pose/chr_npc_mira_a_pose_front.png",
+          "bbox": [
+            395,
+            62,
+            635,
+            172
+          ],
+          "width": 240,
+          "probe_height": 110
+        },
+        "character_left": {
+          "path": "a_pose/chr_npc_mira_a_pose_character_left.png",
+          "bbox": [
+            420,
+            62,
+            610,
+            172
+          ],
+          "width": 190,
+          "probe_height": 110
+        },
+        "back": {
+          "path": "a_pose/chr_npc_mira_a_pose_back.png",
+          "bbox": [
+            406,
+            62,
+            638,
+            172
+          ],
+          "width": 232,
+          "probe_height": 110
+        },
+        "character_right": {
+          "path": "a_pose/chr_npc_mira_a_pose_character_right.png",
+          "bbox": [
+            410,
+            62,
+            602,
+            172
+          ],
+          "width": 192,
+          "probe_height": 110
+        }
+      },
+      "shared_x_front_back_relative_delta": 0.03333333333333333,
+      "shared_y_left_right_relative_delta": 0.010416666666666666,
+      "shared_z_relative_delta": 0.0,
+      "front_back_x_pass_5_percent": true,
+      "left_right_y_pass_3_percent": true,
+      "shared_z_pass_2_percent": true
+    },
+    "t_pose": {
+      "measurements": {
+        "front": {
+          "path": "t_pose/chr_npc_mira_t_pose_front.png",
+          "bbox": [
+            395,
+            62,
+            635,
+            172
+          ],
+          "width": 240,
+          "probe_height": 110
+        },
+        "character_left": {
+          "path": "t_pose/chr_npc_mira_t_pose_character_left.png",
+          "bbox": [
+            420,
+            62,
+            610,
+            172
+          ],
+          "width": 190,
+          "probe_height": 110
+        },
+        "back": {
+          "path": "t_pose/chr_npc_mira_t_pose_back.png",
+          "bbox": [
+            406,
+            62,
+            638,
+            172
+          ],
+          "width": 232,
+          "probe_height": 110
+        },
+        "character_right": {
+          "path": "t_pose/chr_npc_mira_t_pose_character_right.png",
+          "bbox": [
+            410,
+            62,
+            602,
+            172
+          ],
+          "width": 192,
+          "probe_height": 110
+        }
+      },
+      "shared_x_front_back_relative_delta": 0.03333333333333333,
+      "shared_y_left_right_relative_delta": 0.010416666666666666,
+      "shared_z_relative_delta": 0.0,
+      "front_back_x_pass_5_percent": true,
+      "left_right_y_pass_3_percent": true,
+      "shared_z_pass_2_percent": true
+    }
+  },
+  "cross_pose_head_core": {
+    "method": "pixel-identical A-pose head core with soft neck/shoulder transition",
+    "views": [
+      {
+        "view": "front",
+        "head_core_roi": [
+          349,
+          62,
+          686,
+          212
+        ],
+        "pixel_equality_fraction": 1.0,
+        "pass": true
+      },
+      {
+        "view": "character_left",
+        "head_core_roi": [
+          371,
+          62,
+          655,
+          212
+        ],
+        "pixel_equality_fraction": 1.0,
+        "pass": true
+      },
+      {
+        "view": "back",
+        "head_core_roi": [
+          349,
+          62,
+          679,
+          212
+        ],
+        "pixel_equality_fraction": 1.0,
+        "pass": true
+      },
+      {
+        "view": "character_right",
+        "head_core_roi": [
+          368,
+          62,
+          654,
+          212
+        ],
+        "pixel_equality_fraction": 1.0,
+        "pass": true
+      }
+    ],
+    "all_pass": true
+  },
+  "tool_pouch_visibility": {
+    "physical_owner": "character physical left hip",
+    "expected": {
+      "front": true,
+      "character_left": true,
+      "back": true,
+      "character_right": false
+    },
+    "a_pose_manual_observed": {
+      "front": true,
+      "character_left": true,
+      "back": true,
+      "character_right": false
+    },
+    "t_pose_manual_observed": {
+      "front": true,
+      "character_left": true,
+      "back": true,
+      "character_right": false
+    },
+    "status": "PASS_MANUAL_VISUAL_INSPECTION"
+  },
+  "head_layer_manual_gate": {
+    "front_two_layers_readable": true,
+    "character_left_two_layers_and_recess_readable": true,
+    "back_corresponding_upper_and_lower_rear_lobes": true,
+    "character_right_two_layers_and_recess_readable": true,
+    "purple_back_structure_begins_below_head": true,
+    "status": "PASS_MANUAL_VISUAL_INSPECTION"
+  },
+  "locked_source_sha256": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c",
+  "locked_source_expected_sha256": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c",
+  "locked_source_unchanged": true,
+  "all_numeric_pass": true
+}

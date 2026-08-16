@@ -29,24 +29,35 @@ conflicts require confirmation and can be restored to the project defaults.
 
 ## Current playable path
 
-1. Day 1: greet Mira, gather two berries, sleep at the shelter.
-2. Day 2: gather two alloy parts, repair the heater, sleep.
-3. Day 3: take water to Rowan and communicate by voice intent or gesture.
+Resources now come from **voiced English requests judged by the NPC** (FR-28):
+the clearer the pronunciation and the meaning, the more the NPC gives; a weak
+expression gives nothing but costs no opportunity and can be retried freely.
+
+1. Day 1: greet Mira, ask Tavi for two portions of food by voice, sleep at the shelter.
+2. Day 2: ask Vesh for two alloy parts by voice, repair the heater, sleep.
+3. Day 3: ask Ori for water by voice, take it to Rowan and express your offer.
+
+Forage tokens and the reservoir are guidance objects now; they no longer grant
+resources. When speech is unavailable (no-voice builds, missing microphone, or
+no local service), the `G` gesture fallback grants the minimum survival
+portions so the three-day path stays fully playable.
 
 The prototype uses five distinct procedural NPC silhouettes, contextual character
 acting, and a responsive bilingual HUD. The player runtime uses the
 `chr_player_juvenile_mixamo.fbx` package: the same-mesh Mixamo actions are
 direction-and-twist retargeted offline, then selected at runtime as standing idle,
 walk, run, pointing, environment observation, gathering, 180-degree turn, or jump.
-Berry/scrap/water interactions use `anim_chr_player_interact_gather`; fixed facilities
-(heater and shelter) use `anim_chr_player_interact_observe`; NPCs retain their social
-reactions. The source Mixamo T-pose and the skinned game rig's arms-down
-rest pose are intentionally not treated as interchangeable.
-For
-offline voice recognition, start `game/speech_service/server.py` as described in
-its README.
-Pressing `G` always provides the non-punitive physical confirmation required by
-the design, including when microphone permission or the service is unavailable.
+Berry/scrap/water world objects still play `anim_chr_player_interact_gather`
+but are guidance props now — they only point you to the NPC supplier; fixed
+facilities (heater and shelter) use `anim_chr_player_interact_observe`; NPCs
+retain their social reactions. The source Mixamo T-pose and the skinned game
+rig's arms-down rest pose are intentionally not treated as interchangeable.
+For offline voice recognition in **dev mode**, start
+`game/speech_service/server.py` as described in its README; cloud-voice builds
+do not need it. Pressing `G` is the non-punitive physical confirmation path:
+with speech available it grants nothing, and when speech is unavailable or
+unactivated it becomes `gesture_fallback` and grants the minimum survival
+portions so the mainline stays completable.
 The bundled Noto Sans SC variable font is licensed under the SIL Open Font
 License; its license text is stored beside the font in `game/assets/fonts/`.
 
@@ -55,6 +66,12 @@ License; its license text is stored beside the font in `game/assets/fonts/`.
 ```sh
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game --script res://tests/test_game_state.gd
+
+/Applications/Godot-4.6.app/Contents/MacOS/Godot \
+  --headless --path game --script res://tests/test_voice_gated_rewards.gd
+
+/Applications/Godot-4.6.app/Contents/MacOS/Godot \
+  --headless --path game res://tests/CloudVoiceTest.tscn
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game res://tests/HudTest.tscn
@@ -81,9 +98,10 @@ python3 -m py_compile game/speech_service/server.py
 
 The first web beta ships without voice: `web_beta_no_voice` disables
 `SpeechAdapter`, removes every speech UI entry, and leaves the three-day flow
-fully playable through `G` gestures. The reproducible build runs the test
-suites, exports the `Web Beta` preset, precompresses the payload, and writes
-`SHA256SUMS` + `build-info.json`:
+fully playable through `G` gestures. (Voice-enabled web/desktop beta builds
+now use the `Web Cloud Voice` preset — see the next section.) The reproducible
+no-voice build runs the test suites, exports the `Web Beta` preset,
+precompresses the payload, and writes `SHA256SUMS` + `build-info.json`:
 
 ```sh
 scripts/build_stranger_web_beta.sh
@@ -91,6 +109,26 @@ scripts/build_stranger_web_beta.sh
 
 Deployment/access-control tooling and the launch checklist live in
 `production/web-beta/`.
+
+## Cloud voice scoring (FR-29)
+
+Cloud-voice builds (`stranger_cloud_voice` export presets) upload each spoken
+request to the self-hosted scoring server instead of running local models:
+
+- Desktop presets pin the private CA shipped as `res://certs/nl_ca.pem`
+  (operator-injected at build time, never committed). macOS preset has
+  `audio_input=true`.
+- Web preset uses same-origin `/game/evaluate` through the nginx `location
+  /game/` proxy, so there is no CORS or private CA in the browser.
+- First run: pause menu → *Activate Cloud Scoring* → enter the operator's
+  one-time code (`POST /register` exchanges it for a per-device token stored
+  in `user://`). No credential is baked into the PCK.
+- Unactivated, offline, or 5xx scoring falls back to the `G` gesture minimum
+  path, so the three-day mainline stays playable (NFR-7 / FR-29).
+
+Dev mode is unchanged: `stranger_cloud/enabled=false` keeps the local optional
+service (`game/speech_service/server.py`) and its bundled reference WAVs in
+`game/speech_service/reference_audio/`.
 
 ## Build the player character source
 

@@ -1,0 +1,148 @@
+{
+  "schema": "mira_a_pose_modeling_lock_validation.v1",
+  "scope": "A_POSE_ONLY",
+  "t_pose_status": "UNLOCKED_NOT_INCLUDED",
+  "approved_source": "raw/chr_npc_mira_a_pose_user_approved.png",
+  "approved_source_sha256": "bdc8e06d998877a3cd1d95eadd87a218c852d213d39c0c635e40ae60ff52f318",
+  "original_2d_source_lock": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/turnaround_source.png",
+  "original_2d_source_lock_sha256": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c",
+  "original_2d_source_lock_unchanged": true,
+  "view_order": [
+    "front",
+    "character_left",
+    "back",
+    "character_right"
+  ],
+  "background_rgb": [
+    230,
+    230,
+    227
+  ],
+  "views": [
+    {
+      "index": 0,
+      "view": "front",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_front.png",
+      "sha256": "ae7b7c0abcac1ebf54edfa678de9e62253983747b4ae26ff999c035838976de3",
+      "size": [
+        1024,
+        1024
+      ],
+      "foreground_bbox_xyxy": [
+        185,
+        62,
+        838,
+        962
+      ],
+      "foreground_size": [
+        653,
+        900
+      ],
+      "sole_y": 961,
+      "corner_background_exact_fraction": 1.0,
+      "ground_line_rows": [],
+      "ground_line_detected": false,
+      "mask": "source_analysis/a_pose_front_foreground_mask.png"
+    },
+    {
+      "index": 1,
+      "view": "character_left",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_character_left.png",
+      "sha256": "4cfc94fcf6fc4accff575364146cd9ab98afc93bed7471fa69e90d13b59b78a1",
+      "size": [
+        1024,
+        1024
+      ],
+      "foreground_bbox_xyxy": [
+        386,
+        62,
+        638,
+        962
+      ],
+      "foreground_size": [
+        252,
+        900
+      ],
+      "sole_y": 961,
+      "corner_background_exact_fraction": 1.0,
+      "ground_line_rows": [],
+      "ground_line_detected": false,
+      "mask": "source_analysis/a_pose_character_left_foreground_mask.png"
+    },
+    {
+      "index": 2,
+      "view": "back",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_back.png",
+      "sha256": "b836fb4f102a115c313647218f15362ec536e14aad4bf82c42e91abef829a612",
+      "size": [
+        1024,
+        1024
+      ],
+      "foreground_bbox_xyxy": [
+        177,
+        63,
+        846,
+        962
+      ],
+      "foreground_size": [
+        669,
+        899
+      ],
+      "sole_y": 961,
+      "corner_background_exact_fraction": 1.0,
+      "ground_line_rows": [],
+      "ground_line_detected": false,
+      "mask": "source_analysis/a_pose_back_foreground_mask.png"
+    },
+    {
+      "index": 3,
+      "view": "character_right",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_character_right.png",
+      "sha256": "a23b35ab48bf367021a4950f58ffe9d6149fedd42592dc3254850f1315a5b038",
+      "size": [
+        1024,
+        1024
+      ],
+      "foreground_bbox_xyxy": [
+        386,
+        62,
+        638,
+        962
+      ],
+      "foreground_size": [
+        252,
+        900
+      ],
+      "sole_y": 961,
+      "corner_background_exact_fraction": 1.0,
+      "ground_line_rows": [],
+      "ground_line_detected": false,
+      "mask": "source_analysis/a_pose_character_right_foreground_mask.png"
+    }
+  ],
+  "registration": {
+    "height_error_percent": 0.1111111111111111,
+    "sole_y_error_px": 0,
+    "center_drift_px": [
+      0.5,
+      0.5
+    ],
+    "profile_depth_difference_percent": 0.0
+  },
+  "line_free_background": {
+    "all_corner_background_exact": true,
+    "any_ground_line_detected": false
+  },
+  "manual_character_consistency_gate": {
+    "status": "USER_APPROVED_SOURCE",
+    "rings_front_side_back_right_consistent": true,
+    "head_two_layer_volume_consistent": true,
+    "pouch_owner": "physical_left_hip_only",
+    "character_right_pouch_visible": false
+  },
+  "front_overlay_reference": "validation/front_overlay_reference.png",
+  "limitations": [
+    "This validates the prepared image contract, not watertightness of a future mesh.",
+    "No unapproved T-pose is evaluated or locked."
+  ]
+}

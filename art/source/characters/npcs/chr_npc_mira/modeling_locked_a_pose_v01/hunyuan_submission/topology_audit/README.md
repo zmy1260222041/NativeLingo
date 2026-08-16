@@ -1,0 +1,1 @@
+# Read-only topology audit\n\n`topology_audit.json` is an exact GLB edge-incidence scan. `component_distribution.png` maps blue=structural shells, green=medium islands, orange=small fragments, red=micro fragments. No source geometry was rewritten.\n

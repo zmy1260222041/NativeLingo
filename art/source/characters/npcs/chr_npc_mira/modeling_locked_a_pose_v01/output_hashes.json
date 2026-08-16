@@ -1,0 +1,552 @@
+{
+  "schema": "sha256_file_manifest.v1",
+  "scope": "A_POSE_ONLY_MODELING_LOCK",
+  "self_excluded": true,
+  "files": [
+    {
+      "path": ".DS_Store",
+      "bytes": 8196,
+      "sha256": "8f68604422c4ce413fb8d5e3babc5e8a33fc23ec0d615d878095e6d56651a345"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1852,
+      "sha256": "3a1851a7aea86b00b3c0bebba712db1caf7d9241ffe3b8cf93929b8896017753"
+    },
+    {
+      "path": "a_pose/chr_npc_mira_a_pose_back.png",
+      "bytes": 362829,
+      "sha256": "b836fb4f102a115c313647218f15362ec536e14aad4bf82c42e91abef829a612"
+    },
+    {
+      "path": "a_pose/chr_npc_mira_a_pose_character_left.png",
+      "bytes": 215349,
+      "sha256": "4cfc94fcf6fc4accff575364146cd9ab98afc93bed7471fa69e90d13b59b78a1"
+    },
+    {
+      "path": "a_pose/chr_npc_mira_a_pose_character_right.png",
+      "bytes": 214534,
+      "sha256": "a23b35ab48bf367021a4950f58ffe9d6149fedd42592dc3254850f1315a5b038"
+    },
+    {
+      "path": "a_pose/chr_npc_mira_a_pose_front.png",
+      "bytes": 367185,
+      "sha256": "ae7b7c0abcac1ebf54edfa678de9e62253983747b4ae26ff999c035838976de3"
+    },
+    {
+      "path": "a_pose/registration_report.json",
+      "bytes": 4138,
+      "sha256": "5d6789d24e9b8318ef849734db2ffb5c7484a11a697e8905c5eb371fdd45093f"
+    },
+    {
+      "path": "a_pose_processing_report.json",
+      "bytes": 6041,
+      "sha256": "fac26613eaba4dc665f427c36a2b185cb437f7ffa59ab480e1d5a195d981b366"
+    },
+    {
+      "path": "chr_npc_mira_a_pose_turnaround.png",
+      "bytes": 1158769,
+      "sha256": "470f8db79a26b8a84b40dc269c6e142f82e153d23171e6d5cb073f89664938c4"
+    },
+    {
+      "path": "hunyuan_input/chr_npc_mira_a_pose_active_field.png",
+      "bytes": 906086,
+      "sha256": "64df7378dae275b7ee64ae220a4915fccf523b43855ee1aae56c241381deb56b"
+    },
+    {
+      "path": "hunyuan_input/chr_npc_mira_a_pose_back.png",
+      "bytes": 362829,
+      "sha256": "b836fb4f102a115c313647218f15362ec536e14aad4bf82c42e91abef829a612"
+    },
+    {
+      "path": "hunyuan_input/chr_npc_mira_a_pose_character_left.png",
+      "bytes": 215349,
+      "sha256": "4cfc94fcf6fc4accff575364146cd9ab98afc93bed7471fa69e90d13b59b78a1"
+    },
+    {
+      "path": "hunyuan_input/chr_npc_mira_a_pose_character_right.png",
+      "bytes": 214534,
+      "sha256": "a23b35ab48bf367021a4950f58ffe9d6149fedd42592dc3254850f1315a5b038"
+    },
+    {
+      "path": "hunyuan_input/chr_npc_mira_a_pose_front.png",
+      "bytes": 367185,
+      "sha256": "ae7b7c0abcac1ebf54edfa678de9e62253983747b4ae26ff999c035838976de3"
+    },
+    {
+      "path": "hunyuan_input/chr_npc_mira_a_pose_turnaround.png",
+      "bytes": 1158769,
+      "sha256": "470f8db79a26b8a84b40dc269c6e142f82e153d23171e6d5cb073f89664938c4"
+    },
+    {
+      "path": "hunyuan_submission/.DS_Store",
+      "bytes": 12292,
+      "sha256": "0b27e5b621160511349961f8f6da365d2c88db81ce790ef6e3f570c9196c6e0d"
+    },
+    {
+      "path": "hunyuan_submission/inspection/mesh_import_review.json",
+      "bytes": 1993,
+      "sha256": "56fbd5b519db6320e3f316cb05c758550797f86f00742b68dcff82f56a3a1cc9"
+    },
+    {
+      "path": "hunyuan_submission/inspection/mesh_neg_x_clay.png",
+      "bytes": 646234,
+      "sha256": "91202c19498ab73a65731aa0f100f2c0ef84218fbc2a290183e700a7d1941d08"
+    },
+    {
+      "path": "hunyuan_submission/inspection/mesh_neg_y_clay.png",
+      "bytes": 693041,
+      "sha256": "105e26ca8ca8c283c9e3aa393ebc31a7ba0f86ff330fcfb0be61ff84f026add9"
+    },
+    {
+      "path": "hunyuan_submission/inspection/mesh_pos_x_clay.png",
+      "bytes": 655884,
+      "sha256": "979b12d0913f71b66c935d5ab1cc65d620d260fc1e1867decb4dab70183ae735"
+    },
+    {
+      "path": "hunyuan_submission/inspection/mesh_pos_y_clay.png",
+      "bytes": 688299,
+      "sha256": "3d82c4663c4f2e8430523f24eb7ce2cdaa4b6401b8dcf184f91fb631f4b94623"
+    },
+    {
+      "path": "hunyuan_submission/latest_poll.json",
+      "bytes": 2309,
+      "sha256": "6ac31847119c7993e307eb0b09e88eb8d4007c2be45fd9a7f67ab4ddb3c54a50"
+    },
+    {
+      "path": "hunyuan_submission/mira_a_pose_hunyuan3d_pro.glb",
+      "bytes": 32863108,
+      "sha256": "e5fddc7dacef075b01e427dd9b6d4a972960b7a5bb4ee15acc455fc7e4cf8377"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/.DS_Store",
+      "bytes": 8196,
+      "sha256": "8871277dd86accf09c8bb771eb2bf6d3845b0085e9a5e9e7854dc89457c4ae5b"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/build_visual_evidence.py",
+      "bytes": 5844,
+      "sha256": "8b4973674f2e0c7876033523e70cb78810e6342c07ca3c999d56f62e53c43e03"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/pipeline_qa.json",
+      "bytes": 3916,
+      "sha256": "8e2dda37d35665655287222eba6d07c6841bc88cdf739f61e1911f33d8ef08e1"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/reference_manifest.json",
+      "bytes": 1246,
+      "sha256": "87f3085fac76dd2bdc5684a0c661263a7c5be630242788f18d26266e62f03105"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/source_analysis/back_silhouette.json",
+      "bytes": 573,
+      "sha256": "b98e7b914369bc950b31c64a7f84432b2144fbb7c555f0052c44b40d50edb1a8"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/source_analysis/character_left_silhouette.json",
+      "bytes": 593,
+      "sha256": "1dd9405fac47704df4d44ce9d7bcccb7e72c44da4071ff70335b629165d5f4c2"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/source_analysis/character_right_silhouette.json",
+      "bytes": 595,
+      "sha256": "758a6d7a01a4114c84abdb4579a761a7bf671b06c3b955ae5b71a4995a0404e1"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/source_analysis/front_silhouette.json",
+      "bytes": 575,
+      "sha256": "7ee0d4328e96dadde2d9e046c71a3331091f910a91db0dffe2f837ee825df93d"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/validation/front_mask_validation.json",
+      "bytes": 3096,
+      "sha256": "d8af9b3cb8d87c0fb2f3c8626aff96ea98fca7e34ec02817c1f9c7297d8dbae9"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/validation/front_model_mask_registered.png",
+      "bytes": 12999,
+      "sha256": "642230c983d32f96224319253da402b8d51da617e40635f0ff75c385b32ebb60"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/validation/front_overlay_reference.png",
+      "bytes": 24777,
+      "sha256": "8fd2b18202fc5b93320d4fae3acb22da4dea1bfa26b50866598cee0652474388"
+    },
+    {
+      "path": "hunyuan_submission/pipeline_qa/validation/front_reference_mask.png",
+      "bytes": 8367,
+      "sha256": "f8f79f7b16d902cfc8993371e486b0a4d6130cc77d9f20dc2a2a22dc778d6453"
+    },
+    {
+      "path": "hunyuan_submission/qa_outcome.json",
+      "bytes": 1610,
+      "sha256": "b5deb8f8f745b52f5e578defbd59f49328bc1b88f8dd433c9c0cb0f972b8bcc6"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/.DS_Store",
+      "bytes": 10244,
+      "sha256": "476043323bad0d7010f5da79abcbee9b0c38f459b8695a821d1fdc4ac6408588"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/cleanup/chr_npc_mira_a_pose_reduceface_high_clean.glb",
+      "bytes": 959552,
+      "sha256": "5d52d9be16110f1df0b7aa6c847bdb3434a94720a2570587ccfc6602202c4c67"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/cleanup/inspection/mesh_import_review.json",
+      "bytes": 2140,
+      "sha256": "4d6cb7889a005ee123a025c9859d0689adaae2177fc55e24c269a69b3a3af7d6"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/cleanup/inspection/mesh_neg_x_clay.png",
+      "bytes": 637835,
+      "sha256": "d8b1a2986824827f6c1adbc59922e7df07e4254ba11906201463665583b7732d"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/cleanup/inspection/mesh_neg_y_clay.png",
+      "bytes": 676964,
+      "sha256": "4f5e22243a6160538e33454ca00915e40d8d2722225c55354ea91d6394e14bfa"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/cleanup/inspection/mesh_pos_x_clay.png",
+      "bytes": 645521,
+      "sha256": "d8cb70234dfa006499fbbfd8b1cb8a11970e4c75e8ddd67f9c8338126cb638da"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/cleanup/inspection/mesh_pos_y_clay.png",
+      "bytes": 674668,
+      "sha256": "9bbb34f6b1304e03ed927f554814bfcda5f28f8fd34b6f55f38daeb1c8b2b7b1"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/cleanup/topology_audit/README.md",
+      "bytes": 249,
+      "sha256": "f7bcddaff05fc506b1a499702f61302200f70cb724e3ea0faa854f5cbb3d3f9c"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/cleanup/topology_audit/component_distribution.png",
+      "bytes": 16449,
+      "sha256": "65de33560dd5578233497aab8c6e67cc8c65bd01dea90ee2d1e6155c1d9973d3"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/cleanup/topology_audit/component_inventory.csv",
+      "bytes": 664111,
+      "sha256": "760c739ca05b9dc636a3927faab6f19b8b9eea34d13c1da7c6a241e18c58a046"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/cleanup/topology_audit/topology_audit.json",
+      "bytes": 6276719,
+      "sha256": "26693cb2b834b5de918a9114c9dea8505d5145da4212e2e2c8e72716f7fb9c31"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/inspection/mesh_import_review.json",
+      "bytes": 2051,
+      "sha256": "72b77137a0c35d52c774ec6a08a74d810e37a1d64710b1e58b95022ea131edd8"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/inspection/mesh_neg_x_clay.png",
+      "bytes": 637932,
+      "sha256": "c41c0c257bd62507922b87ceb49a4fe1889476f91d5d51bcc6332250404715c1"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/inspection/mesh_neg_y_clay.png",
+      "bytes": 676961,
+      "sha256": "59e3f4c4ac90a2ce541c04489925978de8dd3e51eb4a66788b82d528fc078d9f"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/inspection/mesh_pos_x_clay.png",
+      "bytes": 645521,
+      "sha256": "bdb6e097e7728e1baa96d5ef53eace48d291c3ca1aeef7a957cda7de4480aa68"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/inspection/mesh_pos_y_clay.png",
+      "bytes": 674668,
+      "sha256": "5389570c6bd20cb22434ca580074658475765a55ea51115f0c14e525f9d991cf"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/latest_poll.json",
+      "bytes": 2087,
+      "sha256": "50fd3f732079e4dbbf1ee308726f5f109efb06b6acca02c7d07c0beb1d89324b"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/.DS_Store",
+      "bytes": 10244,
+      "sha256": "18201dec11984ffec149814120902a69453d1e1e2b6297ba25795c956aeda37e"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/README.md",
+      "bytes": 2354,
+      "sha256": "2cfc257893d219c3c1491fb84c2309ae96872ebf3e25eec5cf769dd2b8b99818"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/bake_minimal_repair_pbr_v01.py",
+      "bytes": 20412,
+      "sha256": "f5c48a32965a4dacd1ec0bfc31db35378fd8307a127e0628f8ca5fa202c593d9"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/chr_npc_mira_a_pose_reduceface_high_minimal_topology_repair_v02.glb",
+      "bytes": 156372,
+      "sha256": "9048f01873d5157624e2157b25bbb3fcffe443e09a7fd73062432466a6841731"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/inspection/mesh_import_review.json",
+      "bytes": 2356,
+      "sha256": "50ad0d49651b3240d1210aad7edddce6dec9d2ebc263688c06f537e1c09ac6a8"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/inspection/mesh_neg_x_clay.png",
+      "bytes": 637932,
+      "sha256": "64a5a17455808e69480a291a5b112c501e13c04a591ef0a633e3168f713da325"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/inspection/mesh_neg_y_clay.png",
+      "bytes": 676961,
+      "sha256": "a5ce3e20cb027d08b4808acf74be6da685b40d06e914807a9462d30aba468ff3"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/inspection/mesh_pos_x_clay.png",
+      "bytes": 645493,
+      "sha256": "7a4c3e3c000fe0a30a893a32149080346c44ae0b8193118f260c4ae39d20457d"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/inspection/mesh_pos_y_clay.png",
+      "bytes": 674668,
+      "sha256": "2565dcc8a975d5ff8053403b049547e3a239faf762d41d27b1a7bc3463b01091"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/report.json",
+      "bytes": 2835,
+      "sha256": "fadda1e33e02d91146900a263be1a5ec4e502ab26189755c8395bceb1209edfb"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/bake_report.json",
+      "bytes": 5604,
+      "sha256": "ca744ea50580dbab3b179f76fcc746f7844809d2fcbab1209f6488d5801d8393"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_a_pose_reduceface_high_textured_v01.blend",
+      "bytes": 42089260,
+      "sha256": "9f2ceaf2091105579ff9bf3d5169310b50bd434d71a11757092180de99fc9df5"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_a_pose_reduceface_high_textured_v01.blend1",
+      "bytes": 36498494,
+      "sha256": "b1a9f2ea0b10485efe634e416cf8801fa4d2e745cec491ddb4f68835af94a58e"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_a_pose_reduceface_high_textured_v01.glb",
+      "bytes": 7145284,
+      "sha256": "53defd7dc1e1d032f3d9463e0ecc03603bcb65b433fe71920deadf25d7a6c5f0"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_ao_2k.png",
+      "bytes": 1719616,
+      "sha256": "a5d2c2868780099b26467171c1b224d673c804d3fd90d04f7850606787b00e97"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_base_color_2k.png",
+      "bytes": 2227252,
+      "sha256": "5bac3e3d9e802c8837ad14add706dd0b88b7077e9b2a91f66818773743c7be50"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_normal_2k.png",
+      "bytes": 2592294,
+      "sha256": "e9bcac5252325323ba2dae0766044a8f2c9362c466cb652d12413725b41b2269"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/preview_back.png",
+      "bytes": 408981,
+      "sha256": "59118cff5b32d61215570ecf9acdc2cb78ac2a7dfaeb1376a7a5ff3d9795fa8a"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/preview_character_left.png",
+      "bytes": 323465,
+      "sha256": "7ebb4bc1eab9c214ca03e49453b923e0aa24dc0d96aebaf626a8b13691b06365"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/preview_character_right.png",
+      "bytes": 316759,
+      "sha256": "4f3f2feecba4680e3613627235a7307d05d0b6a8ea2b1c48d66e8c0252187ebd"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/preview_front.png",
+      "bytes": 415108,
+      "sha256": "d4c2fe6dfd7b20b8b4c16f59b461515c632be3fe9f907fcb0ce84cca652d6615"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/topology_audit/README.md",
+      "bytes": 249,
+      "sha256": "f7bcddaff05fc506b1a499702f61302200f70cb724e3ea0faa854f5cbb3d3f9c"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/topology_audit/component_distribution.png",
+      "bytes": 16486,
+      "sha256": "590dea9acd57139e90c1c121579e5d082eb34f6f75e8dc7d3aa3d11a46cd868b"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/topology_audit/component_inventory.csv",
+      "bytes": 497,
+      "sha256": "c1c8afac1b2642e39fe1ed385a84863fdb4c1fa2e742d206fc39ce9de3276c88"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/topology_audit/topology_audit.json",
+      "bytes": 9027,
+      "sha256": "d27bc94bb4ad77941c2b5c20c5cebb896415e4bb528bd899d2845057d5d1e49d"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/visual_comparison.json",
+      "bytes": 1212,
+      "sha256": "87c259b2b7723fe431132177b323c1f50305da854ce2945e9849aac9a39ee62e"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02.py",
+      "bytes": 9797,
+      "sha256": "6778040c21fed17b8fb0775b47f8e6bc6c40f4bb23bfc8c1101c29251c75ae5d"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/surgical_prune_v01/chr_npc_mira_a_pose_reduceface_high_surgical_prune_v01.glb",
+      "bytes": 946120,
+      "sha256": "06a400b3504f4e6c52282010d5e926925c384835fb719c7bc6367e953e1a7de1"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/surgical_prune_v01/front_clay.png",
+      "bytes": 1148119,
+      "sha256": "1106b1d37388a0789b1f56f5bfa63f7df281dcff998607eed018a0b20293c647"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/post_repair_candidates/surgical_prune_v01/report.json",
+      "bytes": 1961,
+      "sha256": "af196cd83c5d9980f2198a490f572a88372b38b3fa7d5f9c51226f8629338cda"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/qa_outcome.json",
+      "bytes": 4071,
+      "sha256": "5c472c7b72a92daf212217a5be1ad50a7525afa6b83d6f098843f19cbe4486ee"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/reduceface_high_00.obj",
+      "bytes": 447217,
+      "sha256": "8c2de45e36c76eb7808c4d70f3fab7271e0ef590f9cbc27561f7e0eac9f3e15d"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/reduceface_high_01.glb",
+      "bytes": 234292,
+      "sha256": "9f1aa85b218680113e733aa8d2536b295b3e19cfdc7177ca142c5297b6aeffb8"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/reduceface_high_02.bin",
+      "bytes": 789664,
+      "sha256": "d7d76f5676aee648af5c4b358d45fea584ee1d5bc500bebf27e17a27cc64f9e5"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/submit.json",
+      "bytes": 820,
+      "sha256": "060bd66ccd8c4ab44d132d50a725514cfbb093e8c2fa371d8dda6b9c8762fc7e"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/topology_audit/README.md",
+      "bytes": 249,
+      "sha256": "f7bcddaff05fc506b1a499702f61302200f70cb724e3ea0faa854f5cbb3d3f9c"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/topology_audit/component_distribution.png",
+      "bytes": 16062,
+      "sha256": "ce22644c9246d472d6b406215a65fd09272869894c0e9b7fe50162cedf89ce0b"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/topology_audit/component_inventory.csv",
+      "bytes": 444,
+      "sha256": "e71a29b1ac269d0b8c0904a76fd397d96d4484934999437dfda6199a7dbdedef"
+    },
+    {
+      "path": "hunyuan_submission/reduceface_high/topology_audit/topology_audit.json",
+      "bytes": 7711,
+      "sha256": "14caeca760fb10fd7174a15fb0eabb0fcb8c4c08b422fca0b5cb5747c3675fec"
+    },
+    {
+      "path": "hunyuan_submission/submit.json",
+      "bytes": 1336,
+      "sha256": "5c4e592ff9b88ccf1d1f097f3a4860d8862f380ad539844172c0feb0a23a6c7a"
+    },
+    {
+      "path": "hunyuan_submission/topology_audit/FINDINGS.md",
+      "bytes": 912,
+      "sha256": "4a5eee90e68174eb30d57f7a3fe19bfa478a62c94cfa343704860e694796393c"
+    },
+    {
+      "path": "hunyuan_submission/topology_audit/README.md",
+      "bytes": 249,
+      "sha256": "f7bcddaff05fc506b1a499702f61302200f70cb724e3ea0faa854f5cbb3d3f9c"
+    },
+    {
+      "path": "hunyuan_submission/topology_audit/audit_glb_topology.py",
+      "bytes": 14506,
+      "sha256": "5fb42bc9059c4638433a5b5418171e64ba9bd436510e1e04c5c21370870d87e9"
+    },
+    {
+      "path": "hunyuan_submission/topology_audit/audit_glb_topology_numpy.py",
+      "bytes": 12466,
+      "sha256": "ee0969010135b8bb1f7a017c7e2a2e5f329b002623e99323ed304d96bd37998c"
+    },
+    {
+      "path": "hunyuan_submission/topology_audit/component_distribution.png",
+      "bytes": 18177,
+      "sha256": "07a9853ad29e4c8d4363a8c4e78235713f96f8ffab76f3c9862acbf93ab2b2a6"
+    },
+    {
+      "path": "hunyuan_submission/topology_audit/component_inventory.csv",
+      "bytes": 138139,
+      "sha256": "28fd9278dde57d8ee579da29a5ac0c3734d11d91962efef55f40a2b41b70cfb9"
+    },
+    {
+      "path": "hunyuan_submission/topology_audit/topology_audit.json",
+      "bytes": 1263523,
+      "sha256": "8ca152cc899c28fff20ee2939211680bd2dc6bc822440219e62f75968254d3aa"
+    },
+    {
+      "path": "raw/chr_npc_mira_a_pose_user_approved.png",
+      "bytes": 1410968,
+      "sha256": "bdc8e06d998877a3cd1d95eadd87a218c852d213d39c0c635e40ae60ff52f318"
+    },
+    {
+      "path": "reference_manifest.json",
+      "bytes": 1440,
+      "sha256": "0d748e42ab381823408ae4acece06a135922e84a6923ddce008b3129b8b5fe37"
+    },
+    {
+      "path": "source_analysis/a_pose_back_foreground_mask.png",
+      "bytes": 8188,
+      "sha256": "ea29c6f6cf7e5db2a55836e1e772330b1c7be4e41ab6b289823530f8544be2a1"
+    },
+    {
+      "path": "source_analysis/a_pose_character_left_foreground_mask.png",
+      "bytes": 5340,
+      "sha256": "ef953059be1e1e79e7835540416367c949dd5c6ab4c000d45c699e2feb7b6f30"
+    },
+    {
+      "path": "source_analysis/a_pose_character_right_foreground_mask.png",
+      "bytes": 5502,
+      "sha256": "4ec441931b8a476b539c3767291ce44cd2d3bce20cac6e80489f4914d480cb4b"
+    },
+    {
+      "path": "source_analysis/a_pose_front_foreground_mask.png",
+      "bytes": 8324,
+      "sha256": "0510a0fe1a3452e5c9a9e0a2dacdacbe75dd99580df3e20e0f436dccf5ec2bb6"
+    },
+    {
+      "path": "source_analysis/approved_source_analysis.json",
+      "bytes": 4037,
+      "sha256": "f859b168a5ead38341cc0ea74e330680e80c4236fc76ab951b9d45f526309dd3"
+    },
+    {
+      "path": "validation/a_pose_lock_validation.json",
+      "bytes": 4037,
+      "sha256": "f859b168a5ead38341cc0ea74e330680e80c4236fc76ab951b9d45f526309dd3"
+    },
+    {
+      "path": "validation/front_overlay_reference.png",
+      "bytes": 11073,
+      "sha256": "a9d2c8af9f5c97b7952ea2ea3ffa47d51fc95aaf2cfe2e9cf243d11901a62bf3"
+    }
+  ]
+}

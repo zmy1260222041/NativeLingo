@@ -1,0 +1,40 @@
+{
+  "schema": "mira_hunyuan_submission.v1",
+  "scope": "A_POSE_ONLY_MODELING_LOCK",
+  "model": "3.1",
+  "action": "SubmitHunyuanTo3DProJob",
+  "submitted_at_utc": "2026-08-14T05:59:12.891890+00:00",
+  "views": [
+    {
+      "view": "front",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_front.png",
+      "bytes": 367185,
+      "sha256": "ae7b7c0abcac1ebf54edfa678de9e62253983747b4ae26ff999c035838976de3"
+    },
+    {
+      "view": "left",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_character_left.png",
+      "bytes": 215349,
+      "sha256": "4cfc94fcf6fc4accff575364146cd9ab98afc93bed7471fa69e90d13b59b78a1"
+    },
+    {
+      "view": "back",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_back.png",
+      "bytes": 362829,
+      "sha256": "b836fb4f102a115c313647218f15362ec536e14aad4bf82c42e91abef829a612"
+    },
+    {
+      "view": "right",
+      "file": "hunyuan_input/chr_npc_mira_a_pose_character_right.png",
+      "bytes": 214534,
+      "sha256": "a23b35ab48bf367021a4950f58ffe9d6149fedd42592dc3254850f1315a5b038"
+    }
+  ],
+  "job_id": "1479720055306403840",
+  "request_id": "e879e507-0ee8-4a18-9e24-a7c78461073a",
+  "api_response": {
+    "JobId": "1479720055306403840",
+    "RequestId": "e879e507-0ee8-4a18-9e24-a7c78461073a"
+  },
+  "credential_storage": "external CSV read at runtime; no credential stored here"
+}

@@ -1,6 +1,9 @@
 {
   "schema": "source_part_seed_manifest.v1",
   "asset_id": "chr_npc_mira",
+  "disabled": true,
+  "status": "SUPERSEDED_GROUND_LINE_ERASURE_DEFECT_DO_NOT_RUN",
+  "replacement": "source_part_seed_manifest_v03.json",
   "source": "reference/turnaround_source.png",
   "output_dir": "reference",
   "view_order": ["front", "character_left", "back", "character_right"],

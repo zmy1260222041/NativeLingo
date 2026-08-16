@@ -1,19 +1,28 @@
-# Mira / Rowan Rodin source-locked pipeline
+# NPC Rodin source-locked pipeline
 
-> This is the only valid Mira and Rowan modeling route. Rodin provides a sculptable
+> This is the only valid Mira, Rowan and Ori modeling route. Rodin provides a sculptable
 > Gate A mesh; Blender performs deterministic visibility repair, normalization,
-> validation and later sculpt/retopology. Do not rebuild either character from
+> validation and later sculpt/retopology. Do not rebuild these characters from
 > primitives or use rejected turnaround versions.
 
 ## Locked inputs
 
 - Mira: `chr_npc_mira/source_locked_v06/reference/figure_view_{0,1,2,3}.png`.
 - Rowan: `chr_npc_rowan/source_locked_v04/reference/figure_view_{0,1,2,3}.png`.
+- Ori: `chr_npc_ori/source_locked_v06/reference/figure_view_{0,1,2,3}.png`
+  after `target_height_m` is approved.
 - View order is front, exact character-left, back, exact character-right.
 - Each submission set is 512×1024 RGB on a clean Dust-Cream background, shares one
   vertical scale and contains no adjacent figure. Matching `_rgba.png` files and
   masks remain audit-only because the built-in trial endpoint rejects RGBA inputs.
-  `registration_report.json` records every deterministic crop and hash.
+  `reference/registration_report.json` records every deterministic crop, hash
+  and audited sole-reconstruction metric.
+
+The old split sets are deleted. The earlier line-run eraser removed sole pixels;
+the intermediate v02 repair restored them but left fine guide fragments in toe gaps
+and near heel edges. The promoted v03 repair now lives directly in `reference/`,
+reconstructs only the contaminated rows, changes zero source pixels outside that
+band, and passes a zero-residual connected-fragment gate in all 12 views.
 
 The immutable RGB PNG files are both the submission inputs and the validation
 authority. Do not create JPEG proxy copies: the failed MCP adapter rejected both
@@ -23,9 +32,11 @@ formats, while the successful route read these PNG bytes directly inside Blender
 
 ```bash
 python3 art/source/characters/npcs/blender/prepare_rodin_views.py \
-  --config art/source/characters/npcs/chr_npc_mira/source_locked_v06/source_part_seed_manifest.json
+  --config art/source/characters/npcs/chr_npc_mira/source_locked_v06/source_part_seed_manifest_v03.json
 python3 art/source/characters/npcs/blender/prepare_rodin_views.py \
-  --config art/source/characters/npcs/chr_npc_rowan/source_locked_v04/source_part_seed_manifest.json
+  --config art/source/characters/npcs/chr_npc_rowan/source_locked_v04/source_part_seed_manifest_v03.json
+python3 art/source/characters/npcs/blender/prepare_rodin_views.py \
+  --config art/source/characters/npcs/chr_npc_ori/source_locked_v06/source_part_seed_manifest_v03.json
 ```
 
 The Python environment must provide Pillow and NumPy.
@@ -81,8 +92,11 @@ a normalized GLB, and writes `rodin_import_report.json`. The normalized GLB rema
 
 ## Gate A
 
-The generated result fails Gate A until the four clay views are compared against
-the masks and every manifest feature is checked. Rodin hallucinations must be
+The existing Mira and Rowan Rodin results are invalidated because they were created
+from the defective legacy reference set. Resubmit the root `reference` images before
+starting a new Gate A review. Each new generated result fails Gate A until its four
+clay views are compared against the masks and every manifest feature is checked.
+Rodin hallucinations must be
 sculpted out on the imported base. Retopology, rigging, animation, LOD and Godot
 runtime replacement stay blocked until the silhouette/landmark review passes.
 

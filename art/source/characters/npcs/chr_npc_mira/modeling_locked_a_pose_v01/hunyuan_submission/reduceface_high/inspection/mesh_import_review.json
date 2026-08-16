@@ -1,0 +1,57 @@
+{
+  "schema": "hunyuan_glb_import_review.v1",
+  "glb": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/reduceface_high_01.glb",
+  "glb_sha256": "9f1aa85b218680113e733aa8d2536b295b3e19cfdc7177ca142c5297b6aeffb8",
+  "glb_bytes": 234292,
+  "import_result": "FINISHED",
+  "mesh_object_count": 1,
+  "bounds": {
+    "min": [
+      -0.4188530147075653,
+      -0.18535399436950684,
+      0.0004939999780617654
+    ],
+    "max": [
+      0.4136649966239929,
+      0.13201400637626648,
+      1.1181830167770386
+    ],
+    "size": [
+      0.8325179815292358,
+      0.3173680007457733,
+      1.1176890134811401
+    ]
+  },
+  "topology": {
+    "vertices": 6486,
+    "edges": 19435,
+    "faces": 12957,
+    "boundary_edges": 2,
+    "non_manifold_edges": 4,
+    "loose_vertices": 0,
+    "connected_components": 3,
+    "objects": [
+      {
+        "name": "mesh_rep_0_ori_repair_quad.obj",
+        "vertices": 6486,
+        "edges": 19435,
+        "faces": 12957,
+        "boundary_edges": 2,
+        "non_manifold_edges": 4,
+        "loose_vertices": 0,
+        "connected_components": 3
+      }
+    ]
+  },
+  "materials": {
+    "slot_count": 0,
+    "image_texture_node_count": 0
+  },
+  "renders": [
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/inspection/mesh_neg_y_clay.png",
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/inspection/mesh_pos_x_clay.png",
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/inspection/mesh_pos_y_clay.png",
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/inspection/mesh_neg_x_clay.png"
+  ],
+  "scope": "cloud_generated_downstream_output_not_a_reference_lock"
+}

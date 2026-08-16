@@ -1,0 +1,41 @@
+{
+  "schema": "mira_reduceface_visual_comparison.v1",
+  "method": "absolute RGB pixel difference between identically configured 768x768 Blender Workbench renders",
+  "source_inspection": "../../inspection",
+  "candidate_inspection": "inspection",
+  "views": [
+    {
+      "file": "mesh_neg_y_clay.png",
+      "changed_pixels": 0,
+      "total_pixels": 589824,
+      "changed_fraction": 0.0,
+      "mean_absolute_channel_difference": 0.0,
+      "maximum_channel_difference": 0
+    },
+    {
+      "file": "mesh_pos_x_clay.png",
+      "changed_pixels": 8,
+      "total_pixels": 589824,
+      "changed_fraction": 0.00001356,
+      "mean_absolute_channel_difference": 0.00004182,
+      "maximum_channel_difference": 13
+    },
+    {
+      "file": "mesh_pos_y_clay.png",
+      "changed_pixels": 0,
+      "total_pixels": 589824,
+      "changed_fraction": 0.0,
+      "mean_absolute_channel_difference": 0.0,
+      "maximum_channel_difference": 0
+    },
+    {
+      "file": "mesh_neg_x_clay.png",
+      "changed_pixels": 0,
+      "total_pixels": 589824,
+      "changed_fraction": 0.0,
+      "mean_absolute_channel_difference": 0.0,
+      "maximum_channel_difference": 0
+    }
+  ],
+  "verdict": "PASS_SHAPE_PRESERVATION"
+}

@@ -1,0 +1,40 @@
+{
+  "asset_id": "chr_npc_ori",
+  "purpose": "modeling_only_t_pose_four_view",
+  "status": "MODELING_CANDIDATE_NOT_LOCKED",
+  "source_authority": {
+    "path": "art/source/characters/npcs/chr_npc_ori/source_locked_v06/reference/turnaround_source.png",
+    "sha256_before": "3b3d2eca868b989b00ca6d0d4ac414f1e2ee5e86df0596abc0fc34b1d97c42c6",
+    "sha256_after": "3b3d2eca868b989b00ca6d0d4ac414f1e2ee5e86df0596abc0fc34b1d97c42c6",
+    "modified": false
+  },
+  "generation": {
+    "mode": "reference_guided_generation_then_targeted_edit",
+    "primary_prompt": "prompt.md",
+    "correction_prompt": "revision_v02.md",
+    "first_pass": "raw/chr_npc_ori_t_pose_four_view_raw_v01.png",
+    "candidate": "chr_npc_ori_t_pose_four_view_candidate_v02.png",
+    "candidate_sha256": "52208f4900cb4eaa9ccbcdcde61484a486af96b10339e0b7177e837c5f646193",
+    "width_px": 1672,
+    "height_px": 941,
+    "view_order": [
+      "front",
+      "character_left",
+      "back",
+      "character_right"
+    ],
+    "pose": "strict_t_pose_with_true_orthographic_side_arm_overlap"
+  },
+  "presentation": {
+    "style": "soft_light_sculptural_semi_realistic_stylized_pbr",
+    "background": "neutral_light_gray",
+    "text_or_labels": false,
+    "floor_or_ground_line": false,
+    "cast_floor_shadow": false
+  },
+  "approval": {
+    "user_approved": false,
+    "promoted_to_modeling_locked": false
+  }
+}
+

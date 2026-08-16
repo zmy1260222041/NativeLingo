@@ -1,0 +1,29 @@
+{
+  "views": {
+    "front": {
+      "bbox": [
+        0,
+        0,
+        240,
+        110
+      ]
+    },
+    "side": {
+      "bbox": [
+        0,
+        0,
+        190,
+        110
+      ]
+    },
+    "back": {
+      "bbox": [
+        0,
+        0,
+        232,
+        110
+      ]
+    }
+  },
+  "note": "A-pose canonical rigid head probe; character-right is checked separately in rigid_multiview_report.json"
+}

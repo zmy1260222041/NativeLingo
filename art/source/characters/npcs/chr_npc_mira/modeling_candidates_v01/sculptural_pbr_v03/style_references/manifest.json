@@ -1,0 +1,45 @@
+{
+  "schema": "mira_modeling_style_references.v1",
+  "role": "rendering-language-only; never identity or design authority",
+  "identity_authority": "../../../source_locked_v06/reference/turnaround_source.png",
+  "references": [
+    {
+      "path": "style_reference_01.png",
+      "sha256": "07e7913d68b1f0fd73f392dfa20e53e58af5bd0e221bed1a53a70bad3d0da67f"
+    },
+    {
+      "path": "style_reference_02.png",
+      "sha256": "b5e0817afa78221cdedc3c9012cd0db14bab5bf4acb52dd8c5677d6f7cef4332"
+    },
+    {
+      "path": "style_reference_03.png",
+      "sha256": "034c54ceb876edb86a9f29fa0f7909af69796d0d34c845a8a9670bb01180abfc"
+    },
+    {
+      "path": "style_reference_04.png",
+      "sha256": "d667ca79fc850a6bc84a8f70f862c86e6d179226c93f5582bdba350953bbd229"
+    },
+    {
+      "path": "style_reference_05.png",
+      "sha256": "4c6fce6ff9aafb92fa35449f7efc8badf69d9de6214a68436a774f9b62ef9407"
+    }
+  ],
+  "mechanical_board": {
+    "path": "style_reference_board.png",
+    "sha256": "412c83231e33e1713262373eb9310461859b54f32f4bfa9f4cd3dfcdb769d384",
+    "operation": "five unretouched references uniformly scaled into a 3x2 board; last cell blank"
+  },
+  "borrow_only": [
+    "continuous digital-sculpt volume",
+    "material-specific stylized PBR response",
+    "controlled micro-surface and low-frequency variation",
+    "broad neutral studio form lighting",
+    "full-body structural legibility"
+  ],
+  "forbidden_transfer": [
+    "character anatomy or proportions",
+    "face, head appendage, garment, palette, marking, prop or accessory",
+    "guide, grid, ruler, text or panel line",
+    "foot ground line, floor, contact or cast shadow"
+  ]
+}

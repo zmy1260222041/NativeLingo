@@ -1,0 +1,134 @@
+{
+  "schema": "mira_hunyuan_to_minimal_repair_pbr_bake.v1",
+  "source_lock": {
+    "high_glb": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/mira_a_pose_hunyuan3d_pro.glb",
+    "high_sha256": "e5fddc7dacef075b01e427dd9b6d4a972960b7a5bb4ee15acc455fc7e4cf8377",
+    "low_glb": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/chr_npc_mira_a_pose_reduceface_high_minimal_topology_repair_v02.glb",
+    "low_sha256": "9048f01873d5157624e2157b25bbb3fcffe443e09a7fd73062432466a6841731",
+    "high_bounds": {
+      "min": [
+        -0.419075012,
+        -0.184991166,
+        -2.5e-08
+      ],
+      "max": [
+        0.413848013,
+        0.133967012,
+        1.118754148
+      ],
+      "size": [
+        0.832923055,
+        0.318958163,
+        1.118754148
+      ]
+    },
+    "low_bounds": {
+      "min": [
+        -0.418853015,
+        -0.185353994,
+        0.000494
+      ],
+      "max": [
+        0.413664997,
+        0.132014006,
+        1.118183017
+      ],
+      "size": [
+        0.832517982,
+        0.317368001,
+        1.117689013
+      ]
+    }
+  },
+  "method": {
+    "selected_to_active": true,
+    "resolution": 2048,
+    "samples": 32,
+    "ray_distance_m": 0.013333644041746239,
+    "margin_px": 16,
+    "normal_convention": "OpenGL tangent space (+Y / green up)",
+    "global_resampling": false,
+    "vertex_positions_moved": 0,
+    "topology_changed": false
+  },
+  "alignment": {
+    "mean_m": 0.0007415676722850946,
+    "p95_m": 0.0019383204451201477,
+    "p99_m": 0.0033334110104365597,
+    "max_m": 0.008673811350889899
+  },
+  "uv": {
+    "name": "UVMap",
+    "loop_count": 38868,
+    "min": [
+      0.0,
+      0.0
+    ],
+    "max": [
+      1.0,
+      1.0
+    ]
+  },
+  "topology_before": {
+    "vertices": 6487,
+    "edges": 19434,
+    "faces": 12956,
+    "triangles": 12956
+  },
+  "topology_after": {
+    "vertices": 6487,
+    "edges": 19434,
+    "faces": 12956,
+    "triangles": 12956
+  },
+  "maps": {
+    "base_color": {
+      "file": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_base_color_2k.png",
+      "bytes": 2227252,
+      "sha256": "5bac3e3d9e802c8837ad14add706dd0b88b7077e9b2a91f66818773743c7be50",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "sampled_red_min": 0.0,
+      "sampled_red_max": 0.9843137860298157
+    },
+    "normal": {
+      "file": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_normal_2k.png",
+      "bytes": 2592294,
+      "sha256": "e9bcac5252325323ba2dae0766044a8f2c9362c466cb652d12413725b41b2269",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "sampled_red_min": 0.04313725605607033,
+      "sampled_red_max": 0.988235354423523
+    },
+    "ao": {
+      "file": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_ao_2k.png",
+      "bytes": 1719616,
+      "sha256": "a5d2c2868780099b26467171c1b224d673c804d3fd90d04f7850606787b00e97",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "sampled_red_min": 0.0,
+      "sampled_red_max": 1.0
+    }
+  },
+  "output": {
+    "source_glb": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_a_pose_reduceface_high_textured_v01.glb",
+    "source_glb_bytes": 7145284,
+    "source_glb_sha256": "53defd7dc1e1d032f3d9463e0ecc03603bcb65b433fe71920deadf25d7a6c5f0",
+    "game_glb": "/Users/a86138/Developer/NativeLingo/game/assets/characters/chr_npc_mira.glb",
+    "game_glb_sha256": "53defd7dc1e1d032f3d9463e0ecc03603bcb65b433fe71920deadf25d7a6c5f0",
+    "blend": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/chr_npc_mira_a_pose_reduceface_high_textured_v01.blend",
+    "previews": [
+      "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/preview_front.png",
+      "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/preview_character_left.png",
+      "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/preview_back.png",
+      "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/textured_v01/preview_character_right.png"
+    ]
+  },
+  "runtime_status": "STATIC_A_POSE_VISUAL_READY_FOR_GODOT; rig and animation remain separate gates"
+}

@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dyto5oc88tsqt"
 path.s3tc="res://.godot/imported/env_hut_residential_a_tex_shell_n_1k.png-43f18ef592220539f070413a314def32.s3tc.ctex"
+path.etc2="res://.godot/imported/env_hut_residential_a_tex_shell_n_1k.png-43f18ef592220539f070413a314def32.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/env_hut_residential_a_tex_shell_n_1k.png"
-dest_files=["res://.godot/imported/env_hut_residential_a_tex_shell_n_1k.png-43f18ef592220539f070413a314def32.s3tc.ctex"]
+dest_files=["res://.godot/imported/env_hut_residential_a_tex_shell_n_1k.png-43f18ef592220539f070413a314def32.s3tc.ctex", "res://.godot/imported/env_hut_residential_a_tex_shell_n_1k.png-43f18ef592220539f070413a314def32.etc2.ctex"]
 
 [params]
 

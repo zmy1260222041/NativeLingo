@@ -9,8 +9,16 @@
     "reference/figure_view_2.png",
     "reference/figure_view_3.png"
   ],
+  "registration_status": "REGISTERED_V03_GROUND_LINE_REPAIR_PASS",
+  "legacy_registration_status": "REFERENCE_V01_SUPERSEDED_FOOT_PIXEL_ERASURE_DEFECT",
+  "registration_validation": "source_analysis/ground_line_repair_v03.json",
   "primary_view": "front",
-  "view_order": ["front", "character_left", "back", "character_right"],
+  "view_order": [
+    "front",
+    "character_left",
+    "back",
+    "character_right"
+  ],
   "target_height_m": 2.08,
   "physical_side_map": {
     "front_image_left": "character physical right / narrow face",
@@ -21,11 +29,25 @@
   "expected_primary_parts": {
     "count": 19,
     "labels": [
-      "asymmetric_wedge_head", "neck_hinge", "upper_suspended_plate", "lower_open_loop_plate",
-      "upper_arm_left", "upper_arm_right", "forearm_left", "forearm_right",
-      "hand_left_three_digit", "hand_right_three_digit", "upper_leg_left", "upper_leg_right",
-      "knee_left", "knee_right", "lower_leg_left", "lower_leg_right",
-      "foot_left_split_wedge", "foot_right_split_wedge", "face_panel_system"
+      "asymmetric_wedge_head",
+      "neck_hinge",
+      "upper_suspended_plate",
+      "lower_open_loop_plate",
+      "upper_arm_left",
+      "upper_arm_right",
+      "forearm_left",
+      "forearm_right",
+      "hand_left_three_digit",
+      "hand_right_three_digit",
+      "upper_leg_left",
+      "upper_leg_right",
+      "knee_left",
+      "knee_right",
+      "lower_leg_left",
+      "lower_leg_right",
+      "foot_left_split_wedge",
+      "foot_right_split_wedge",
+      "face_panel_system"
     ]
   },
   "structural_parts": [
@@ -39,7 +61,12 @@
     "two unequal amber eye windows with vertical dark pupils",
     "closed asymmetric shallow mouth line"
   ],
-  "texture_regions": ["dusk_indigo", "hearth_amber", "dust_cream", "bark_plum"],
+  "texture_regions": [
+    "dusk_indigo",
+    "hearth_amber",
+    "dust_cream",
+    "bark_plum"
+  ],
   "validation_thresholds": {
     "front_mask_iou_min": 0.9,
     "bbox_center_tolerance_px": 12,
@@ -48,5 +75,5 @@
     "ground_line_error_percent_max": 1.0,
     "front_back_head_bbox_difference_percent_max": 3.0
   },
-  "generation_policy": "Rodin supplies a sculptable Gate A base only; it is not runtime-ready."
+  "generation_policy": "Only reference may be used for future Rodin work. The root reference/figure_view files are the promoted v03 modeling inputs."
 }

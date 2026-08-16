@@ -1,0 +1,26 @@
+{
+  "view": "back",
+  "reference": "hunyuan_input/chr_npc_mira_a_pose_back.png",
+  "render": "hunyuan_submission/inspection/mesh_pos_y_clay.png",
+  "reference_mask_bbox_xyxy": [
+    177,
+    63,
+    846,
+    962
+  ],
+  "raw_model_mask_bbox_xyxy": [
+    133,
+    47,
+    635,
+    721
+  ],
+  "registered_model_mask_bbox_xyxy": [
+    177,
+    63,
+    847,
+    961
+  ],
+  "height_registered": true,
+  "normalized_silhouette_iou": 0.7535,
+  "interpretation": "Silhouette-only, after height/center registration; it does not validate hidden surfaces or exact material details."
+}

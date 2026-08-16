@@ -1,0 +1,145 @@
+{
+  "schema": "mira_modeling_views.v1",
+  "pose": "a_pose",
+  "source": "raw/chr_npc_mira_a_pose_raw_v02.png",
+  "source_sha256": "8b618f8c9560e84e7276cf099a35e8ef078486daa1702d8fa633eed68ac0d07e",
+  "source_size": [
+    1491,
+    1055
+  ],
+  "estimated_background_rgb": [
+    225.0,
+    224.0,
+    223.0
+  ],
+  "output_background_rgb": [
+    230,
+    230,
+    227
+  ],
+  "view_order": [
+    "front",
+    "character_left",
+    "back",
+    "character_right"
+  ],
+  "views": [
+    {
+      "index": 0,
+      "name": "front",
+      "source_x_range": [
+        47,
+        443
+      ],
+      "source_subject_bbox": [
+        47,
+        136,
+        396,
+        769
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        280,
+        62
+      ],
+      "scaled_subject_size": [
+        463,
+        900
+      ],
+      "output": "a_pose/chr_npc_mira_a_pose_front.png",
+      "sha256": "8c8eea4423e2fed37910f02e2a0689406875a839ef5699a6a0c9f2828caf2827"
+    },
+    {
+      "index": 1,
+      "name": "character_left",
+      "source_x_range": [
+        484,
+        710
+      ],
+      "source_subject_bbox": [
+        484,
+        136,
+        226,
+        769
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        380,
+        62
+      ],
+      "scaled_subject_size": [
+        264,
+        900
+      ],
+      "output": "a_pose/chr_npc_mira_a_pose_character_left.png",
+      "sha256": "7992d642df0d333952ab5593f9b9724473a5b2e3c726629bade590fbc33dc4ee"
+    },
+    {
+      "index": 2,
+      "name": "back",
+      "source_x_range": [
+        753,
+        1152
+      ],
+      "source_subject_bbox": [
+        753,
+        131,
+        399,
+        775
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        280,
+        62
+      ],
+      "scaled_subject_size": [
+        463,
+        900
+      ],
+      "output": "a_pose/chr_npc_mira_a_pose_back.png",
+      "sha256": "a21aab5f0a2f585a333fcadabbb83fc8cb2c4b01071a36fe7b7fce3477b04169"
+    },
+    {
+      "index": 3,
+      "name": "character_right",
+      "source_x_range": [
+        1202,
+        1426
+      ],
+      "source_subject_bbox": [
+        1202,
+        137,
+        224,
+        768
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        381,
+        62
+      ],
+      "scaled_subject_size": [
+        262,
+        900
+      ],
+      "output": "a_pose/chr_npc_mira_a_pose_character_right.png",
+      "sha256": "34020e9296bde284208c3104f8bfd43e2374dbbff28a9d0e7913be4623461f0f"
+    }
+  ],
+  "contact_sheet": "chr_npc_mira_a_pose_turnaround.png",
+  "contact_sheet_sha256": "ca5a1fd6cd32595158ef2faaa2bf14f7dc1dbda3c53d3e792bb606e52d6cd53b",
+  "source_height_error_percent": 0.903225806451613,
+  "prepared_height_error_percent": 0.0,
+  "drawn_ground_line": false
+}

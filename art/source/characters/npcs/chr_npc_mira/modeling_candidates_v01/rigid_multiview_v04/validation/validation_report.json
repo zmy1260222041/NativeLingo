@@ -1,0 +1,282 @@
+{
+  "schema": "mira_modeling_candidate_validation.v1",
+  "variant": "rigid_multiview_v04",
+  "status": "MODELING_CANDIDATE_NOT_SOURCE_LOCKED",
+  "locked_source": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/turnaround_source.png",
+  "locked_source_sha256": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c",
+  "locked_source_expected_sha256": "7e4e4769148dceea30f025706b55973f2666816d705899ed28136e240a0d545c",
+  "locked_source_unchanged": true,
+  "poses": {
+    "a_pose": {
+      "views": [
+        {
+          "path": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/a_pose/chr_npc_mira_a_pose_front.png",
+          "sha256": "122d50d7cd506314ae0cd701e9efb36539248c91d809fcd74b17f29bc8499411",
+          "size": [
+            1024,
+            1024
+          ],
+          "bbox": [
+            187,
+            62,
+            837,
+            962
+          ],
+          "bbox_center": [
+            512.0,
+            512.0
+          ],
+          "bbox_size_ratio": [
+            0.634765625,
+            0.87890625
+          ],
+          "corner_background_exact_fraction": 1.0,
+          "wide_thin_row_candidates": [],
+          "drawn_ground_line_detected": false
+        },
+        {
+          "path": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/a_pose/chr_npc_mira_a_pose_character_left.png",
+          "sha256": "55e187ab8308a5c4c47fc0c3a09ce7ae37a5d9eeb30de0cd214bc7b5eea862f5",
+          "size": [
+            1024,
+            1024
+          ],
+          "bbox": [
+            386,
+            62,
+            638,
+            962
+          ],
+          "bbox_center": [
+            512.0,
+            512.0
+          ],
+          "bbox_size_ratio": [
+            0.24609375,
+            0.87890625
+          ],
+          "corner_background_exact_fraction": 1.0,
+          "wide_thin_row_candidates": [],
+          "drawn_ground_line_detected": false
+        },
+        {
+          "path": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/a_pose/chr_npc_mira_a_pose_back.png",
+          "sha256": "8619743919fabbfd5064399b54e50165e4a92184ebe9a6bd783bff8978dc2ec2",
+          "size": [
+            1024,
+            1024
+          ],
+          "bbox": [
+            177,
+            62,
+            846,
+            962
+          ],
+          "bbox_center": [
+            511.5,
+            512.0
+          ],
+          "bbox_size_ratio": [
+            0.6533203125,
+            0.87890625
+          ],
+          "corner_background_exact_fraction": 1.0,
+          "wide_thin_row_candidates": [],
+          "drawn_ground_line_detected": false
+        },
+        {
+          "path": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/a_pose/chr_npc_mira_a_pose_character_right.png",
+          "sha256": "c0289ceb195779d64b6cc623b11de8af019591f4cffe40e0d8044fa20ed0921a",
+          "size": [
+            1024,
+            1024
+          ],
+          "bbox": [
+            386,
+            62,
+            638,
+            962
+          ],
+          "bbox_center": [
+            512.0,
+            512.0
+          ],
+          "bbox_size_ratio": [
+            0.24609375,
+            0.87890625
+          ],
+          "corner_background_exact_fraction": 1.0,
+          "wide_thin_row_candidates": [],
+          "drawn_ground_line_detected": false
+        }
+      ],
+      "height_error_percent": 0.0,
+      "center_drift_px": [
+        0.5,
+        0.0
+      ],
+      "profile_depth_difference_percent": 0.0,
+      "profile_depth_pass": true,
+      "background_pass": true,
+      "ground_line_pass": true
+    },
+    "t_pose": {
+      "views": [
+        {
+          "path": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/t_pose/chr_npc_mira_t_pose_front.png",
+          "sha256": "0638f5e04569b304759167aa41761c9d7b91b776475230c889f94c00dd2a07d5",
+          "size": [
+            1024,
+            1024
+          ],
+          "bbox": [
+            14,
+            62,
+            1009,
+            962
+          ],
+          "bbox_center": [
+            511.5,
+            512.0
+          ],
+          "bbox_size_ratio": [
+            0.9716796875,
+            0.87890625
+          ],
+          "corner_background_exact_fraction": 1.0,
+          "wide_thin_row_candidates": [],
+          "drawn_ground_line_detected": false
+        },
+        {
+          "path": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/t_pose/chr_npc_mira_t_pose_character_left.png",
+          "sha256": "f4b522db08fd9c0e2a25765fe02ead99bb4f0c580515c01098327df9626ade28",
+          "size": [
+            1024,
+            1024
+          ],
+          "bbox": [
+            378,
+            62,
+            646,
+            962
+          ],
+          "bbox_center": [
+            512.0,
+            512.0
+          ],
+          "bbox_size_ratio": [
+            0.26171875,
+            0.87890625
+          ],
+          "corner_background_exact_fraction": 1.0,
+          "wide_thin_row_candidates": [],
+          "drawn_ground_line_detected": false
+        },
+        {
+          "path": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/t_pose/chr_npc_mira_t_pose_back.png",
+          "sha256": "8592ec4c91734831e0cf8f551b2098fca097bf10844861c5efd97daa7a36440a",
+          "size": [
+            1024,
+            1024
+          ],
+          "bbox": [
+            17,
+            62,
+            1006,
+            962
+          ],
+          "bbox_center": [
+            511.5,
+            512.0
+          ],
+          "bbox_size_ratio": [
+            0.9658203125,
+            0.87890625
+          ],
+          "corner_background_exact_fraction": 1.0,
+          "wide_thin_row_candidates": [],
+          "drawn_ground_line_detected": false
+        },
+        {
+          "path": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/t_pose/chr_npc_mira_t_pose_character_right.png",
+          "sha256": "ee6152ab9f211ef8d7d0660b8ad2768bbae3180b980de84c0a65d5fdfc0526fd",
+          "size": [
+            1024,
+            1024
+          ],
+          "bbox": [
+            378,
+            62,
+            646,
+            962
+          ],
+          "bbox_center": [
+            512.0,
+            512.0
+          ],
+          "bbox_size_ratio": [
+            0.26171875,
+            0.87890625
+          ],
+          "corner_background_exact_fraction": 1.0,
+          "wide_thin_row_candidates": [],
+          "drawn_ground_line_detected": false
+        }
+      ],
+      "height_error_percent": 0.0,
+      "center_drift_px": [
+        0.5,
+        0.0
+      ],
+      "profile_depth_difference_percent": 0.0,
+      "profile_depth_pass": true,
+      "background_pass": true,
+      "ground_line_pass": true
+    }
+  },
+  "front_silhouette_diagnostic": {
+    "reference": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_0_rgba.png",
+    "candidate": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/a_pose/chr_npc_mira_a_pose_front.png",
+    "comparison": "bbox-normalized binary silhouettes",
+    "diagnostic_only": true,
+    "diagnostic_reason": "The locked source uses a relaxed arm pose and flat line art; the modeling candidate uses a neutral A-pose and rendered volume.",
+    "iou": 0.4604971984348361,
+    "reference_bbox": [
+      59,
+      134,
+      459,
+      916
+    ],
+    "candidate_bbox_before_alignment": [
+      187,
+      62,
+      837,
+      962
+    ],
+    "reference_centroid": [
+      255.5336787564767,
+      495.0917970553532
+    ],
+    "candidate_centroid_before_alignment": [
+      516.5083153941399,
+      464.5224132881899
+    ],
+    "overlay": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/rigid_multiview_v04/validation/front_overlay_reference.png"
+  },
+  "manual_structure_gate": {
+    "status": "PASS_WITH_USER_VISUAL_REVIEW_REQUIRED",
+    "expected_primary_parts": 21,
+    "three_distinct_shoulder_plates": true,
+    "three_digits_per_hand": true,
+    "split_wedge_feet": true,
+    "six_upper_arm_ovals_only": true,
+    "harness_clasp_pouch_preserved": true,
+    "two_repair_stitch_groups": true,
+    "no_text_labels_or_ground_line": true
+  },
+  "limitations": [
+    "Image generation cannot prove a watertight 3D mesh or deformation-ready topology.",
+    "T-pose exact profiles intentionally show end-on arms; far-arm features are occluded by correct projection.",
+    "No Hunyuan or ReduceFace job was run in this delivery."
+  ]
+}

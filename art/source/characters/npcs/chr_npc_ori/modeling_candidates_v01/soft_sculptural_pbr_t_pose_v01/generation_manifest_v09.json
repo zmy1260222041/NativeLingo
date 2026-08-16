@@ -1,0 +1,54 @@
+{
+  "asset_id": "chr_npc_ori",
+  "purpose": "modeling_only_four_view_balanced_creature_realism",
+  "status": "MODELING_CANDIDATE_NOT_LOCKED",
+  "source_authority": {
+    "path": "art/source/characters/npcs/chr_npc_ori/source_locked_v06/reference/turnaround_source.png",
+    "sha256_before": "3b3d2eca868b989b00ca6d0d4ac414f1e2ee5e86df0596abc0fc34b1d97c42c6",
+    "sha256_after": "3b3d2eca868b989b00ca6d0d4ac414f1e2ee5e86df0596abc0fc34b1d97c42c6",
+    "modified": false
+  },
+  "visual_source_override": {
+    "issue": "legacy manifest says four eyes but locked pixels visibly show three",
+    "applied_rule": "locked image is the final visual authority",
+    "eye_count_used": 3,
+    "locked_manifest_modified": false
+  },
+  "generation": {
+    "mode": "built_in_imagegen_reference_guided_multi_stage_edit",
+    "style_references": [
+      "art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/sculptural_pbr_v03/style_references/style_reference_04.png",
+      "art/source/characters/npcs/chr_npc_mira/modeling_candidates_v01/sculptural_pbr_v03/style_references/style_reference_03.png"
+    ],
+    "prompt_sequence": [
+      "prompt_v05_creature_realism.md",
+      "prompt_v06_reference_matched_realism.md",
+      "prompt_v07_creature_anatomy.md",
+      "prompt_v08_surface_cleanup.md",
+      "prompt_v09_balanced_creature_realism.md"
+    ],
+    "candidate": "chr_npc_ori_four_view_balanced_creature_realism_candidate_v09.png",
+    "candidate_sha256": "6d455d2aacd3d9f688a26bcd4e2f139362696640933b24db44d83da0260a7608",
+    "width_px": 1536,
+    "height_px": 1024,
+    "view_order": [
+      "front",
+      "character_left",
+      "back",
+      "character_right"
+    ]
+  },
+  "result": {
+    "arm_roots": "crescent_terminal_joints_only",
+    "leather_grain": false,
+    "full_body_embossed_pattern": false,
+    "localized_anatomical_detail": true,
+    "human_anatomy_added": false,
+    "floor_or_ground_line": false
+  },
+  "approval": {
+    "user_approved": false,
+    "promoted_to_modeling_locked": false
+  }
+}
+

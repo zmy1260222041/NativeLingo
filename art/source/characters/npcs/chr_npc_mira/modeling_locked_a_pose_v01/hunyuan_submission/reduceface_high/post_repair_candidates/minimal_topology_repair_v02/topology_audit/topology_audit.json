@@ -1,0 +1,367 @@
+{
+  "audit_version": 2,
+  "method": "direct GLB accessor scan; per-primitive edge incidence + union-find face islands",
+  "input": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/minimal_topology_repair_v02/chr_npc_mira_a_pose_reduceface_high_minimal_topology_repair_v02.glb",
+  "input_sha256": "9048f01873d5157624e2157b25bbb3fcffe443e09a7fd73062432466a6841731",
+  "source_modified": false,
+  "primitives": [
+    {
+      "primitive": "0:0",
+      "vertices": 6487,
+      "faces": 12956,
+      "material": null
+    }
+  ],
+  "object_reports": [
+    {
+      "primitive": "0:0",
+      "vertices": 6487,
+      "faces": 12956,
+      "edges": 19434,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "winding_conflict_edges": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "components": 6,
+      "area_epsilon": 2.0430374253618857e-12,
+      "bbox_min": [
+        -0.418853,
+        0.000494,
+        -0.132014
+      ],
+      "bbox_max": [
+        0.413665,
+        1.118183,
+        0.185354
+      ],
+      "bbox_diagonal": 1.429349
+    }
+  ],
+  "components": [
+    {
+      "primitive": "0:0",
+      "component_id": 0,
+      "category": "structural_shell",
+      "faces": 12746,
+      "vertices": 6374,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "winding_conflict_edges": 0,
+      "degenerate_faces": 0,
+      "bbox_min": [
+        -0.418853,
+        0.000494,
+        -0.132014
+      ],
+      "bbox_max": [
+        0.413665,
+        1.118183,
+        0.185354
+      ],
+      "bbox_diagonal": 1.429349,
+      "relative_bbox_diagonal": 1.0,
+      "material": null
+    },
+    {
+      "primitive": "0:0",
+      "component_id": 1,
+      "category": "small_fragment",
+      "faces": 68,
+      "vertices": 36,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "winding_conflict_edges": 0,
+      "degenerate_faces": 0,
+      "bbox_min": [
+        0.376869,
+        0.4432,
+        0.005972
+      ],
+      "bbox_max": [
+        0.389517,
+        0.461599,
+        0.010572
+      ],
+      "bbox_diagonal": 0.022796,
+      "relative_bbox_diagonal": 0.015948,
+      "material": null
+    },
+    {
+      "primitive": "0:0",
+      "component_id": 2,
+      "category": "small_fragment",
+      "faces": 36,
+      "vertices": 20,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "winding_conflict_edges": 0,
+      "degenerate_faces": 0,
+      "bbox_min": [
+        -0.383206,
+        0.45125,
+        -0.034274
+      ],
+      "bbox_max": [
+        -0.375157,
+        0.462748,
+        -0.030824
+      ],
+      "bbox_diagonal": 0.014453,
+      "relative_bbox_diagonal": 0.010112,
+      "material": null
+    },
+    {
+      "primitive": "0:0",
+      "component_id": 3,
+      "category": "micro_fragment",
+      "faces": 4,
+      "vertices": 4,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "winding_conflict_edges": 0,
+      "degenerate_faces": 0,
+      "bbox_min": [
+        0.100896,
+        0.684676,
+        -0.025075
+      ],
+      "bbox_max": [
+        0.104346,
+        0.689276,
+        -0.020475
+      ],
+      "bbox_diagonal": 0.007364,
+      "relative_bbox_diagonal": 0.005152,
+      "material": null
+    },
+    {
+      "primitive": "0:0",
+      "component_id": 4,
+      "category": "small_fragment",
+      "faces": 68,
+      "vertices": 36,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "winding_conflict_edges": 0,
+      "degenerate_faces": 0,
+      "bbox_min": [
+        -0.394705,
+        0.4432,
+        0.005972
+      ],
+      "bbox_max": [
+        -0.382056,
+        0.461599,
+        0.010572
+      ],
+      "bbox_diagonal": 0.022796,
+      "relative_bbox_diagonal": 0.015949,
+      "material": null
+    },
+    {
+      "primitive": "0:0",
+      "component_id": 5,
+      "category": "small_fragment",
+      "faces": 34,
+      "vertices": 19,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "winding_conflict_edges": 0,
+      "degenerate_faces": 0,
+      "bbox_min": [
+        0.369969,
+        0.45125,
+        -0.034274
+      ],
+      "bbox_max": [
+        0.378018,
+        0.462748,
+        -0.030824
+      ],
+      "bbox_diagonal": 0.014453,
+      "relative_bbox_diagonal": 0.010112,
+      "material": null
+    }
+  ],
+  "summary": {
+    "objects_primitives": 1,
+    "vertices": 6487,
+    "faces": 12956,
+    "components": 6,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "winding_conflict_edges": 0,
+    "degenerate_faces": 0,
+    "zero_length_edges": 0,
+    "components_by_category": {
+      "structural_shell": 1,
+      "small_fragment": 4,
+      "micro_fragment": 1
+    },
+    "faces_by_category": {
+      "structural_shell": 12746,
+      "small_fragment": 206,
+      "micro_fragment": 4
+    },
+    "largest_components": [
+      {
+        "primitive": "0:0",
+        "component_id": 0,
+        "category": "structural_shell",
+        "faces": 12746,
+        "vertices": 6374,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "winding_conflict_edges": 0,
+        "degenerate_faces": 0,
+        "bbox_min": [
+          -0.418853,
+          0.000494,
+          -0.132014
+        ],
+        "bbox_max": [
+          0.413665,
+          1.118183,
+          0.185354
+        ],
+        "bbox_diagonal": 1.429349,
+        "relative_bbox_diagonal": 1.0,
+        "material": null
+      },
+      {
+        "primitive": "0:0",
+        "component_id": 1,
+        "category": "small_fragment",
+        "faces": 68,
+        "vertices": 36,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "winding_conflict_edges": 0,
+        "degenerate_faces": 0,
+        "bbox_min": [
+          0.376869,
+          0.4432,
+          0.005972
+        ],
+        "bbox_max": [
+          0.389517,
+          0.461599,
+          0.010572
+        ],
+        "bbox_diagonal": 0.022796,
+        "relative_bbox_diagonal": 0.015948,
+        "material": null
+      },
+      {
+        "primitive": "0:0",
+        "component_id": 4,
+        "category": "small_fragment",
+        "faces": 68,
+        "vertices": 36,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "winding_conflict_edges": 0,
+        "degenerate_faces": 0,
+        "bbox_min": [
+          -0.394705,
+          0.4432,
+          0.005972
+        ],
+        "bbox_max": [
+          -0.382056,
+          0.461599,
+          0.010572
+        ],
+        "bbox_diagonal": 0.022796,
+        "relative_bbox_diagonal": 0.015949,
+        "material": null
+      },
+      {
+        "primitive": "0:0",
+        "component_id": 2,
+        "category": "small_fragment",
+        "faces": 36,
+        "vertices": 20,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "winding_conflict_edges": 0,
+        "degenerate_faces": 0,
+        "bbox_min": [
+          -0.383206,
+          0.45125,
+          -0.034274
+        ],
+        "bbox_max": [
+          -0.375157,
+          0.462748,
+          -0.030824
+        ],
+        "bbox_diagonal": 0.014453,
+        "relative_bbox_diagonal": 0.010112,
+        "material": null
+      },
+      {
+        "primitive": "0:0",
+        "component_id": 5,
+        "category": "small_fragment",
+        "faces": 34,
+        "vertices": 19,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "winding_conflict_edges": 0,
+        "degenerate_faces": 0,
+        "bbox_min": [
+          0.369969,
+          0.45125,
+          -0.034274
+        ],
+        "bbox_max": [
+          0.378018,
+          0.462748,
+          -0.030824
+        ],
+        "bbox_diagonal": 0.014453,
+        "relative_bbox_diagonal": 0.010112,
+        "material": null
+      },
+      {
+        "primitive": "0:0",
+        "component_id": 3,
+        "category": "micro_fragment",
+        "faces": 4,
+        "vertices": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "winding_conflict_edges": 0,
+        "degenerate_faces": 0,
+        "bbox_min": [
+          0.100896,
+          0.684676,
+          -0.025075
+        ],
+        "bbox_max": [
+          0.104346,
+          0.689276,
+          -0.020475
+        ],
+        "bbox_diagonal": 0.007364,
+        "relative_bbox_diagonal": 0.005152,
+        "material": null
+      }
+    ],
+    "direct_reduceface_verdict": "CONDITIONALLY_READY",
+    "verdict_reason": "No open/non-manifold edges found; verify shell separation and self-intersection policy before ReduceFace.",
+    "closed_components": 6,
+    "open_components": 0,
+    "face_share_by_category": {
+      "structural_shell": 0.983791,
+      "small_fragment": 0.0159,
+      "micro_fragment": 0.000309
+    }
+  },
+  "limitations": [
+    "This audit proves edge incidence, degenerate triangles and orientation conflicts. Exact triangle-triangle self-intersection requires a separate robust narrow-phase test.",
+    "Separate watertight shells may be intentional clothing/accessory parts; their count alone is not a repair target."
+  ]
+}

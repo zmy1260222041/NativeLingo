@@ -1,0 +1,57 @@
+{
+  "schema": "hunyuan_glb_import_review.v1",
+  "glb": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/mira_a_pose_hunyuan3d_pro.glb",
+  "glb_sha256": "e5fddc7dacef075b01e427dd9b6d4a972960b7a5bb4ee15acc455fc7e4cf8377",
+  "glb_bytes": 32863108,
+  "import_result": "FINISHED",
+  "mesh_object_count": 1,
+  "bounds": {
+    "min": [
+      -0.41907501220703125,
+      -0.18499116599559784,
+      -2.485517924810665e-08
+    ],
+    "max": [
+      0.41384801268577576,
+      0.13396701216697693,
+      1.1187541484832764
+    ],
+    "size": [
+      0.8329230546951294,
+      0.3189581632614136,
+      1.1187541484832764
+    ]
+  },
+  "topology": {
+    "vertices": 302478,
+    "edges": 800815,
+    "faces": 499938,
+    "boundary_edges": 101816,
+    "non_manifold_edges": 101816,
+    "loose_vertices": 0,
+    "connected_components": 2360,
+    "objects": [
+      {
+        "name": "node_0",
+        "vertices": 302478,
+        "edges": 800815,
+        "faces": 499938,
+        "boundary_edges": 101816,
+        "non_manifold_edges": 101816,
+        "loose_vertices": 0,
+        "connected_components": 2360
+      }
+    ]
+  },
+  "materials": {
+    "slot_count": 1,
+    "image_texture_node_count": 1
+  },
+  "renders": [
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/inspection/mesh_neg_y_clay.png",
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/inspection/mesh_pos_x_clay.png",
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/inspection/mesh_pos_y_clay.png",
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/inspection/mesh_neg_x_clay.png"
+  ],
+  "scope": "cloud_generated_downstream_output_not_a_reference_lock"
+}

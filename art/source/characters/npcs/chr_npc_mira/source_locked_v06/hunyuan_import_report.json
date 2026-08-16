@@ -1,0 +1,64 @@
+{
+  "schema": "hunyuan_v06_import_report.v1",
+  "asset_id": "chr_npc_mira",
+  "input_glb": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/hunyuan_raw/mira_hunyuan_mv_v01.glb",
+  "source_blend": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/hunyuan_source/chr_npc_mira_hunyuan_v06.blend",
+  "normalized_glb": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/hunyuan_processed/chr_npc_mira_hunyuan_v06_normalized.glb",
+  "objects": [
+    "HUNYUAN_mira_v06"
+  ],
+  "vertices": 305843,
+  "faces": 499830,
+  "source_topology": {
+    "vertices": 305843,
+    "faces": 499830,
+    "non_manifold_edges": 108488,
+    "loose_vertices": 0,
+    "connected_components": 2087
+  },
+  "texture_audit": {
+    "material_count": 1,
+    "materials": [
+      {
+        "name": "Material.001",
+        "has_principled_bsdf": true,
+        "image_textures": [
+          {
+            "node": "Image Texture",
+            "image": "texture_20250901",
+            "size": [
+              4096,
+              4096
+            ],
+            "target_socket": "Base Color"
+          }
+        ],
+        "texture_attached": true
+      }
+    ],
+    "all_textured": true
+  },
+  "materials": [
+    "Material.001"
+  ],
+  "bounds_min_m": [
+    -0.445416,
+    -0.290461,
+    0.0
+  ],
+  "bounds_max_m": [
+    0.445416,
+    0.290461,
+    1.72
+  ],
+  "height_m": 1.72,
+  "target_height_m": 1.72,
+  "source_forward": "TBD (resolved by Gate A silhouette-IoU mapping)",
+  "runtime_export_allowed": false,
+  "clay_outputs": [
+    "art/source/characters/npcs/chr_npc_mira/source_locked_v06/validation/hunyuan_mv_ny_clay.png",
+    "art/source/characters/npcs/chr_npc_mira/source_locked_v06/validation/hunyuan_mv_px_clay.png",
+    "art/source/characters/npcs/chr_npc_mira/source_locked_v06/validation/hunyuan_mv_py_clay.png",
+    "art/source/characters/npcs/chr_npc_mira/source_locked_v06/validation/hunyuan_mv_nx_clay.png"
+  ]
+}

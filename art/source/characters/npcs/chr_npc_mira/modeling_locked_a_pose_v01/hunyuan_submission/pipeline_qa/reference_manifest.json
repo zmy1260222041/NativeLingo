@@ -1,0 +1,26 @@
+{
+  "schema": "mira_a_pose_pipeline_qa_reference_manifest.v1",
+  "scope": "A_POSE_ONLY; T_POSE_EXCLUDED",
+  "approved_source_lock": "../../reference_manifest.json",
+  "generated_mesh": "../mira_a_pose_hunyuan3d_pro.glb",
+  "view_order": ["front", "character_left", "back", "character_right"],
+  "expected_structural_parts": {
+    "two_layer_head": "continuous upper and lower shell in all four views",
+    "harness": "one continuous physical strap; front and rear shoulder routes correspond",
+    "pouch": "one pouch at physical-left hip only; absent in character-right profile",
+    "ankle_rings": "matching closed ring form and ankle placement in all views",
+    "feet": "paired split-wedge feet with corresponding side profiles"
+  },
+  "visual_gates": {
+    "registered_silhouette_iou": {"target": 0.82, "purpose": "first-pass humanoid structural fit"},
+    "structural_part_constraints": "exact, manual review"
+  },
+  "topology_go_gate_before_reduceface": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "loose_vertices": 0,
+    "self_intersections": 0,
+    "components": "one closed character shell preferred; any separate accessory shell must itself be closed and intentionally retained",
+    "recheck_after_export": true
+  }
+}

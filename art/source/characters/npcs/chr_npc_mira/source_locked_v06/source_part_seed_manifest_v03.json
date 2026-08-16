@@ -1,0 +1,19 @@
+{
+  "schema": "source_part_seed_manifest.v1",
+  "asset_id": "chr_npc_mira",
+  "source": "reference/turnaround_source.png",
+  "output_dir": "reference",
+  "view_order": ["front", "character_left", "back", "character_right"],
+  "view_x_ranges": [[0, 418], [418, 704], [704, 1170], [1170, 1491]],
+  "subject_x_ranges": [[0, 418], [418, 704], [704, 1170], [1170, 1474]],
+  "ground_reconstruction_patch": {
+    "path": "source_analysis/ground_line_foot_reconstruction_v03_rgba.png",
+    "source_y_range": [927, 933],
+    "sha256": "29552db82f129ceeea032b49cdf6bbc90bf022ce6b46cb28ae9ec4524d8d30fb"
+  },
+  "canvas_width": 512,
+  "canvas_height": 1024,
+  "background_distance_threshold": 18,
+  "alpha_feather": 10,
+  "horizontal_padding_px": 12
+}

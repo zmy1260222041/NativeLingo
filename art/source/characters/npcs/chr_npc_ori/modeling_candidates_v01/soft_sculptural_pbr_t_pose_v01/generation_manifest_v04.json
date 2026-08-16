@@ -1,0 +1,50 @@
+{
+  "asset_id": "chr_npc_ori",
+  "purpose": "modeling_only_four_view_biological_neutral_rigging_pose",
+  "status": "MODELING_CANDIDATE_NOT_LOCKED",
+  "pose_interpretation": "ori_specific_nonhuman_neutral_pose; crescent_is_upper_crossbar; arms_hang_from_crescent_terminal_joints",
+  "source_authority": {
+    "path": "art/source/characters/npcs/chr_npc_ori/source_locked_v06/reference/turnaround_source.png",
+    "sha256_before": "3b3d2eca868b989b00ca6d0d4ac414f1e2ee5e86df0596abc0fc34b1d97c42c6",
+    "sha256_after": "3b3d2eca868b989b00ca6d0d4ac414f1e2ee5e86df0596abc0fc34b1d97c42c6",
+    "modified": false
+  },
+  "generation": {
+    "mode": "reference_guided_generation_then_material_only_refinement",
+    "structural_prompt": "prompt_v03_biological.md",
+    "material_refinement_prompt": "prompt_v04_material_refine.md",
+    "v03_intermediate": "raw/chr_npc_ori_four_view_biological_raw_v03.png",
+    "candidate": "chr_npc_ori_four_view_biological_candidate_v04.png",
+    "candidate_sha256": "2e363c51bf3bbb790926a0951d3149363ff8d4a320ab6b2152f7b728041b87b1",
+    "width_px": 1536,
+    "height_px": 1024,
+    "view_order": [
+      "front",
+      "character_left",
+      "back",
+      "character_right"
+    ]
+  },
+  "structural_invariants": {
+    "arm_roots": "two crescent terminal indigo joints only",
+    "torso_arm_connection": false,
+    "arms_horizontal_human_t_pose": false,
+    "front_back_visible_hanging_arms": 2,
+    "exact_profile_visible_near_hanging_arms": 1,
+    "profile_far_arm": "orthographically_occluded",
+    "digits_per_hand": 3,
+    "lobes_per_foot": 3
+  },
+  "material_direction": {
+    "outer_crescent": "matte_living_keratin_chitin",
+    "green_tissue": "subtly_translucent_cartilage_dermis",
+    "indigo_joints": "compressed_living_cartilage",
+    "eyes": "restrained_moist_cornea",
+    "plastic_toy_finish": false
+  },
+  "approval": {
+    "user_approved": false,
+    "promoted_to_modeling_locked": false
+  }
+}
+

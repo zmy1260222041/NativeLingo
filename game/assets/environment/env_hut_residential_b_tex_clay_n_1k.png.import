@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cstkug5ntewli"
 path.s3tc="res://.godot/imported/env_hut_residential_b_tex_clay_n_1k.png-dd52b2a711992376a6e34296cca3fbdf.s3tc.ctex"
+path.etc2="res://.godot/imported/env_hut_residential_b_tex_clay_n_1k.png-dd52b2a711992376a6e34296cca3fbdf.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/env_hut_residential_b_tex_clay_n_1k.png"
-dest_files=["res://.godot/imported/env_hut_residential_b_tex_clay_n_1k.png-dd52b2a711992376a6e34296cca3fbdf.s3tc.ctex"]
+dest_files=["res://.godot/imported/env_hut_residential_b_tex_clay_n_1k.png-dd52b2a711992376a6e34296cca3fbdf.s3tc.ctex", "res://.godot/imported/env_hut_residential_b_tex_clay_n_1k.png-dd52b2a711992376a6e34296cca3fbdf.etc2.ctex"]
 
 [params]
 

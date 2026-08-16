@@ -1,0 +1,71 @@
+{
+  "schema": "quadriflow_retopo_v01_report.v1",
+  "asset_id": "chr_npc_mira",
+  "target_faces": 13000,
+  "hipoly_source": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/hunyuan_processed/chr_npc_mira_hunyuan_v06_normalized.glb",
+  "notes": [
+    "Bulk topology only — no deformation edge loops, no Shrinkwrap, no bake yet.",
+    "Quadriflow field-aligned quads; manual loop pass + shrinkwrap to Gate-A high-poly + normal bake are later blocks."
+  ],
+  "runtime_export_allowed": false,
+  "hipoly_cleanup": {
+    "vertices": 249871,
+    "faces": 499094,
+    "bounds": {
+      "min": [
+        -0.4454,
+        -0.2905,
+        0.0
+      ],
+      "max": [
+        0.4454,
+        0.2905,
+        1.72
+      ],
+      "height_m": 1.72
+    }
+  },
+  "lod0": {
+    "object": "MIRA_lod0_quadriflow",
+    "vertices": 10787,
+    "faces": 10814,
+    "face_breakdown": {
+      "tris": 0,
+      "quads": 10814,
+      "ngons": 0
+    },
+    "tri_equivalent": 21628,
+    "quad_ratio": 1.0,
+    "non_manifold_edges": 6,
+    "boundary_edges": 6,
+    "boundary_vertices": 6,
+    "loose_vertices": 0,
+    "poles": {
+      "valence_3": 253,
+      "valence_5": 369,
+      "valence_6plus": 0
+    },
+    "bounds": {
+      "min": [
+        -0.4446,
+        -0.2883,
+        -0.0041
+      ],
+      "max": [
+        0.4454,
+        0.2912,
+        1.7108
+      ],
+      "height_m": 1.7149
+    }
+  },
+  "quadriflow_kwargs": {
+    "target_faces": 13000,
+    "use_preserve_boundary": false
+  },
+  "outputs": {
+    "blend": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/retopo/chr_npc_mira_lod0_quadriflow_v01.blend",
+    "glb": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/retopo/chr_npc_mira_lod0_quadriflow_v01.glb",
+    "clay_front": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/validation/quadriflow_lod0_clay_front.png"
+  }
+}

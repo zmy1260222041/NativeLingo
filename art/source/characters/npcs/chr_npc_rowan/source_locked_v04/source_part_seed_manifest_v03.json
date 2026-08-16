@@ -1,0 +1,19 @@
+{
+  "schema": "source_part_seed_manifest.v1",
+  "asset_id": "chr_npc_rowan",
+  "source": "reference/turnaround_source.png",
+  "output_dir": "reference",
+  "view_order": ["front", "character_left", "back", "character_right"],
+  "view_x_ranges": [[0, 450], [450, 680], [680, 1130], [1130, 1491]],
+  "subject_x_ranges": [[31, 434], [454, 657], [698, 1111], [1157, 1366]],
+  "ground_reconstruction_patch": {
+    "path": "source_analysis/ground_line_foot_reconstruction_v03_rgba.png",
+    "source_y_range": [970, 974],
+    "sha256": "affc4204b206af9159beb5e32e392fe847e7a81ddd6e6679a57b7e55358a432b"
+  },
+  "canvas_width": 512,
+  "canvas_height": 1024,
+  "background_distance_threshold": 18,
+  "alpha_feather": 10,
+  "horizontal_padding_px": 12
+}

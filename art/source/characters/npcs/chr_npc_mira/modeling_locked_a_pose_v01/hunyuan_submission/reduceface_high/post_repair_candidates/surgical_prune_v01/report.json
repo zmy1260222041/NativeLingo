@@ -1,0 +1,56 @@
+{
+  "schema": "mira_reduceface_post_repair.v1",
+  "candidate": "surgical_prune_v01",
+  "method": "surgical",
+  "source_glb": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/reduceface_high_01.glb",
+  "source_sha256": "9f1aa85b218680113e733aa8d2536b295b3e19cfdc7177ca142c5297b6aeffb8",
+  "source_changed": false,
+  "method_details": {
+    "removed_fragment_components": 4,
+    "removed_fragment_faces": 207,
+    "removed_degenerate_faces": 1
+  },
+  "pre": {
+    "vertices": 6486,
+    "edges": 19435,
+    "faces": 12957,
+    "triangles": 12957,
+    "boundary_edges": 2,
+    "non_manifold_edges": 4,
+    "loose_vertices": 0,
+    "connected_components": 5,
+    "component_face_counts_desc": [
+      12750,
+      68,
+      68,
+      36,
+      35
+    ],
+    "degenerate_faces": 1
+  },
+  "post": {
+    "vertices": 6486,
+    "edges": 19435,
+    "faces": 12749,
+    "triangles": 12749,
+    "boundary_edges": 3,
+    "non_manifold_edges": 315,
+    "loose_vertices": 0,
+    "connected_components": 1,
+    "component_face_counts_desc": [
+      12749
+    ],
+    "degenerate_faces": 0
+  },
+  "output_glb": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/surgical_prune_v01/chr_npc_mira_a_pose_reduceface_high_surgical_prune_v01.glb",
+  "output_sha256": "06a400b3504f4e6c52282010d5e926925c384835fb719c7bc6367e953e1a7de1",
+  "preview": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/post_repair_candidates/surgical_prune_v01/front_clay.png",
+  "gate": {
+    "closed_manifold": false,
+    "triangles_le_32k": true,
+    "deliverable_candidate": false
+  },
+  "limitations": [
+    "Surgical route preserves the ReduceFace surface but is rejected if manifold gate remains false."
+  ]
+}

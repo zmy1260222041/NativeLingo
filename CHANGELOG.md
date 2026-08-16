@@ -2,6 +2,26 @@
 
 NativeLingo 版本演进与技术特点。
 
+## [v0.9] — 2026-08-15 — Stranger 云评分（FR-29 / NFR-7 / R-18）
+
+把 Stranger 竖切片的语音评分执行地迁到自托管云服务器，Web 与桌面不再需要本机启动语音服务：
+
+- **云端端点**：`POST /game/evaluate`（raw WAV + `X-Stranger-Target` + Bearer token）——Whisper 短句转写 + 语义槽位 delivery + ORT SSL/DTW pronunciation，返回与本地服务同构的 FR-28 判定 JSON；参考音频 `server/game_refs/*.wav` 随包部署；解码即弃、8MB 上限、限流沿用 cloud-speaking 既有防线（`feat/stranger-cloud-scoring` worktree）。
+- **Godot 远程模式**：`SpeechAdapter` 支持 `stranger_cloud/enabled` / `stranger_cloud_voice`；暂停菜单「云评分激活」→ `POST /register` 激活码换每设备 token（仅存 `user://`）；桌面 `TLSOptions` 固定私有 CA `res://certs/nl_ca.pem`，Web 同源 nginx `/game/` 反代；新增 Web/Windows/macOS 三个 Cloud Voice 导出预设。
+- **降级不变量**：未激活/断网/5xx/401 → `gesture_fallback` 最低生存档，三日主线完整可玩。
+- **测试**：云端 13 个 unittest 全绿；Godot 新增 `CloudVoiceTest`（16 断言），全套 headless 回归全绿。
+
+## [v0.8] — 2026-08-15 — Stranger 语音门控物资（FR-28 / R-17）
+
+Stranger 竖切片主线改为“语音交流才能获取资源”：
+
+- **新三日主线**：问候米拉 → 向塔维语音要食物（2 份）→ 向维什语音要零件（2 块）→ 修加热器 → 向奥里语音要水 → 帮罗文通关；拾取物与蓄水器改为引导物，不再直接给资源。
+- **表达分**：`score = 0.5×pronunciation + 0.5×delivery`；奖励单调分档（≥70 给 2，40–69 给 1，<40 给 0 且免费重说，不扣需求/关系）。
+- **手势语义**：有语音时 `G` 只表善意；语音不可用时 `gesture_fallback` 给最低生存档，保持完整可玩。
+- **本地服务**：`game/speech_service/server.py` 增加双维评分与 Whisper 置信度兜底，参考音频改随包 `reference_audio/`。
+- **存档**：`SAVE_VERSION` 1→2，旧档惰性迁移。
+- **测试**：新增 `test_voice_gated_rewards.gd`（34 断言），既有套件全绿。
+
 ## [v0.6] — 2026-08-03 — 学习工作台重构 + Memorizing 模块
 
 在 v0.5 可分发骨架之上,完成**学习工作台 UI 全面重构**与 **Memorizing(看图识物/情景例句)模块**两件大事:前端从工具面板式界面升级为 editorial 风格学习工作台,后端新增本地记忆管线(照片→检测→例句→情景对话),全部推理仍在本机完成。

@@ -87,14 +87,14 @@ func get_interaction_prompt(device := "keyboard", speech_toggle_mode := false, d
 		return (tr("PROMPT_NPC") % [display_name, talk_glyph, talk_verb, gesture_glyph, interact_glyph]).replace("\\n", "\n")
 	return tr("PROMPT_OBJECT") % [display_name, interact_glyph]
 
-func interact(communication: String) -> void:
+func interact(communication: String, expression: Dictionary = {}) -> void:
 	if interaction_kind != "npc" and communication != "action":
 		return
 	var actor_visual := get_node_or_null("CharacterVisual") as CharacterVisual
 	if actor_visual:
-		var reaction := "offer" if target_id == "rowan" and GameState.water > 0 else ("greet" if communication in ["voice", "gesture"] else "clarify")
+		var reaction := "offer" if target_id == "rowan" and GameState.water > 0 else ("greet" if communication in ["voice", "gesture", "gesture_fallback"] else "clarify")
 		actor_visual.play_reaction(reaction)
-	GameState.interact(interaction_kind, target_id, communication)
+	GameState.interact(interaction_kind, target_id, communication, expression)
 	if one_shot:
 		visible = false
 		remove_from_group("interactable")

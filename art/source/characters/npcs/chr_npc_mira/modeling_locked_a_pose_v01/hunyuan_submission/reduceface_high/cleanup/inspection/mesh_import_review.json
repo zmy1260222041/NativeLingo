@@ -1,0 +1,57 @@
+{
+  "schema": "hunyuan_glb_import_review.v1",
+  "glb": "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/cleanup/chr_npc_mira_a_pose_reduceface_high_clean.glb",
+  "glb_sha256": "5d52d9be16110f1df0b7aa6c847bdb3434a94720a2570587ccfc6602202c4c67",
+  "glb_bytes": 959552,
+  "import_result": "FINISHED",
+  "mesh_object_count": 1,
+  "bounds": {
+    "min": [
+      -0.4188530147075653,
+      -0.18535399436950684,
+      0.0004939999780617654
+    ],
+    "max": [
+      0.4136649966239929,
+      0.13201400637626648,
+      1.1181830167770386
+    ],
+    "size": [
+      0.8325179815292358,
+      0.3173680007457733,
+      1.1176890134811401
+    ]
+  },
+  "topology": {
+    "vertices": 36703,
+    "edges": 37786,
+    "faces": 12957,
+    "boundary_edges": 36701,
+    "non_manifold_edges": 36701,
+    "loose_vertices": 0,
+    "connected_components": 11875,
+    "objects": [
+      {
+        "name": "mesh_rep_0_ori_repair_quad.obj",
+        "vertices": 36703,
+        "edges": 37786,
+        "faces": 12957,
+        "boundary_edges": 36701,
+        "non_manifold_edges": 36701,
+        "loose_vertices": 0,
+        "connected_components": 11875
+      }
+    ]
+  },
+  "materials": {
+    "slot_count": 0,
+    "image_texture_node_count": 0
+  },
+  "renders": [
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/cleanup/inspection/mesh_neg_y_clay.png",
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/cleanup/inspection/mesh_pos_x_clay.png",
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/cleanup/inspection/mesh_pos_y_clay.png",
+    "/Users/a86138/Developer/NativeLingo/art/source/characters/npcs/chr_npc_mira/modeling_locked_a_pose_v01/hunyuan_submission/reduceface_high/cleanup/inspection/mesh_neg_x_clay.png"
+  ],
+  "scope": "cloud_generated_downstream_output_not_a_reference_lock"
+}

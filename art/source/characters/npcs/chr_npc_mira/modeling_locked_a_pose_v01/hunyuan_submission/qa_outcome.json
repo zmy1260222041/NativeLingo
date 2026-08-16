@@ -1,0 +1,41 @@
+{
+  "schema": "mira_hunyuan_generation_qa.v1",
+  "scope": "A_POSE_ONLY_MODELING_LOCK",
+  "result": {
+    "file": "mira_a_pose_hunyuan3d_pro.glb",
+    "sha256": "e5fddc7dacef075b01e427dd9b6d4a972960b7a5bb4ee15acc455fc7e4cf8377",
+    "bytes": 32863108,
+    "import_status": "PASS",
+    "mesh_object_count": 1,
+    "materials": {
+      "slot_count": 1,
+      "image_texture_node_count": 1
+    }
+  },
+  "visual_review": {
+    "status": "PASS",
+    "evidence": [
+      "inspection/mesh_neg_y_clay.png",
+      "inspection/mesh_pos_x_clay.png",
+      "inspection/mesh_pos_y_clay.png",
+      "inspection/mesh_neg_x_clay.png"
+    ],
+    "observed": [
+      "two-layer head reads in front, profile, and back",
+      "harness is continuous and the pouch remains physical-left",
+      "ankle rings and split wedge feet are present across views"
+    ]
+  },
+  "topology_review": {
+    "status": "FAIL_FOR_DIRECT_REDUCE_FACE",
+    "vertices": 302478,
+    "faces": 499938,
+    "connected_components": 2360,
+    "boundary_edges": 101816,
+    "non_manifold_edges": 101816,
+    "loose_vertices": 0,
+    "reason": "The imported cloud mesh is visually usable but consists of many open/non-manifold fragments; it is not a watertight topology baseline."
+  },
+  "decision": "Keep this immutable GLB as the visual and bake authority. Do not use whole-character voxel/SDF reconstruction or other global surface resampling as Hunyuan post-processing. Build a part-aware manual retopology, or use bounded local topology edits only when every defect is precisely located, then re-audit the exported GLB.",
+  "not_a_reference_lock": true
+}

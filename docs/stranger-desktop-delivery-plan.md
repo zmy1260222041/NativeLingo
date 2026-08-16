@@ -4,15 +4,21 @@
 > 实施进度：分支 `desktop/stranger-delivery` 已创建；Phase 1 代码、导出预设、
 > DesktopBetaNoVoiceTest、构建脚本与首次双平台产物已完成；Phase 2 签名/公证待证书，
 > Phase 3 GitHub Release 与真机验收待执行。
+> **2026-08-15 补充（v0.9）**：玩法主线已升级为 **FR-28 语音门控物资**，语音增强
+> 路线已定为 **FR-29 云评分**（复用 Android/iOS cloud-speaking 架构）。本计划首版
+> 仍是无语音桌面 beta；无语音时的可玩路径由 `gesture_fallback` 提供最低生存档。
+> 云语音桌面构建使用新预设 `Windows Cloud Voice` / `macOS Cloud Voice`，见 §6 与
+> `docs/reviews/2026-08-15-stranger-cloud-scoring-fit.md`。
 > 前置状态：网页版工作已提交 `5fc55e0f`（codex/stranger-vertical-slice）。
 > 目标：以 Godot 4.6.3 原生桌面导出发放可玩的 Windows / macOS 版本，
 > 免去域名、服务器与 ICP 备案；同时继承网页版已验证的构建与验收流程。
 
 ## 1. 目标与首版范围
 
-- **玩法**：完整三日纵切片不变，移动/镜头/收集/修理/休息/通关全部保留。
-- **交互**：首版无语音，`G` 手势完成 NPC 交互（与 Web Beta 相同；
-  桌面后续可选“语音增强版”，见 §6）。
+- **玩法**：完整三日主线保留：问候米拉 → 向塔维请求食物 → 向维什请求零件 →
+  修理 → 向奥里请求水 → 帮助罗文通关。资源不再来自拾取物/蓄水器。
+- **交互**：首版无语音，`G` 手势此时映射为 `gesture_fallback`，NPC 给最低生存档
+  （与 Web Beta 相同）；有语音能力时 `G` 手势只表达善意、不产出资源。
 - **存档**：Godot 桌面 `user://` 本地存档；不涉及浏览器站点数据。
 - **交付物**：
   - Windows：`stranger-desktop-beta.1-windows-x64.zip`（解压即玩）
@@ -86,7 +92,7 @@
 ### Phase 4 — 放量内测（持续）
 1. 先 2 个内部账号冒烟，再按 10–20 人放量。
 2. 收集问卷与日志；问题严重时回滚到上一构建/上一分支。
-3. 完成后评估 Phase 2：桌面语音增强版。
+3. 完成后评估云评分版（FR-29，§6）是否放量。
 
 ## 4. 发布门槛（数字）
 
@@ -108,10 +114,19 @@
 | Godot Windows 导出从 macOS 交叉打包异常 | 在 Windows 真机或 CI 复核；必要时增加 Windows 构建机 |
 | 调试端口/日志残留 | 复用 Web 禁用逻辑，验收检查监听端口 |
 
-## 6. 后续可选：桌面语音增强版（不在首版）
+## 6. 桌面语音增强版：云评分（FR-29，已实现代码侧）
 
-- 打包本地 `game/speech_service`（faster-whisper base.en）为随包 sidecar：
-  - macOS：PyInstaller 冻结 + 模型 145 MiB；
-  - Windows：需 Windows 构建环境交叉冻结；
-- 或改用 Godot 内建音频输入 + 新接口，避免 Python sidecar；
-- 始终保持手势完整可玩，语音服务失败静默降级。
+原“本地 sidecar”路线已被用户决策取代为**远程云评分**（与 Android/iOS
+cloud-speaking 同架构）：
+
+- 导出预设 `Windows Cloud Voice` / `macOS Cloud Voice`
+  （feature `stranger_cloud_voice`；macOS 开启 `audio_input`）。
+- 首次使用：暂停菜单 →「云评分激活」→ 输入运营者签发的一次性激活码
+  （`POST /register` 换每设备 token，仅存 `user://`）。
+- 评分请求：`POST /game/evaluate`（WAV + `X-Stranger-Target` + Bearer）。
+  桌面端用 `TLSOptions.client` 固定内置私有 CA：导出前必须把
+  `game/certs/nl_ca.pem` 放好（不入库，`*.pem` 已 gitignore）。
+- 服务器端部署见 cloud-speaking 分支 `server/README.md` 与 R-18 评审；
+  `server/game_refs/*.wav` 必须随代码 rsync。
+- 未激活/断网/失败自动退回 `gesture_fallback`，三日主线始终可通关。
+- 本地 `game/speech_service` 仅保留为开发模式（`stranger_cloud/enabled=false`）。

@@ -1,0 +1,61 @@
+[
+  {
+    "stage": "reduce-face-high",
+    "action": "SubmitReduceFaceJob",
+    "job_id": "1479140728986091520",
+    "status": "DONE",
+    "credits_consumed": null,
+    "input_url": "https://nativelingo-ai3d-1418160727.cos.ap-guangzhou.myqcloud.com/chr_npc_mira/v06/inputs/chr_npc_mira_hunyuan_v06_normalized.glb?<presigned>",
+    "request_ids": [
+      "a7949ab0-344b-40d8-96a5-af39f81d9942",
+      "d20dc7b7-6c4f-4983-8b7a-e6b79767c148"
+    ],
+    "finished_at": "2026-08-12T15:54:58Z",
+    "output_files": [
+      {
+        "label": "OBJ",
+        "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/cloud_raw/reduceface_high_00.obj",
+        "size_kb": 995.0
+      },
+      {
+        "label": "GLB",
+        "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/cloud_raw/reduceface_high_01.glb",
+        "size_kb": 499.9
+      },
+      {
+        "label": "IMAGE",
+        "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/cloud_raw/reduceface_high_02.bin",
+        "size_kb": 856.8
+      }
+    ],
+    "measures": [
+      {
+        "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/cloud_raw/reduceface_high_00.obj",
+        "size_kb": 995.0,
+        "error": "not GLB",
+        "label": "OBJ"
+      },
+      {
+        "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/cloud_raw/reduceface_high_01.glb",
+        "size_kb": 499.9,
+        "triangles": 28057,
+        "vertices": 14522,
+        "meshes": 1,
+        "materials": 0,
+        "skins": 0,
+        "animations": 0,
+        "morph_target_blocks": 0,
+        "nodes": 2,
+        "generator": "https://github.com/mikedh/trimesh",
+        "label": "GLB"
+      },
+      {
+        "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/cloud_raw/reduceface_high_02.bin",
+        "size_kb": 856.8,
+        "error": "not GLB",
+        "label": "IMAGE"
+      }
+    ],
+    "logged_at": "2026-08-12T15:54:59Z"
+  }
+]

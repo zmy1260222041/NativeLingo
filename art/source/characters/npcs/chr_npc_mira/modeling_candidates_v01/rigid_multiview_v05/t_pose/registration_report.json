@@ -1,0 +1,278 @@
+{
+  "schema": "mira_modeling_views.v1",
+  "pose": "t_pose",
+  "source": "raw/chr_npc_mira_t_pose_raw_v04.png",
+  "source_sha256": "e8886400970f378decb266cb9dc9e8b8ae822a0ca21f5d54c7f595c009852ef7",
+  "source_size": [
+    1774,
+    887
+  ],
+  "estimated_background_rgb": [
+    226.0,
+    225.0,
+    224.0
+  ],
+  "output_background_rgb": [
+    230,
+    230,
+    227
+  ],
+  "view_order": [
+    "front",
+    "character_left",
+    "back",
+    "character_right"
+  ],
+  "views": [
+    {
+      "index": 0,
+      "name": "front",
+      "source_x_range": [
+        20,
+        591
+      ],
+      "source_subject_bbox": [
+        20,
+        197,
+        571,
+        524
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        14,
+        62
+      ],
+      "scaled_subject_size": [
+        995,
+        900
+      ],
+      "output": "t_pose/chr_npc_mira_t_pose_front.png",
+      "sha256": "0638f5e04569b304759167aa41761c9d7b91b776475230c889f94c00dd2a07d5"
+    },
+    {
+      "index": 1,
+      "name": "character_left",
+      "source_x_range": [
+        615,
+        772
+      ],
+      "source_subject_bbox": [
+        615,
+        194,
+        157,
+        526
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        378,
+        62
+      ],
+      "scaled_subject_size": [
+        268,
+        900
+      ],
+      "output": "t_pose/chr_npc_mira_t_pose_character_left.png",
+      "sha256": "f4b522db08fd9c0e2a25765fe02ead99bb4f0c580515c01098327df9626ade28"
+    },
+    {
+      "index": 2,
+      "name": "back",
+      "source_x_range": [
+        823,
+        1392
+      ],
+      "source_subject_bbox": [
+        823,
+        197,
+        569,
+        525
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        17,
+        62
+      ],
+      "scaled_subject_size": [
+        989,
+        900
+      ],
+      "output": "t_pose/chr_npc_mira_t_pose_back.png",
+      "sha256": "8592ec4c91734831e0cf8f551b2098fca097bf10844861c5efd97daa7a36440a"
+    },
+    {
+      "index": 3,
+      "name": "character_right",
+      "source_x_range": [
+        1453,
+        1604
+      ],
+      "source_subject_bbox": [
+        1453,
+        193,
+        151,
+        527
+      ],
+      "canvas_size": [
+        1024,
+        1024
+      ],
+      "canvas_offset": [
+        378,
+        62
+      ],
+      "scaled_subject_size": [
+        268,
+        900
+      ],
+      "output": "t_pose/chr_npc_mira_t_pose_character_right.png",
+      "sha256": "ada9b44b3717471d9ab2098aaf5e738ca30b3f6f073e58b10c3ef04860fafea3"
+    }
+  ],
+  "contact_sheet": "chr_npc_mira_t_pose_turnaround.png",
+  "contact_sheet_sha256": "3c27db48539d0890f3ca346d715c97138d7e05fa33d909a521ced490ff4142ae",
+  "source_height_error_percent": 0.5692599620493358,
+  "prepared_height_error_percent": 0.0,
+  "subject_height_registration": {
+    "method": "uniform scale from actual keyed subject bbox",
+    "target_height_px": 900,
+    "corrections": [
+      {
+        "view": "front",
+        "source_height": 887,
+        "target_height": 900,
+        "uniform_scale_ratio": 1.0146561443066517
+      },
+      {
+        "view": "character_left",
+        "source_height": 887,
+        "target_height": 900,
+        "uniform_scale_ratio": 1.0146561443066517
+      },
+      {
+        "view": "back",
+        "source_height": 887,
+        "target_height": 900,
+        "uniform_scale_ratio": 1.0146561443066517
+      },
+      {
+        "view": "character_right",
+        "source_height": 886,
+        "target_height": 900,
+        "uniform_scale_ratio": 1.0158013544018059
+      }
+    ]
+  },
+  "profile_depth_registration": {
+    "method": "symmetric mean-width x-only registration of exact profiles",
+    "target_width_px": 268,
+    "corrections": [
+      {
+        "view": "character_left",
+        "source_width": 273,
+        "target_width": 268,
+        "x_scale_ratio": 0.9816849816849816
+      },
+      {
+        "view": "character_right",
+        "source_width": 262,
+        "target_width": 268,
+        "x_scale_ratio": 1.0229007633587786
+      }
+    ]
+  },
+  "drawn_ground_line": false,
+  "cross_pose_head_anchor": {
+    "method": "pixel-identical A-pose head core with soft neck/shoulder transition",
+    "canonical_pose": "a_pose",
+    "records": [
+      {
+        "a_top": 62,
+        "t_top_before": 62,
+        "head_roi": [
+          349,
+          62,
+          686,
+          242
+        ],
+        "core_height": 150,
+        "blend_height": 30,
+        "fully_canonical_pixels": 50887,
+        "blended_pixels": 9773,
+        "view": "front",
+        "a_source": "a_pose/chr_npc_mira_a_pose_front.png",
+        "t_output": "t_pose/chr_npc_mira_t_pose_front.png",
+        "t_output_sha256": "0638f5e04569b304759167aa41761c9d7b91b776475230c889f94c00dd2a07d5"
+      },
+      {
+        "a_top": 62,
+        "t_top_before": 62,
+        "head_roi": [
+          371,
+          62,
+          655,
+          242
+        ],
+        "core_height": 150,
+        "blend_height": 30,
+        "fully_canonical_pixels": 42884,
+        "blended_pixels": 8236,
+        "view": "character_left",
+        "a_source": "a_pose/chr_npc_mira_a_pose_character_left.png",
+        "t_output": "t_pose/chr_npc_mira_t_pose_character_left.png",
+        "t_output_sha256": "f4b522db08fd9c0e2a25765fe02ead99bb4f0c580515c01098327df9626ade28"
+      },
+      {
+        "a_top": 62,
+        "t_top_before": 62,
+        "head_roi": [
+          349,
+          62,
+          679,
+          242
+        ],
+        "core_height": 150,
+        "blend_height": 30,
+        "fully_canonical_pixels": 49830,
+        "blended_pixels": 9570,
+        "view": "back",
+        "a_source": "a_pose/chr_npc_mira_a_pose_back.png",
+        "t_output": "t_pose/chr_npc_mira_t_pose_back.png",
+        "t_output_sha256": "8592ec4c91734831e0cf8f551b2098fca097bf10844861c5efd97daa7a36440a"
+      },
+      {
+        "a_top": 62,
+        "t_top_before": 62,
+        "head_roi": [
+          368,
+          62,
+          654,
+          242
+        ],
+        "core_height": 150,
+        "blend_height": 30,
+        "fully_canonical_pixels": 43186,
+        "blended_pixels": 8294,
+        "view": "character_right",
+        "a_source": "a_pose/chr_npc_mira_a_pose_character_right.png",
+        "t_output": "t_pose/chr_npc_mira_t_pose_character_right.png",
+        "t_output_sha256": "ee6152ab9f211ef8d7d0660b8ad2768bbae3180b980de84c0a65d5fdfc0526fd"
+      }
+    ]
+  },
+  "right_profile_strap_projection_repair": {
+    "parent_variant": "rigid_multiview_v04",
+    "physical_owner_of_pouch": "character physical left hip",
+    "character_right_pouch_visible": false,
+    "visible_strap_segment": "upper segment from gold clasp ascending over physical-right shoulder",
+    "forbidden_segment_removed": "descent from clasp toward near-side/right hip"
+  }
+}

@@ -10,10 +10,20 @@
     "reference/figure_view_3.png"
   ],
   "source_sha256": "3b3d2eca868b989b00ca6d0d4ac414f1e2ee5e86df0596abc0fc34b1d97c42c6",
-  "source_size": [1492, 1054],
+  "source_size": [
+    1492,
+    1054
+  ],
   "primary_view": "front",
-  "view_order": ["front", "character_left", "back", "character_right"],
-  "registration_status": "REGISTERED_TARGET_HEIGHT_PENDING",
+  "view_order": [
+    "front",
+    "character_left",
+    "back",
+    "character_right"
+  ],
+  "registration_status": "REGISTERED_V03_GROUND_LINE_REPAIR_PASS_TARGET_HEIGHT_PENDING",
+  "legacy_registration_status": "REFERENCE_V01_SUPERSEDED_FOOT_PIXEL_ERASURE_DEFECT",
+  "registration_validation": "source_analysis/ground_line_repair_v03.json",
   "target_height_m": null,
   "physical_side_map": {
     "front_image_left": "character physical right",
@@ -26,14 +36,29 @@
   "expected_primary_parts": {
     "count": 23,
     "labels": [
-      "crescent_outer_shell", "inner_segmented_arc_track",
-      "upper_blue_segmented_neck", "suspended_head_shell",
-      "four_eye_face_panel", "profile_green_neck_bridge", "torso_core",
-      "upper_arm_left", "upper_arm_right", "forearm_left", "forearm_right",
-      "hand_left_three_digit", "hand_right_three_digit",
-      "upper_leg_left", "upper_leg_right", "knee_left", "knee_right",
-      "lower_leg_left", "lower_leg_right", "ankle_left", "ankle_right",
-      "foot_left_three_lobe", "foot_right_three_lobe"
+      "crescent_outer_shell",
+      "inner_segmented_arc_track",
+      "upper_blue_segmented_neck",
+      "suspended_head_shell",
+      "four_eye_face_panel",
+      "profile_green_neck_bridge",
+      "torso_core",
+      "upper_arm_left",
+      "upper_arm_right",
+      "forearm_left",
+      "forearm_right",
+      "hand_left_three_digit",
+      "hand_right_three_digit",
+      "upper_leg_left",
+      "upper_leg_right",
+      "knee_left",
+      "knee_right",
+      "lower_leg_left",
+      "lower_leg_right",
+      "ankle_left",
+      "ankle_right",
+      "foot_left_three_lobe",
+      "foot_right_three_lobe"
     ]
   },
   "structural_parts": [
@@ -50,7 +75,11 @@
     "one short closed mouth line"
   ],
   "texture_regions": [
-    "tide_teal", "tide_cyan", "moss_mint", "dusk_indigo", "dust_cream"
+    "tide_teal",
+    "tide_cyan",
+    "moss_mint",
+    "dusk_indigo",
+    "dust_cream"
   ],
   "validation_thresholds": {
     "front_mask_iou_min": 0.9,
@@ -60,6 +89,6 @@
     "ground_line_error_percent_max": 1.0,
     "front_back_height_difference_percent_max": 1.0
   },
-  "generation_policy": "The locked v06 sheet is the immutable shape source. Derived crops and measurements may not repaint it.",
+  "generation_policy": "The locked v06 sheet is immutable. Only reference may be used as derived modeling input; the root reference/figure_view files are the promoted v03 modeling inputs.",
   "runtime_export_allowed": false
 }

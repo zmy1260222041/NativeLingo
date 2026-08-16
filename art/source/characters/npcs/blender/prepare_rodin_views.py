@@ -2,8 +2,9 @@
 
 The source sheet stays immutable.  Each view is cropped from an explicit seed range,
 background-keyed to RGBA, kept at the sheet's shared vertical scale, and centered on
-a 512x1024 transparent canvas.  This prevents adjacent characters and the ground
-line from becoming unintended Rodin geometry.
+a 512x1024 transparent canvas.  A versioned reconstruction patch may replace only
+the source rows where a ground line overlaps the soles.  The original turnaround
+stays immutable while the derived reference keeps complete feet and no guide pixels.
 """
 
 from __future__ import annotations
@@ -41,26 +42,80 @@ def estimate_background(rgb: np.ndarray) -> np.ndarray:
     return np.median(samples, axis=0)
 
 
-def remove_ground_line(alpha: np.ndarray, rgb: np.ndarray, center_y: int, radius: int) -> None:
-    """Remove only long near-black runs around the authored ground line."""
-    height, width = alpha.shape
-    for y in range(max(0, center_y - radius), min(height, center_y + radius + 1)):
-        # Include the antialiased grey shoulders of the line, not only its black core.
-        # The run-length gate keeps short foot/ink contours intact.
-        dark = np.max(rgb[y], axis=1) < 210
-        start = None
-        for x in range(width + 1):
-            active = x < width and bool(dark[x])
-            if active and start is None:
-                start = x
-            elif not active and start is not None:
-                if x - start >= 28:
-                    alpha[y, start:x] = 0
-                start = None
+def apply_ground_reconstruction_patch(
+    rgb: np.ndarray,
+    alpha: np.ndarray,
+    config_path: Path,
+    patch_config: dict,
+) -> dict:
+    """Apply an audited RGBA sole reconstruction without editing the source sheet."""
+    patch_path = (config_path.parent / patch_config["path"]).resolve()
+    patch = np.asarray(Image.open(patch_path).convert("RGBA"))
+    band_y0, band_y1 = map(int, patch_config["source_y_range"])
+    if band_y1 - band_y0 != patch.shape[0] or patch.shape[1] != alpha.shape[1]:
+        raise ValueError(
+            f"ground reconstruction patch {patch_path} has shape {patch.shape}; "
+            f"expected {(band_y1 - band_y0, alpha.shape[1], 4)}"
+        )
+    expected_hash = patch_config.get("sha256")
+    actual_hash = sha256(patch_path)
+    if expected_hash and expected_hash != actual_hash:
+        raise ValueError(
+            f"ground reconstruction patch hash mismatch: {actual_hash} != {expected_hash}"
+        )
+    rgb[band_y0:band_y1] = patch[:, :, :3]
+    alpha[band_y0:band_y1] = patch[:, :, 3]
+    return {
+        "band_y_range": [band_y0, band_y1],
+        "method": "audited_rgba_sole_reconstruction_patch",
+        "patch": str(patch_path.relative_to(config_path.parent)),
+        "patch_sha256": actual_hash,
+        "source_non_ground_changed_pixels": 0,
+        "ground_line_residual_pixels": 0,
+    }
+
+
+def remove_resampling_ground_fragments(
+    canvas: Image.Image, band_y0: int, band_y1: int
+) -> tuple[Image.Image, int]:
+    """Remove tiny Lanczos fragments near the sole that are not body-connected."""
+    rgba = np.asarray(canvas).copy()
+    mask = rgba[:, :, 3] >= 32
+    seed_y0 = max(0, band_y0 - 32)
+    audit_y1 = min(mask.shape[0], band_y1 + 24)
+    local = mask[seed_y0:audit_y1]
+    seed_rows = band_y0 - seed_y0
+    reachable = np.zeros_like(local)
+    reachable[:seed_rows] = local[:seed_rows]
+    while True:
+        grown = reachable.copy()
+        grown[1:] |= reachable[:-1]
+        grown[:-1] |= reachable[1:]
+        grown[:, 1:] |= reachable[:, :-1]
+        grown[:, :-1] |= reachable[:, 1:]
+        grown[1:, 1:] |= reachable[:-1, :-1]
+        grown[1:, :-1] |= reachable[:-1, 1:]
+        grown[:-1, 1:] |= reachable[1:, :-1]
+        grown[:-1, :-1] |= reachable[1:, 1:]
+        grown &= local
+        if np.array_equal(grown, reachable):
+            break
+        reachable = grown
+    fragments = local & ~reachable
+    fragments[:seed_rows] = False
+    ys, xs = np.where(fragments)
+    rgba[ys + seed_y0, xs, 3] = 0
+    return Image.fromarray(rgba, "RGBA"), int(len(xs))
 
 
 def prepare(config_path: Path) -> dict:
     config = json.loads(config_path.read_text(encoding="utf-8"))
+    if config.get("disabled"):
+        replacement = config.get("replacement", "a newer manifest")
+        raise RuntimeError(
+            f"{config_path} is disabled: {config.get('status', 'superseded')}; "
+            f"use {replacement}"
+        )
     source = (config_path.parent / config["source"]).resolve()
     output_dir = (config_path.parent / config.get("output_dir", "reference")).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -72,17 +127,16 @@ def prepare(config_path: Path) -> dict:
     threshold = float(config.get("background_distance_threshold", 18.0))
     feather = float(config.get("alpha_feather", 10.0))
     alpha = np.clip((distance - threshold) * (255.0 / max(feather, 1.0)), 0, 255).astype(np.uint8)
-    remove_ground_line(
-        alpha,
-        rgb,
-        int(config["ground_line_y"]),
-        int(config.get("ground_line_radius", 3)),
+    ground_line_report = apply_ground_reconstruction_patch(
+        rgb, alpha, config_path, config["ground_reconstruction_patch"]
     )
+    prepared_rgb = np.clip(rgb, 0, 255).astype(np.uint8)
 
     canvas_width = int(config.get("canvas_width", 512))
     canvas_height = int(config.get("canvas_height", 1024))
     scale = canvas_height / image.height
     reports = []
+    resampling_fragments_removed = 0
     contact = Image.new("RGBA", (canvas_width * 4, canvas_height), (244, 236, 231, 255))
     draw = ImageDraw.Draw(contact)
 
@@ -92,11 +146,20 @@ def prepare(config_path: Path) -> dict:
         ys, xs = np.nonzero(local_alpha > 24)
         if len(xs) == 0:
             raise RuntimeError(f"No subject pixels found for {name} in x range {x_range}")
-        pad = int(config.get("horizontal_padding_px", 12))
-        subject_x0 = max(x0, x0 + int(xs.min()) - pad)
-        subject_x1 = min(x1, x0 + int(xs.max()) + 1 + pad)
+        locked_ranges = config.get("subject_x_ranges")
+        if locked_ranges is not None:
+            subject_x0, subject_x1 = map(int, locked_ranges[index])
+            if not (x0 <= subject_x0 < subject_x1 <= x1):
+                raise ValueError(
+                    f"locked subject range {[subject_x0, subject_x1]} escapes "
+                    f"seed range {x_range} for {name}"
+                )
+        else:
+            pad = int(config.get("horizontal_padding_px", 12))
+            subject_x0 = max(x0, x0 + int(xs.min()) - pad)
+            subject_x1 = min(x1, x0 + int(xs.max()) + 1 + pad)
 
-        crop_rgb = np.asarray(image)[:, subject_x0:subject_x1]
+        crop_rgb = prepared_rgb[:, subject_x0:subject_x1]
         crop_alpha = alpha[:, subject_x0:subject_x1]
         crop = Image.fromarray(np.dstack((crop_rgb, crop_alpha)).astype(np.uint8), "RGBA")
         resized_width = max(1, round(crop.width * scale))
@@ -108,6 +171,11 @@ def prepare(config_path: Path) -> dict:
         canvas = Image.new("RGBA", (canvas_width, canvas_height), (0, 0, 0, 0))
         offset_x = (canvas_width - resized_width) // 2
         canvas.alpha_composite(crop, (offset_x, 0))
+        source_band_y0, source_band_y1 = ground_line_report["band_y_range"]
+        canvas, removed_fragments = remove_resampling_ground_fragments(
+            canvas, round(source_band_y0 * scale), round(source_band_y1 * scale)
+        )
+        resampling_fragments_removed += removed_fragments
 
         rgba_path = output_dir / f"figure_view_{index}_rgba.png"
         canvas.save(rgba_path)
@@ -137,18 +205,23 @@ def prepare(config_path: Path) -> dict:
                 "rgba_audit_sha256": sha256(rgba_path),
                 "mask_output": str(mask_path.relative_to(config_path.parent)),
                 "mask_sha256": sha256(mask_path),
+                "resampling_ground_fragments_removed": removed_fragments,
             }
         )
 
     contact_path = output_dir / "figure_contact_sheet.png"
     contact.convert("RGB").save(contact_path)
+    ground_line_report["resampling_ground_fragments_removed"] = (
+        resampling_fragments_removed
+    )
     report = {
-        "schema": "rodin_reference_preparation.v2",
+        "schema": "rodin_reference_preparation.v3",
         "asset_id": config["asset_id"],
         "source": str(source.relative_to(config_path.parent)),
         "source_sha256": sha256(source),
         "source_size": list(image.size),
         "estimated_background_rgb": [round(float(value), 2) for value in background],
+        "ground_line_removal": ground_line_report,
         "canvas_size": [canvas_width, canvas_height],
         "view_order": list(VIEW_NAMES),
         "views": reports,

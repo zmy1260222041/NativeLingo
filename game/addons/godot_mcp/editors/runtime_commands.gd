@@ -419,7 +419,7 @@ func capture_frames(params: Dictionary) -> Dictionary:
 		return { "error": { "code": ERR_NO_MAIN_LOOP, "message": "Failed to capture image" } }
 
 	# Resize to avoid huge payloads and timeout during encoding
-	var max_dim = 800
+	var max_dim = clampi(int(params.get("max_dim", 800)), 160, 1920)
 	if img.get_width() > max_dim or img.get_height() > max_dim:
 		var new_width = img.get_width()
 		var new_height = img.get_height()

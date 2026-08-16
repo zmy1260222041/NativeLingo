@@ -119,10 +119,26 @@ func _ready() -> void:
 	_expect(hud.get_node("UIRoot/CompletionOverlay").visible and get_tree().paused, "Restored completion state reopens its modal")
 	hud._dismiss_completion()
 	GameState.game_finished = false
+	var scored_expression: Dictionary = SpeechAdapter._extract_expression({
+		"accepted": true,
+		"text": "can i have some food please",
+		"pronunciation": 95.0,
+		"delivery": 100.0,
+		"score": 97.5,
+		"band": "generous",
+		"pronunciation_source": "reference_dtw",
+	})
+	_expect(float(scored_expression.get("pronunciation", -1.0)) == 95.0
+		and float(scored_expression.get("delivery", -1.0)) == 100.0
+		and str(scored_expression.get("pronunciation_source", "")) == "reference_dtw",
+		"FR-28: SpeechAdapter forwards pronunciation, delivery, and their source")
+	_expect(SpeechAdapter._extract_expression({}).is_empty(), "FR-28: a legacy payload yields no fake scores")
 	var speech_started := SpeechAdapter.start_recording("mira")
 	_expect(not speech_started and SpeechAdapter.is_recovery_active() and GameState.interaction_time_frozen, "Unavailable microphone enters persistent recovery without time cost")
+	_expect(SpeechAdapter.runtime_speech_unavailable(), "FR-28: a failed mic attempt arms the minimum-survival gesture fallback")
 	SpeechAdapter.cancel_recording()
 	_expect(not SpeechAdapter.is_interaction_active() and not GameState.interaction_time_frozen, "Cancelling speech recovery restores gameplay time")
+	_expect(SpeechAdapter.runtime_speech_unavailable(), "FR-28: fallback stays armed until a later voice attempt proves the channel works")
 	hud._open_pause()
 	resume_button.grab_focus()
 	hud._close_pause()

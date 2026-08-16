@@ -28,16 +28,14 @@ func _init() -> void:
 func _test_day_one(state: Node) -> void:
 	_expect(state.objective_text().contains("米拉"), "Day 1 begins with Mira")
 	state.interact("npc", "mira", "gesture")
-	state.interact("berry", "berry_a")
-	state.interact("berry", "berry_b")
+	state.interact("npc", "tavi", "voice", _expression(100.0))
 	state.interact("shelter", "shelter")
-	_expect(state.day == 2, "Day 1 can be completed")
+	_expect(state.day == 2, "Day 1 can be completed through a voiced food request")
 
 func _test_day_two(state: Node) -> void:
-	state.interact("scrap", "scrap_a")
-	state.interact("scrap", "scrap_b")
+	state.interact("npc", "vesh", "voice", _expression(100.0))
 	state.interact("heater", "heater")
-	_expect(state.heater_repaired, "Heater accepts two scrap")
+	_expect(state.heater_repaired, "Heater accepts two voiced-for scrap parts")
 	state.interact("shelter", "shelter")
 	_expect(state.day == 3, "Day 2 can be completed")
 
@@ -48,7 +46,7 @@ func _test_memory_changes_later_feedback() -> void:
 	var first := _capture_message(state, func(): state.interact("npc", "mira", "gesture"))
 	_expect(first.contains("Welcome") or first.contains("手势"), "First Mira beat uses the welcome / gesture path")
 	var later := _capture_message(state, func(): state.interact("npc", "mira", "gesture"))
-	_expect(later.contains("暮果") or later.contains("duskberr"), "After greeting, Mira points to food instead of repeating welcome")
+	_expect(later.contains("塔维") or later.contains("Tavi") or later.contains("食物") or later.contains("food"), "After greeting, Mira points to the food supplier instead of repeating welcome")
 	var tavi := _capture_message(state, func(): state.interact("npc", "tavi", "gesture"))
 	_expect(tavi.contains("Tavi") or tavi.contains("塔维") or tavi.contains("暮果") or tavi.contains("duskberr"), "Tavi is identifiable and gives a food hint")
 
@@ -73,8 +71,18 @@ func _capture_message(state: Node, action: Callable) -> String:
 	return captured[0]
 
 
+func _expression(score: float) -> Dictionary:
+	return {
+		"score": score,
+		"pronunciation": score,
+		"delivery": score,
+		"band": "generous" if score >= 70.0 else ("sparse" if score >= 40.0 else "none"),
+		"pronunciation_source": "test",
+	}
+
+
 func _test_language_fallback(state: Node) -> void:
-	state.interact("water", "reservoir")
+	state.interact("npc", "ori", "gesture_fallback")
 	state.interact("npc", "rowan", "gesture")
 	_expect(state.game_finished, "Gesture fallback completes the key interaction")
 	_expect(int(state.relationships["rowan"]) == 3, "Helping Rowan creates relationship memory")

@@ -1,5 +1,5 @@
 {
-  "schema": "rodin_reference_preparation.v2",
+  "schema": "rodin_reference_preparation.v3",
   "asset_id": "chr_npc_rowan",
   "source": "reference/turnaround_source.png",
   "source_sha256": "194dc52ffe29d6248b6548bb0b113f6c0293f82aac96448b2fa8c64e76cdc55b",
@@ -12,6 +12,18 @@
     221.0,
     221.0
   ],
+  "ground_line_removal": {
+    "band_y_range": [
+      970,
+      974
+    ],
+    "method": "audited_rgba_sole_reconstruction_patch",
+    "patch": "source_analysis/ground_line_foot_reconstruction_v03_rgba.png",
+    "patch_sha256": "affc4204b206af9159beb5e32e392fe847e7a81ddd6e6679a57b7e55358a432b",
+    "source_non_ground_changed_pixels": 0,
+    "ground_line_residual_pixels": 0,
+    "resampling_ground_fragments_removed": 0
+  },
   "canvas_size": [
     512,
     1024
@@ -32,20 +44,21 @@
       ],
       "subject_x_range": [
         31,
-        450
+        434
       ],
       "source_vertical_range": [
         0,
         1055
       ],
       "shared_scale": 0.9706161137440759,
-      "canvas_offset_x": 52,
+      "canvas_offset_x": 60,
       "output": "reference/figure_view_0.png",
-      "sha256": "c213b916949a9c06505bb50abfe03caafceee91bc7ee222225832bbdd2bbd3d4",
+      "sha256": "7842a35bd4b5edb8ceed7e4abaaf81ac06c1bc1f6d65aa881dac64602b382cdf",
       "rgba_audit_output": "reference/figure_view_0_rgba.png",
-      "rgba_audit_sha256": "17aec25a2d9471925b96077ac0ea047fc9accb9cb435579f2a52c8e3b7867e26",
+      "rgba_audit_sha256": "37477399ba6f911b03dae489c87579ee56cc70cd4827736afdea26eb13ec73e5",
       "mask_output": "reference/figure_view_0_mask.png",
-      "mask_sha256": "e1f8c8df209851ecb8275d2e94ab3a6b47dd58d9041bff4348020cd3da597e8c"
+      "mask_sha256": "a7621620000b9ce6628cc894d1db4235ff4a5050acbd5f67330c0992ffb2878c",
+      "resampling_ground_fragments_removed": 0
     },
     {
       "index": 1,
@@ -55,21 +68,22 @@
         680
       ],
       "subject_x_range": [
-        450,
-        680
+        454,
+        657
       ],
       "source_vertical_range": [
         0,
         1055
       ],
       "shared_scale": 0.9706161137440759,
-      "canvas_offset_x": 144,
+      "canvas_offset_x": 157,
       "output": "reference/figure_view_1.png",
-      "sha256": "ed67163b455c775e93803d5a6f979c46a6044c67d56575f6aba8fb7ecd0c7469",
+      "sha256": "8ec8766407094b9d007e7bc45241e6c067ee53823d91667d928e0cf0411239f3",
       "rgba_audit_output": "reference/figure_view_1_rgba.png",
-      "rgba_audit_sha256": "1605e9cb9871fd77b8933cb66552d9d2e98c9f86ee7f4ce008ce36b18515b2db",
+      "rgba_audit_sha256": "c93eab93b5c94fdc7cca313e1fbb4c4eb08e3d65677d11c1b2f195fe06e0aea5",
       "mask_output": "reference/figure_view_1_mask.png",
-      "mask_sha256": "0e9f88cf306cd5a14ccb5b00c308340c5ef148e5be89e9c4db0112f0e21e4d15"
+      "mask_sha256": "6228f35436a5c29e589e522c599a6d37ecc85ad316290bb91aefc618000b8f85",
+      "resampling_ground_fragments_removed": 0
     },
     {
       "index": 2,
@@ -79,21 +93,22 @@
         1130
       ],
       "subject_x_range": [
-        680,
-        1130
+        698,
+        1111
       ],
       "source_vertical_range": [
         0,
         1055
       ],
       "shared_scale": 0.9706161137440759,
-      "canvas_offset_x": 37,
+      "canvas_offset_x": 55,
       "output": "reference/figure_view_2.png",
-      "sha256": "323256f7c34eb5ca184d896173021710695dbf50455753e98005c16f4c835cb6",
+      "sha256": "a3b31fa5dc5037185c02ae61d93497ba0af4ebd3b681bbfce9ae7aceb03c81d1",
       "rgba_audit_output": "reference/figure_view_2_rgba.png",
-      "rgba_audit_sha256": "3032ce0bf3feff21635ec695e8d34fe78ee43bbfbf882f5a91896331ce64dbd1",
+      "rgba_audit_sha256": "f76987dc69fc9b2ff89429101eec5423159de2636fba1e04ad8ec28cd709adff",
       "mask_output": "reference/figure_view_2_mask.png",
-      "mask_sha256": "ea8055f38d8f9ab468f6114727b7bb57c6abe8b23536e80b9e63ddbf8e722e4a"
+      "mask_sha256": "97e7d3669a0dee652674760d9bb714c32c46d31a7eafe77514e9751ccbe8471d",
+      "resampling_ground_fragments_removed": 0
     },
     {
       "index": 3,
@@ -103,23 +118,24 @@
         1491
       ],
       "subject_x_range": [
-        1130,
-        1435
+        1157,
+        1366
       ],
       "source_vertical_range": [
         0,
         1055
       ],
       "shared_scale": 0.9706161137440759,
-      "canvas_offset_x": 108,
+      "canvas_offset_x": 154,
       "output": "reference/figure_view_3.png",
-      "sha256": "f766a3c11c8963ae76cca183151a4910b56716f1024ac303dda9218d76fb709e",
+      "sha256": "f661aaf4fff33e87b23c207e195d16fd1bc7a9f117dc414331cf5eb6730efb93",
       "rgba_audit_output": "reference/figure_view_3_rgba.png",
-      "rgba_audit_sha256": "2f8b88223ba790d231bf3ea6f8c7e6b79982f1ca0fb5d5d4e55c8e23f2f60a1a",
+      "rgba_audit_sha256": "1d81087def35e07db013cc10d9de192f68856219f509ab080f7408997b61b10d",
       "mask_output": "reference/figure_view_3_mask.png",
-      "mask_sha256": "09e7137841f506ecf00d96db8c637fe1fa37519c2cac93fceef5d05508cf73e1"
+      "mask_sha256": "74a47ec8b7e369023c9593389d60bc9af53abc1a4e5c8f1e289243a9c110ff40",
+      "resampling_ground_fragments_removed": 0
     }
   ],
   "contact_sheet": "reference/figure_contact_sheet.png",
-  "contact_sheet_sha256": "cdeb29a65662eb8451e53d33f9c98b55653882225ef2fd33c765eeea21b37b00"
+  "contact_sheet_sha256": "04cbaab8c9eb0f52b263aa4bead62b4efd7ed9c6dfbb465d4704122e3dd01551"
 }

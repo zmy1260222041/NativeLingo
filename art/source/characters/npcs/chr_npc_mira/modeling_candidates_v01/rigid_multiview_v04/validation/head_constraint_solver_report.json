@@ -1,0 +1,101 @@
+{
+  "schema": "multiview_constraint_report.v1",
+  "tolerance": 0.05,
+  "views_present": [
+    "back",
+    "front",
+    "side"
+  ],
+  "dimensions_by_axis": {
+    "X": [
+      {
+        "view": "front",
+        "value": 240.0
+      },
+      {
+        "view": "back",
+        "value": 232.0
+      }
+    ],
+    "Z": [
+      {
+        "view": "front",
+        "value": 110.0
+      },
+      {
+        "view": "side",
+        "value": 110.0
+      },
+      {
+        "view": "back",
+        "value": 110.0
+      }
+    ],
+    "Y": [
+      {
+        "view": "side",
+        "value": 190.0
+      }
+    ]
+  },
+  "ratios": {
+    "side_depth_height": 1.7272727272727273
+  },
+  "comparisons": [
+    {
+      "axis": "X",
+      "a": {
+        "view": "front",
+        "value": 240.0
+      },
+      "b": {
+        "view": "back",
+        "value": 232.0
+      },
+      "relative_delta": 0.03333333333333333,
+      "pass": true
+    },
+    {
+      "axis": "Z",
+      "a": {
+        "view": "front",
+        "value": 110.0
+      },
+      "b": {
+        "view": "side",
+        "value": 110.0
+      },
+      "relative_delta": 0.0,
+      "pass": true
+    },
+    {
+      "axis": "Z",
+      "a": {
+        "view": "front",
+        "value": 110.0
+      },
+      "b": {
+        "view": "back",
+        "value": 110.0
+      },
+      "relative_delta": 0.0,
+      "pass": true
+    },
+    {
+      "axis": "Z",
+      "a": {
+        "view": "side",
+        "value": 110.0
+      },
+      "b": {
+        "view": "back",
+        "value": 110.0
+      },
+      "relative_delta": 0.0,
+      "pass": true
+    }
+  ],
+  "conflicts": [],
+  "all_pass": true,
+  "suggested_policy": "pass_all_views"
+}

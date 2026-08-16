@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://clm7kynqm6ccs"
 path.s3tc="res://.godot/imported/prp_monolith_a_tex_monolith_glyph_1k.png-088c5502812358c9b130a6fc1ef355de.s3tc.ctex"
+path.etc2="res://.godot/imported/prp_monolith_a_tex_monolith_glyph_1k.png-088c5502812358c9b130a6fc1ef355de.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/prp_monolith_a_tex_monolith_glyph_1k.png"
-dest_files=["res://.godot/imported/prp_monolith_a_tex_monolith_glyph_1k.png-088c5502812358c9b130a6fc1ef355de.s3tc.ctex"]
+dest_files=["res://.godot/imported/prp_monolith_a_tex_monolith_glyph_1k.png-088c5502812358c9b130a6fc1ef355de.s3tc.ctex", "res://.godot/imported/prp_monolith_a_tex_monolith_glyph_1k.png-088c5502812358c9b130a6fc1ef355de.etc2.ctex"]
 
 [params]
 

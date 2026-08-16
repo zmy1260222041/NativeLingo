@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://blbq1hmi44pt1"
 path.s3tc="res://.godot/imported/env_shelter_distant_a_tex_shell_n_1k.png-eb5600b2a28d4427565f49c1223d721b.s3tc.ctex"
+path.etc2="res://.godot/imported/env_shelter_distant_a_tex_shell_n_1k.png-eb5600b2a28d4427565f49c1223d721b.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/env_shelter_distant_a_tex_shell_n_1k.png"
-dest_files=["res://.godot/imported/env_shelter_distant_a_tex_shell_n_1k.png-eb5600b2a28d4427565f49c1223d721b.s3tc.ctex"]
+dest_files=["res://.godot/imported/env_shelter_distant_a_tex_shell_n_1k.png-eb5600b2a28d4427565f49c1223d721b.s3tc.ctex", "res://.godot/imported/env_shelter_distant_a_tex_shell_n_1k.png-eb5600b2a28d4427565f49c1223d721b.etc2.ctex"]
 
 [params]
 

@@ -1,0 +1,22 @@
+{
+  "schema": "mira_reduceface_submission.v1",
+  "submitted_at_utc": "2026-08-14T07:40:13.044806+00:00",
+  "action": "SubmitReduceFaceJob",
+  "job_id": "1479745472872022016",
+  "request_id": "6bf980cf-e98b-480d-84e9-bdb80caeba93",
+  "input": {
+    "file": null,
+    "bytes": 4391376,
+    "sha256": "3f7b9e46e370b18cd3bc66b0f9deac221ceb58673b76af531ee2afec02748973",
+    "topology_gate": "historical closed candidate audited before submission",
+    "retention": "REMOVED_AFTER_VISUAL_REJECTION",
+    "policy": "Do not reproduce this whole-character volumetric reconstruction route."
+  },
+  "parameters": {
+    "File3D.Type": "GLB",
+    "FaceLevel": "high",
+    "PolygonType": "triangle"
+  },
+  "input_url": "<historical presigned URL redacted>",
+  "credentials": "read externally at runtime; not stored in this record"
+}

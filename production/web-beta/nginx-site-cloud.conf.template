@@ -1,0 +1,120 @@
+# Stranger Web Cloud Voice — Nginx site template (FR-29).
+# Separate from the no-voice beta site: this one ALLOWS the microphone and
+# proxies /game/ to the self-hosted scoring server on the same origin.
+# Replace ${DOMAIN} via envsubst before installing.
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name voice.${DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name voice.${DOMAIN};
+
+    # Cloud-voice build directory (separate from the no-voice releases).
+    root /srv/nativelingo/current-cloud;
+    index index.html;
+
+    ssl_certificate     /etc/letsencrypt/live/voice.${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/voice.${DOMAIN}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    # Same tester accounts as the no-voice beta.
+    auth_basic "Stranger Web Beta";
+    auth_basic_user_file /srv/nativelingo/accounts.htpasswd;
+
+    log_format nativelingo '$remote_user - $remote_addr [$time_local] '
+                           '"$request" $status $body_bytes_sent '
+                           '"$http_user_agent"';
+    access_log /var/log/nginx/nativelingo_cloud_access.log nativelingo;
+    error_log  /var/log/nginx/nativelingo_cloud_error.log warn;
+
+    # microphone=(self): THIS build is allowed to record. The no-voice site
+    # keeps microphone=() and must never be weakened.
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Permissions-Policy "camera=(), microphone=(self), geolocation=(), usb=(), payment=()" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self'; media-src 'self' blob:; img-src 'self' data: blob:; style-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    types {
+        text/html   html;
+        application/javascript js;
+        application/wasm wasm;
+        application/octet-stream pck;
+        image/png   png;
+        image/svg+xml svg;
+    }
+
+    gzip_static on;
+    gzip_vary on;
+
+    location = /index.html {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+    }
+
+    location = /index.js {
+        add_header Cache-Control "public, max-age=3600";
+    }
+
+    location ~* \.wasm$ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    location ~* \.pck$ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    location ~* \.(png|jpg|svg|ico)$ {
+        add_header Cache-Control "public, max-age=86400";
+    }
+
+    location = /SHA256SUMS {
+        add_header Cache-Control "no-store";
+    }
+
+    location = /build-info.json {
+        add_header Cache-Control "no-store";
+    }
+
+    # Same-origin proxy to the cloud scoring server.
+    # Variant A (scoring server ON THIS web box):
+    #   proxy_pass https://127.0.0.1:8756;
+    # Variant B (separate box, existing 124.220.234.178:8756):
+    #   proxy_pass https://124.220.234.178:8756;
+    #   proxy_ssl_verify off;   # only because its cert is private-CA signed;
+    #                           # the browser leg stays Let's Encrypt TLS
+    location /game/ {
+        proxy_pass https://127.0.0.1:8756;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Authorization $http_authorization;
+        proxy_request_buffering on;
+        proxy_buffering off;
+        client_max_body_size 10m;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 120s;
+        add_header Cache-Control "no-store";
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}

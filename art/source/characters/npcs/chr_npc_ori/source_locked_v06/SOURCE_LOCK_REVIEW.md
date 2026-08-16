@@ -1,6 +1,6 @@
 # Ori v06 — source-lock approval
 
-Status: `SOURCE_LOCKED_USER_APPROVED / REGISTRATION_PASS / TARGET_HEIGHT_PENDING`
+Status: `SOURCE_LOCKED_USER_APPROVED / REGISTRATION_V03_PASS / TARGET_HEIGHT_PENDING`
 
 ## Approval
 
@@ -23,6 +23,12 @@ cleaned on 2026-08-12. The canonical source is
 
 ## Registration evidence
 
+- The original v01 registered splits were found to erase supported sole pixels
+  during ground-line removal. They are superseded and prohibited as modeling input.
+- `reference/` reconstructs only the source rows contaminated by
+  the ground line, including the line pixels crossing foot silhouettes.
+- Source-space repair gates report zero changes outside that band, zero residual
+  guide pixels and zero unconnected fragments in every registered view.
 - All four views use shared scale `0.9715370018975332` on 512×1024 canvases.
 - All four ground points resolve to y=952; baseline drift is 0 px.
 - Front/back registered heights are 874/875 px; difference is 1 px.

@@ -1,0 +1,57 @@
+{
+  "schema": "ground_line_reconstruction_patch.v1",
+  "asset_id": "chr_npc_rowan",
+  "source": "reference/turnaround_source.png",
+  "source_sha256": "194dc52ffe29d6248b6548bb0b113f6c0293f82aac96448b2fa8c64e76cdc55b",
+  "repair_y_range": [
+    970,
+    974
+  ],
+  "view_x_ranges": [
+    [
+      0,
+      450
+    ],
+    [
+      450,
+      680
+    ],
+    [
+      680,
+      1130
+    ],
+    [
+      1130,
+      1491
+    ]
+  ],
+  "guide_kind": "builtin_imagegen_precise_object_edit_segmentation_only",
+  "guide_sha256": "ebafab93c861d808f8b43fdabf9e1fd1e5a92b34e1b46e100532d43f27f3ead7",
+  "guide_alignment_xy": [
+    [
+      0,
+      0
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      0
+    ]
+  ],
+  "patch": "source_analysis/ground_line_foot_reconstruction_v03_rgba.png",
+  "patch_sha256": "affc4204b206af9159beb5e32e392fe847e7a81ddd6e6679a57b7e55358a432b",
+  "mask": "source_analysis/ground_line_foot_reconstruction_v03_mask.png",
+  "mask_sha256": "05fe9412fece508c45eddaa97acb9a22c674966820f49240464d2e691fadb730",
+  "invariants": {
+    "source_pixels_outside_repair_y_range_changed": 0,
+    "final_character_pixels_outside_repair_y_range_from_generated_guide": 0,
+    "background_ground_line_pixels_in_patch": 0
+  }
+}

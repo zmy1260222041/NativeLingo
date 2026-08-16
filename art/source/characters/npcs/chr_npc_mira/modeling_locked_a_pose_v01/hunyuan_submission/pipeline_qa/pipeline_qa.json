@@ -1,0 +1,62 @@
+{
+  "schema": "mira_a_pose_reduceface_pipeline_qa.v1",
+  "scope": "Review only. No source lock, source PNG, or cloud GLB was modified.",
+  "reviewed_input": {
+    "file": "../mira_a_pose_hunyuan3d_pro.glb",
+    "sha256": "e5fddc7dacef075b01e427dd9b6d4a972960b7a5bb4ee15acc455fc7e4cf8377",
+    "bytes": 32863108,
+    "format": "GLB",
+    "import_status": "PASS"
+  },
+  "visual_review": {
+    "status": "CONDITIONAL_FAIL_FOR_DOWNSTREAM_TOPOLOGY",
+    "manual_structural_constraints": {
+      "two_layer_head": "PASS — upper/lower head shells read in front, both profiles, and back",
+      "harness_continuity": "PASS — visible as one front-to-back diagonal strap",
+      "pouch_physical_left_only": "PASS — visible in front/character-left/back; absent in character-right",
+      "ankle_rings_and_split_wedge_feet": "PASS — ring and foot landmarks are visible in every view"
+    },
+    "registered_silhouette_evidence": "validation/front_mask_validation.json",
+    "registered_silhouette_iou": {
+      "front": 0.8008,
+      "character_left": 0.7787,
+      "back": 0.7535,
+      "character_right": 0.7057,
+      "target": 0.82,
+      "result": "FAIL — model is recognizably consistent, but not yet a sufficiently close reconstruction to freeze before destructive topology work."
+    }
+  },
+  "topology_review": {
+    "status": "NO_GO_FOR_DIRECT_REDUCEFACE",
+    "source_metrics": {
+      "vertices": 302478,
+      "faces": 499938,
+      "connected_components": 2360,
+      "boundary_edges": 101816,
+      "non_manifold_edges": 101816,
+      "loose_vertices": 0
+    },
+    "why": "The current mesh is an open, fragmented surface representation. Smart decimation can submit and finish on such a GLB, but it has no reliable basis for preserving thin shells, strap boundaries, rings, and finger gaps."
+  },
+  "reduceface_api_check": {
+    "official_api_contract": "SubmitReduceFaceJob accepts File3D.Type and File3D.Url; the published request schema does not document a manifold/watertight precondition.",
+    "project_empirical_evidence": "Mira v06 submitted a similarly fragmented Hunyuan GLB (2087 components / 108488 non-manifold edges) and returned DONE, but its ReduceFace output was later audited as hole-prone. Therefore API acceptance is not a topology quality gate.",
+    "operational_hard_gate": "The immutable Hunyuan mesh is a visual/bake source, not a topology-repair target. Do not use whole-character voxel/SDF reconstruction or other global surface resampling. A downstream candidate must use part-aware manual retopology or precisely bounded local edits, then pass 0 boundary edges, 0 non-manifold edges, 0 loose vertices, no self intersections, and the visual gates."
+  },
+  "next_step": {
+    "decision": "NO_GO",
+    "recommended_route": [
+      "Keep the Hunyuan GLB immutable as the visual and bake authority; do not attempt to close all 2,360 source patches into one global surface.",
+      "Build the runtime mesh by part-aware manual retopology with explicit separation for head layers, shoulder plates, harness, pouch, ankle rings, fingers, and split toes.",
+      "When a downstream ReduceFace result has a small, fully enumerated defect set, repair only those faces and edges without moving vertices or changing bounds.",
+      "Bake/project texture and detail from the immutable Hunyuan source only after topology and four-view fit are accepted.",
+      "Audit every exported GLB after re-import before UV, rigging, medium/low LOD, or runtime promotion."
+    ],
+    "reject_conditions": [
+      "any open boundary or non-manifold edge after retopology/local repair export",
+      "pouch appears in character-right profile or moves from physical-left hip",
+      "harness discontinuity, head layers fuse, ankle rings fuse/open, or split toe gap closes",
+      "any four-view silhouette remains below the agreed acceptance threshold after the retopology/local repair pass"
+    ]
+  }
+}

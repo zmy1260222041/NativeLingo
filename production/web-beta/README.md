@@ -104,3 +104,21 @@ WEB_BETA_HOST=admin@<ip> production/web-beta/rollback.sh
 - [ ] 首次点击后指针锁定生效（`WEB_BETA_HEADED=1 node production/web-beta/browser_smoke.mjs` 已在本机 Chrome 验证）
 - [ ] 刷新后存档保留；清除站点数据后重置
 - [ ] 问卷在新标签页打开
+
+## 7. 云语音版（FR-29，后续轮次）
+
+云语音版不是首轮无语音 Web Beta，而是同一域名上的新构建：
+
+- 构建预设 `Web Cloud Voice`（`stranger_cloud_voice`），导出目录 `build/web-cloud/`；
+  `stranger_cloud/web_relative_urls=true` 让游戏请求同源 `/game/evaluate`。
+- 站点配置沿用 `nginx-site.conf.template`，但必须使用单独 site 文件并做两处替换：
+  ① `Permissions-Policy` 的 `microphone=()` → `microphone=(self)`；
+  ② 模板中的 `location /game/` 反代块，`proxy_pass https://127.0.0.1:8756`
+  指向云评分服务器（与 Web 服务器同机或改为其内网地址）。
+- 云评分服务器部署与激活码签发见 cloud-speaking 分支的 `server/README.md`；
+  `server/game_refs/*.wav` 随 rsync 部署；`POST /game/evaluate` 已接入既有
+  设备 token 鉴权、限流与 8MB 上传上限。
+- 内测者首次进入游戏 → 暂停菜单「云评分激活」→ 输入运营者签发的一次性激活码；
+  未激活/断网时游戏自动退回 G 手势保底流程。
+- 上线验收必须抓包确认：未激活时零出站；激活后仅 `/register` 与
+  `/game/evaluate` 两个请求出站，且服务器无录音文件落盘。

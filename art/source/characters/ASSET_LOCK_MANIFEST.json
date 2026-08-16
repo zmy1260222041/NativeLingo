@@ -7,7 +7,7 @@
     "edit_strategy": "create a new source_locked version or versioned sculpt; never overwrite a listed file",
     "credentials_must_not_be_stored": true,
     "runtime_export_allowed": false,
-    "runtime_export_note": "chr_player_juvenile v06 cloud-built runtime GLB is in place at game/assets/characters/chr_player_juvenile.glb and passes 15/16 Gate D checks; flag stays false until LOD0 facial blend shapes (blink/jaw/viseme) are authored manually and the 16th check passes. Mira/Rowan remain unset."
+    "runtime_export_note": "chr_player_juvenile v06 remains at 15/16 Gate D checks. Mira has a static A-Pose PBR review GLB integrated at game/assets/characters/chr_npc_mira.glb, but rigging and animation are still open; Rowan remains unset. The global runtime approval flag therefore stays false."
   },
   "assets": [
     {
@@ -99,10 +99,17 @@
           "path": "art/source/characters/npcs/chr_npc_mira/source_locked_v06/reference/figure_view_3.png",
           "bytes": 206537,
           "sha256": "001ce8ac650e5666727a0b05fb740a808042df6a024af31976082c3fbfc7c118"
+        },
+        {
+          "role": "runtime_static_a_pose_pbr_review",
+          "path": "game/assets/characters/chr_npc_mira.glb",
+          "bytes": 7145284,
+          "sha256": "53defd7dc1e1d032f3d9463e0ecc03603bcb65b433fe71920deadf25d7a6c5f0"
         }
       ],
       "registered_reference_set": "reference_root_promoted_v03",
-      "legacy_rodin_status": "INVALIDATED_GROUND_LINE_REFERENCE_DEFECT_RESUBMISSION_REQUIRED"
+      "legacy_rodin_status": "INVALIDATED_GROUND_LINE_REFERENCE_DEFECT_RESUBMISSION_REQUIRED",
+      "runtime_status": "STATIC_A_POSE_PBR_REVIEW_INTEGRATED_RIG_AND_ANIMATION_PENDING"
     },
     {
       "asset_id": "chr_npc_rowan",

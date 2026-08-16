@@ -1,10 +1,11 @@
 # 《异乡人 / Stranger》角色建模规范
 
-> **版本**：1.0
-> **日期**：2026-08-11
+> **版本**：1.2
+> **日期**：2026-08-14
 > **状态**：ACTIVE / 跨角色唯一建模规范
-> **视觉上游**：`design/art/art-bible.md`
+> **视觉上游**：`design/art/art-bible.md` v1.6
 > **资产锁**：`art/source/characters/ASSET_LOCK_MANIFEST.json`
+> **环境对照**：环境走 `design/art/environment-modeling-standard.md`；角色不走 kitbash 库。
 
 本规范取代散落的“程序化几何体拼角色”“从运行时占位网格继续细化”“生成结果直接进 Godot”以及
 未经实际验证的私钥 API 参数说明。资产自己的 `README.md`、reference manifest 和 Gate review 只补充
@@ -41,10 +42,19 @@
 > `DASHSCOPE_API_KEY`，或 Tripo 原生 API 单图/文生）。生成凭据绝不入库。
 
 - Tripo 只提供 Gate A 基础表面，不提供最终比例、拓扑、材质、绑定或 LOD。
-- Blender 中的 sculpt、remesh、retopology、edge loops、face topology 和 subdivision 是必需生产步骤。
+- Blender 中的 sculpt、retopology、edge loops、face topology 和 subdivision 是必需生产步骤。
+- **Hunyuan/ReduceFace 后处理禁令**：不得对整角色 Hunyuan 输出或 ReduceFace 输出执行 voxel remesh、
+  SDF/体积重建或其他全局表面重采样来追求闭合。此类处理会熔合部件、关闭负空间、软化硬边并破坏
+  UV/贴图与视觉权威。Hunyuan 高模只能作为不可变视觉/烘焙源；闭合低模必须通过分部手工重拓扑，
+  或在缺陷数量已被精确定位时使用不移动顶点的局部拓扑修复。
 - 方块、球、胶囊、圆柱只允许用于临时尺寸/碰撞 blockout。由 primitives 拼出的运行时角色不得作为
   sculpt source、retopo source 或最终网格。
-- 当前 Godot 程序化 NPC 是可删除的运行占位，不属于资产链，也不作为任何造型判断依据。
+- 当前 Godot 程序化 NPC / `CharacterVisual` 图元身体是可删除的运行占位，不属于资产链，也不作为
+  任何造型判断依据。Synty、原神风人形、机器人套件等外部 NPR 角色库不得进入本资产链。
+  「更详细的 NPR」只指锁定四视的色块、结构线、甲片与手绘 BaseColor，不是换一套通用卡渲模型。
+- 当某角色 `runtime_export_allowed=true` 之后，`Main.tscn` 与 `MarketCorner.tscn` 不得再为该
+  角色生成程序化 `CharacterVisual` 身体图元。在此之前占位可以存在，但必须保持可删除，且不得
+  被当作 sculpt / retopo / 造型参考。
 - 当 Tripo 基础网格已具备可修复的整体体积时，优先在版本化副本上雕刻修复；不得因局部错误反复随机生成。
 
 ## 3. 四视约束与 Gate A
@@ -66,7 +76,9 @@ Gate A 失败时，retopology、绑定、动画、LOD 和 runtime export 全部�
 ## 4. 雕刻、重拓扑与细分
 
 1. 在 Gate A 副本中先修最大轮廓与比例，再修连接结构，最后修脸、手脚和次级表面；禁止先做纹理遮错。
-2. 可使用 voxel remesh / multires / sculpt，但每次 remesh 后重新检查四视 silhouette 和薄片厚度。
+2. Gate A 雕刻可在非 Hunyuan 的版本化雕刻工作副本上使用 multires / sculpt；Hunyuan 高模和
+   ReduceFace 输出禁止整角色 voxel/SDF remesh。局部拓扑修复必须记录被修改的面/边、移动顶点数、
+   包围盒差异和导出后重新导入审计结果。
 3. LOD0 必须手工 retopology。眼睑、口轮、肩、肘、腕、髋、膝、踝具有连续变形环；避免把三角扇放在变形区。
 4. Subdivision 仅用于检查曲面连续性与高模烘焙，不以不可控细分替代合理低模拓扑。
 5. 极限姿势检查覆盖闭眼、张口、举臂、交叉手臂、深屈膝、脚掌接触和角色专属姿势。
@@ -83,7 +95,9 @@ LOD1 ≤13k、LOD2 ≤5k。LOD 必须手工保留轮廓，不依赖自动 decima
 
 ## 5. 材质、绑定与动画
 
-- 生成器（Rodin/Tripo）PBR 只用于辨识生成表面，最终 Base Color、Normal、ORM 按 Art Bible 重绘；单角色材质槽 ≤3。
+- 生成器（Rodin/Tripo）PBR 只用于辨识生成表面，最终 Base Color、Normal、ORM 按 Art Bible
+  §3.6 / §8.4 shader 合同重绘并接入 `cel_base`；单角色材质槽 ≤3。未接 Normal/ORM 不得称为
+  最终材质。
 - 不用噪声、毛孔、随机磨损或弥漫互渗伪装造型。色块边界、单层硬阴影和少量中尺度结构承担完成度。
 - 主角 deform bones ≤72，NPC ≤68；每顶点最多 4 权重，清除 `<0.02` 权重。
 - 面部最少支持独立眨眼、眉、下颌和嘴角；口型按角色需要建立，不把整张脸作为刚性片旋转。
@@ -110,4 +124,5 @@ LOD1 ≤13k、LOD2 ≤5k。LOD 必须手工保留轮廓，不依赖自动 decima
 | Rowan | `source_locked_v04` | Rodin base / Gate A FAIL | 版本化雕刻：开放下环、非对称脸、三指手、关节 |
 | Tavi | `source_locked_v06` | Concept source locked / reference prep pending | 确定目标身高；拆分、注册并测量四视后才可提交 Rodin |
 
-四者都不是 runtime asset；当前禁止覆盖游戏角色资产。
+四者都不是 runtime asset；当前禁止覆盖游戏角色资产。程序化 `CharacterVisual` 只是可删除占位，
+不得当作造型参考；各自 `runtime_export_allowed=true` 之后必须从可玩场景移除该角色的图元身体。
