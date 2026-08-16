@@ -10,7 +10,7 @@ signal run_completed
 signal day_started(day_value: int)
 signal onboarding_changed(step: String, active: bool)
 
-const SAVE_VERSION := 2
+const SAVE_VERSION := 3
 const MAX_NEED := 100.0
 const DAY_DURATION := 300.0
 const DAY_START_HOUR := 8.0
@@ -47,11 +47,15 @@ var persistence_enabled := true
 var save_path := "user://stranger_save.json"
 var interaction_time_frozen := false
 ## FR-30: onboarding state. Active onboarding freezes survival decay; completing or
-## skipping it is the only way out. The field set stays SAVE_VERSION 2-safe because
-## missing keys default to false and old saves simply get the guide once.
+## skipping it is the only way out. Missing keys default to false and old saves
+## simply get the guide once.
 var onboarding_active := false
 var onboarding_step := "move"
 var onboarding_completed := false
+## FR-35: graded vocabulary profile. The derived index lives in VocabularyState and
+## is only mirrored here as JSON-safe values for the versioned save.
+var vocabulary_tier := "toddler"
+var vocabulary_entries: Dictionary = {}
 
 func _process(delta: float) -> void:
 	if game_finished or interaction_time_frozen:

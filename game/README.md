@@ -42,6 +42,12 @@ resources. When speech is unavailable (no-voice builds, missing microphone, or
 no local service), the `G` gesture fallback grants the minimum survival
 portions so the three-day path stays fully playable.
 
+A first-run guide protects the three needs while teaching movement and one
+voiced (or gestured) food request. The graded vocabulary profile defaults to
+toddler (A1+A2) and is built at runtime from the unchanged CEFR-J, Octanove,
+and NGSL assets under `assets/wordlists/`; see `ATTRIBUTION.md` there for the
+two distinct licences.
+
 The prototype uses five distinct procedural NPC silhouettes, contextual character
 acting, and a responsive bilingual HUD. The player runtime uses the
 `chr_player_juvenile_mixamo.fbx` package: the same-mesh Mixamo actions are
@@ -75,6 +81,9 @@ License; its license text is stored beside the font in `game/assets/fonts/`.
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game res://tests/NpcVoiceTest.tscn
+
+/Applications/Godot-4.6.app/Contents/MacOS/Godot \
+  --headless --path game res://tests/VocabularyTest.tscn
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game --script res://tests/test_voice_gated_rewards.gd

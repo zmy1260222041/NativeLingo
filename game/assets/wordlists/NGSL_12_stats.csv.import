@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bnyno0jdhwss3"
+
+[deps]
+
+files=["res://assets/wordlists/NGSL_12_stats.SFI Rank.translation", "res://assets/wordlists/NGSL_12_stats.SFI.translation", "res://assets/wordlists/NGSL_12_stats.Adjusted Frequency per Million (U).translation"]
+
+source_file="res://assets/wordlists/NGSL_12_stats.csv"
+dest_files=["res://assets/wordlists/NGSL_12_stats.SFI Rank.translation", "res://assets/wordlists/NGSL_12_stats.SFI.translation", "res://assets/wordlists/NGSL_12_stats.Adjusted Frequency per Million (U).translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

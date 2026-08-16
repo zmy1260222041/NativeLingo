@@ -90,3 +90,6 @@ CLAUDE.md
 # agent session state and editor backups
 .zcode/
 *.blend1
+
+# Godot CSV auto-import creates per-column translation resources; these are derived build artifacts, not the licensed original files.
+game/assets/wordlists/*.translation

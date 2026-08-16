@@ -42,6 +42,7 @@ func _ready() -> void:
 		# First run and pre-onboarding saves enter the guide once. Completed runs
 		# never show it again; F9 reset keeps the completion flag.
 		GameState.begin_onboarding()
+	Vocabulary.sync_from_game_state()
 	_cel_shader = load(CEL_SHADER_PATH) as Shader
 	_white_tex = _make_white_texture()
 	_build_lighting()

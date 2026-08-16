@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://74de0gg1hrht"
+
+[deps]
+
+files=["res://assets/wordlists/octanove-vocabulary-profile-c1c2-1.0.pos.translation", "res://assets/wordlists/octanove-vocabulary-profile-c1c2-1.0.CEFR.translation", "res://assets/wordlists/octanove-vocabulary-profile-c1c2-1.0.notes.translation"]
+
+source_file="res://assets/wordlists/octanove-vocabulary-profile-c1c2-1.0.csv"
+dest_files=["res://assets/wordlists/octanove-vocabulary-profile-c1c2-1.0.pos.translation", "res://assets/wordlists/octanove-vocabulary-profile-c1c2-1.0.CEFR.translation", "res://assets/wordlists/octanove-vocabulary-profile-c1c2-1.0.notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true
