@@ -72,3 +72,23 @@ class SynthesizeNpcLineTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WordScoreTest(unittest.TestCase):
+    def test_catalog_contains_social_practice_words(self):
+        for word in ["morning", "food", "heater", "water", "help"]:
+            self.assertIn(word, server.WORD_LINES)
+
+    def test_reference_dtw_path_is_labelled(self):
+        with mock.patch.object(server, "word_pronunciation", return_value=85.0):
+            verdict = server.score_word("morning", "/tmp/not-used.wav")
+        self.assertEqual(verdict["pronunciation_source"], "reference_dtw")
+        self.assertEqual(verdict["band"], "generous")
+        self.assertTrue(verdict["accepted"])
+
+    def test_whisper_fallback_never_claims_reference(self):
+        with mock.patch.object(server, "word_pronunciation", return_value=None), \
+             mock.patch.object(server, "_transcribe_with_hotwords", return_value=("morning", {})):
+            verdict = server.score_word("morning", "/tmp/not-used.wav")
+        self.assertEqual(verdict["pronunciation_source"], "whisper_confidence")
+        self.assertEqual(verdict["pronunciation"], 80.0)

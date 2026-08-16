@@ -40,6 +40,13 @@ func _ready() -> void:
 	GameState.skip_onboarding()
 	await get_tree().process_frame
 	_expect(not onboarding_panel.visible and GameState.onboarding_completed, "FR-30: skip folds the guide and releases the guard")
+	Vocabulary.observe_word("portions")
+	Vocabulary.record_word_spoken("portions", 85.0)
+	await get_tree().process_frame
+	var word_unlock := hud.get_node_or_null("UIRoot/WordUnlockOverlay") as ColorRect
+	_expect(word_unlock != null and word_unlock.visible and get_tree().paused, "FR-36: spoken unlock pops the spelling card and pauses the world")
+	_expect(hud.word_unlock_label.text.contains("portions"), "FR-36: spelling card shows the newly spoken word")
+	hud._close_word_unlock()
 	GameState.persistence_enabled = previous_persistence
 	var panel_style := hud.get_node("UIRoot").theme.get_stylebox("panel", "PanelContainer") as StyleBox
 	_expect(panel_style != null and not panel_style is StyleBoxFlat, "FR-37: panels use the Art Bible cut-corner silt-ink style instead of a flat modern card")

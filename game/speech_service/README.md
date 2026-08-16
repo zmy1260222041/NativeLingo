@@ -58,6 +58,15 @@ Without a key the endpoint returns 503 and the game silently falls back to
 subtitles. The cloud deployment uses the same endpoint contract and its own
 catalog/cache (`server/backend/core/{npc_lines,qwen_tts}.py`).
 
+## Word practice (FR-36, optional)
+
+`POST /score_word` (also `/game/score_word`) scores one short WAV against a
+server-catalog practice word. The client sends the lexical ID in
+`X-Stranger-Lexical`; text is never accepted from the client. Reference audio is
+synthesised with the bundled Piper voice (the cloud endpoint uses the same
+voice), and the Whisper-confidence proxy is always labelled when the SSL stack
+is unavailable.
+
 Unit tests:
 
 ```sh

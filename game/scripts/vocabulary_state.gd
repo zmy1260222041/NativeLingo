@@ -6,6 +6,10 @@ extends Node
 ## The profile itself is persisted through GameState's versioned save.
 
 signal profile_changed(tier: String, entry_count: int)
+signal word_state_changed(word: String, state: String)
+signal word_observed(word: String)
+signal word_spoken(word: String, score: float)
+signal word_used(word: String)
 
 const CEFRJ_PATH := "res://assets/wordlists/CEFRJ_wordlist_ver1.6.zip"
 const OCTANOVE_PATH := "res://assets/wordlists/octanove-vocabulary-profile-c1c2-1.0.csv"
@@ -20,6 +24,8 @@ const TIER_ADMITS := {
 	"professional": ["A1", "A2", "B1", "B2"],
 }
 const VALID_LEVELS := ["A1", "A2", "B1", "B2", "C1", "C2"]
+const STATE_RANK := {"": 0, "initial": 0, "heard": 1, "spoken": 2, "used": 3}
+const WORD_SCORE_SPARSE_MIN := 40.0
 
 var tier := "toddler"
 var entries: Dictionary = {}
@@ -76,6 +82,124 @@ func load_profile_data(data: Dictionary) -> bool:
 
 func profile_data() -> Dictionary:
 	return {"version": 1, "tier": tier, "entries": entries}
+
+
+## FR-36: observation and three-state acquisition. ``initial`` entries are
+## already part of the learner's starting profile and never regress to ``heard``.
+## Observed words are added only when they are absent from every graded sense.
+func observe_word(word: String) -> String:
+	var clean := word.strip_edges().to_lower()
+	if clean.is_empty():
+		return ""
+	var matches := entries_for_headword(clean)
+	for item in matches:
+		if str(item.get("state", "")) == "initial":
+			return "initial"
+	if matches.is_empty():
+		entries[entry_key(clean, "observed")] = {
+			"headword": clean,
+			"pos": "observed",
+			"cefr": "",
+			"ngsl_rank": -1,
+			"source": "observed_npc",
+			"state": "heard",
+		}
+		word_state_changed.emit(clean, "heard")
+		word_observed.emit(clean)
+		_sync_to_game_state()
+		return "heard"
+	var changed := false
+	for item in matches:
+		if str(item.get("state", "")) == "":
+			item["state"] = "heard"
+			changed = true
+	if changed:
+		word_state_changed.emit(clean, "heard")
+		word_observed.emit(clean)
+		_sync_to_game_state()
+	return word_state(clean)
+
+
+## A spoken attempt is accepted at the same sparse floor as the game's spoken
+## requests. Below the floor the word stays heard, costs nothing, and can be
+## retried immediately.
+func record_word_spoken(word: String, score: float) -> bool:
+	var clean := word.strip_edges().to_lower()
+	var current := word_state(clean)
+	if current == "initial":
+		return true
+	if current not in ["heard", "spoken"] or score < WORD_SCORE_SPARSE_MIN:
+		return false
+	var changed := false
+	for item in entries_for_headword(clean):
+		if str(item.get("state", "")) in ["heard", "spoken"]:
+			item["state"] = "spoken"
+			changed = true
+	if not changed:
+		return false
+	word_state_changed.emit(clean, "spoken")
+	word_spoken.emit(clean, score)
+	_sync_to_game_state()
+	return true
+
+
+func record_word_used(word: String) -> bool:
+	var clean := word.strip_edges().to_lower()
+	if word_state(clean) != "spoken":
+		return false
+	var changed := false
+	for item in entries_for_headword(clean):
+		if str(item.get("state", "")) == "spoken":
+			item["state"] = "used"
+			changed = true
+	if changed:
+		word_state_changed.emit(clean, "used")
+		word_used.emit(clean)
+		_sync_to_game_state()
+	return changed
+
+
+func record_words_used_from_text(text: String) -> int:
+	var used_count := 0
+	for token in _transcript_tokens(text):
+		if record_word_used(token):
+			used_count += 1
+	return used_count
+
+
+func word_state(word: String) -> String:
+	var best := ""
+	for item in entries_for_headword(word.strip_edges().to_lower()):
+		var state: String = str(item.get("state", ""))
+		if int(STATE_RANK.get(state, 0)) > int(STATE_RANK.get(best, 0)):
+			best = state
+	return best
+
+
+func _transcript_tokens(text: String) -> Array[String]:
+	var tokens: Array[String] = []
+	var current := ""
+	for character in text.to_lower():
+		if (character >= "a" and character <= "z") or character == "'":
+			current += character
+		elif not current.is_empty():
+			tokens.append(current)
+			current = ""
+	if not current.is_empty():
+		tokens.append(current)
+	return tokens
+
+
+func _sync_to_game_state() -> void:
+	if not is_inside_tree():
+		return
+	var tree := get_tree()
+	if tree == null or tree.root == null:
+		return
+	var game_state := tree.root.get_node_or_null(NodePath("GameState"))
+	if game_state != null:
+		game_state.vocabulary_tier = tier
+		game_state.vocabulary_entries = profile_data()["entries"]
 
 
 func sync_from_game_state() -> bool:

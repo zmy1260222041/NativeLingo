@@ -120,6 +120,8 @@ func play_script(index: int) -> Dictionary:
 		return {}
 	var script: Dictionary = SOCIAL_SCRIPTS[index]
 	script_started.emit(script["id"])
+	for new_word in script["new_words"]:
+		Vocabulary.observe_word(str(new_word))
 	for line in script["lines"]:
 		var npc_id: String = line["npc_id"]
 		var line_id: String = line["line_id"]

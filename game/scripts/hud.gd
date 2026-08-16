@@ -86,6 +86,9 @@ var onboarding_panel: PanelContainer
 var onboarding_step_label: Label
 var onboarding_protected_label: Label
 var onboarding_skip_button: Button
+var word_unlock_overlay: ColorRect
+var word_unlock_label: Label
+var word_unlock_button: Button
 var objective_timer: Timer
 var day_transition_started_msec := 0
 ## 测试钩子：null 表示按 OS feature 自动判断；true/false 强制覆盖 Web UI。
@@ -104,6 +107,7 @@ func _ready() -> void:
 	_apply_web_beta_ui()
 	_build_cloud_ui()
 	_build_onboarding_ui()
+	_build_word_unlock_ui()
 	_configure_focus_cycles()
 	get_viewport().size_changed.connect(_apply_safe_frame)
 	call_deferred("_bind_player")
@@ -144,6 +148,8 @@ func _connect_domain_signals() -> void:
 	SpeechAdapter.recognition_pending.connect(_on_recognition_pending)
 	SpeechAdapter.recognition_finished.connect(_on_recognition_finished)
 	SpeechAdapter.session_cancelled.connect(_on_speech_cancelled)
+	SpeechAdapter.word_score_finished.connect(_on_word_score_finished)
+	Vocabulary.word_spoken.connect(_show_word_unlock)
 
 func _connect_buttons() -> void:
 	continue_button.pressed.connect(_dismiss_completion)
@@ -322,6 +328,67 @@ func _on_onboarding_changed(_step: String, active: bool) -> void:
 	onboarding_panel.visible = true
 
 
+func _build_word_unlock_ui() -> void:
+	if not is_instance_valid(ui_root):
+		return
+	word_unlock_overlay = ColorRect.new()
+	word_unlock_overlay.name = "WordUnlockOverlay"
+	word_unlock_overlay.color = Color(0.02, 0.03, 0.05, 0.94)
+	word_unlock_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	word_unlock_overlay.visible = false
+	ui_root.add_child(word_unlock_overlay)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	word_unlock_overlay.add_child(center)
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(520, 0)
+	center.add_child(card)
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", 10)
+	card.add_child(content)
+	var title := Label.new()
+	title.text = tr("WORD_UNLOCK_TITLE")
+	title.add_theme_font_size_override("font_size", 26)
+	content.add_child(title)
+	word_unlock_label = Label.new()
+	word_unlock_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	word_unlock_label.add_theme_font_size_override("font_size", 24)
+	content.add_child(word_unlock_label)
+	word_unlock_button = Button.new()
+	word_unlock_button.text = tr("WORD_UNLOCK_CONTINUE")
+	word_unlock_button.pressed.connect(_close_word_unlock)
+	content.add_child(word_unlock_button)
+
+
+func _on_word_score_finished(lexical_id: String, accepted: bool, expression: Dictionary, reason: String) -> void:
+	if not accepted:
+		GameState.message_requested.emit(tr("WORD_PRACTICE_RETRY"), "neutral")
+		return
+	var score := 0.0
+	if expression.has("score"):
+		score = float(expression.get("score", 0.0))
+	Vocabulary.record_word_spoken(lexical_id, score)
+
+
+func _show_word_unlock(word: String, _score: float) -> void:
+	if not is_instance_valid(word_unlock_overlay) or not is_instance_valid(word_unlock_label):
+		return
+	word_unlock_label.text = "%s  ·  %s" % [word, tr("WORD_UNLOCK_SPOKEN")]
+	word_unlock_overlay.visible = true
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	word_unlock_button.grab_focus.call_deferred()
+
+
+func _close_word_unlock() -> void:
+	if not is_instance_valid(word_unlock_overlay):
+		return
+	word_unlock_overlay.visible = false
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_release_ui_focus()
+
+
 func _open_cloud_activation() -> void:
 	if not is_instance_valid(cloud_overlay):
 		return
@@ -386,6 +453,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if is_instance_valid(cloud_overlay) and cloud_overlay.visible:
 		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause"):
 			_close_cloud_activation()
+			get_viewport().set_input_as_handled()
+		return
+	if is_instance_valid(word_unlock_overlay) and word_unlock_overlay.visible:
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause"):
+			_close_word_unlock()
 			get_viewport().set_input_as_handled()
 		return
 	if day_transition_overlay.visible:

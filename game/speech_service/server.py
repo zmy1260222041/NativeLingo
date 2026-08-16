@@ -366,6 +366,25 @@ def synthesize_npc_line(npc_id: str, line_id: str, voice: str = "") -> bytes:
         _TTS_CACHE[key] = body
     return body
 
+# Word-practice catalog (FR-36). The client sends only a lexical ID; the
+# reference text is server-authored and never free-form user input.
+WORD_LINES = {
+    "morning": "morning",
+    "sleep": "sleep",
+    "hungry": "hungry",
+    "food": "food",
+    "please": "please",
+    "portions": "portions",
+    "heater": "heater",
+    "alloy": "alloy",
+    "parts": "parts",
+    "canteen": "canteen",
+    "water": "water",
+    "thirsty": "thirsty",
+    "help": "help",
+    "bring": "bring",
+}
+
 _model = None
 _model_lock = threading.Lock()
 
@@ -375,6 +394,7 @@ _model_lock = threading.Lock()
 _ref_lock = threading.Lock()
 _ref_ready: bool | None = None
 _ref_cache: dict = {}
+_word_ref_cache: dict = {}
 _pipeline = None
 _audio_io = None
 
@@ -610,6 +630,63 @@ def reference_pronunciation(target: str, wav_path: str) -> float | None:
         return None
 
 
+def _synthesize_word_reference(text: str):
+    """Piper reference first (same voice contract as the cloud endpoint), then
+    the offline platform synth as a development convenience."""
+    try:
+        _repo_on_sys_path()
+        from desktop.backend.core import piper_tts  # noqa: PLC0415
+        return piper_tts.synth_wav(text)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[speech] piper word reference unavailable: {type(exc).__name__}")
+    return _synthesize_reference(text)
+
+
+def word_pronunciation(lexical_id: str, wav_path: str) -> float | None:
+    """SSL+DTW accuracy (0-100) for one server-catalog practice word."""
+    if lexical_id not in WORD_LINES or not _ensure_reference_scorer():
+        return None
+    with _ref_lock:
+        if lexical_id not in _word_ref_cache:
+            ref = _synthesize_word_reference(WORD_LINES[lexical_id])
+            _word_ref_cache[lexical_id] = ref if ref is not None and len(ref) else None
+        ref = _word_ref_cache.get(lexical_id)
+    if ref is None:
+        return None
+    try:
+        learner = _audio_io.trim_silence(_audio_io.load_audio(wav_path))
+        if learner.size == 0:
+            return None
+        result = _pipeline.analyze_arrays(ref, learner)
+        return round(max(0.0, min(100.0, float(getattr(result, "accuracy", 0.0)))), 1)
+    except Exception as exc:  # noqa: BLE001 - fall back, never fail the request
+        print(f"[speech] word scoring failed: {type(exc).__name__}")
+        return None
+
+
+def score_word(lexical_id: str, wav_path: str) -> dict:
+    pronunciation = word_pronunciation(lexical_id, wav_path)
+    source = "reference_dtw"
+    if pronunciation is None:
+        # Whisper-confidence proxy is explicitly labelled and is only used when
+        # the local SSL stack cannot be imported (same contract as FR-28).
+        text, metrics = _transcribe_with_hotwords(wav_path, None)
+        clean = normalise(text)
+        pronunciation = 80.0 if clean == WORD_LINES.get(lexical_id, "") or clean.split() == WORD_LINES.get(lexical_id, "").split() else 20.0
+        source = "whisper_confidence"
+    score = pronunciation
+    band = band_for_score(score)
+    return {
+        "accepted": band != "none",
+        "text": WORD_LINES[lexical_id],
+        "reason": "VOICE_REASON_ACCEPTED" if band != "none" else "VOICE_REASON_SCORE_LOW",
+        "pronunciation": pronunciation,
+        "score": score,
+        "pronunciation_source": source,
+        "band": band,
+    }
+
+
 def judge(target: str, text: str, wav_path: str | None, metrics: dict | None) -> dict:
     profile = INTENTS.get(target, {})
     verdict = delivery_score(profile, text) if profile else {
@@ -713,6 +790,9 @@ class Handler(BaseHTTPRequestHandler):
         if self.path in ("/tts", "/game/tts"):
             self._handle_tts()
             return
+        if self.path in ("/score_word", "/game/score_word"):
+            self._handle_word_score()
+            return
         if self.path != "/transcribe":
             self.send_error(404)
             return
@@ -757,6 +837,44 @@ class Handler(BaseHTTPRequestHandler):
                     os.unlink(temp_path)
                 except OSError:
                     pass
+
+    def _handle_word_score(self) -> None:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length <= 44 or length > 8 * 1024 * 1024:
+            self._json(400, self._word_failure("VOICE_REASON_LENGTH"))
+            return
+        lexical_id = self.headers.get("X-Stranger-Lexical", "").strip().lower()
+        if lexical_id not in WORD_LINES:
+            self._json(404, self._word_failure("VOICE_REASON_RESULT_INVALID"))
+            return
+        payload = self.rfile.read(length)
+        temp_path = ""
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp:
+                temp.write(payload)
+                temp_path = temp.name
+            self._json(200, score_word(lexical_id, temp_path))
+        except Exception as exc:  # service boundary: log detail, never expose provider detail
+            print(f"[speech] word scoring failed: {type(exc).__name__}")
+            self._json(503, self._word_failure("VOICE_REASON_SERVICE_UNAVAILABLE"))
+        finally:
+            if temp_path:
+                try:
+                    os.unlink(temp_path)
+                except OSError:
+                    pass
+
+    @staticmethod
+    def _word_failure(reason: str) -> dict:
+        return {
+            "accepted": False,
+            "text": "",
+            "reason": reason,
+            "pronunciation": 0.0,
+            "score": 0.0,
+            "pronunciation_source": "none",
+            "band": "none",
+        }
 
     def _handle_tts(self) -> None:
         length = int(self.headers.get("Content-Length", "0"))

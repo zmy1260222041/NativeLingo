@@ -385,6 +385,10 @@ func _report_dialogue(npc_id: String, communication: String, expression: Diction
 		if communication == "voice":
 			understood = _voice_score(expression) >= SCORE_SPARSE_MIN
 		dialogue.player_acted(npc_id, understood)
+		if understood and communication == "voice":
+			var vocabulary := tree.root.get_node_or_null(NodePath("Vocabulary"))
+			if vocabulary != null:
+				vocabulary.record_words_used_from_text(str(expression.get("text", "")))
 
 
 func _emit_npc_followup(npc_id: String, communication: String) -> void:
