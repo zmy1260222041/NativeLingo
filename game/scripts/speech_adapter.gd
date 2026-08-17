@@ -374,19 +374,34 @@ func _configure_cloud_tls() -> void:
 	if OS.has_feature("web") or http_request == null:
 		return
 	var ca_path := str(ProjectSettings.get_setting(CLOUD_CA_PATH_SETTING, "")).strip_edges()
-	if not ca_path.is_empty() and ResourceLoader.exists(ca_path):
-		var cert := load(ca_path) as X509Certificate
-		if cert == null:
-			var candidate := X509Certificate.new()
-			if candidate.load(ca_path) == OK:
-				cert = candidate
-		if cert != null:
-			http_request.set_tls_options(TLSOptions.client(cert))
-			return
+	var certificate := _load_pinned_certificate(ca_path)
+	if certificate != null:
+		http_request.set_tls_options(TLSOptions.client(certificate))
+		return
 	if bool(ProjectSettings.get_setting(CLOUD_INSECURE_DEV_SETTING, false)):
 		# 仅本机开发:显式开关,发布构建必须为 false。
 		push_warning("SpeechAdapter: stranger_cloud/allow_insecure_dev is enabled; TLS verification disabled")
 		http_request.set_tls_options(TLSOptions.client_unsafe())
+
+var _pinned_certificate: X509Certificate
+
+func _load_pinned_certificate(ca_path: String) -> X509Certificate:
+	## X509Certificate.load reads the raw PEM through FileAccess, which works
+	## for non-resource files inside the exported PCK. ResourceLoader.exists
+	## is false for them in exports even though the file is packed, so relying
+	## on it silently dropped the pinned CA and broke TLS in release builds.
+	if _pinned_certificate != null:
+		return _pinned_certificate
+	if ca_path.is_empty() or not FileAccess.file_exists(ca_path):
+		return null
+	var candidate := X509Certificate.new()
+	if candidate.load(ca_path) == OK:
+		_pinned_certificate = candidate
+		return candidate
+	var fallback := load(ca_path) as X509Certificate
+	if fallback != null:
+		_pinned_certificate = fallback
+	return fallback
 
 func cloud_token() -> String:
 	if token_override != null:

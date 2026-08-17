@@ -38,8 +38,9 @@ var _test_results: Dictionary = {}
 var _test_sequence := 0
 
 func _ready() -> void:
-	if OS.has_feature("web") or OS.has_feature("desktop_beta_no_voice"):
-		# Web/Desktop 发布版不开放本地调试端口，也不做 30 Hz 采样与 user:// 日志写入。
+	if OS.has_feature("web") or OS.has_feature("desktop_beta_no_voice") or OS.has_feature("stranger_cloud_voice"):
+		# Web/Desktop/Cloud-Voice 发布版不开放本地调试端口，也不做 30 Hz 采样与
+		# user:// 日志写入。Cloud Voice 预设不导出 addons/*，因此必须在此短路。
 		set_process(false)
 		return
 	_runtime_commands = (load("res://addons/godot_mcp/editors/runtime_commands.gd") as GDScript).new()
@@ -54,7 +55,7 @@ func _exit_tree() -> void:
 	_servers.clear()
 
 func _process(delta: float) -> void:
-	if OS.has_feature("web") or OS.has_feature("desktop_beta_no_voice"):
+	if OS.has_feature("web") or OS.has_feature("desktop_beta_no_voice") or OS.has_feature("stranger_cloud_voice"):
 		return
 	for channel in _servers.keys():
 		_servers[channel].poll()

@@ -6,6 +6,11 @@ extends Node3D
 @export var display_name := ""
 @export var one_shot := false
 
+signal walk_finished
+
+const NPC_WALK_SPEED := 1.35
+const NPC_WALK_ARRIVE_EPSILON := 0.09
+
 var base_height := 0.0
 var animation_phase := 0.0
 var highlighted := false
@@ -15,10 +20,15 @@ var marker_tween: Tween
 ## FR-31 G2: an NPC greets the player once per scene when they first enter the
 ## social radius. The greeting is a message only; it never mutates GameState.
 var npc_greeted := false
+## FR-33: NPCs walk to each other before a social scene and back home after.
+var home_position := Vector3.ZERO
+var walk_destination := Vector3.ZERO
+var walking := false
 
 func _ready() -> void:
 	base_height = position.y
 	animation_phase = float(abs(target_id.hash()) % 100) * 0.17
+	home_position = position
 	if one_shot and GameState.completed_steps.has(target_id):
 		visible = false
 		return
@@ -30,20 +40,76 @@ func _process(delta: float) -> void:
 	if one_shot:
 		position.y = base_height + (sin(animation_phase * 1.8) * 0.02 if highlighted and not reduce_motion else 0.0)
 	if interaction_kind == "npc":
+		if walking:
+			_update_npc_walk(delta)
+			return
 		var player := get_tree().get_first_node_in_group("player") as Node3D
 		if player and global_position.distance_to(player.global_position) < 6.0:
 			if not npc_greeted:
 				npc_greeted = true
-				GameState.message_requested.emit(tr("NPC_GREETING_%s" % target_id.to_upper()), "good")
-				NpcVoice.request_line(target_id, "greeting")
+				# NPC speech is voice-first: the localized text greeting is only
+				# the no-voice fallback (web/desktop beta without speech).
+				if not NpcVoice.request_line(target_id, "greeting"):
+					GameState.message_requested.emit(tr("NPC_GREETING_%s" % target_id.to_upper()), "good")
 				Dialogue.begin(target_id)
-				var practice_candidates := Vocabulary.candidate_words_for_practice(3)
-				if not practice_candidates.is_empty():
-					Dialogue.begin_word_practice(target_id, practice_candidates)
+				# FR-30: guided word practice must not capture the V key while the
+				# onboarding speak step expects a voiced food request.
+				if not GameState.onboarding_active:
+					var practice_candidates := Vocabulary.candidate_words_for_practice(3)
+					if not practice_candidates.is_empty():
+						Dialogue.begin_word_practice(target_id, practice_candidates)
 		if player and global_position.distance_to(player.global_position) < 5.0:
 			var direction := player.global_position - global_position
 			var target_angle := atan2(-direction.x, -direction.z)
 			rotation.y = lerp_angle(rotation.y, target_angle, minf(1.0, delta * 2.4))
+
+
+func walk_to(world_destination: Vector3) -> void:
+	## FR-33: send this NPC walking toward a planar world position. The node
+	## keeps its authored height; facing and the stroll gait follow the move.
+	if interaction_kind != "npc":
+		return
+	walk_destination = Vector3(world_destination.x, position.y, world_destination.z)
+	if global_position.distance_to(walk_destination) <= NPC_WALK_ARRIVE_EPSILON:
+		walk_finished.emit()
+		return
+	walking = true
+	_set_npc_walk_visual(true)
+
+
+func walk_home() -> void:
+	walk_to(home_position)
+
+
+func is_walking() -> bool:
+	return walking
+
+
+func stop_walking() -> void:
+	walking = false
+	_set_npc_walk_visual(false)
+
+
+func _update_npc_walk(delta: float) -> void:
+	var offset := walk_destination - global_position
+	offset.y = 0.0
+	if offset.length() <= NPC_WALK_ARRIVE_EPSILON:
+		walking = false
+		_set_npc_walk_visual(false)
+		walk_finished.emit()
+		return
+	var direction := offset.normalized()
+	var step := minf(offset.length(), NPC_WALK_SPEED * delta)
+	global_position += direction * step
+	rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), minf(1.0, delta * 6.0))
+
+
+func _set_npc_walk_visual(active: bool) -> void:
+	var actor_visual := get_node_or_null("CharacterVisual") as CharacterVisual
+	if actor_visual == null:
+		return
+	actor_visual.set_npc_walking(active)
+	actor_visual.set_motion(NPC_WALK_SPEED if active else 0.0, false)
 
 func set_reduce_motion(active: bool) -> void:
 	reduce_motion = active

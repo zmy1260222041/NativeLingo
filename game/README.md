@@ -48,10 +48,21 @@ toddler (A1+A2) and is built at runtime from the unchanged CEFR-J, Octanove,
 and NGSL assets under `assets/wordlists/`; see `ATTRIBUTION.md` there for the
 two distinct licences.
 
-NPCs periodically play ambient need-expression scenes in the settlement and
-every named NPC belongs to a small family/partner unit. The static scenes are
-deliberately reviewed text so a coverage test can prove each survival-essential
-expression (greeting, food, alloy parts, water, offering help) is observable.
+NPC dialogue is **voice only**: greetings, social scenes, and NPC replies are
+spoken through the server-side TTS catalog (Qwen `qwen-audio-3.0-tts-plus`
+over the DashScope WebSocket route; each NPC has a fixed system voice). Text
+toasts appear only in builds where the voice channel itself is unavailable
+(unactivated cloud-voice / no-voice betas) plus for mechanical feedback
+(rewards granted, heater repaired, and similar system narration).
+
+NPCs periodically meet for ambient need-expression scenes: the two family or
+partner NPCs **walk to a meeting point near each other**, exchange the lines
+as voice, and stroll back to their spots afterwards. A scene is skipped when
+the player is talking to one of the participants, and no gathering happens
+while the onboarding guide is active (the guide's target NPC stays put).
+The scripts are deliberately reviewed text server-side so a coverage test
+can prove each survival-essential expression (greeting, food, alloy parts,
+water, offering help) is observable.
 
 New words move through heard → spoken → used. During social dialogue an NPC
 may ask by voice "Do you want xx, yy, or zz?"; the player holds V and says the
@@ -114,6 +125,11 @@ License; its license text is stored beside the font in `game/assets/fonts/`.
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game res://tests/CloudVoiceTest.tscn
 
+# Live cloud activation + cloud TTS smoke (needs a fresh one-time code from
+# the server: `cd /opt/nativelingo && .venv/bin/python -m backend.core.devices code`).
+NL_TEST_CODE=<code> /Applications/Godot-4.6.app/Contents/MacOS/Godot \
+  --headless --path game res://tests/CloudActivationLiveTest.tscn
+
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game res://tests/HudTest.tscn
 
@@ -169,7 +185,19 @@ request to the self-hosted scoring server instead of running local models:
 
 Dev mode is unchanged: `stranger_cloud/enabled=false` keeps the local optional
 service (`game/speech_service/server.py`) and its bundled reference WAVs in
-`game/speech_service/reference_audio/`.
+`game/speech_service/reference_audio/`. The local NPC TTS reads its Qwen
+credentials from `game/speech_service/TTS.csv` (operator-provided, git
+ignored) — see that service's README for the DashScope SDK dependency and
+the per-NPC system voices.
+
+Export note (2026-08-17): the cloud-voice presets carry
+`include_filter="*.pem"` so the pinned CA actually lands in the PCK —
+`.pem` is not a recognized Godot resource and is silently dropped otherwise.
+Two export-only TLS bugs were fixed alongside: the CA is now loaded via
+`FileAccess.file_exists` + `X509Certificate.load` (`ResourceLoader.exists`
+is always false for non-resource files in exports, which broke activation),
+and `NpcVoice` configures the pinned CA on its own HTTPRequest (previously
+only `SpeechAdapter` did, which broke every cloud TTS request).
 
 ## Build the player character source
 

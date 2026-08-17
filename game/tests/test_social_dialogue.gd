@@ -1,5 +1,7 @@
 extends Node
 
+const InteractableScript = preload("res://scripts/interactable.gd")
+
 var failures := 0
 
 func _ready() -> void:
@@ -23,6 +25,7 @@ func _ready() -> void:
 	_expect(not captured[0].is_empty() and "Can I have some food" in captured[0], "Food scene exposes the exact food-request expression")
 	GameState.message_requested.disconnect(handler)
 	NpcVoice.availability_override = null
+	_test_npc_social_walking()
 
 	# FR-38: dialogue state machine never punishes a miss.
 	Dialogue.begin("mira")
@@ -45,6 +48,56 @@ func _ready() -> void:
 	if failures == 0:
 		print("PASS: Stranger social dialogue suite")
 	get_tree().quit(failures)
+
+
+func _test_npc_social_walking() -> void:
+	# FR-33: NPCs walk to a meeting point before talking and home afterwards.
+	NpcVoice.availability_override = false
+	var tavi_npc := InteractableScript.new()
+	tavi_npc.interaction_kind = "npc"
+	tavi_npc.target_id = "tavi"
+	tavi_npc.display_name = "Tavi"
+	tavi_npc.position = Vector3(-8.0, 1.0, 3.0)
+	add_child(tavi_npc)
+	var mira_npc := InteractableScript.new()
+	mira_npc.interaction_kind = "npc"
+	mira_npc.target_id = "mira"
+	mira_npc.display_name = "Mira"
+	mira_npc.position = Vector3(-1.7, 1.0, -0.55)
+	add_child(mira_npc)
+	var walker := SocialSimulator.new()
+	walker.name = "SocialWalker"
+	add_child(walker)
+	# The interval timer cannot fire inside this synchronous test, so the
+	# simulator stays running and its _process drives the phase machine.
+	_expect(walker._try_begin_scene(), "A social scene gathers when both family NPCs are free")
+	_expect(walker.phase == SocialSimulator.Phase.GATHERING and tavi_npc.is_walking() and mira_npc.is_walking(), "Both NPCs start walking toward each other")
+	var talking := false
+	for frame in range(160):
+		tavi_npc._process(0.1)
+		mira_npc._process(0.1)
+		walker._process(0.1)
+		if walker.phase == SocialSimulator.Phase.TALKING:
+			talking = true
+			break
+	_expect(talking, "Gathering completes and the scene starts talking")
+	_expect(not tavi_npc.is_walking() and not mira_npc.is_walking(), "Talkers stand still while the scene plays")
+	var talk_gap := tavi_npc.global_position.distance_to(mira_npc.global_position)
+	_expect(talk_gap < 2.4, "NPCs stand close together while talking (was %.2f m)" % talk_gap)
+	walker._end_talking()
+	_expect(walker.phase == SocialSimulator.Phase.DISBURSING and tavi_npc.is_walking() and mira_npc.is_walking(), "After the talk both NPCs walk home")
+	var idle := false
+	for frame in range(240):
+		tavi_npc._process(0.1)
+		mira_npc._process(0.1)
+		walker._process(0.1)
+		if walker.phase == SocialSimulator.Phase.IDLE:
+			idle = true
+			break
+	_expect(idle, "Scene ends and the simulator returns to idle")
+	_expect(tavi_npc.global_position.distance_to(tavi_npc.home_position) < 0.5 and mira_npc.global_position.distance_to(mira_npc.home_position) < 0.5, "NPCs return to their home positions")
+	walker.stop()
+	NpcVoice.availability_override = null
 
 
 func _expression(score: float) -> Dictionary:

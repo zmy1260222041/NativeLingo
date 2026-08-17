@@ -71,11 +71,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		GameState.reset_run()
 		GameState.save_game()
 		get_tree().reload_current_scene()
-	if Dialogue.word_practice_active and event.is_action_pressed("push_to_talk"):
+	# FR-30: during the guide the V key belongs to the onboarding speak step;
+	# a stray word-practice session must not capture it or the guide stalls.
+	if Dialogue.word_practice_active and not GameState.onboarding_active and event.is_action_pressed("push_to_talk"):
 		SpeechAdapter.start_word_choice_recording(Dialogue.word_practice_options)
 		get_viewport().set_input_as_handled()
 		return
-	if Dialogue.word_practice_active and event.is_action_pressed("gesture"):
+	if Dialogue.word_practice_active and not GameState.onboarding_active and event.is_action_pressed("gesture"):
 		GameState.message_requested.emit(tr("WORD_PRACTICE_SPEAK_HINT"), "neutral")
 		get_viewport().set_input_as_handled()
 		return

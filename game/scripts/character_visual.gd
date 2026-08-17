@@ -90,6 +90,7 @@ var runtime_root_base_position := Vector3.ZERO
 var turn_transition_correction := Vector3.ZERO
 var turn_transition_elapsed := TURN_TRANSITION_CORRECTION_DURATION
 var turn_phase_matches_ready := false
+var npc_walk_active := false
 
 func configure(base_color: Color, accent_color: Color, style_profile := 0, player_character := false) -> void:
 	profile = clampi(style_profile, 0, 4)
@@ -148,6 +149,28 @@ func _set_authored_mesh_shadows(node: Node) -> void:
 func set_motion(speed: float, is_airborne: bool) -> void:
 	motion_speed = speed
 	airborne = is_airborne
+
+func set_npc_walking(active: bool) -> void:
+	## FR-33: stroll gait for procedural NPC bodies while WorldInteractable
+	## moves them toward a social meeting point. Ignored for the player rig,
+	## whose locomotion is driven by PlayerController through set_motion.
+	if is_player_character or npc_walk_active == active:
+		return
+	npc_walk_active = active
+	if not active:
+		_reset_procedural_pose()
+
+func _reset_procedural_pose() -> void:
+	## Leave the procedural limbs in the authored idle rest pose after a walk.
+	if torso_pivot != null:
+		torso_pivot.position = Vector3(0, 0.02, 0)
+		torso_pivot.rotation = Vector3.ZERO
+	if head_pivot != null:
+		head_pivot.position = Vector3(0, 0.78, 0)
+		head_pivot.rotation = Vector3.ZERO
+	for limb in [left_arm, right_arm, left_leg, right_leg]:
+		if limb != null:
+			limb.rotation = Vector3.ZERO
 
 func has_turn_around_animation() -> bool:
 	return runtime_animation_player != null and runtime_animation_player.has_animation(RUNTIME_TURN_180)
@@ -459,7 +482,12 @@ func _process(delta: float) -> void:
 		return
 	animation_clock += delta
 	_update_turn_transition_correction(delta)
-	locomotion_blend = move_toward(locomotion_blend, clampf(motion_speed / 8.2, 0.0, 1.0), delta * 4.8)
+	var locomotion_target := clampf(motion_speed / 8.2, 0.0, 1.0)
+	if npc_walk_active:
+		# A 1.35 m/s NPC stroll would blend at ~0.16 and look frozen; hold the
+		# gait at a visible stroll amplitude instead.
+		locomotion_target = maxf(locomotion_target, 0.55)
+	locomotion_blend = move_toward(locomotion_blend, locomotion_target, delta * 4.8)
 	airborne_blend = move_toward(airborne_blend, 1.0 if airborne else 0.0, delta * 7.0)
 	if gesture_clock >= 0.0:
 		gesture_clock += delta
@@ -473,8 +501,15 @@ func _process(delta: float) -> void:
 			jump_active = false
 			jump_stage = "idle"
 	if authored_static_root:
-		var breath := (sin(animation_clock * 2.1 + personality_phase) + 1.0) * 0.0035
+		var breath := (sin(animation_clock * 2.1 + personality_phase) + 1) * 0.0035
 		var reaction := _gesture_envelope() if gesture_clock >= 0.0 else 0.0
+		if npc_walk_active:
+			# Authored static models have no rig to swing; give the walk a
+			# readable bob and yaw sway so it does not glide.
+			var sway := sin(animation_clock * 9.0 + personality_phase)
+			authored_static_root.position = authored_static_base_position + Vector3(0.0, breath + absf(sway) * 0.022 + reaction * 0.018, 0.0)
+			authored_static_root.rotation = authored_static_base_rotation + Vector3(0.0, sway * 0.05, reaction * 0.035)
+			return
 		authored_static_root.position = authored_static_base_position + Vector3(0.0, breath + reaction * 0.018, 0.0)
 		authored_static_root.rotation = authored_static_base_rotation + Vector3(0.0, 0.0, reaction * 0.035)
 		return
