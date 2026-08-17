@@ -2,6 +2,17 @@
 
 NativeLingo 版本演进与技术特点。
 
+## [v0.10] — 2026-08-16/17 — Stranger 核心玩法补完（FR-30..38 / NFR-8 / R-19）
+
+把竖切片从「三日语音换物资」推进到可内测的核心循环，并完成云评分首次部署：
+
+- **新手引导与探索（FR-30/31）**：七步非模态引导（需求/时钟冻结、可跳过）；目标卡 3.5s 自动收拢；五名 NPC 社交半径内主动招呼。**修复（2026-08-17）**：引导期禁用引导词练习——此前其劫持 V 键，导致引导 speak 步永远无法完成。
+- **NPC 纯语音台词（FR-32，用户拍板）**：对话不显示字幕、只出语音；文字仅为无语音构建兜底。合成从失效的 OpenAI 兼容端点改为 **DashScope WebSocket SDK**（`qwen-audio-3.0-tts-plus` 仅接受系统音色 `longanlingxin`/`longanlufeng`，Qwen3-TTS 音色被 InvalidParameter 拒绝）；本地/云端台词目录同源扩到 42 条；`TTS.csv` 移至 `game/speech_service/`（云端 `/opt/nativelingo/`，权限 600）；`NpcVoice` 改串行播放队列并新增 `line_audio_finished`。
+- **聚落社会模拟（FR-33/34）**：NPC **先走到彼此附近（~1.4m）交谈、结束走回原位**（聚集→交谈→散开状态机 + 程序化漫步步态；玩家交互中的 NPC 跳过；引导期不聚集）；五个必需表达 100% 可观察。
+- **三态词汇习得（FR-35/36）**：CEFR-J+Octanove+NGSL 原样随包（`(headword,pos)` 索引，默认 toddler，SAVE_VERSION 3 惰性迁移）；heard→spoken→used 三态 + 词级 `POST /score_word`；NPC 语音问 "Do you want xx, yy, or zz?" 玩家按 V 说出所选词（无按钮）。
+- **云评分部署闭环（2026-08-17）**：服务器 124.220.234.178 已部署重启并实测——激活、`/game/evaluate`（同 WAV 云端/本地均 96 分/generous）、`/game/tts` 经固定 TLS 全通。**修复两个只在导出构建暴露的 TLS 缺陷**：`ResourceLoader.exists` 对 `.pem` 恒 false 导致 CA 不加载（激活必败，开发环境为 true 故测试未暴露）；`NpcVoice` 自有 HTTPRequest 未配置固定 CA（云端 TTS 必败）；Cloud Voice 预设 `include_filter` 纳入 `*.pem`。
+- **测试**：Godot 20 套 headless（新增 `CloudActivationLiveTest` 真机实测套件）、本地 TTS 11 unittest、云端 21 unittest 全绿。
+
 ## [v0.9] — 2026-08-15 — Stranger 云评分（FR-29 / NFR-7 / R-18）
 
 把 Stranger 竖切片的语音评分执行地迁到自托管云服务器，Web 与桌面不再需要本机启动语音服务：

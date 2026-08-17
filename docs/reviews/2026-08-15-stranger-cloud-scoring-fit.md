@@ -113,3 +113,30 @@ Godot(Web/桌面)
 3. 抓包验证:未激活零出站;激活后仅 `/register` 与 `/game/evaluate`;
    服务器数据目录无录音文件。
 4. ORT 与 torch 对同一批 WAV 复测 accuracy 差 ±2.0 / cost ±0.02(R-5 容差)。
+
+## 8. 部署闭环进展(2026-08-17)
+
+§7 清单的实际执行情况(操作者为本机 agent,均留有服务器日志):
+
+1. **rsync + 重启:完成**。`server/`(含 FR-32 TTS 的 DashScope WebSocket
+   修复、42 条台词目录、`requirements-server.txt` 增 `dashscope`)已同步到
+   `124.220.234.178:/opt/nativelingo/`,venv 安装 `dashscope`,放置
+   `TTS.csv`(权限 600),`nativelingo.service` 重启后 `/health` 正常
+   (`{"status":"ok","model_loaded":true}`,常驻 1.2G)。
+2. **CA 注入导出:完成,并顺带修复两个导出构建专属缺陷**。
+   `game/certs/nl_ca.pem` 与服务器 `tls/ca.pem` 指纹一致;Cloud Voice 预设
+   `include_filter` 增加 `*.pem`(`.pem` 非 Godot 资源类型,否则不入 PCK)。
+   其一:`SpeechAdapter._configure_cloud_tls` 以 `ResourceLoader.exists`
+   检查证书——该函数对非资源文件在导出构建中恒为 false(开发环境为 true,
+   故历史测试与 `CloudVoiceTest` 全绿而未暴露),CA 从未加载,激活必报
+   「网络不可用」;改为 `FileAccess.file_exists` + `X509Certificate.load`。
+   其二:`NpcVoice` 自有 HTTPRequest 从未配置固定 CA,云端 TTS 请求 TLS
+   握手必败;已补同构配置。
+3. **设备级实测:完成**。真实一次性激活码经 Godot 客户端(固定 TLS、无
+   insecure 开关)`POST /register` 成功、token 落盘 `user://`;
+   `/game/tts` 返回 WAV 并播放;`/game/evaluate` 对同一合成 WAV 云端与本地
+   均返回 `score 96 / band generous / reference_dtw`(G3 单样本逐位一致)。
+   `/game/score_word` 对非候选词正确返回 clarify、零惩罚。
+   新增 `game/tests/CloudActivationLiveTest.tscn` 固化该链路。
+4. **正式抓包零出站验证、ORT/torch 批量分数复测:仍待**。G3 目前只有单样本
+   逐位一致,批量复测(≥ 每意图多条语料)与 tcpdump 级零出站证据未做。

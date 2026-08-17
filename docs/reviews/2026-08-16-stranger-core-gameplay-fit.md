@@ -83,12 +83,13 @@ Godot(Web/桌面)
 
 Phase 2 已提交(`af8cb357`),Phase 3 已提交(`78c2540d` / 云端 `986aaa50`),
 Phase 4 已提交(`fb0e7997`),Phase 5 已提交(`19af3122`),Phase 6 已提交
-(`cb6d4282` / 云端 `94332aec`)。NPC 语音引导式词级复读(用户 2026-08-16
-修订:不用按钮,而是 NPC 语音问「Do you want xx, yy, or zz?」,玩家按住 V
-直接说出所选词,服务器按转写匹配选项并评分)代码级完成(未提交)。G1/G2/
-G4/G6/G7 代码级 PASS,G3/G5/G8 部分 PASS(真实 Qwen key 联调、旧档文件级
-迁移与一次性紧急音效待补),G9 回归绿(仅 `test_game_state` 的 3 个存档
-断言受本机 macOS TCC 权限失败,与本次改动无关)。
+(`cb6d4282` / 云端 `94332aec`),语音选择式复读已提交(`041fc4ee` /
+云端 `061d3e8e`)。部署收尾(2026-08-16):修复 SAVE_VERSION 3 词汇字段实际
+落盘/加载、修复 Cloud Voice 导出因 debug bridge 引用未导出 addons 而崩溃;
+`test_save_migration` 在 OS temp 目录实测 v2→v3 迁移;源码 GUI、macOS
+Desktop Beta 与 macOS Cloud Voice 三个运行时均启动退出 0(Apple M5 /
+OpenGL Metal)。G1/G2/G4/G5/G6/G7/G9 代码级 PASS,G3/G8 部分 PASS
+(真实 Qwen key 联调与一次性紧急音效待补)。
 
 | 门 | 判据 | 实现前 | 实现后结果 | 备注 |
 |---|---|---|---|---|
@@ -96,8 +97,42 @@ G4/G6/G7 代码级 PASS,G3/G5/G8 部分 PASS(真实 Qwen key 联调、旧档文�
 | G2 | 目标收拢 + NPC 主动招呼 | 已写死 | ✅ 代码级 PASS(2026-08-16) | `HudTest` + `NpcAttentionTest` 全绿;目标 3.5s 收拢,NPC 社交半径一次性招呼 |
 | G3 | TTS 边界与降级 | 已写死 | 🟡 部分 PASS(2026-08-16) | 本地/云端 `/game/tts`、台词 ID 目录、缓存、无 key 入库、Godot `NpcVoice` 无 token 零请求与失败降级均已代码级落地;真实 Qwen key 联调与抓包留待部署 |
 | G4 | 社会对话覆盖度 | 已写死 | ✅ 首三日代码级 PASS(2026-08-16) | 五个必需表达 100% 可观察断言全绿;三组家庭/搭档关系覆盖五名 NPC;多层需求金字塔对话池随 Phase 6 词汇层级联动 |
-| G5 | 词汇库完整性与迁移 | 已写死 | 🟡 部分 PASS(2026-08-16) | 三份原样资产+署名、运行时索引、默认 toddler、SAVE_VERSION 3 字段与迁移逻辑已落地并通过 VocabularyTest;旧档文件级迁移断言受本机 macOS TCC 权限待 GUI 环境复核 |
+| G5 | 词汇库完整性与迁移 | 已写死 | ✅ PASS(2026-08-16) | 三份原样资产+署名、运行时索引、默认 toddler;`test_save_migration` 在 OS temp 目录实测 v2→v3 惰性迁移与词汇 round-trip |
 | G6 | 三态单调与零惩罚 | 已写死 | ✅ 代码级 PASS(2026-08-16) | WordAcquisitionTest:只前进、低分保持 heard、spoken→used、初始词不降级、GameState 存档镜像 |
 | G7 | 词级评分协议一致性 | 已写死 | ✅ 代码级 PASS(2026-08-16) | 本地/云端 `/score_word` 同构 JSON、Piper 同源参考、单调档、断网/未激活零请求;WordPracticeTest + Python/云端契约测试全绿 |
 | G8 | 需求 UI | 已写死 | 🟡 部分 PASS(2026-08-16) | 阈值行动词、SiltInkPanel 折角面板、150% 布局通过;一次性紧急音效待音频资源后补 |
 | G9 | 回归与主线完整可玩 | 已写死 | ✅ 回归绿(2026-08-16) | 既有 10 套 Godot headless 中除本机 TCC 存档用例外全绿;`test_game_state` 仅 3 个 `user://` 写入断言受 macOS 权限环境失败 |
+
+## 6. 实现后更新(2026-08-17)
+
+用户上机实测后追加的修复与决策,均在本轮内验证:
+
+1. **G3 升级为部署实测 PASS(含真实 key)**。原合成路径走该专属部署不存在的
+   OpenAI 兼容 `/audio/speech`(实测 404),且默认音色 `Cherry` 被
+   `qwen-audio-3.0-tts-plus` 以 InvalidParameter 拒绝(该模型族只有系统音色
+   `longanlingxin` / `longanlufeng`)。本地 `game/speech_service` 与云端
+   `server/backend/core/qwen_tts.py` 均改为 DashScope WebSocket SDK
+   (`wss://<apiHost>/api-ws/v1/inference`,WAV 24kHz),凭据 `TTS.csv` 移至
+   `game/speech_service/`(云端 `/opt/nativelingo/TTS.csv`,600,不入库),
+   台词目录同源扩到 42 条(clarify/hint/settled/reward/thanks 等)。
+   云端已部署重启并用真实激活码实测:`/game/tts` 经 Godot 客户端固定 TLS
+   返回并播放音频。**判据修订(用户拍板):NPC 对话只出语音,不显示字幕;
+   文字仅为无语音构建的兜底** —— 原 G3「TTS 失败文字降级且主线可通关」的
+   降级通道保留(无语音构建/未激活),但语音可用时不再出字幕。
+2. **G4 行为补全:NPC 先走到彼此附近(~1.4m)再交谈、结束后走回原位**。
+   `SocialSimulator` 改为聚集→交谈→散开状态机;`WorldInteractable` 增加行走
+   (`walk_to`/`walk_home`/`walk_finished`),程序化 NPC 身体用既有步幅摆动
+   表现漫步(Mira 静态模型用起伏+摇摆);玩家正在交互的 NPC 跳过该场次,
+   引导期不聚集(避免引导 speak 步的目标 NPC 走开)。`SocialDialogueTest`
+   新增 8 条聚集/交谈/散开/归位断言。
+3. **G1 缺陷修复:引导期 V 键被引导词练习劫持**。此前玩家走近 NPC 即开始的
+   词练习会话会接管 `push_to_talk`,引导 speak 步「对塔维按 V 说英语」永远
+   无法发出语音请求、引导无法完成(用户实测复现)。修复:引导期不开启词练习
+   (`interactable.gd` 门控)、V/G 路由不受其影响(`player_controller.gd`)、
+   `begin_onboarding` 强制结束遗留会话;`NpcAttentionTest` 增 3 条断言。
+4. **配套修复**:`NpcVoice` 改为串行播放队列(取→播→完,社交对话整段按序),
+   新增 `line_audio_finished`;无缓存路径直接从响应缓冲播放(修复
+   `cache_enabled=false` 时成功响应误报 SAVE_FAILED)。
+5. **回归**:20 套 Godot headless + 11 个本地 TTS unittest + 云端 21 个
+   unittest 全绿;新增 `CloudActivationLiveTest`(真实服务器激活 + 云端 TTS,
+   固定 TLS、无 insecure 开关)。

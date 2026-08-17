@@ -126,7 +126,16 @@ cloud-speaking 同架构）：
 - 评分请求：`POST /game/evaluate`（WAV + `X-Stranger-Target` + Bearer）。
   桌面端用 `TLSOptions.client` 固定内置私有 CA：导出前必须把
   `game/certs/nl_ca.pem` 放好（不入库，`*.pem` 已 gitignore）。
+- **导出要点（2026-08-17 实测）**：预设 `include_filter` 含 `*.pem`，
+  否则非资源类型的 CA 不会进 PCK；证书加载必须走
+  `FileAccess.file_exists` + `X509Certificate.load`——
+  `ResourceLoader.exists` 对非资源文件在导出构建中恒为 false
+  （开发环境为 true，测试全绿也会漏）。`SpeechAdapter` 与 `NpcVoice`
+  **各自**的 HTTPRequest 都要配置固定 CA。云端激活 + TTS 链路可用
+  `tests/CloudActivationLiveTest.tscn`（`NL_TEST_CODE=<激活码>`）实测。
 - 服务器端部署见 cloud-speaking 分支 `server/README.md` 与 R-18 评审；
-  `server/game_refs/*.wav` 必须随代码 rsync。
+  `server/game_refs/*.wav` 必须随代码 rsync；NPC TTS 需在服务器安装
+  `dashscope` 并放置 `TTS.csv`（`/opt/nativelingo/TTS.csv`，600），
+  见 `server/README.md` 的 NPC voice 一节。
 - 未激活/断网/失败自动退回 `gesture_fallback`，三日主线始终可通关。
 - 本地 `game/speech_service` 仅保留为开发模式（`stranger_cloud/enabled=false`）。
