@@ -49,7 +49,6 @@ _NSP_CEIL = 0.8
 
 INTENTS = {
     "mira": {
-        "word_practice_ask": "",
         "label": "greeting",
         "reference": "Hello Mira, it is good to meet you.",
         "slots": [
@@ -76,7 +75,6 @@ INTENTS = {
         ],
     },
     "tavi": {
-        "word_practice_ask": "",
         "label": "food request",
         "reference": "Can I have some food please?",
         "slots": [
@@ -123,7 +121,6 @@ INTENTS = {
         ],
     },
     "vesh": {
-        "word_practice_ask": "",
         "label": "scrap request",
         "reference": "I need two alloy parts for the heater.",
         "slots": [
@@ -168,7 +165,6 @@ INTENTS = {
         ],
     },
     "ori": {
-        "word_practice_ask": "",
         "label": "water request",
         "reference": "May I have some water please?",
         "slots": [
@@ -212,7 +208,6 @@ INTENTS = {
         ],
     },
     "rowan": {
-        "word_practice_ask": "",
         "label": "water delivery",
         "reference": "Here is water for you. Let me help you.",
         "slots": [
@@ -259,26 +254,53 @@ INTENTS = {
 
 NPC_LINES = {
     "mira": {
+        "word_practice_ask": "",
         "greeting": "Hey, little one. Come to the market. No need to be afraid.",
+        "greet_reply": "Welcome, stranger.",
+        "clarify": "Sorry? Say it again, little one.",
+        "hint_food": "Tavi shares food with the hungry. Ask her in English.",
+        "hint_heat": "Nights get cold. Vesh keeps the old alloy. Ask him in English.",
+        "hint_rowan": "Rowan needs water today. Ask Ori for a canteen first.",
+        "remembers": "You came yesterday. The stall still keeps your place.",
         "social_greeting": "Good morning. Did you sleep well?",
         "social_reply_food": "Of course. Take two portions.",
     },
     "rowan": {
+        "word_practice_ask": "",
         "greeting": "You look tired. Find water and warmth first.",
+        "clarify": "Hmm? What do you need?",
+        "needs_water": "I cannot walk that far. Ask Ori for water first.",
+        "remembers": "You brought water. I will not forget.",
+        "thanks": "You came back. Thank you.",
         "social_reply_water": "I am thirsty too. Bring me water, please.",
         "social_ask_help": "I cannot walk far. Could you bring me water?",
     },
     "tavi": {
+        "word_practice_ask": "",
         "greeting": "Hungry? Tell me once you are settled.",
+        "clarify": "Sorry? I did not hear you. Try again.",
+        "hint_food": "I can share food. Tell me in English.",
+        "settled": "You have enough fruit. Go rest.",
+        "reward": "Here you go. Eat well, little one.",
         "social_reply_greeting": "I slept. Are you hungry?",
         "social_ask_food": "Can I have some food, please?",
     },
     "vesh": {
+        "word_practice_ask": "",
         "greeting": "Cold nights are coming. Ask me for alloy parts.",
+        "clarify": "Sorry? Say it once more.",
+        "hint_scrap": "The heater needs alloy parts. Ask me in English.",
+        "settled": "You have the parts. Go to the furnace.",
+        "reward": "Here are the alloy parts.",
         "social_ask_scrap": "The heater needs two alloy parts. Do you have any?",
     },
     "ori": {
+        "word_practice_ask": "",
         "greeting": "I keep the water. Ask me when you need it.",
+        "clarify": "Hmm? Say it again, please.",
+        "hint_water": "I keep the reservoir. Ask me for water in English.",
+        "settled": "The water is already with you. Go to Rowan.",
+        "reward": "Here is your canteen of water.",
         "social_reply_scrap": "I have one. Ask Tavi for the other.",
         "social_ask_water": "I need a canteen of water.",
         "social_reply_help": "I will ask the little one to help.",
@@ -286,15 +308,65 @@ NPC_LINES = {
 }
 
 QWEN_TTS_MODEL = os.environ.get("QWEN_TTS_MODEL", "qwen-audio-3.0-tts-plus")
-QWEN_TTS_VOICE = os.environ.get("QWEN_TTS_VOICE", "Cherry")
-QWEN_TTS_BASE_URL = os.environ.get(
-    "QWEN_TTS_BASE_URL",
-    "https://dashscope.aliyuncs.com/compatible-mode/v1/audio/speech",
-)
+QWEN_TTS_VOICE = os.environ.get("QWEN_TTS_VOICE", "")
+## The dedicated deployment only answers on the WebSocket inference route; the
+## OpenAI-compatible host in the CSV has no /audio/speech path (probed 404).
+QWEN_TTS_WS_URL = os.environ.get("QWEN_TTS_WS_URL", "")
 QWEN_TTS_API_KEY = os.environ.get("QWEN_TTS_API_KEY") or os.environ.get("DASHSCOPE_API_KEY", "")
+## qwen-audio-3.0-tts-plus ships exactly two system voices (voice list doc):
+## longanlingxin (female) and longanlufeng (male). Qwen3-TTS names such as
+## "Cherry" are rejected with InvalidParameter by this model family.
+NPC_TTS_VOICES = {
+    "mira": "longanlingxin",
+    "tavi": "longanlingxin",
+    "ori": "longanlingxin",
+    "rowan": "longanlufeng",
+    "vesh": "longanlufeng",
+}
 _TTS_CACHE: dict[str, bytes] = {}
 _TTS_CACHE_LOCK = threading.Lock()
 _TTS_MAX_BYTES = 2 * 1024 * 1024
+
+
+def _load_tts_credentials() -> None:
+    """Load operator TTS credentials from TTS.csv (key,value rows).
+
+    Precedence: explicit environment variables, then ``QWEN_TTS_CSV`` path,
+    then ``TTS.csv`` beside this service, then the repo-root ``TTS.csv``.
+    Credentials never enter logs or responses. The CSV's ``apiHost`` value is
+    the dedicated WebSocket host; the inference route is appended unless the
+    environment already pinned a full ``QWEN_TTS_WS_URL``.
+    """
+    global QWEN_TTS_API_KEY, QWEN_TTS_WS_URL
+    if QWEN_TTS_API_KEY and QWEN_TTS_WS_URL:
+        return
+    candidates = [
+        Path(os.environ["QWEN_TTS_CSV"]) if os.environ.get("QWEN_TTS_CSV") else None,
+        Path(__file__).resolve().parent / "TTS.csv",
+        REPO_ROOT / "TTS.csv",
+    ]
+    csv_path = next((path for path in candidates if path is not None and path.is_file()), None)
+    if csv_path is None:
+        return
+    values: dict[str, str] = {}
+    try:
+        for raw in csv_path.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "," not in line:
+                continue
+            key, value = line.split(",", 1)
+            values[key.strip()] = value.strip()
+    except OSError:
+        return
+    if not QWEN_TTS_API_KEY:
+        QWEN_TTS_API_KEY = values.get("apiKey", "") or values.get("apikey", "")
+    if not QWEN_TTS_WS_URL:
+        api_host = values.get("apiHost", "").strip().rstrip("/")
+        if api_host:
+            QWEN_TTS_WS_URL = f"wss://{api_host}/api-ws/v1/inference"
+
+
+_load_tts_credentials()
 
 
 def _tts_key(npc_id: str, line_id: str, voice: str) -> str:
@@ -316,68 +388,59 @@ def word_practice_ask_text(options: list[str]) -> str:
     return "Do you want " + ", ".join(clean[:-1]) + ", or " + clean[-1] + "?"
 
 
+def _dashscope_speech(text: str, voice: str) -> bytes:
+    """Synthesize one utterance over the dedicated WebSocket inference route.
+
+    Uses the DashScope SDK exactly as documented for this deployment:
+    ``SpeechSynthesizer(model=qwen-audio-3.0-tts-plus).call(text)`` returning
+    WAV bytes (24 kHz mono 16-bit). The SDK is imported lazily so the game
+    service still starts (and returns 503 for TTS) without it.
+    """
+    try:
+        import dashscope  # noqa: PLC0415
+        from dashscope.audio.tts_v2 import AudioFormat, SpeechSynthesizer  # noqa: PLC0415
+    except ImportError as exc:  # pragma: no cover - depends on operator env
+        raise RuntimeError("dashscope sdk is not installed") from exc
+    dashscope.api_key = QWEN_TTS_API_KEY
+    if QWEN_TTS_WS_URL:
+        dashscope.base_websocket_api_url = QWEN_TTS_WS_URL
+    synthesizer = SpeechSynthesizer(
+        model=QWEN_TTS_MODEL,
+        voice=voice,
+        format=AudioFormat.WAV_24000HZ_MONO_16BIT,
+    )
+    audio = synthesizer.call(text)
+    if not audio or len(audio) < 44:
+        raise RuntimeError("qwen tts returned empty audio")
+    return audio
+
+
 def synthesize_npc_line(npc_id: str, line_id: str, voice: str = "", options: list[str] | None = None) -> bytes:
     """Synthesize one server-known NPC line with the configured Qwen TTS model.
 
     ``QWEN_TTS_API_KEY`` (or ``DASHSCOPE_API_KEY``) is read from the environment
-    and never returns to the caller. Missing key / upstream failure raises
-    ``RuntimeError`` so the HTTP boundary can return 503 without exposing the
-    provider detail to the game.
+    or TTS.csv and never returns to the caller. Missing key / upstream failure
+    raises ``RuntimeError`` so the HTTP boundary can return 503 without exposing
+    the provider detail to the game.
     """
     profile = NPC_LINES.get(npc_id or "")
     if not profile or line_id not in profile:
         raise KeyError(f"unknown npc line: {npc_id}/{line_id}")
     if not QWEN_TTS_API_KEY:
         raise RuntimeError("qwen tts is not configured")
-    selected_voice = voice.strip() or QWEN_TTS_VOICE
+    selected_voice = voice.strip() or QWEN_TTS_VOICE or NPC_TTS_VOICES.get(npc_id, "")
+    if not selected_voice:
+        raise RuntimeError("qwen tts has no voice configured")
     line_text = word_practice_ask_text(options or []) if line_id == "word_practice_ask" else profile[line_id]
     key = _tts_key(npc_id, line_id, selected_voice) + "/" + ",".join(options or [])
     with _TTS_CACHE_LOCK:
         cached = _TTS_CACHE.get(key)
     if cached is not None:
         return cached
-    payload = {
-        "model": QWEN_TTS_MODEL,
-        "input": line_text,
-        "voice": selected_voice,
-        "response_format": "wav",
-    }
-    request = urllib.request.Request(
-        QWEN_TTS_BASE_URL,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Authorization": "Bearer " + QWEN_TTS_API_KEY,
-            "Content-Type": "application/json",
-        },
-        method="POST",
-    )
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
-            raw = response.read()
-            body = raw
-            # DashScope may answer with a JSON job descriptor containing a
-            # presigned audio URL instead of raw WAV bytes. Accept both shapes;
-            # the game still only ever receives audio/wav.
-            if raw.lstrip().startswith(b"{"):
-                descriptor = json.loads(raw.decode("utf-8", "replace"))
-                audio_url = (
-                    ((descriptor.get("output") or {}).get("audio") or {}).get("url")
-                    or descriptor.get("audio_url")
-                )
-                if not audio_url:
-                    raise RuntimeError("qwen tts returned json without audio url")
-                with urllib.request.urlopen(str(audio_url), timeout=30) as audio_response:
-                    body = audio_response.read()
-    except urllib.error.HTTPError as exc:
-        detail = ""
-        try:
-            detail = exc.read(256).decode("utf-8", "replace")
-        except OSError:
-            pass
-        print(f"[speech] qwen tts rejected line={npc_id}/{line_id} status={exc.code} {detail[:120]}")
-        raise RuntimeError("qwen tts request failed") from exc
-    except OSError as exc:
-        print(f"[speech] qwen tts unreachable line={npc_id}/{line_id}: {type(exc).__name__}")
+        body = _dashscope_speech(line_text, selected_voice)
+    except Exception as exc:  # noqa: BLE001 - provider detail stays server-side
+        print(f"[speech] qwen tts rejected line={npc_id}/{line_id} voice={selected_voice}: {type(exc).__name__}: {str(exc)[:120]}")
         raise RuntimeError("qwen tts request failed") from exc
     if len(body) < 44 or len(body) > _TTS_MAX_BYTES:
         raise RuntimeError("qwen tts returned invalid audio size")

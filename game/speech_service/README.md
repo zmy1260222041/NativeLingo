@@ -44,18 +44,31 @@ production score against identical audio.
 ## NPC voice (FR-32, optional)
 
 `POST /game/tts` (also `/tts`) synthesises server-known NPC lines with Qwen
-`qwen-audio-3.0-tts-plus`. The game sends only `npc_id + line_id + voice +
+`qwen-audio-3.0-tts-plus` over the dedicated WebSocket inference route
+(`/api-ws/v1/inference`). The game sends only `npc_id + line_id + voice +
 format`; the text comes from the server-side catalog and is never accepted
-from the client. Configure the provider key in the environment (never in git):
+from the client. Install the SDK once into the project venv:
+
+```sh
+.venv/bin/pip install dashscope
+```
+
+Credentials are read from `TTS.csv` beside this service (git-ignored; move
+operator-provided files there) or the repo root, or from the environment:
 
 ```sh
 export QWEN_TTS_API_KEY=...   # or DASHSCOPE_API_KEY
-export QWEN_TTS_VOICE=Cherry  # optional
+export QWEN_TTS_WS_URL=wss://<host>/api-ws/v1/inference  # optional override
 .venv/bin/python game/speech_service/server.py
 ```
 
-Without a key the endpoint returns 503 and the game silently falls back to
-subtitles. The cloud deployment uses the same endpoint contract and its own
+The CSV only needs `apiKey` and `apiHost`. Each NPC has a default voice from
+the model's two system voices — `longanlingxin` (female: Mira, Tavi, Ori) and
+`longanlufeng` (male: Rowan, Vesh); `QWEN_TTS_VOICE` overrides all of them.
+Qwen3-TTS voice names such as `Cherry` are rejected by this model family.
+
+Without a key the endpoint returns 503 and the game falls back to the no-voice
+text path. The cloud deployment uses the same endpoint contract and its own
 catalog/cache (`server/backend/core/{npc_lines,qwen_tts}.py`).
 
 ## Word practice (FR-36, optional)

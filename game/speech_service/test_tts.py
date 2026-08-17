@@ -1,6 +1,7 @@
 """Unit tests for the local Stranger TTS boundary.
 
-These tests never call the Qwen API: urlopen is replaced with a fake response.
+These tests never call the Qwen API: the WebSocket synthesis helper is
+replaced with a fake response.
 """
 from __future__ import annotations
 
@@ -51,23 +52,32 @@ class SynthesizeNpcLineTest(unittest.TestCase):
 
     def test_success_caches_by_npc_line_voice(self):
         server.QWEN_TTS_API_KEY = "test-key"
+        calls: list[str] = []
 
-        class FakeResponse:
-            def __enter__(self):
-                return self
+        def fake_speech(text: str, voice: str) -> bytes:
+            calls.append(voice)
+            return WAV_HEADER
 
-            def __exit__(self, exc_type, exc, tb):
-                return False
-
-            def read(self):
-                return WAV_HEADER
-
-        with mock.patch.object(server.urllib.request, "urlopen", return_value=FakeResponse()) as urlopen:
+        with mock.patch.object(server, "_dashscope_speech", side_effect=fake_speech):
             first = server.synthesize_npc_line("mira", "greeting")
-            second = server.synthesize_npc_line("mira", "greeting", "Cherry")
+            second = server.synthesize_npc_line("mira", "greeting")
+            explicit = server.synthesize_npc_line("mira", "greeting", "longanlufeng")
         self.assertEqual(first, WAV_HEADER)
         self.assertEqual(second, WAV_HEADER)
-        self.assertEqual(urlopen.call_count, 1)
+        # Same catalog voice hits the cache; a different voice synthesizes again.
+        self.assertEqual(calls, [server.NPC_TTS_VOICES["mira"], "longanlufeng"])
+
+    def test_voice_resolves_to_npc_default(self):
+        server.QWEN_TTS_API_KEY = "test-key"
+        seen: list[str] = []
+
+        def fake_speech(text: str, voice: str) -> bytes:
+            seen.append(voice)
+            return WAV_HEADER
+
+        with mock.patch.object(server, "_dashscope_speech", side_effect=fake_speech):
+            server.synthesize_npc_line("tavi", "clarify")
+        self.assertEqual(seen, [server.NPC_TTS_VOICES["tavi"]])
 
     def test_spoken_choice_matches_one_catalog_word(self):
         with mock.patch.object(server, "_transcribe_with_hotwords", return_value=("I want food", {})), \

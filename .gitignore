@@ -93,3 +93,10 @@ CLAUDE.md
 
 # Godot CSV auto-import creates per-column translation resources; these are derived build artifacts, not the licensed original files.
 game/assets/wordlists/*.translation
+
+# Local operator-provided TTS credentials; never commit. The
+# game/speech_service/.gdignore keeps Godot from importing the CSV as a
+# translation resource (the derived .translation embeds the key).
+TTS.csv
+TTS.csv.import
+TTS.*.translation
