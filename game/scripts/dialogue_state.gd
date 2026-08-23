@@ -10,7 +10,7 @@ signal word_practice_requested(npc_id: String, options: Array)
 signal word_practice_selected(word: String)
 signal word_practice_finished(npc_id: String)
 
-const STATES := ["idle", "opening", "awaiting", "understood", "clarify", "closed"]
+const STATES := ["idle", "opening", "awaiting", "awaiting_player", "generating", "speaking", "awaiting_follow_up", "understood", "clarify", "closed"]
 const CLOSE_AFTER_UNDERSTOOD := true
 
 var sessions: Dictionary = {}
@@ -24,6 +24,123 @@ func begin(npc_id: String) -> void:
 	var key := npc_id.strip_edges().to_lower()
 	sessions[key] = {"state": "opening", "misses": 0}
 	session_changed.emit(key, "opening", "opening")
+
+
+func begin_scenario(npc_id: String, scenario_id: String) -> bool:
+	var key := npc_id.strip_edges().to_lower()
+	var scenario := scenario_id.strip_edges().to_lower()
+	if key.is_empty() or scenario.is_empty():
+		return false
+	sessions[key] = {
+		"state": "opening",
+		"misses": 0,
+		"dynamic": true,
+		"scenario_id": scenario,
+		"history": [],
+		"reply_id": "",
+	}
+	session_changed.emit(key, "opening", "opening")
+	return true
+
+
+func await_player(npc_id: String, line_key := "opening") -> bool:
+	var key := npc_id.strip_edges().to_lower()
+	if not has_dynamic_session(key):
+		return false
+	var session: Dictionary = sessions[key]
+	session["state"] = "awaiting_player"
+	session_changed.emit(key, "awaiting_player", line_key)
+	return true
+
+
+func has_dynamic_session(npc_id: String) -> bool:
+	var key := npc_id.strip_edges().to_lower()
+	return sessions.has(key) and bool(sessions[key].get("dynamic", false))
+
+
+func scenario_for(npc_id: String) -> String:
+	var key := npc_id.strip_edges().to_lower()
+	if not sessions.has(key):
+		return ""
+	return str(sessions[key].get("scenario_id", ""))
+
+
+func history_for(npc_id: String) -> Array:
+	var key := npc_id.strip_edges().to_lower()
+	if not sessions.has(key):
+		return []
+	var history: Array = sessions[key].get("history", [])
+	return history.duplicate(true)
+
+
+func begin_generation(npc_id: String, transcript: String) -> bool:
+	var key := npc_id.strip_edges().to_lower()
+	if not has_dynamic_session(key):
+		return false
+	var session: Dictionary = sessions[key]
+	var history: Array = session.get("history", [])
+	history.append({"role": "player", "text": transcript.strip_edges()})
+	if history.size() > 8:
+		history = history.slice(history.size() - 8)
+	session["history"] = history
+	session["state"] = "generating"
+	session["misses"] = 0
+	session_changed.emit(key, "generating", "generating")
+	return true
+
+
+func retry_generation(npc_id: String) -> bool:
+	var key := npc_id.strip_edges().to_lower()
+	if not has_dynamic_session(key):
+		return false
+	var session: Dictionary = sessions[key]
+	session["state"] = "generating"
+	session_changed.emit(key, "generating", "retrying")
+	return true
+
+
+func accept_dynamic_reply(npc_id: String, reply_id: String, text: String, next_state := "awaiting_follow_up") -> bool:
+	var key := npc_id.strip_edges().to_lower()
+	if not has_dynamic_session(key) or reply_id.strip_edges().is_empty() or text.strip_edges().is_empty():
+		return false
+	var session: Dictionary = sessions[key]
+	var history: Array = session.get("history", [])
+	history.append({"role": "npc", "text": text.strip_edges()})
+	if history.size() > 8:
+		history = history.slice(history.size() - 8)
+	session["history"] = history
+	session["reply_id"] = reply_id.strip_edges()
+	session["next_state"] = next_state if next_state in ["awaiting_player", "awaiting_follow_up", "closed"] else "awaiting_follow_up"
+	session["state"] = "speaking"
+	session_changed.emit(key, str(session["state"]), reply_id.strip_edges())
+	return true
+
+
+func finish_speaking(npc_id: String, reply_id: String) -> String:
+	var key := npc_id.strip_edges().to_lower()
+	if not has_dynamic_session(key):
+		return ""
+	var session: Dictionary = sessions[key]
+	if str(session.get("reply_id", "")) != reply_id.strip_edges():
+		return ""
+	var next_state := str(session.get("next_state", "awaiting_follow_up"))
+	if next_state == "closed":
+		close(key)
+		return "closed"
+	session["state"] = next_state
+	session_changed.emit(key, next_state, reply_id.strip_edges())
+	return next_state
+
+
+func dynamic_failed(npc_id: String, reason := "") -> bool:
+	var key := npc_id.strip_edges().to_lower()
+	if not has_dynamic_session(key):
+		return false
+	var session: Dictionary = sessions[key]
+	session["state"] = "clarify"
+	session["misses"] = int(session.get("misses", 0)) + 1
+	session_changed.emit(key, "clarify", reason if not reason.is_empty() else "clarify")
+	return true
 
 
 func player_acted(npc_id: String, understood: bool) -> void:

@@ -23,12 +23,18 @@ const DESKTOP_NO_VOICE_FEATURE := "desktop_beta_no_voice"
 const CACHE_DIR := "user://npc_voice"
 const MAX_LINE_BYTES := 2 * 1024 * 1024
 const MAX_QUEUE_SIZE := 4
+const VOICE_VOLUME_DB := -10.0
+const VOICE_MAX_DB := -4.0
+const VOICE_UNIT_SIZE := 2.2
+const VOICE_MAX_DISTANCE := 10.0
+const VOICE_SOURCE_HEIGHT := 1.45
 
 var availability_override: Variant = null
 var token_override: Variant = null
 var cache_enabled := true
-var audio_player: AudioStreamPlayer
+var audio_player: AudioStreamPlayer3D
 var http_request: HTTPRequest
+var reply_http_request: HTTPRequest
 var pending_npc_id := ""
 var pending_line_id := ""
 var pending_voice := ""
@@ -36,12 +42,23 @@ var pending_options: Array = []
 var playing_npc_id := ""
 var playing_line_id := ""
 var line_queue: Array[Dictionary] = []
+var speaker_nodes: Dictionary = {}
+var pending_reply_npc_id := ""
+var pending_reply_id := ""
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	audio_player = AudioStreamPlayer.new()
+	audio_player = AudioStreamPlayer3D.new()
 	audio_player.name = "NpcVoicePlayer"
+	audio_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	audio_player.volume_db = VOICE_VOLUME_DB
+	audio_player.max_db = VOICE_MAX_DB
+	audio_player.unit_size = VOICE_UNIT_SIZE
+	audio_player.max_distance = VOICE_MAX_DISTANCE
+	audio_player.panning_strength = 0.85
+	audio_player.attenuation_filter_cutoff_hz = 5000.0
+	audio_player.attenuation_filter_db = -12.0
 	audio_player.finished.connect(_on_audio_finished)
 	add_child(audio_player)
 	http_request = HTTPRequest.new()
@@ -49,8 +66,38 @@ func _ready() -> void:
 	http_request.timeout = 20.0
 	http_request.request_completed.connect(_on_request_completed)
 	add_child(http_request)
+	reply_http_request = HTTPRequest.new()
+	reply_http_request.name = "NpcDynamicReplyHttp"
+	reply_http_request.timeout = 20.0
+	reply_http_request.request_completed.connect(_on_reply_request_completed)
+	add_child(reply_http_request)
 	if cloud_mode_enabled():
 		_configure_cloud_tls()
+
+
+func _process(_delta: float) -> void:
+	_sync_audio_position()
+
+
+func register_speaker(npc_id: String, speaker: Node3D) -> void:
+	var key := npc_id.strip_edges().to_lower()
+	if key.is_empty() or speaker == null:
+		return
+	speaker_nodes[key] = speaker
+
+
+func unregister_speaker(npc_id: String, speaker: Node3D) -> void:
+	var key := npc_id.strip_edges().to_lower()
+	if speaker_nodes.get(key) == speaker:
+		speaker_nodes.erase(key)
+
+
+func _sync_audio_position() -> void:
+	if audio_player == null or playing_npc_id.is_empty():
+		return
+	var speaker: Variant = speaker_nodes.get(playing_npc_id)
+	if speaker is Node3D and is_instance_valid(speaker):
+		audio_player.global_position = speaker.global_position + Vector3.UP * VOICE_SOURCE_HEIGHT
 
 func _configure_cloud_tls() -> void:
 	## Same pinned-CA contract as SpeechAdapter: this node owns its own
@@ -62,10 +109,14 @@ func _configure_cloud_tls() -> void:
 	var certificate := _load_pinned_certificate(ca_path)
 	if certificate != null:
 		http_request.set_tls_options(TLSOptions.client(certificate))
+		if reply_http_request != null:
+			reply_http_request.set_tls_options(TLSOptions.client(certificate))
 		return
 	if bool(ProjectSettings.get_setting(CLOUD_INSECURE_DEV_SETTING, false)):
 		push_warning("NpcVoice: stranger_cloud/allow_insecure_dev is enabled; TLS verification disabled")
 		http_request.set_tls_options(TLSOptions.client_unsafe())
+		if reply_http_request != null:
+			reply_http_request.set_tls_options(TLSOptions.client_unsafe())
 
 var _pinned_certificate: X509Certificate
 
@@ -132,6 +183,95 @@ func request_line(npc_id: String, line_id: String, voice := "", response_format 
 	})
 	_advance_queue()
 	return true
+
+
+func request_reply(npc_id: String, reply_id: String, response_format := "wav") -> bool:
+	var npc := npc_id.strip_edges().to_lower()
+	var reply := reply_id.strip_edges()
+	if npc.is_empty() or reply.is_empty():
+		line_audio_failed.emit(npc, reply, "VOICE_REASON_RESULT_INVALID")
+		return false
+	if not is_available():
+		line_audio_failed.emit(npc, reply, "VOICE_REASON_SERVICE_UNAVAILABLE")
+		return false
+	if cloud_mode_enabled() and cloud_token().is_empty():
+		line_audio_failed.emit(npc, reply, "VOICE_REASON_CLOUD_NOT_ACTIVATED")
+		return false
+	if reply_http_request == null:
+		line_audio_failed.emit(npc, reply, "VOICE_REASON_SERVICE_UNAVAILABLE")
+		return false
+	if reply_http_request.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
+		reply_http_request.cancel_request()
+		_clear_pending_reply()
+	_preempt_for_reply()
+	var headers := PackedStringArray(["Content-Type: application/json"])
+	if cloud_mode_enabled():
+		headers.append("Authorization: Bearer " + cloud_token())
+	pending_reply_npc_id = npc
+	pending_reply_id = reply
+	var error := reply_http_request.request(tts_url_for_line(npc, reply), headers, HTTPClient.METHOD_POST, JSON.stringify({
+		"npc_id": npc,
+		"reply_id": reply,
+		"format": response_format,
+	}))
+	if error != OK:
+		_clear_pending_reply()
+		line_audio_failed.emit(npc, reply, "VOICE_REASON_SERVICE_UNAVAILABLE")
+		return false
+	return true
+
+
+func _preempt_for_reply() -> void:
+	# A spoken counter reply preempts ambient catalog lines so the player is
+	# not left waiting after the model already answered.
+	line_queue.clear()
+	if http_request != null and http_request.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
+		http_request.cancel_request()
+		_clear_pending()
+	if audio_player != null and audio_player.playing:
+		audio_player.stop()
+	playing_npc_id = ""
+	playing_line_id = ""
+
+
+func feed_reply_pcm(npc_id: String, reply_id: String, pcm: PackedByteArray, sample_rate := 24000, channels := 1) -> bool:
+	## Play a counter reply whose PCM already arrived inside the dialogue SSE
+	## stream. No availability or cloud gate: the bytes are local, so there is
+	## no network behaviour to gate and headless tests can exercise playback.
+	var npc := npc_id.strip_edges().to_lower()
+	var reply := reply_id.strip_edges()
+	if npc.is_empty() or reply.is_empty() or channels != 1 or pcm.size() < 32 or pcm.size() > MAX_LINE_BYTES:
+		line_audio_failed.emit(npc, reply, "VOICE_REASON_RESULT_INVALID")
+		return false
+	if reply_http_request != null and reply_http_request.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
+		reply_http_request.cancel_request()
+		_clear_pending_reply()
+	_preempt_for_reply()
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = sample_rate
+	stream.stereo = false
+	stream.data = pcm
+	audio_player.stream = stream
+	playing_npc_id = npc
+	playing_line_id = reply
+	_sync_audio_position()
+	audio_player.play()
+	line_audio_ready.emit(npc, reply)
+	return true
+
+
+func cancel_reply(npc_id: String) -> void:
+	var npc := npc_id.strip_edges().to_lower()
+	if pending_reply_npc_id == npc:
+		if reply_http_request != null and reply_http_request.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
+			reply_http_request.cancel_request()
+		_clear_pending_reply()
+	if playing_npc_id == npc and playing_line_id.begins_with("reply-"):
+		audio_player.stop()
+		playing_npc_id = ""
+		playing_line_id = ""
+		audio_player.stream = null
 
 
 func _advance_queue() -> void:
@@ -210,6 +350,10 @@ func _cache_path(npc_id: String, line_id: String, voice: String, options: Array 
 	return CACHE_DIR.path_join(_cache_key(npc_id, line_id, voice, options).replace("/", "_") + ".wav")
 
 
+func _reply_cache_path(npc_id: String, reply_id: String) -> String:
+	return CACHE_DIR.path_join("reply_%s_%s.wav" % [npc_id, reply_id.validate_filename()])
+
+
 func _play_file(path: String, npc_id := "", line_id := "") -> bool:
 	var stream := AudioStreamWAV.load_from_file(path)
 	if stream == null or stream.get_length() <= 0.0:
@@ -217,6 +361,7 @@ func _play_file(path: String, npc_id := "", line_id := "") -> bool:
 	audio_player.stream = stream
 	playing_npc_id = npc_id
 	playing_line_id = line_id
+	_sync_audio_position()
 	audio_player.play()
 	return true
 
@@ -259,6 +404,39 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 	_advance_queue()
 
 
+func _on_reply_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	var npc := pending_reply_npc_id
+	var reply := pending_reply_id
+	_clear_pending_reply()
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200 or body.size() < 44 or body.size() > MAX_LINE_BYTES:
+		var reason := "VOICE_REASON_SERVICE_UNAVAILABLE"
+		if response_code == 401 or response_code == 403:
+			reason = "VOICE_REASON_CLOUD_UNAUTHORIZED"
+		elif response_code == 404:
+			reason = "VOICE_REASON_RESULT_INVALID"
+		line_audio_failed.emit(npc, reply, reason)
+		return
+	if cache_enabled:
+		var path := _reply_cache_path(npc, reply)
+		var dir := DirAccess.open(CACHE_DIR)
+		if dir == null:
+			DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(CACHE_DIR))
+		var file := FileAccess.open(path, FileAccess.WRITE)
+		if file:
+			file.store_buffer(body)
+			file.flush()
+			file.close()
+			if _play_file(path, npc, reply):
+				line_audio_ready.emit(npc, reply)
+				return
+		line_audio_failed.emit(npc, reply, "VOICE_REASON_SAVE_FAILED")
+		return
+	if _play_buffer(body, npc, reply):
+		line_audio_ready.emit(npc, reply)
+		return
+	line_audio_failed.emit(npc, reply, "VOICE_REASON_SAVE_FAILED")
+
+
 func _play_buffer(data: PackedByteArray, npc_id: String, line_id: String) -> bool:
 	var stream := AudioStreamWAV.load_from_buffer(data)
 	if stream == null or stream.get_length() <= 0.0:
@@ -266,6 +444,7 @@ func _play_buffer(data: PackedByteArray, npc_id: String, line_id: String) -> boo
 	audio_player.stream = stream
 	playing_npc_id = npc_id
 	playing_line_id = line_id
+	_sync_audio_position()
 	audio_player.play()
 	return true
 
@@ -287,3 +466,8 @@ func _clear_pending() -> void:
 	pending_line_id = ""
 	pending_voice = ""
 	pending_options.clear()
+
+
+func _clear_pending_reply() -> void:
+	pending_reply_npc_id = ""
+	pending_reply_id = ""

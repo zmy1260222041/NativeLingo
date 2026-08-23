@@ -32,10 +32,16 @@ func _test_guided_flow() -> void:
 	state.onboarding_action("sprint")
 	state.onboarding_action("jump")
 	_expect(state.onboarding_step == "interact", "Look/sprint/jump advance in authored order")
-	state.interact("npc", "mira", "gesture")
-	_expect(state.onboarding_step == "speak" and state.completed_steps.has("greet_mira"), "First interaction completes the interact step without skipping the greeting rule")
-	state.interact("npc", "tavi", "voice", _expression(100.0))
-	_expect(state.onboarding_step == "sleep" and state.berries >= 2, "Voiced food request advances to sleep and keeps FR-28 rewards")
+	state.interact("berry", "berry_a")
+	_expect(state.onboarding_step == "greet" and not state.completed_steps.has("greet_mira"), "Physical interaction advances to an explicit voiced greeting step")
+	state.interact("npc", "mira", "action")
+	_expect(state.onboarding_step == "greet" and not state.completed_steps.has("greet_mira"), "Observe/E cannot bypass the guided Mira greeting")
+	state.interact("npc", "mira", "voice", _expression(100.0))
+	_expect(state.onboarding_step == "speak" and state.completed_steps.has("greet_mira"), "The understood Mira greeting advances to the food request")
+	state.interact("npc", "tavi", "voice", _expression(40.0))
+	_expect(state.onboarding_step == "speak" and state.berries == 1, "A sparse food reward keeps the guide on the request until survival is secured")
+	state.interact("npc", "tavi", "voice", _expression(40.0))
+	_expect(state.onboarding_step == "sleep" and state.berries >= 2, "Enough voiced food requests advance to sleep and keep FR-28 rewards")
 	state.interact("shelter", "shelter")
 	_expect(state.onboarding_completed and not state.onboarding_active and state.day == 2, "Successful first-night sleep completes the guide and advances the day")
 
@@ -60,7 +66,7 @@ func _test_needs_guard_and_decay_resume() -> void:
 	state.day_time = 10.0
 	state._process(60.0)
 	_expect(is_equal_approx(state.food, 12.0) and is_equal_approx(state.warmth, 12.0) and is_equal_approx(state.energy, 12.0) and is_equal_approx(state.day_time, 10.0), "Active guide freezes all three needs and the survival clock")
-	for _index in range(6):
+	for _index in range(7):
 		state.onboarding_action(state.onboarding_step)
 	state.completed_steps["greet_mira"] = true
 	state.berries = 2

@@ -62,6 +62,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		SpeechAdapter.cancel_recording()
 		get_viewport().set_input_as_handled()
 		return
+	if event.is_action_pressed("ui_cancel"):
+		var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+		if dynamic_service != null and dynamic_service.has_active_session():
+			dynamic_service.cancel("VOICE_REASON_DIALOGUE_CANCELLED")
+			get_viewport().set_input_as_handled()
+			return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		rotate_y(-event.relative.x * 0.0026)
 		camera_pivot.rotation.x = clampf(camera_pivot.rotation.x - event.relative.y * 0.0022, -0.8, 0.45)
@@ -71,13 +77,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		GameState.reset_run()
 		GameState.save_game()
 		get_tree().reload_current_scene()
-	# FR-30: during the guide the V key belongs to the onboarding speak step;
-	# a stray word-practice session must not capture it or the guide stalls.
-	if Dialogue.word_practice_active and not GameState.onboarding_active and event.is_action_pressed("push_to_talk"):
+	# Word practice never owns V while the player is in an NPC conversation.
+	var talking_to_npc := _is_npc_conversation_active()
+	if talking_to_npc and Dialogue.word_practice_active:
+		Dialogue.finish_word_practice()
+	if Dialogue.word_practice_active and not GameState.onboarding_active and not talking_to_npc and event.is_action_pressed("push_to_talk"):
 		SpeechAdapter.start_word_choice_recording(Dialogue.word_practice_options)
 		get_viewport().set_input_as_handled()
 		return
-	if Dialogue.word_practice_active and not GameState.onboarding_active and event.is_action_pressed("gesture"):
+	if Dialogue.word_practice_active and not GameState.onboarding_active and not talking_to_npc and event.is_action_pressed("gesture"):
 		GameState.message_requested.emit(tr("WORD_PRACTICE_SPEAK_HINT"), "neutral")
 		get_viewport().set_input_as_handled()
 		return
@@ -365,6 +373,11 @@ func _find_nearby_target() -> void:
 	if current_target_id != previous_target_id:
 		if SpeechAdapter.is_interaction_active():
 			SpeechAdapter.cancel_recording()
+		var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+		if dynamic_service != null and dynamic_service.has_active_session():
+			var old_target_id := str(old_target.get("target_id")) if is_instance_valid(old_target) else ""
+			if old_target_id == dynamic_service.active_npc_id() and not GameState.interaction_time_frozen:
+				dynamic_service.cancel("VOICE_REASON_DIALOGUE_CANCELLED")
 		if is_instance_valid(old_target) and old_target.has_method("set_highlighted"):
 			old_target.set_highlighted(false)
 		if is_instance_valid(nearby_target) and nearby_target.has_method("set_highlighted"):
@@ -393,6 +406,15 @@ func _attempt_interaction(communication: String) -> void:
 		# player can see/demo the gesture animation standalone.
 		character_visual.play_reaction("point")
 
+func _is_npc_conversation_active() -> bool:
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service != null and dynamic_service.has_active_session():
+		return true
+	if is_instance_valid(nearby_target) and nearby_target.interaction_kind == "npc":
+		return true
+	return false
+
+
 func _start_voice_interaction() -> void:
 	if not SpeechAdapter.is_available():
 		return
@@ -405,8 +427,28 @@ func _start_voice_interaction() -> void:
 	if not SpeechAdapter.start_recording(nearby_target.target_id):
 		if not SpeechAdapter.is_interaction_active():
 			GameState.message_requested.emit(tr("MSG_SPEECH_BUSY"), "neutral")
+		return
+	# The recording itself covers the connection warm-up window: prewarm the
+	# dialogue service's TTS pool while the player is still speaking.
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service != null:
+		dynamic_service.prewarm(nearby_target.target_id)
 
 func _on_recognition_finished(target_id: String, accepted: bool, transcript: String, reason: String, expression: Dictionary) -> void:
+	# Service-point conversations keep the transcript open for Grok. Pronunciation
+	# still comes from /game/evaluate and is mixed into the session score later.
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service != null and dynamic_service.enabled():
+		var session_ready: bool = dynamic_service.is_session_active_for(target_id)
+		if not session_ready and GameState.can_start_service_dialogue(target_id):
+			session_ready = dynamic_service.begin_scenario(target_id, GameState.service_scenario_for(target_id))
+		if session_ready:
+			if transcript.strip_edges().is_empty():
+				dynamic_service.reject_empty_transcript(reason)
+			else:
+				var pronunciation := float(expression.get("pronunciation", expression.get("score", -1.0)))
+				dynamic_service.submit_transcript(transcript, {"pronunciation": pronunciation})
+			return
 	if not accepted:
 		for candidate in get_tree().get_nodes_in_group("interactable"):
 			if candidate.target_id == target_id and candidate.interaction_kind == "npc":

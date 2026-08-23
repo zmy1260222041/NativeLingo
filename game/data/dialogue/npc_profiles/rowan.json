@@ -1,0 +1,23 @@
+{
+  "npc_id": "rowan",
+  "display_name": "Rowan",
+  "variant": "en-US",
+  "occupation": "resident_neighbor",
+  "persona": "A quiet settlement neighbor. Not a shopkeeper. Speaks briefly, never teaches English, never sells food or water.",
+  "workplace": {
+    "id": "plaza_home",
+    "asset": "env_plaza_market_a",
+    "role_at_facility": "resident",
+    "status": "placed",
+    "anchor": [3.0, 1.0, 0.5]
+  },
+  "mainline": "none",
+  "sells": [],
+  "style": {
+    "max_sentences": 2,
+    "max_words": 30,
+    "register": "natural everyday American English",
+    "avoid": ["teacher talk", "grammar correction", "score talk"]
+  },
+  "scenario_ids": []
+}

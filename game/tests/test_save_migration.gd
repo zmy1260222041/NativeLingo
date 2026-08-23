@@ -33,17 +33,19 @@ func _init() -> void:
 	if file != null:
 		file.store_string(JSON.stringify(legacy))
 		file.close()
-	_expect(legacy_state.load_game(), "Version-2 save loads into SAVE_VERSION 3")
+	_expect(legacy_state.load_game(), "Version-2 save loads into SAVE_VERSION 4")
 	_expect(legacy_state.day == 2 and legacy_state.food == 55.0 and int(legacy_state.relationships["mira"]) == 2, "Legacy quest/relationship values are preserved")
 	_expect(legacy_state.vocabulary_tier == "toddler" and legacy_state.vocabulary_entries.is_empty(), "Missing vocabulary fields lazily default to an empty toddler profile")
 	legacy_state.vocabulary_entries = {"portions|observed": {"headword": "portions", "pos": "observed", "cefr": "", "ngsl_rank": -1, "source": "observed_npc", "state": "heard"}}
-	_expect(legacy_state.save_game(), "SAVE_VERSION 3 save can be written")
+	legacy_state.record_dialogue_scenario_result("food_counter", "success")
+	_expect(legacy_state.save_game(), "SAVE_VERSION 4 save can be written")
 	var restored = GameStateScript.new()
 	restored.persistence_enabled = true
 	restored.save_path = path
 	root.add_child(restored)
-	_expect(restored.load_game(), "Version-3 save round-trips")
+	_expect(restored.load_game(), "Version-4 save round-trips")
 	_expect(restored.vocabulary_entries.has("portions|observed") and restored.vocabulary_tier == "toddler", "Vocabulary profile survives the save round-trip")
+	_expect(str(restored.dialogue_scenario_progress.get("food_counter", {}).get("outcome", "")) == "success", "Service-point dialogue progress survives without changing mainline steps")
 	_remove(path)
 	if failures == 0:
 		print("PASS: Stranger save migration suite")

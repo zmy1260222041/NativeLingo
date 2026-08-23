@@ -1,0 +1,54 @@
+{
+  "godot_scenario_id": "convenience_store",
+  "npc_id": "ori",
+  "location": "corner store",
+  "role": "cashier",
+  "need": "water",
+  "resource": "water",
+  "entry_dialogue": "Hey. You finding everything okay?",
+  "situation": "Ori is the cashier at a small American convenience store. The player can buy bottled water or other counter items. Ori stays in character and never teaches English.",
+  "inventory": [
+    "water",
+    "bottle of water",
+    "bottled water",
+    "water bottle",
+    "canteen",
+    "soda",
+    "chips",
+    "snack",
+    "gum",
+    "batteries"
+  ],
+  "can_do": [
+    "sell a drink or snack",
+    "point to the cooler",
+    "ring up the item",
+    "hand over water"
+  ],
+  "cannot_do": [
+    "repair the heater",
+    "cook a restaurant meal",
+    "sell alloy parts",
+    "teach English"
+  ],
+  "request_cues": [
+    "can i get",
+    "could i have",
+    "i'll take",
+    "i want",
+    "i need",
+    "where is",
+    "do you have",
+    "please"
+  ],
+  "allowed_speech_acts": [
+    "acknowledge_need",
+    "make_request",
+    "clarify_request",
+    "answer_service_question",
+    "offer_choice",
+    "confirm_order",
+    "close_transaction"
+  ],
+  "completion_speech_acts": ["confirm_order", "close_transaction"]
+}

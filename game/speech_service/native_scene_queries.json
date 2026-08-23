@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "mode": "source_first",
+  "policy": {
+    "description": "Find repeated real-life request-response interactions before naming a game scenario.",
+    "required_evidence": [
+      "real_event",
+      "adjacent_request_response",
+      "distinct_speakers",
+      "source_metadata_review",
+      "native_speaker_review",
+      "rights_review"
+    ],
+    "never_auto_verify": true,
+    "never_auto_promote": true
+  },
+  "scene_families": [
+    {
+      "scene_id": "counter_order",
+      "label": "Order food or a drink at a counter",
+      "search_phrases": [
+        "for here or to go",
+        "can I get",
+        "what would you like",
+        "anything else"
+      ],
+      "required_exchange_cues": [
+        "for here",
+        "to go",
+        "anything else",
+        "how many",
+        "what would you like"
+      ],
+      "youtube_queries": [
+        "real restaurant counter customer ordering USA vlog",
+        "local news customer orders at restaurant counter USA",
+        "American deli counter customer ordering interview"
+      ],
+      "request_cues": ["can I get", "could I have", "I'll take", "what can I get"],
+      "response_cues": ["for here", "to go", "anything else", "what would you like", "sure", "here you go"]
+    },
+    {
+      "scene_id": "request_drink",
+      "label": "Ask for a drink during a service interaction",
+      "search_phrases": [
+        "can I get a water",
+        "I'll take a water",
+        "do you have water",
+        "what can I get you to drink"
+      ],
+      "required_exchange_cues": [
+        "water",
+        "drink",
+        "bottle",
+        "cup"
+      ],
+      "youtube_queries": [
+        "restaurant customer asks for water USA vlog",
+        "server offers drinks customer says water USA",
+        "cafe counter asks what can I get you to drink USA"
+      ],
+      "request_cues": ["can I get some water", "can I have water", "I'll take a water", "could I get a drink"],
+      "response_cues": ["sure", "of course", "here you go", "what can I get", "water"]
+    },
+    {
+      "scene_id": "hotel_extra_item",
+      "label": "Ask a front desk for an extra item",
+      "search_phrases": [
+        "extra blanket",
+        "extra pillow",
+        "can I get another",
+        "front desk"
+      ],
+      "required_exchange_cues": [
+        "extra blanket",
+        "extra pillow",
+        "I'll check",
+        "what's your room number"
+      ],
+      "youtube_queries": [
+        "hotel front desk guest asks for extra blanket real conversation",
+        "hotel guest asks for extra pillow front desk USA",
+        "hotel housekeeping brings extra blanket guest request"
+      ],
+      "request_cues": ["can I get an extra", "could I have another", "do you have an extra", "I need another"],
+      "response_cues": ["sure", "of course", "no problem", "I'll check", "right away", "what's your room"]
+    },
+    {
+      "scene_id": "waiting_line_small_talk",
+      "label": "Make small talk while waiting in line",
+      "search_phrases": [
+        "first in line",
+        "how long have you been in line",
+        "been in line since",
+        "how long have you been waiting"
+      ],
+      "required_exchange_cues": [
+        "first time",
+        "hours",
+        "since",
+        "how long",
+        "every year"
+      ],
+      "youtube_queries": [
+        "local news interviews people waiting in line USA",
+        "Black Friday shopper asks how long in line interview",
+        "people waiting in line small talk real conversation USA"
+      ],
+      "request_cues": ["how long have you", "how long have", "first time", "what brings you"],
+      "response_cues": ["hours", "since", "first time", "every year", "yeah", "about"]
+    },
+    {
+      "scene_id": "ask_for_directions",
+      "label": "Ask a nearby person where something is",
+      "search_phrases": [
+        "where can I",
+        "how do I get to",
+        "which way is",
+        "is there a"
+      ],
+      "required_exchange_cues": [
+        "right over there",
+        "down the hall",
+        "turn left",
+        "turn right",
+        "you can find"
+      ],
+      "youtube_queries": [
+        "visitor asks where is the bathroom real interaction USA",
+        "tourist asks how do I get to local person answers USA vlog",
+        "customer asks where can I find store employee answers USA"
+      ],
+      "request_cues": ["where is", "how do I get to", "which way is", "where can I find", "is there a"],
+      "response_cues": ["right over there", "down the hall", "turn left", "turn right", "over there", "you can find"]
+    },
+    {
+      "scene_id": "ask_for_help",
+      "label": "Ask for simple help in the moment",
+      "search_phrases": [
+        "can you help me",
+        "could you help me",
+        "do you mind helping",
+        "I need some help"
+      ],
+      "required_exchange_cues": [
+        "sure",
+        "of course",
+        "no problem",
+        "let me help"
+      ],
+      "youtube_queries": [
+        "stranger asks can you help me real interaction USA vlog",
+        "customer asks could you help me employee says no problem USA",
+        "local news asks for help person responds sure real conversation"
+      ],
+      "request_cues": ["can you help me", "could you help me", "do you mind helping", "I need some help"],
+      "response_cues": ["sure", "of course", "no problem", "let me help", "I can help"]
+    }
+  ]
+}

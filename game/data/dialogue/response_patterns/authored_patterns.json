@@ -1,0 +1,3235 @@
+{
+  "schema_version": 1,
+  "patterns": [
+    {
+      "id": "food_ask_bread_03",
+      "scenario_id": "food_ask_bread",
+      "text": "Absolutely. What would you like?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_03"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_04",
+      "scenario_id": "food_ask_bread",
+      "text": "Sure thing. For here or to go?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_04"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_05",
+      "scenario_id": "food_ask_bread",
+      "text": "No problem. What can I get you?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_05"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_06",
+      "scenario_id": "food_ask_bread",
+      "text": "For here, or would you like it to go?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_06"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_07",
+      "scenario_id": "food_ask_bread",
+      "text": "Got it. Anything else?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_07"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_08",
+      "scenario_id": "food_ask_bread",
+      "text": "Sure. Would you like anything to drink?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_08"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_09",
+      "scenario_id": "food_ask_bread",
+      "text": "Okay. What kind would you like?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_09"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_10",
+      "scenario_id": "food_ask_bread",
+      "text": "All right. I can get that started.",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_10"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_11",
+      "scenario_id": "food_ask_bread",
+      "text": "Yes, we have that. Is it for here?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_11"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_12",
+      "scenario_id": "food_ask_bread",
+      "text": "Sounds good. I will put that in.",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_12"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_13",
+      "scenario_id": "food_ask_bread",
+      "text": "Sure. What can I get for you?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_13"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_14",
+      "scenario_id": "food_ask_bread",
+      "text": "Of course. Is that for here or to go?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_14"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_15",
+      "scenario_id": "food_ask_bread",
+      "text": "Absolutely. What would you like?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_15"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_16",
+      "scenario_id": "food_ask_bread",
+      "text": "Sure thing. For here or to go?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_16"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_17",
+      "scenario_id": "food_ask_bread",
+      "text": "No problem. What can I get you?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_17"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_18",
+      "scenario_id": "food_ask_bread",
+      "text": "For here, or would you like it to go?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_18"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_19",
+      "scenario_id": "food_ask_bread",
+      "text": "Got it. Anything else?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_19"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_20",
+      "scenario_id": "food_ask_bread",
+      "text": "Sure. Would you like anything to drink?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_20"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_21",
+      "scenario_id": "food_ask_bread",
+      "text": "Okay. What kind would you like?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_21"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_22",
+      "scenario_id": "food_ask_bread",
+      "text": "All right. I can get that started.",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_22"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_23",
+      "scenario_id": "food_ask_bread",
+      "text": "Yes, we have that. Is it for here?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_23"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_24",
+      "scenario_id": "food_ask_bread",
+      "text": "Sounds good. I will put that in.",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_24"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_25",
+      "scenario_id": "food_ask_bread",
+      "text": "Sure. What can I get for you?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_25"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_26",
+      "scenario_id": "food_ask_bread",
+      "text": "Of course. Is that for here or to go?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_26"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_27",
+      "scenario_id": "food_ask_bread",
+      "text": "Absolutely. What would you like?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_27"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_28",
+      "scenario_id": "food_ask_bread",
+      "text": "Sure thing. For here or to go?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_28"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_29",
+      "scenario_id": "food_ask_bread",
+      "text": "No problem. What can I get you?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_29"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_30",
+      "scenario_id": "food_ask_bread",
+      "text": "For here, or would you like it to go?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_30"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_31",
+      "scenario_id": "food_ask_bread",
+      "text": "Got it. Anything else?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_31"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_32",
+      "scenario_id": "food_ask_bread",
+      "text": "Sure. Would you like anything to drink?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_32"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_33",
+      "scenario_id": "food_ask_bread",
+      "text": "Okay. What kind would you like?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_33"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_34",
+      "scenario_id": "food_ask_bread",
+      "text": "All right. I can get that started.",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_34"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_35",
+      "scenario_id": "food_ask_bread",
+      "text": "Yes, we have that. Is it for here?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_35"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_36",
+      "scenario_id": "food_ask_bread",
+      "text": "Sounds good. I will put that in.",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_36"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_37",
+      "scenario_id": "food_ask_bread",
+      "text": "Sure. What can I get for you?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_37"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_38",
+      "scenario_id": "food_ask_bread",
+      "text": "Of course. Is that for here or to go?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_38"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_39",
+      "scenario_id": "food_ask_bread",
+      "text": "Absolutely. What would you like?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_39"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_40",
+      "scenario_id": "food_ask_bread",
+      "text": "Sure thing. For here or to go?",
+      "speech_act": "answer_service_question",
+      "emotion": "warm",
+      "evidence_ids": [
+        "food_ask_bread_40"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_03",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The cafe counter has safe drinking water. You can refill your bottle there.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_03"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_04",
+      "scenario_id": "water_ask_clean_water",
+      "text": "You can get safe water at the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_04"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_05",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Do not use the sink for drinking. The cafe counter can refill your bottle.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_05"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_06",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The cafe counter is the safe place to refill your bottle.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_06"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_07",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Yes. Ask at the cafe counter for drinking water.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_07"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_08",
+      "scenario_id": "water_ask_clean_water",
+      "text": "You can refill at the cafe counter. That water is safe to drink.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_08"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_09",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The sink water is not for drinking. Try the cafe counter instead.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_09"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_10",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Go to the cafe counter for safe drinking water.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_10"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_11",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The cafe counter can help with a safe refill.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_11"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_12",
+      "scenario_id": "water_ask_clean_water",
+      "text": "For drinking water, use the cafe counter rather than the sink.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_12"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_13",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Your safest option is the cafe counter. They can refill your bottle.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_13"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_14",
+      "scenario_id": "water_ask_clean_water",
+      "text": "There is safe drinking water at the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_14"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_15",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Take your bottle to the cafe counter for a safe refill.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_15"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_16",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The sink is not the right one. The cafe counter has drinking water.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_16"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_17",
+      "scenario_id": "water_ask_clean_water",
+      "text": "You will find safe water at the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_17"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_18",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The cafe counter is where you can refill safely.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_18"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_19",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Yes, there is safe water. Ask at the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_19"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_20",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Head to the cafe counter. You can refill your bottle there.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_20"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_21",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The cafe counter has water that is safe to drink.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_21"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_22",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Use the cafe counter for your refill, not the sink.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_22"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_23",
+      "scenario_id": "water_ask_clean_water",
+      "text": "I can point you to the cafe counter for safe water.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_23"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_24",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The drinking water is at the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_24"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_25",
+      "scenario_id": "water_ask_clean_water",
+      "text": "You can ask the cafe counter to fill your bottle.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_25"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_26",
+      "scenario_id": "water_ask_clean_water",
+      "text": "For a safe refill, go straight to the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_26"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_27",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The cafe counter should have safe water for your bottle.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_27"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_28",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Yes. The cafe counter is the place for drinking water.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_28"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_29",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Try the cafe counter. They can give you safe water.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_29"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_30",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Keep away from the sink for drinking. Refill at the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_30"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_31",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The safe refill point is at the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_31"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_32",
+      "scenario_id": "water_ask_clean_water",
+      "text": "You can fill your bottle safely at the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_32"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_33",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Ask at the cafe counter, and they can refill it.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_33"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_34",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The sink is not potable. The cafe counter has safe water.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_34"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_35",
+      "scenario_id": "water_ask_clean_water",
+      "text": "There is a safe refill available at the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_35"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_36",
+      "scenario_id": "water_ask_clean_water",
+      "text": "For water you can drink, go to the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_36"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_37",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The cafe counter can provide safe drinking water.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_37"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_38",
+      "scenario_id": "water_ask_clean_water",
+      "text": "I would use the cafe counter. Their water is safe to drink.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_38"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_39",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Your bottle can be refilled at the cafe counter.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_39"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_40",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The cafe counter is nearby and has safe drinking water.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "water_ask_clean_water_40"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_03",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Of course. I have a spare blanket for you.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_03"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_04",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Yes, you can use this spare blanket.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_04"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_05",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "You look cold. Take this blanket.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_05"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_06",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "I can help with that. Here is a blanket.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_06"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_07",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Of course. Use this blanket tonight.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_07"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_08",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Yes, I have a blanket you can use.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_08"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_09",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Here, take the spare blanket. It should help.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_09"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_10",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "I have one available. You can use it tonight.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_10"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_11",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Of course. Let me get the blanket for you.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_11"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_12",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Yes, there is a spare blanket here.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_12"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_13",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Take this blanket. It is cold tonight.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_13"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_14",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "I can give you a blanket to sleep under.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_14"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_15",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Of course. This spare blanket is yours to use.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_15"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_16",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Yes. Wrap up in this blanket tonight.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_16"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_17",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "I have a spare one. Here you go.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_17"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_18",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Certainly. You can take this blanket.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_18"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_19",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Of course. A blanket should help with the cold.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_19"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_20",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Yes, I can help. Use this blanket.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_20"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_21",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Here is a spare blanket for the night.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_21"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_22",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Take this one. It will help keep you warm.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_22"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_23",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Of course. I will bring you the spare blanket.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_23"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_24",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Yes. You are welcome to use this blanket.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_24"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_25",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "I have one right here. Take it.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_25"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_26",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Certainly. Here is something warm to sleep under.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_26"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_27",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Of course. The spare blanket is available.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_27"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_28",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Yes, take the blanket. You need to stay warm.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_28"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_29",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "I can spare a blanket for you tonight.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_29"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_30",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Here, use this one. It should keep you warm.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_30"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_31",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Of course. I have just the blanket for you.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_31"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_32",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Yes, the spare blanket is ready for you.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_32"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_33",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Take this blanket and get warm.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_33"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_34",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Certainly. You can sleep under this blanket.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_34"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_35",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Of course. Here is the spare blanket.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_35"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_36",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "I can help. Take this warm blanket.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_36"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_37",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Yes, use this one for the night.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_37"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_38",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Here you are. This blanket should help.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_38"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_39",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Of course. I will get you something warm.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_39"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_40",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "Yes, I have a spare blanket you may use.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "warmth_ask_blanket_40"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_03",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes, come inside. There is room to sit.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_03"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_04",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Of course. You can sit inside out of the rain.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_04"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_05",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Come in. There is a dry seat inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_05"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_06",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes, you may wait inside until the rain passes.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_06"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_07",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Of course. Take a seat inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_07"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_08",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "You can come in. There is room for you.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_08"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_09",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes, please sit inside where it is dry.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_09"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_10",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Come inside. You do not need to wait in the rain.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_10"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_11",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Of course. There is a seat available inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_11"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_12",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes, you are welcome to sit inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_12"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_13",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Please come in and take a seat.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_13"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_14",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "You can wait inside until the weather clears.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_14"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_15",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Of course. Sit inside and stay dry.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_15"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_16",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes. There is enough room inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_16"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_17",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Come in. You can sit here until the rain stops.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_17"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_18",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Certainly. You may take a seat inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_18"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_19",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes, that is fine. Come inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_19"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_20",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Of course. There is a dry place to sit.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_20"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_21",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "You are welcome to wait inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_21"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_22",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes. Please come in out of the rain.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_22"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_23",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Come inside and have a seat.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_23"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_24",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Of course. You can stay inside while it rains.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_24"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_25",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes, there is room. Take a seat inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_25"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_26",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Please come in. You can sit over here.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_26"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_27",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Certainly. It is fine to wait inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_27"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_28",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes. You can sit inside until it clears up.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_28"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_29",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Of course. There is space for you inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_29"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_30",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Come in and stay dry for a while.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_30"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_31",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes, you may sit here inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_31"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_32",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Of course. You are welcome to come in.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_32"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_33",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "There is a seat inside. Please come in.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_33"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_34",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes. Wait inside until the rain eases.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_34"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_35",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Certainly. Come inside and take a seat.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_35"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_36",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Of course. You can sit somewhere dry.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_36"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_37",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes, come in. We have room.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_37"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_38",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Please sit inside. The rain may take a while.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_38"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_39",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "You can come inside and wait here.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_39"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_40",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes, that is all right. Have a seat inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "shelter_ask_sit_inside_40"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_03",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "We may be here a bit. How long have you been in line?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_03"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_04",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "Yeah, it is a long one. Are you waiting for the same thing?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_04"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_05",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "I know. Have you been here since this morning?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_05"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_06",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It is busy today. Do you come here often?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_06"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_07",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "The line is moving now. Have you been waiting long?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_07"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_08",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "I thought it would be shorter. What brings you here today?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_08"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_09",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It has been a while. Is this your first time?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_09"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_10",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "Looks like we picked the busy line. How long have you been waiting?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_10"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_11",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It is a long wait, but it is moving. Have you been here before?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_11"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_12",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "I have been here about an hour. How about you?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_12"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_13",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "This line is taking a while. Have you been waiting long?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_13"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_14",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It is moving slowly today. Is this your first time here?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_14"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_15",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "We may be here a bit. How long have you been in line?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_15"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_16",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "Yeah, it is a long one. Are you waiting for the same thing?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_16"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_17",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "I know. Have you been here since this morning?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_17"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_18",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It is busy today. Do you come here often?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_18"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_19",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "The line is moving now. Have you been waiting long?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_19"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_20",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "I thought it would be shorter. What brings you here today?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_20"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_21",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It has been a while. Is this your first time?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_21"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_22",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "Looks like we picked the busy line. How long have you been waiting?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_22"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_23",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It is a long wait, but it is moving. Have you been here before?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_23"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_24",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "I have been here about an hour. How about you?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_24"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_25",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "This line is taking a while. Have you been waiting long?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_25"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_26",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It is moving slowly today. Is this your first time here?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_26"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_27",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "We may be here a bit. How long have you been in line?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_27"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_28",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "Yeah, it is a long one. Are you waiting for the same thing?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_28"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_29",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "I know. Have you been here since this morning?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_29"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_30",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It is busy today. Do you come here often?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_30"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_31",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "The line is moving now. Have you been waiting long?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_31"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_32",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "I thought it would be shorter. What brings you here today?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_32"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_33",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It has been a while. Is this your first time?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_33"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_34",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "Looks like we picked the busy line. How long have you been waiting?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_34"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_35",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It is a long wait, but it is moving. Have you been here before?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_35"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_36",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "I have been here about an hour. How about you?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_36"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_37",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "This line is taking a while. Have you been waiting long?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_37"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_38",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It is moving slowly today. Is this your first time here?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_38"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_39",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "We may be here a bit. How long have you been in line?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_39"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_40",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "Yeah, it is a long one. Are you waiting for the same thing?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "belonging_small_talk_waiting_line_40"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_pilot_editorial_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    }
+  ]
+}

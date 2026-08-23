@@ -25,7 +25,15 @@ SpeechAdapter="*res://scripts/speech_adapter.gd"
 NpcVoice="*res://scripts/npc_voice_adapter.gd"
 Vocabulary="*res://scripts/vocabulary_state.gd"
 Dialogue="*res://scripts/dialogue_state.gd"
+NpcScenarioRegistry="*res://scripts/npc_scenario_registry.gd"
+NpcScenarioRunner="*res://scripts/npc_scenario_runner.gd"
+NpcDialogueService="*res://scripts/npc_dialogue_service.gd"
 AnimationDebugBridge="*res://scripts/animation_debug_bridge.gd"
+
+[desktop_beta]
+
+build_label="desktop-beta.1"
+survey_url=""
 
 [display]
 
@@ -146,8 +154,12 @@ locale/fallback="zh_CN"
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-environment/defaults/default_clear_color=Color(0.035, 0.055, 0.09, 1)
 textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.035, 0.055, 0.09, 1)
+
+[stranger_ai_dialogue]
+
+enabled=true
 
 [stranger_cloud]
 
@@ -160,9 +172,4 @@ allow_insecure_dev=false
 [web_beta]
 
 build_label="web-beta.1"
-survey_url=""
-
-[desktop_beta]
-
-build_label="desktop-beta.1"
 survey_url=""

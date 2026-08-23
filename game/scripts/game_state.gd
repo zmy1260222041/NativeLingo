@@ -9,20 +9,38 @@ signal expression_evaluated(target_id: String, expression: Dictionary)
 signal run_completed
 signal day_started(day_value: int)
 signal onboarding_changed(step: String, active: bool)
+signal dialogue_scenario_changed(scenario_id: String, outcome: String)
 
-const SAVE_VERSION := 3
+const SAVE_VERSION := 4
 const MAX_NEED := 100.0
 const DAY_DURATION := 300.0
 const DAY_START_HOUR := 8.0
 const DAY_END_HOUR := 22.0
 ## FR-30: onboarding steps are advanced by the owning input/domain edge, never by
-## the UI. `speak` accepts voice, gesture, or the minimum-survival fallback so the
-## guide remains completable in no-voice builds.
-const ONBOARDING_STEPS: Array[String] = ["move", "look", "sprint", "jump", "interact", "speak", "sleep"]
+## the UI. Critical speech steps accept understood voice or the explicit
+## minimum-survival fallback so the guide remains completable in no-voice builds.
+const ONBOARDING_STEPS: Array[String] = ["move", "look", "sprint", "jump", "interact", "greet", "speak", "sleep"]
 ## FR-28: voice-gated reward bands. Monotonic; below the sparse floor the NPC
 ## gives nothing but spends no opportunity and no state is harmed.
 const SCORE_GENEROUS_MIN := 70.0
 const SCORE_SPARSE_MIN := 40.0
+## FR-42: Maslow layer 1, modern shops, no calendar quests. Three nights is
+## only a time box for the vertical slice.
+const SLICE_NIGHTS := 3
+const FOOD_COMFORT := 80.0
+const ENERGY_COMFORT := 80.0
+const ENERGY_TIRED := 40.0
+const SLEEP_HOUR := 20.0
+const SERVICE_SCENARIOS := {
+	"tavi": "food_counter",
+	"vesh": "parts_desk",
+	"ori": "convenience_store",
+}
+const DIALOGUE_SCENARIO_IDS := [
+	"food_counter",
+	"convenience_store",
+	"parts_desk",
+]
 
 var day := 1
 var day_time := 0.0
@@ -56,6 +74,9 @@ var onboarding_completed := false
 ## is only mirrored here as JSON-safe values for the versioned save.
 var vocabulary_tier := "toddler"
 var vocabulary_entries: Dictionary = {}
+## Separate from completed_steps and resource state. Only NpcScenarioRunner
+## writes these terminal pilot outcomes after a validated conversation closes.
+var dialogue_scenario_progress: Dictionary = {}
 
 func _process(delta: float) -> void:
 	if game_finished or interaction_time_frozen:
@@ -82,6 +103,55 @@ func _process(delta: float) -> void:
 
 func set_interaction_time_frozen(active: bool) -> void:
 	interaction_time_frozen = active
+
+
+func service_scenario_for(npc_id: String) -> String:
+	return str(SERVICE_SCENARIOS.get(npc_id.strip_edges().to_lower(), ""))
+
+
+func can_start_service_dialogue(npc_id: String) -> bool:
+	var key := npc_id.strip_edges().to_lower()
+	return not service_scenario_for(key).is_empty()
+
+
+func _try_begin_service_dialogue(npc_id: String) -> bool:
+	if not can_start_service_dialogue(npc_id) or not is_inside_tree():
+		return false
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service == null or not dynamic_service.enabled():
+		return false
+	return bool(dynamic_service.begin_scenario(npc_id, service_scenario_for(npc_id)))
+
+
+func settle_service_transaction(npc_id: String, session_score: float) -> String:
+	var key := npc_id.strip_edges().to_lower()
+	var score := clampf(session_score, 0.0, 100.0)
+	var band := voice_band_for_score(score)
+	var expression := {"score": score, "text": "", "band": band}
+	match key:
+		"tavi":
+			_grant_food(score, "voice", expression, false)
+		"vesh":
+			_grant_scrap(score, "voice", expression, false)
+		"ori":
+			_grant_water(score, "voice", expression, false)
+		_:
+			return "none"
+	return band
+
+
+func record_dialogue_scenario_result(scenario_id: String, outcome: String) -> bool:
+	var scenario_key := scenario_id.strip_edges().to_lower()
+	var clean_outcome := outcome.strip_edges().to_lower()
+	if not scenario_key in DIALOGUE_SCENARIO_IDS or not clean_outcome in ["success", "failure"]:
+		return false
+	dialogue_scenario_progress[scenario_key] = {
+		"outcome": clean_outcome,
+		"day": day,
+	}
+	dialogue_scenario_changed.emit(scenario_key, clean_outcome)
+	state_changed.emit()
+	return true
 
 
 func begin_onboarding() -> void:
@@ -155,31 +225,26 @@ func clock_hms() -> Vector2i:
 	return Vector2i(hour, minute)
 
 func objective_text() -> String:
-	if day == 1:
-		if not completed_steps.has("greet_mira"):
-			return tr("OBJECTIVE_GREET_MIRA")
-		if berries < 2:
-			return tr("OBJECTIVE_ASK_FOOD") % berries
-		return tr("OBJECTIVE_SLEEP_DAY_ONE")
-	if day == 2:
-		if scrap < 2:
-			return tr("OBJECTIVE_ASK_SCRAP") % scrap
-		if not heater_repaired:
-			return tr("OBJECTIVE_REPAIR_HEATER")
-		return tr("OBJECTIVE_SLEEP_DAY_TWO")
-	if day == 3:
-		if water < 1:
-			return tr("OBJECTIVE_ASK_WATER")
-		if not completed_steps.has("help_rowan"):
-			return tr("OBJECTIVE_HELP_ROWAN")
+	if game_finished:
 		return tr("OBJECTIVE_COMPLETE")
+	if food < FOOD_COMFORT:
+		return tr("OBJECTIVE_NEED_FOOD")
+	if energy < ENERGY_COMFORT:
+		return tr("OBJECTIVE_NEED_WATER")
+	if _wants_sleep():
+		return tr("OBJECTIVE_SLEEP")
 	return tr("OBJECTIVE_EXPLORE")
 
 func interact(kind: String, target_id: String, communication: String = "action", expression: Dictionary = {}) -> void:
 	var previous_objective := objective_text()
+	var greeted_mira_before := completed_steps.has("greet_mira")
+	var dynamic_scenario_started := false
+	if kind == "npc" and communication == "action":
+		dynamic_scenario_started = _try_begin_service_dialogue(target_id)
 	match kind:
 		"npc":
-			_interact_npc(target_id, communication, expression)
+			if not dynamic_scenario_started:
+				_interact_npc(target_id, communication, expression)
 		"berry":
 			# FR-28: forage tokens are narrative guides now; resources come only
 			# from a spoken request judged by the NPC.
@@ -191,8 +256,6 @@ func interact(kind: String, target_id: String, communication: String = "action",
 		"heater":
 			if heater_repaired:
 				message_requested.emit(tr("MSG_HEATER_ALREADY"), "good")
-			elif day < 2:
-				message_requested.emit(tr("MSG_HEATER_NOT_TODAY"), "neutral")
 			elif scrap >= 2:
 				heater_repaired = true
 				scrap -= 2
@@ -202,9 +265,11 @@ func interact(kind: String, target_id: String, communication: String = "action",
 				message_requested.emit(tr("MSG_HEATER_NEEDS_SCRAP"), "neutral")
 		"shelter":
 			_try_sleep()
-	if kind == "npc":
+	if kind == "npc" and not dynamic_scenario_started:
 		_report_dialogue(target_id, communication, expression)
 	onboarding_action("interact")
+	if target_id == "mira" and not greeted_mira_before and completed_steps.has("greet_mira"):
+		onboarding_action("greet")
 	state_changed.emit()
 	needs_changed.emit(food, warmth, energy)
 	if objective_text() != previous_objective:
@@ -213,7 +278,7 @@ func interact(kind: String, target_id: String, communication: String = "action",
 func _interact_npc(npc_id: String, communication: String, expression: Dictionary) -> void:
 	match npc_id:
 		"mira":
-			_interact_mira(communication)
+			_interact_mira(communication, expression)
 			return
 		"rowan":
 			_interact_rowan(communication, expression)
@@ -230,8 +295,10 @@ func _interact_npc(npc_id: String, communication: String, expression: Dictionary
 		_:
 			_emit_npc_followup(npc_id, communication)
 
-func _interact_mira(communication: String) -> void:
+func _interact_mira(communication: String, expression: Dictionary) -> void:
 	if day == 1 and not completed_steps.has("greet_mira"):
+		if not _critical_communication_understood("mira", communication, expression):
+			return
 		completed_steps["greet_mira"] = true
 		remember("mira", "MEMORY_GREET_MIRA", 2)
 		_emit_npc_line("mira", communication, "greet_reply", "Welcome, stranger.")
@@ -239,89 +306,38 @@ func _interact_mira(communication: String) -> void:
 	_emit_npc_followup("mira", communication)
 
 func _interact_rowan(communication: String, expression: Dictionary) -> void:
-	if day == 3 and water > 0 and not completed_steps.has("help_rowan"):
-		if communication == "voice":
-			var score := _voice_score(expression)
-			if score < SCORE_SPARSE_MIN:
-				expression_evaluated.emit("rowan", expression)
-				_speak_npc_line("rowan", "clarify")
-				message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_ROWAN"), "neutral")
-				return
+	if water > 0 and not completed_steps.has("help_rowan"):
+		if not _critical_communication_understood("rowan", communication, expression):
+			return
 		water = 0
 		completed_steps["help_rowan"] = true
 		remember("rowan", "MEMORY_HELP_ROWAN", 3)
-		game_finished = true
 		_emit_npc_line("rowan", communication, "thanks", "You came back. Thank you.")
 		save_game()
-		run_completed.emit()
 		return
 	_emit_npc_followup("rowan", communication)
 
 func _interact_food_supplier(communication: String, expression: Dictionary) -> void:
-	if communication in ["voice", "gesture", "gesture_fallback"]:
-		# FR-30: the no-voice fallback counts as the guided "ask for food" step so
-		# the onboarding path never depends on a microphone or local service.
-		onboarding_action("speak")
-	if berries >= 2:
-		_emit_npc_line("tavi", communication, "settled", tr("NPC_TAVI_SETTLED"))
-		return
-	if not completed_steps.has("greet_mira"):
-		message_requested.emit(tr("MSG_NEED_MIRA_FIRST"), "neutral")
-		return
 	match communication:
 		"voice":
-			var score := _voice_score(expression)
-			if score < SCORE_SPARSE_MIN:
-				expression_evaluated.emit("tavi", expression)
-				_speak_npc_line("tavi", "clarify")
-				message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_TAVI"), "neutral")
-				return
-			if score >= SCORE_GENEROUS_MIN:
-				berries += 2
-				food = minf(MAX_NEED, food + 14.0)
-				expression_evaluated.emit("tavi", expression)
-				_speak_npc_line("tavi", "reward")
-				message_requested.emit(tr("MSG_REWARD_FOOD_2") % tr("NPC_TAVI"), "good")
-			else:
-				berries += 1
-				food = minf(MAX_NEED, food + 7.0)
-				expression_evaluated.emit("tavi", expression)
-				_speak_npc_line("tavi", "reward")
-				message_requested.emit(tr("MSG_REWARD_FOOD_1") % tr("NPC_TAVI"), "good")
+			_grant_food(_voice_score(expression), communication, expression)
 		"gesture":
 			message_requested.emit(tr("MSG_GESTURE_NO_RESOURCE") % tr("NPC_TAVI"), "neutral")
 		"gesture_fallback":
+			# FR-30: only the explicit no-voice fallback can replace the guided
+			# request. The guide advances only after enough food exists to sleep.
 			berries += 1
 			food = minf(MAX_NEED, food + 6.0)
 			message_requested.emit(tr("MSG_FALLBACK_FOOD") % tr("NPC_TAVI"), "good")
+			if berries >= 2:
+				onboarding_action("speak")
 		_:
 			_emit_npc_followup("tavi", communication)
 
 func _interact_scrap_supplier(communication: String, expression: Dictionary) -> void:
-	if day < 2:
-		message_requested.emit(tr("MSG_HEATER_NOT_TODAY"), "neutral")
-		return
-	if scrap >= 2 and (heater_repaired or day >= 2):
-		_emit_npc_line("vesh", communication, "settled", tr("NPC_VESH_SETTLED"))
-		return
 	match communication:
 		"voice":
-			var score := _voice_score(expression)
-			if score < SCORE_SPARSE_MIN:
-				expression_evaluated.emit("vesh", expression)
-				_speak_npc_line("vesh", "clarify")
-				message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_VESH"), "neutral")
-				return
-			if score >= SCORE_GENEROUS_MIN:
-				scrap += 2
-				expression_evaluated.emit("vesh", expression)
-				_speak_npc_line("vesh", "reward")
-				message_requested.emit(tr("MSG_REWARD_SCRAP_2") % tr("NPC_VESH"), "good")
-			else:
-				scrap += 1
-				expression_evaluated.emit("vesh", expression)
-				_speak_npc_line("vesh", "reward")
-				message_requested.emit(tr("MSG_REWARD_SCRAP_1") % tr("NPC_VESH"), "good")
+			_grant_scrap(_voice_score(expression), communication, expression)
 		"gesture":
 			message_requested.emit(tr("MSG_GESTURE_NO_RESOURCE") % tr("NPC_VESH"), "neutral")
 		"gesture_fallback":
@@ -331,31 +347,9 @@ func _interact_scrap_supplier(communication: String, expression: Dictionary) -> 
 			_emit_npc_followup("vesh", communication)
 
 func _interact_water_supplier(communication: String, expression: Dictionary) -> void:
-	if day < 3:
-		message_requested.emit(tr("MSG_WATER_NOT_TODAY"), "neutral")
-		return
-	if water >= 1:
-		_emit_npc_line("ori", communication, "settled", tr("NPC_ORI_SETTLED"))
-		return
 	match communication:
 		"voice":
-			var score := _voice_score(expression)
-			if score < SCORE_SPARSE_MIN:
-				expression_evaluated.emit("ori", expression)
-				_speak_npc_line("ori", "clarify")
-				message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_ORI"), "neutral")
-				return
-			water = 1
-			if score >= SCORE_GENEROUS_MIN:
-				energy = minf(MAX_NEED, energy + 12.0)
-				expression_evaluated.emit("ori", expression)
-				_speak_npc_line("ori", "reward")
-				message_requested.emit(tr("MSG_REWARD_WATER_2") % tr("NPC_ORI"), "good")
-			else:
-				energy = minf(MAX_NEED, energy + 6.0)
-				expression_evaluated.emit("ori", expression)
-				_speak_npc_line("ori", "reward")
-				message_requested.emit(tr("MSG_REWARD_WATER_1") % tr("NPC_ORI"), "good")
+			_grant_water(_voice_score(expression), communication, expression)
 		"gesture":
 			message_requested.emit(tr("MSG_GESTURE_NO_RESOURCE") % tr("NPC_ORI"), "neutral")
 		"gesture_fallback":
@@ -365,6 +359,74 @@ func _interact_water_supplier(communication: String, expression: Dictionary) -> 
 		_:
 			_emit_npc_followup("ori", communication)
 
+func _grant_food(score: float, communication: String, expression: Dictionary, speak_line := true) -> void:
+	if score < SCORE_SPARSE_MIN:
+		expression_evaluated.emit("tavi", expression)
+		if speak_line:
+			_speak_npc_line("tavi", "clarify")
+		message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_TAVI"), "neutral")
+		return
+	if score >= SCORE_GENEROUS_MIN:
+		berries += 2
+		food = minf(MAX_NEED, food + 14.0)
+		expression_evaluated.emit("tavi", expression)
+		if speak_line:
+			_speak_npc_line("tavi", "reward")
+		message_requested.emit(tr("MSG_REWARD_FOOD_2") % tr("NPC_TAVI"), "good")
+	else:
+		berries += 1
+		food = minf(MAX_NEED, food + 7.0)
+		expression_evaluated.emit("tavi", expression)
+		if speak_line:
+			_speak_npc_line("tavi", "reward")
+		message_requested.emit(tr("MSG_REWARD_FOOD_1") % tr("NPC_TAVI"), "good")
+	if berries >= 2:
+		onboarding_action("speak")
+
+
+func _grant_scrap(score: float, _communication: String, expression: Dictionary, speak_line := true) -> void:
+	if score < SCORE_SPARSE_MIN:
+		expression_evaluated.emit("vesh", expression)
+		if speak_line:
+			_speak_npc_line("vesh", "clarify")
+		message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_VESH"), "neutral")
+		return
+	if score >= SCORE_GENEROUS_MIN:
+		scrap += 2
+		expression_evaluated.emit("vesh", expression)
+		if speak_line:
+			_speak_npc_line("vesh", "reward")
+		message_requested.emit(tr("MSG_REWARD_SCRAP_2") % tr("NPC_VESH"), "good")
+	else:
+		scrap += 1
+		expression_evaluated.emit("vesh", expression)
+		if speak_line:
+			_speak_npc_line("vesh", "reward")
+		message_requested.emit(tr("MSG_REWARD_SCRAP_1") % tr("NPC_VESH"), "good")
+
+
+func _grant_water(score: float, _communication: String, expression: Dictionary, speak_line := true) -> void:
+	if score < SCORE_SPARSE_MIN:
+		expression_evaluated.emit("ori", expression)
+		if speak_line:
+			_speak_npc_line("ori", "clarify")
+		message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_ORI"), "neutral")
+		return
+	water = 1
+	if score >= SCORE_GENEROUS_MIN:
+		energy = minf(MAX_NEED, energy + 12.0)
+		expression_evaluated.emit("ori", expression)
+		if speak_line:
+			_speak_npc_line("ori", "reward")
+		message_requested.emit(tr("MSG_REWARD_WATER_2") % tr("NPC_ORI"), "good")
+	else:
+		energy = minf(MAX_NEED, energy + 6.0)
+		expression_evaluated.emit("ori", expression)
+		if speak_line:
+			_speak_npc_line("ori", "reward")
+		message_requested.emit(tr("MSG_REWARD_WATER_1") % tr("NPC_ORI"), "good")
+
+
 func _voice_score(expression: Dictionary) -> float:
 	if expression.is_empty() or not expression.has("score"):
 		return -1.0
@@ -372,6 +434,25 @@ func _voice_score(expression: Dictionary) -> float:
 	if typeof(raw) != TYPE_FLOAT and typeof(raw) != TYPE_INT:
 		return -1.0
 	return clampf(float(raw), 0.0, 100.0)
+
+
+func _critical_communication_understood(npc_id: String, communication: String, expression: Dictionary) -> bool:
+	## Progress-critical social beats cannot be completed by Observe/E or by the
+	## ordinary goodwill gesture. `gesture_fallback` is produced only when the
+	## runtime has marked speech itself as unavailable.
+	if communication == "gesture_fallback":
+		return true
+	if communication != "voice":
+		_speak_npc_line(npc_id, "clarify")
+		message_requested.emit(tr("MSG_GESTURE_NO_RESOURCE") % tr("NPC_%s" % npc_id.to_upper()), "neutral")
+		return false
+	var score := _voice_score(expression)
+	expression_evaluated.emit(npc_id, expression)
+	if score >= SCORE_SPARSE_MIN:
+		return true
+	_speak_npc_line(npc_id, "clarify")
+	message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_%s" % npc_id.to_upper()), "neutral")
+	return false
 
 func voice_band_for_score(score: float) -> String:
 	if score >= SCORE_GENEROUS_MIN:
@@ -397,7 +478,7 @@ func _report_dialogue(npc_id: String, communication: String, expression: Diction
 			dialogue.begin(npc_id)
 		return
 	if communication in ["voice", "gesture", "gesture_fallback"]:
-		var understood := true
+		var understood := communication == "gesture_fallback"
 		if communication == "voice":
 			understood = _voice_score(expression) >= SCORE_SPARSE_MIN
 		dialogue.player_acted(npc_id, understood)
@@ -441,39 +522,31 @@ func _npc_followup_line(npc_id: String) -> Dictionary:
 	match npc_id:
 		"mira":
 			if completed_steps.has("greet_mira"):
-				if day == 1 and berries < 2:
+				if food < FOOD_COMFORT:
 					return {"line_key": "hint_food", "text": tr("NPC_MIRA_HINT_FOOD")}
-				if day == 2 and not heater_repaired:
-					return {"line_key": "hint_heat", "text": tr("NPC_MIRA_HINT_HEAT")}
-				if day == 3 and not completed_steps.has("help_rowan"):
-					return {"line_key": "hint_rowan", "text": tr("NPC_MIRA_HINT_ROWAN")}
+				if energy < ENERGY_COMFORT:
+					return {"line_key": "hint_rowan", "text": tr("NPC_MIRA_HINT_WATER")}
 				return {"line_key": "remembers", "text": tr("NPC_MIRA_REMEMBERS")}
 			return {"line_key": "", "text": tr("MSG_NPC_WARY")}
 		"rowan":
-			if day == 3 and water <= 0:
+			if water <= 0 and not completed_steps.has("help_rowan"):
 				return {"line_key": "needs_water", "text": tr("NPC_ROWAN_NEEDS_WATER")}
 			if int(relationships.get("rowan", 0)) > 0:
 				return {"line_key": "remembers", "text": tr("NPC_ROWAN_REMEMBERS")}
 			return {"line_key": "", "text": tr("NPC_ROWAN_WARY")}
 		"tavi":
-			if berries < 2:
-				return {"line_key": "hint_food", "text": tr("NPC_TAVI_HINT_FOOD")}
-			return {"line_key": "settled", "text": tr("NPC_TAVI_SETTLED")}
+			return {"line_key": "hint_food", "text": tr("NPC_TAVI_HINT_FOOD")}
 		"vesh":
-			if scrap < 2 and not heater_repaired:
-				return {"line_key": "hint_scrap", "text": tr("NPC_VESH_HINT_SCRAP")}
-			return {"line_key": "settled", "text": tr("NPC_VESH_SETTLED")}
+			return {"line_key": "hint_scrap", "text": tr("NPC_VESH_HINT_SCRAP")}
 		"ori":
-			if water < 1:
-				return {"line_key": "hint_water", "text": tr("NPC_ORI_HINT_WATER")}
-			return {"line_key": "settled", "text": tr("NPC_ORI_SETTLED")}
+			return {"line_key": "hint_water", "text": tr("NPC_ORI_HINT_WATER")}
 		_:
 			return {"line_key": "", "text": tr("MSG_NPC_REMEMBERS") if int(relationships.get(npc_id, 0)) > 0 else tr("MSG_NPC_WARY")}
 
 func _communication_reply(speaker: String, communication: String, line: String) -> String:
 	if communication == "voice":
 		return tr("NPC_REPLY_VOICE") % [speaker, line]
-	if communication == "gesture":
+	if communication in ["gesture", "gesture_fallback"]:
 		var understood := tr("NPC_REPLY_GESTURE") % speaker
 		if line.is_empty():
 			return understood
@@ -484,37 +557,32 @@ func remember(npc_id: String, memory: String, relationship_gain: int) -> void:
 	relationships[npc_id] = int(relationships.get(npc_id, 0)) + relationship_gain
 	memories.append("%s：%s" % [npc_id, memory])
 
+func _wants_sleep() -> bool:
+	if game_finished:
+		return false
+	return clock_hours() >= SLEEP_HOUR or energy < ENERGY_TIRED
+
+
 func _try_sleep() -> void:
-	var can_sleep := false
-	if day == 1:
-		can_sleep = completed_steps.has("greet_mira") and berries >= 2
-	elif day == 2:
-		can_sleep = heater_repaired
-	if can_sleep:
-		day += 1
-		day_time = 0.0
-		energy = MAX_NEED
-		warmth = minf(MAX_NEED, warmth + 30.0)
-		clock_changed.emit(day, 0)
-		day_started.emit(day)
-		onboarding_action("sleep")
-		save_game()
-	else:
-		message_requested.emit(tr(_sleep_block_key()), "neutral")
-
-
-func _sleep_block_key() -> String:
-	if day == 1:
-		if not completed_steps.has("greet_mira"):
-			return "MSG_SLEEP_NEED_MIRA"
-		if berries < 2:
-			return "MSG_SLEEP_NEED_FOOD"
-	elif day == 2:
-		if not heater_repaired:
-			return "MSG_SLEEP_NEED_HEATER"
-	elif day >= 3:
-		return "MSG_SLEEP_NEED_ROWAN"
-	return "MSG_SLEEP_BLOCKED"
+	if game_finished:
+		return
+	if onboarding_active and onboarding_step != "sleep":
+		message_requested.emit(tr("MSG_SLEEP_GUIDE"), "neutral")
+		return
+	if not onboarding_active and not _wants_sleep():
+		message_requested.emit(tr("MSG_SLEEP_TOO_EARLY"), "neutral")
+		return
+	day += 1
+	day_time = 0.0
+	energy = MAX_NEED
+	warmth = minf(MAX_NEED, warmth + 30.0)
+	if day > SLICE_NIGHTS:
+		game_finished = true
+		run_completed.emit()
+	clock_changed.emit(day, 0)
+	day_started.emit(day)
+	onboarding_action("sleep")
+	save_game()
 
 func faint() -> void:
 	food = 35.0
@@ -530,6 +598,10 @@ func faint() -> void:
 	objective_changed.emit(objective_text())
 
 func reset_run() -> void:
+	if is_inside_tree():
+		var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+		if dynamic_service != null and dynamic_service.has_active_session():
+			dynamic_service.cancel("VOICE_REASON_DIALOGUE_CANCELLED")
 	interaction_time_frozen = false
 	day = 1
 	day_time = 0.0
@@ -541,6 +613,7 @@ func reset_run() -> void:
 	water = 0
 	heater_repaired = false
 	completed_steps.clear()
+	dialogue_scenario_progress.clear()
 	memories.clear()
 	game_finished = false
 	onboarding_active = false
@@ -579,6 +652,7 @@ func save_game() -> bool:
 		"onboarding_step": onboarding_step,
 		"vocabulary_tier": vocabulary_tier,
 		"vocabulary_entries": vocabulary_entries,
+		"dialogue_scenario_progress": dialogue_scenario_progress,
 	}
 	file.store_string(JSON.stringify(data))
 	return true
@@ -592,8 +666,9 @@ func load_game() -> bool:
 	var parsed = JSON.parse_string(file.get_as_text())
 	if not parsed is Dictionary:
 		return false
-	# SAVE_VERSION 2 added the voice-gated quest flow; SAVE_VERSION 3 adds the
-	# vocabulary profile. Both migrations are lazy: missing keys keep defaults
+	# SAVE_VERSION 2 added the voice-gated quest flow, version 3 added the
+	# vocabulary profile, and version 4 added isolated pilot-dialogue outcomes.
+	# Migrations are lazy: missing keys keep defaults
 	# and every persisted value from an older save is retained.
 	var saved_version := int(parsed.get("version", 1))
 	if saved_version < 1 or saved_version > SAVE_VERSION:
@@ -621,6 +696,8 @@ func load_game() -> bool:
 	vocabulary_tier = str(parsed.get("vocabulary_tier", "toddler"))
 	var saved_vocabulary = parsed.get("vocabulary_entries", {})
 	vocabulary_entries = saved_vocabulary if saved_vocabulary is Dictionary else {}
+	var saved_dialogue_progress = parsed.get("dialogue_scenario_progress", {})
+	dialogue_scenario_progress = saved_dialogue_progress if saved_dialogue_progress is Dictionary else {}
 	state_changed.emit()
 	needs_changed.emit(food, warmth, energy)
 	clock_changed.emit(day, int(day_time))

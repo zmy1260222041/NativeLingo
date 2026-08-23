@@ -1,0 +1,231 @@
+{
+  "schema_version": 3,
+  "source_policy": {
+    "required_checks": [
+      "title",
+      "description",
+      "channel",
+      "visible_video_context",
+      "adjacent_request_and_response",
+      "distinct_real_speakers"
+    ],
+    "allowed_source_kinds": [
+      "field_news_interview",
+      "observational_documentary",
+      "on_location_personal_vlog",
+      "on_location_service_interaction",
+      "workplace_documentary"
+    ],
+    "exclude_if_source_purpose_is": [
+      "language_teaching",
+      "conversation_practice",
+      "scripted_roleplay",
+      "film_or_tv_clip",
+      "travel_advice",
+      "product_or_hotel_review",
+      "narrated_explainer"
+    ]
+  },
+  "native_speaker_search": {
+    "target_variety": "american",
+    "prefer_duration_seconds": [20, 720],
+    "exclude_terms": [
+      "learn english",
+      "ESL",
+      "roleplay",
+      "english lesson",
+      "conversation practice",
+      "UK",
+      "London",
+      "British",
+      "travel tip",
+      "explained",
+      "hotel tour",
+      "entire menu"
+    ],
+    "title_exclude_terms": [
+      "learn",
+      "lesson",
+      "dialogue",
+      "ESL",
+      "frases",
+      "ingles",
+      "inglés",
+      "shadowing",
+      "pronunciation",
+      "learn english",
+      "english conversation",
+      "english speaking",
+      "english lesson",
+      "conversation practice",
+      "speak english"
+    ],
+    "never_auto_verify": true
+  },
+  "queries": [
+    {
+      "scenario_id": "food_ask_bread",
+      "search_terms": [
+        "NYC bakery counter can I get bread",
+        "American grocery bakery sliced bread how many"
+      ],
+      "query_families": [
+        {
+          "family": "american_service_phrase",
+          "query": "NYC bakery counter \"can I get\" bread",
+          "filmot_query": "\"can I get a\" \"to go\""
+        },
+        {
+          "family": "american_service_phrase",
+          "query": "\"for here or to go\" bakery USA customer",
+          "filmot_query": "\"for here or to go\""
+        },
+        {
+          "family": "first_shift",
+          "query": "first day bakery job customers ordering USA"
+        },
+        {
+          "family": "service_counter",
+          "query": "American grocery bakery \"sliced bread\" \"how many\""
+        }
+      ],
+      "required_phrases_any": ["bread", "loaf", "sliced", "how many", "for here", "to go"],
+      "request_cues": ["can i get", "can i have", "i'll take", "i'll get", "excuse me"],
+      "response_cues": ["sure", "for here", "to go", "how many", "what kind", "here you go"],
+      "speaker_evidence": ["channel owner biography", "speaker self-identification", "licensed production metadata"]
+    },
+    {
+      "scenario_id": "water_ask_clean_water",
+      "search_terms": [
+        "can I get a water cafe USA",
+        "bottle of water please counter USA"
+      ],
+      "query_families": [
+        {
+          "family": "american_service_phrase",
+          "query": "\"can I get a water\" cafe USA",
+          "filmot_query": "\"can I get a water\""
+        },
+        {
+          "family": "american_service_phrase",
+          "query": "\"can I get a water please\" cafe USA",
+          "filmot_query": "\"can I get a water please\""
+        },
+        {
+          "family": "service_counter",
+          "query": "\"I'll take a water\" counter USA",
+          "filmot_query": "\"I'll take a water\""
+        },
+        {
+          "family": "service_counter",
+          "query": "\"is there a water fountain\" airport USA",
+          "filmot_query": "\"is there a water fountain\""
+        }
+      ],
+      "title_exclude_terms": ["roblox", "minecraft", "cruise", "bottle flip", "refill challenge", "stream", "podcast"],
+      "required_phrases_any": ["can i get a water", "bottle of water", "water fountain", "some water", "drinking water"],
+      "request_cues": ["can i get", "can i refill", "where can i", "is there", "excuse me"],
+      "response_cues": ["sure", "right over", "down the hall", "over there", "help yourself"],
+      "speaker_evidence": ["channel owner biography", "speaker self-identification", "licensed production metadata"]
+    },
+    {
+      "scenario_id": "warmth_ask_blanket",
+      "search_terms": [
+        "extra blanket front desk hotel USA",
+        "can I get another blanket hotel USA"
+      ],
+      "query_families": [
+        {
+          "family": "american_service_phrase",
+          "query": "\"extra blanket\" \"front desk\" hotel USA",
+          "filmot_query": "\"extra blanket\" \"front desk\""
+        },
+        {
+          "family": "american_service_phrase",
+          "query": "\"can I get another blanket\" hotel USA",
+          "filmot_query": "\"can I get an extra blanket\""
+        },
+        {
+          "family": "service_counter",
+          "query": "housekeeping \"extra blanket\" American hotel"
+        },
+        {
+          "family": "service_counter",
+          "query": "motel front desk cold blanket USA"
+        }
+      ],
+      "required_phrases_any": ["blanket", "extra blanket", "another blanket", "cold"],
+      "request_cues": ["can i get", "could i have", "do you have", "i need"],
+      "response_cues": ["sure", "of course", "no problem", "i'll send", "right away"],
+      "speaker_evidence": ["channel owner biography", "speaker self-identification", "licensed production metadata"]
+    },
+    {
+      "scenario_id": "shelter_ask_sit_inside",
+      "search_terms": [
+        "you can wait inside raining USA",
+        "wait inside it's raining coffee shop USA"
+      ],
+      "query_families": [
+        {
+          "family": "american_service_phrase",
+          "query": "\"you're welcome to wait inside\" raining USA",
+          "filmot_query": "\"you're welcome to wait inside\""
+        },
+        {
+          "family": "american_service_phrase",
+          "query": "\"come in and dry off\" rain USA",
+          "filmot_query": "\"come in and dry off\""
+        },
+        {
+          "family": "service_counter",
+          "query": "\"come on in\" \"you're soaked\" store USA",
+          "filmot_query": "\"come on in\" \"you're soaked\""
+        },
+        {
+          "family": "service_counter",
+          "query": "\"mind if I wait inside\" rain USA",
+          "filmot_query": "\"mind if I wait inside\""
+        }
+      ],
+      "title_exclude_terms": ["lyrics", "official audio", "music video", "cover", "song", "weather", "forecast", "storm", "horror", "roblox", "minecraft", "nolly"],
+      "required_phrases_any": ["come on in", "come inside", "sit inside", "wait inside", "out of the rain", "get out of the rain"],
+      "request_cues": ["can we", "can i", "is it okay", "excuse me", "mind if"],
+      "response_cues": ["come on in", "come in", "sure", "of course", "yeah"],
+      "speaker_evidence": ["channel owner biography", "speaker self-identification", "licensed production metadata"]
+    },
+    {
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "search_terms": [
+        "local news first in line Black Friday USA",
+        "how long have you been waiting line USA"
+      ],
+      "query_families": [
+        {
+          "family": "local_news",
+          "query": "\"been in line since\" Black Friday USA",
+          "filmot_query": "\"been in line since\" \"Black Friday\""
+        },
+        {
+          "family": "local_news",
+          "query": "local news \"first in line\" Black Friday USA",
+          "filmot_query": "\"first in line\" \"Black Friday\""
+        },
+        {
+          "family": "american_service_phrase",
+          "query": "\"how long have you been in line\" USA",
+          "filmot_query": "\"how long have you been in line\""
+        },
+        {
+          "family": "service_counter",
+          "query": "\"been here since\" Black Friday USA",
+          "filmot_query": "\"been here since\" \"Black Friday\""
+        }
+      ],
+      "title_exclude_terms": ["election", "vote", "voting", "livestream", "live stream", "roblox", "yeezy", "concert", "stream", "compilation", "unboxing"],
+      "required_phrases_any": ["long wait", "waiting in line", "in line", "how long", "first time", "been here"],
+      "request_cues": ["how long", "you been", "first time", "what are you"],
+      "response_cues": ["yeah", "hours", "since", "first time", "every year"],
+      "speaker_evidence": ["channel owner biography", "speaker self-identification", "licensed production metadata"]
+    }
+  ]
+}

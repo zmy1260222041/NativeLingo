@@ -41,8 +41,8 @@ const SOCIAL_SCRIPTS := [
 		"family": ["mira", "tavi"],
 		"new_words": ["food", "please", "portions"],
 		"lines": [
-			{"npc_id": "tavi", "line_id": "social_ask_food", "text": "Can I have some food, please?"},
-			{"npc_id": "mira", "line_id": "social_reply_food", "text": "Of course. Take two portions."},
+			{"npc_id": "mira", "line_id": "social_ask_food", "text": "Can I have some food, please?"},
+			{"npc_id": "tavi", "line_id": "social_reply_food", "text": "Of course. Take two portions."},
 		],
 	},
 	{
@@ -61,8 +61,8 @@ const SOCIAL_SCRIPTS := [
 		"family": ["rowan", "ori"],
 		"new_words": ["canteen", "water", "thirsty"],
 		"lines": [
-			{"npc_id": "ori", "line_id": "social_ask_water", "text": "I need a canteen of water."},
-			{"npc_id": "rowan", "line_id": "social_reply_water", "text": "I am thirsty too. Bring me water, please."},
+			{"npc_id": "rowan", "line_id": "social_ask_water", "text": "I need a canteen of water."},
+			{"npc_id": "ori", "line_id": "social_reply_water", "text": "The cooler is right here."},
 		],
 	},
 	{
@@ -81,8 +81,11 @@ const SOCIAL_SCRIPTS := [
 const PLAYER_ENGAGE_RADIUS := 5.0
 ## Standing gap between the two talkers once gathered.
 const TALK_STANDOFF_M := 0.7
-## Upper bound for one scene's voice playback before the NPCs disperse anyway.
-const TALK_SAFETY_TIMEOUT := 16.0
+## Upper bound for a broken voice queue. Normal scenes end on the final
+## line_audio_finished signal, not on this timer.
+const TALK_SAFETY_TIMEOUT := 45.0
+const FALLBACK_WORDS_PER_SECOND := 3.0
+const FALLBACK_LINE_GAP_SECONDS := 0.35
 
 enum Phase { IDLE, GATHERING, TALKING, DISBURSING }
 
@@ -109,6 +112,7 @@ func _ready() -> void:
 	add_child(talk_timer)
 	NpcVoice.line_audio_ready.connect(_on_line_audio_ready)
 	NpcVoice.line_audio_failed.connect(_on_line_audio_failed)
+	NpcVoice.line_audio_finished.connect(_on_line_audio_finished)
 	if not Engine.is_editor_hint():
 		start()
 
@@ -189,6 +193,7 @@ func _begin_talking() -> void:
 	for new_word in current_script.get("new_words", []):
 		Vocabulary.observe_word(str(new_word))
 	pending_line_keys.clear()
+	var fallback_talk_seconds := 0.0
 	for line in current_script.get("lines", []):
 		var npc_id := str(line["npc_id"])
 		var line_id := str(line["line_id"])
@@ -198,11 +203,18 @@ func _begin_talking() -> void:
 			# No-voice builds keep the localized text narration per line.
 			GameState.message_requested.emit("%s: “%s”" % [tr("NPC_%s" % npc_id.to_upper()), str(line["text"])], "neutral")
 			line_displayed.emit(str(current_script.get("id", "")), npc_id, line_id)
+			fallback_talk_seconds += _estimated_spoken_seconds(str(line["text"]))
 	if pending_line_keys.is_empty():
-		# Nothing went to the voice queue; the text fallback already played.
-		_end_talking.call_deferred()
+		# Give no-voice builds the same embodied pause: the NPCs remain together
+		# for roughly as long as the displayed exchange would take to say.
+		talk_timer.start(maxf(1.0, fallback_talk_seconds))
 		return
 	talk_timer.start(TALK_SAFETY_TIMEOUT)
+
+
+func _estimated_spoken_seconds(text: String) -> float:
+	var words := text.split(" ", false).size()
+	return maxf(1.0, float(words) / FALLBACK_WORDS_PER_SECOND) + FALLBACK_LINE_GAP_SECONDS
 
 
 func _on_line_audio_ready(npc_id: String, line_id: String) -> void:

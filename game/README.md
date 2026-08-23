@@ -29,21 +29,29 @@ conflicts require confirmation and can be restored to the project defaults.
 
 ## Current playable path
 
-Resources now come from **voiced English requests judged by the NPC** (FR-28):
-the clearer the pronunciation and the meaning, the more the NPC gives; a weak
-expression gives nothing but costs no opportunity and can be retried freely.
+There is **no assigned quest order** (FR-42). Needs decide where to go:
 
-1. Day 1: greet Mira, ask Tavi for two portions of food by voice, sleep at the shelter.
-2. Day 2: ask Vesh for two alloy parts by voice, repair the heater, sleep.
-3. Day 3: ask Ori for water by voice, take it to Rowan and express your offer.
+- Hungry → a shop that serves food (Tavi's counter).
+- Thirsty / low energy → the convenience store (Ori).
+- Night or worn out → sleep at the shelter.
+
+Resources still come from **finished service conversations** (FR-41 + FR-28).
+Talk in English; the session score is half pronunciation and half how
+idiomatic the lines were. Completing the order grants a banded reward.
+Walking away or scoring below 40 grants nothing and can be retried.
+
+The three days are only a time box: last three nights and the slice ends.
+Repairing the heater and bringing water to Rowan are optional and do not
+gate sleep or completion.
 
 Forage tokens and the reservoir are guidance objects now; they no longer grant
 resources. When speech is unavailable (no-voice builds, missing microphone, or
 no local service), the `G` gesture fallback grants the minimum survival
-portions so the three-day path stays fully playable.
+portions so three nights stay fully playable.
 
-A first-run guide protects the three needs while teaching movement and one
-voiced (or gestured) food request. The graded vocabulary profile defaults to
+A first-run guide protects the three needs while teaching movement, a voiced
+greeting, and a voiced food request. Explicit gesture fallback replaces either
+spoken beat only when the runtime confirms speech is unavailable. The graded vocabulary profile defaults to
 toddler (A1+A2) and is built at runtime from the unchanged CEFR-J, Octanove,
 and NGSL assets under `assets/wordlists/`; see `ATTRIBUTION.md` there for the
 two distinct licences.
@@ -54,6 +62,36 @@ over the DashScope WebSocket route; each NPC has a fixed system voice). Text
 toasts appear only in builds where the voice channel itself is unavailable
 (unactivated cloud-voice / no-voice betas) plus for mechanical feedback
 (rewards granted, heater repaired, and similar system narration).
+NPC voice is emitted from the speaking character in 3D, attenuates with
+distance, and is deliberately quieter than the former global UI-like playback.
+
+## Service-point NPC dialogue (FR-41)
+
+Walk up to a service point when you need something and talk:
+
+- Tavi — food-counter server at the market stall (`env_market_stall_a`). Order anything on the board (burger, coffee, sandwich).
+- Ori — convenience-store cashier. Buy water or other counter items. The store building is not in yet; she still stands by the reservoir.
+- Mira — market greeter beside the stall. She does not take orders.
+- Vesh — optional hardware clerk. Not on the main need path.
+- Rowan — resident neighbor. Not a shopkeeper.
+
+The player speaks first. The local (or cloud) service sends the transcript,
+role card, and recent turns to Gemini (`gemini-3.7-flash` with
+`thinking_level=LOW` over `streamGenerateContent`). The first spoken sentence
+starts NPC audio; idiomaticity / transaction JSON may arrive after the
+mouth is already open. If Gemini misses a ~1s first-sentence budget, a stub
+line is spoken instead of stalling. Session score is `0.5 × pronunciation + 0.5 ×
+idiomaticity`. Resources are granted only when the transaction completes,
+using the same FR-28 bands as before. Walking away grants nothing. `G`
+remains goodwill only, or `gesture_fallback` when speech itself is
+unavailable.
+
+The Godot client never holds a Gemini or xAI key and never sends free text
+to TTS. NPC replies are spoken through a server-issued `reply_id`. Without
+`GEMINI_API_KEY` / `GEMINI.csv`, the service may use Grok if an xAI key is
+present; otherwise a deterministic stub keeps tests and offline integration
+running. YouTube discovery tools stay in `game/speech_service/` as optional
+research; they do not feed these counters.
 
 NPCs periodically meet for ambient need-expression scenes: the two family or
 partner NPCs **walk to a meeting point near each other**, exchange the lines
@@ -111,6 +149,9 @@ License; its license text is stored beside the font in `game/assets/fonts/`.
   --headless --path game res://tests/SocialDialogueTest.tscn
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
+  --headless --path game --script res://tests/test_npc_dialogue_assets.gd
+
+/Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game res://tests/WordAcquisitionTest.tscn
 
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
@@ -149,6 +190,10 @@ NL_TEST_CODE=<code> /Applications/Godot-4.6.app/Contents/MacOS/Godot \
   --headless --path game --script res://tests/test_directional_locomotion.gd
 
 python3 -m py_compile game/speech_service/server.py
+python3 -m unittest \
+  game.speech_service.test_dialogue \
+  game.speech_service.test_corpus_pipeline \
+  game.speech_service.test_native_speaker_screener -v
 ```
 
 ## Web Beta build

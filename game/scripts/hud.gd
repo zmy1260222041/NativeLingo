@@ -126,7 +126,7 @@ func _create_timers() -> void:
 	add_child(toast_timer)
 	voice_status_timer = Timer.new()
 	voice_status_timer.one_shot = true
-	voice_status_timer.timeout.connect(_clear_voice_status)
+	voice_status_timer.timeout.connect(_on_voice_status_timeout)
 	add_child(voice_status_timer)
 	day_transition_timer = Timer.new()
 	day_transition_timer.one_shot = true
@@ -152,6 +152,18 @@ func _connect_domain_signals() -> void:
 	SpeechAdapter.recognition_finished.connect(_on_recognition_finished)
 	SpeechAdapter.session_cancelled.connect(_on_speech_cancelled)
 	SpeechAdapter.word_score_finished.connect(_on_word_score_finished)
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service != null:
+		dynamic_service.scenario_opened.connect(_on_dynamic_scenario_opened)
+		dynamic_service.dialogue_pending.connect(_on_dynamic_dialogue_pending)
+		dynamic_service.dialogue_ready.connect(_on_dynamic_dialogue_ready)
+		dynamic_service.dialogue_failed.connect(_on_dynamic_dialogue_failed)
+		dynamic_service.dialogue_closed.connect(_on_dynamic_dialogue_closed)
+	var npc_voice := get_tree().root.get_node_or_null(NodePath("NpcVoice"))
+	if npc_voice != null:
+		npc_voice.line_audio_ready.connect(_on_npc_line_audio_ready)
+		npc_voice.line_audio_finished.connect(_on_npc_line_audio_finished)
+		npc_voice.line_audio_failed.connect(_on_npc_line_audio_failed)
 	Vocabulary.word_spoken.connect(_show_word_unlock)
 	Dialogue.word_practice_requested.connect(_on_word_practice_requested)
 	Dialogue.word_practice_finished.connect(_on_word_practice_finished)
@@ -425,6 +437,10 @@ func _build_word_practice_ui() -> void:
 
 
 func _on_word_practice_requested(npc_id: String, options: Array) -> void:
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service != null and dynamic_service.has_active_session():
+		Dialogue.finish_word_practice()
+		return
 	if not is_instance_valid(word_practice_panel) or options.is_empty():
 		return
 	var words: Array[String] = []
@@ -534,6 +550,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		SpeechAdapter.cancel_recording()
 		get_viewport().set_input_as_handled()
 		return
+	if event.is_action_pressed("ui_cancel"):
+		var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+		if dynamic_service != null and dynamic_service.has_active_session():
+			dynamic_service.cancel("VOICE_REASON_DIALOGUE_CANCELLED")
+			get_viewport().set_input_as_handled()
+			return
 	if pause_overlay.visible and event.is_action_pressed("ui_cancel"):
 		_close_pause()
 		get_viewport().set_input_as_handled()
@@ -698,29 +720,128 @@ func _on_recognition_pending(_target_id: String) -> void:
 	voice_state = "transcribing"
 	_refresh_voice_card()
 
-func _on_recognition_finished(_target_id: String, accepted: bool, transcript: String, reason: String, expression: Dictionary) -> void:
+func _on_recognition_finished(target_id: String, accepted: bool, transcript: String, reason: String, expression: Dictionary) -> void:
 	if not SpeechAdapter.is_available():
 		return
 	if voice_target_name.is_empty():
 		voice_target_name = player.current_target_name() if player else tr("NEARBY_RESIDENT")
-	voice_transcript = transcript
-	voice_reason = tr(reason)
-	voice_expression = expression
+	voice_transcript = transcript if _shows_speech_text() else ""
+	voice_reason = tr(reason) if _shows_speech_text() else ""
+	voice_expression = expression if _shows_speech_text() else {}
+	if _awaits_npc_reply(target_id):
+		_hold_processing(voice_target_name)
+		return
 	if accepted:
 		voice_state = "accepted"
 		_refresh_voice_card()
-		voice_status_timer.start(3.2)
+		_start_voice_status_timer(3.2)
 	else:
 		voice_state = "unavailable" if _is_unavailable_reason(reason) else "clarify"
 		_refresh_voice_card()
+
+
+func _on_dynamic_dialogue_pending(npc_id: String, _scenario_id: String) -> void:
+	_hold_processing(tr("NPC_%s" % npc_id.to_upper()))
+
+
+func _on_dynamic_scenario_opened(npc_id: String, _scenario_id: String, _text: String) -> void:
+	voice_target_name = tr("NPC_%s" % npc_id.to_upper())
+	voice_transcript = ""
+	voice_reason = ""
+	voice_state = "accepted"
+	_stop_voice_status_timer()
+	_refresh_voice_card()
+
+
+func _on_dynamic_dialogue_ready(npc_id: String, _reply_id: String, _text: String) -> void:
+	# Grok text is back; TTS may still be synthesizing. Keep the clock until audio starts.
+	_hold_processing(tr("NPC_%s" % npc_id.to_upper()))
+
+
+func _on_dynamic_dialogue_failed(npc_id: String, reason: String) -> void:
+	voice_target_name = tr("NPC_%s" % npc_id.to_upper())
+	voice_reason = tr(reason) if _shows_speech_text() else ""
+	voice_state = "clarify"
+	_stop_voice_status_timer()
+	_refresh_voice_card()
+
+
+func _on_dynamic_dialogue_closed(_npc_id: String, reason: String) -> void:
+	if reason in ["VOICE_REASON_DIALOGUE_CANCELLED", "completed"]:
+		_clear_voice_status(true)
+
+
+func _on_npc_line_audio_ready(npc_id: String, _line_id: String) -> void:
+	if voice_state != "transcribing":
+		return
+	var expected := tr("NPC_%s" % npc_id.to_upper())
+	if not voice_target_name.is_empty() and voice_target_name != expected:
+		return
+	voice_target_name = expected
+	voice_state = "accepted"
+	_stop_voice_status_timer()
+	_refresh_voice_card()
+
+
+func _on_npc_line_audio_finished(npc_id: String, _line_id: String) -> void:
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service == null or not dynamic_service.is_session_active_for(npc_id):
+		return
+	voice_target_name = tr("NPC_%s" % npc_id.to_upper())
+	voice_state = "accepted"
+	_stop_voice_status_timer()
+	_refresh_voice_card()
+
+
+func _on_npc_line_audio_failed(npc_id: String, _line_id: String, reason: String) -> void:
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service != null and dynamic_service.has_active_session():
+		_on_dynamic_dialogue_failed(npc_id, reason)
+
+
+func _awaits_npc_reply(target_id: String) -> bool:
+	var npc := target_id.strip_edges().to_lower()
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service == null or not dynamic_service.enabled():
+		return false
+	return dynamic_service.is_session_active_for(npc) or GameState.can_start_service_dialogue(npc)
+
+
+func _hold_processing(npc_name: String) -> void:
+	voice_target_name = npc_name
+	voice_transcript = ""
+	voice_reason = ""
+	voice_state = "transcribing"
+	_stop_voice_status_timer()
+	_refresh_voice_card()
+
+
+func _stop_voice_status_timer() -> void:
+	if voice_status_timer != null:
+		voice_status_timer.stop()
+
+
+func _start_voice_status_timer(seconds: float) -> void:
+	if voice_status_timer != null:
+		voice_status_timer.start(seconds)
 
 func _is_unavailable_reason(reason_key: String) -> bool:
 	return reason_key in ["VOICE_REASON_MIC_UNAVAILABLE", "VOICE_REASON_SERVICE_UNAVAILABLE", "VOICE_REASON_SAVE_FAILED", "VOICE_REASON_READ_FAILED", "VOICE_REASON_RESULT_INVALID"]
 
 func _on_speech_cancelled(_target_id: String) -> void:
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if voice_state == "transcribing" and dynamic_service != null and dynamic_service.has_active_session():
+		return
+	_clear_voice_status(true)
+
+func _on_voice_status_timeout() -> void:
+	if voice_state == "transcribing":
+		return
 	_clear_voice_status()
 
-func _clear_voice_status() -> void:
+func _clear_voice_status(force := false) -> void:
+	if not force and voice_state == "transcribing":
+		return
 	voice_state = "idle"
 	voice_target_name = ""
 	voice_transcript = ""
@@ -728,8 +849,15 @@ func _clear_voice_status() -> void:
 	voice_expression = {}
 	_refresh_interaction_prompt()
 
+func _shows_speech_text() -> bool:
+	return not SpeechAdapter.is_available()
+
+
 func _refresh_voice_card() -> void:
 	voice_status_icon.set_state(voice_state)
+	if not _shows_speech_text() and not voice_target_name.is_empty() and voice_state != "idle":
+		_set_interaction_text(voice_target_name)
+		return
 	var talk_glyph := InputGlyphs.for_action("push_to_talk", gamepad_active, gamepad_device_id)
 	var gesture_glyph := InputGlyphs.for_action("gesture", gamepad_active, gamepad_device_id)
 	var cancel_glyph := InputGlyphs.for_action("ui_cancel", gamepad_active, gamepad_device_id)

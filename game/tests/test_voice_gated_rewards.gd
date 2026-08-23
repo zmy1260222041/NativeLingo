@@ -14,9 +14,11 @@ func _init() -> void:
 	_test_scrap_bands_are_monotonic_and_lossless()
 	_test_water_bands_are_monotonic_and_lossless()
 	_test_rowan_voice_gate()
+	_test_mira_voice_gate()
 	_test_gesture_fallback_completes_three_days()
 	_test_old_save_migrates()
 	_test_expression_signal_carries_both_dimensions()
+	_test_service_session_score_mixes_pronunciation_and_idiomaticity()
 	if failures == 0:
 		print("PASS: Stranger voice-gated reward suite")
 	quit(failures)
@@ -32,7 +34,6 @@ func _test_world_objects_never_grant_resources() -> void:
 func _test_food_bands_are_monotonic_and_lossless() -> void:
 	for score_and_expected in [[30.0, 0], [39.9, 0], [40.0, 1], [69.9, 1], [70.0, 2]]:
 		var state := _fresh_state()
-		state.completed_steps["greet_mira"] = true
 		var before := _resource_snapshot(state)
 		var message := _capture_message(state, func(): state.interact("npc", "tavi", "voice", _expr(score_and_expected[0])))
 		var after := _resource_snapshot(state)
@@ -49,7 +50,6 @@ func _test_food_bands_are_monotonic_and_lossless() -> void:
 func _test_scrap_bands_are_monotonic_and_lossless() -> void:
 	for score_and_expected in [[25.0, 0], [40.0, 1], [70.0, 2]]:
 		var state := _fresh_state()
-		state.day = 2
 		var before := _resource_snapshot(state)
 		state.interact("npc", "vesh", "voice", _expr(score_and_expected[0]))
 		var after := _resource_snapshot(state)
@@ -62,7 +62,6 @@ func _test_water_bands_are_monotonic_and_lossless() -> void:
 	var previous_energy_gain := -1
 	for score in [30.0, 40.0, 70.0]:
 		var state := _fresh_state()
-		state.day = 3
 		var before_energy: float = state.energy
 		state.interact("npc", "ori", "voice", _expr(score))
 		if score < 40.0:
@@ -75,26 +74,29 @@ func _test_water_bands_are_monotonic_and_lossless() -> void:
 
 func _test_rowan_voice_gate() -> void:
 	var state := _fresh_state()
-	state.day = 3
 	state.water = 1
 	state.interact("npc", "rowan", "voice", _expr(20.0))
-	_expect(not state.game_finished and state.water == 1, "G3: unclear final delivery costs nothing and keeps the water")
+	_expect(not state.completed_steps.has("help_rowan") and state.water == 1, "G3: unclear optional help costs nothing and keeps the water")
 	state.interact("npc", "rowan", "voice", _expr(45.0))
-	_expect(state.game_finished and state.water == 0, "G3: a clear-enough voiced delivery completes the run")
+	_expect(state.completed_steps.has("help_rowan") and state.water == 0 and not state.game_finished, "G3: helping Rowan is optional and does not end the slice")
+
+
+func _test_mira_voice_gate() -> void:
+	var state := _fresh_state()
+	state.interact("npc", "mira", "action")
+	state.interact("npc", "mira", "gesture")
+	_expect(not state.completed_steps.has("greet_mira"), "G1: Observe/E and a normal gesture cannot bypass the first voiced beat")
+	state.interact("npc", "mira", "voice", _expr(39.9))
+	_expect(not state.completed_steps.has("greet_mira"), "G1: an unclear voice greeting changes no progression state")
+	state.interact("npc", "mira", "voice", _expr(40.0))
+	_expect(state.completed_steps.has("greet_mira"), "G1: a clear-enough voice greeting advances progression")
 
 func _test_gesture_fallback_completes_three_days() -> void:
 	var state := _fresh_state()
-	state.interact("npc", "mira", "gesture")
 	state.interact("npc", "tavi", "gesture_fallback")
-	state.interact("npc", "tavi", "gesture_fallback")
-	state.interact("shelter", "shelter")
-	state.interact("npc", "vesh", "gesture_fallback")
-	state.interact("npc", "vesh", "gesture_fallback")
-	state.interact("heater", "heater")
-	state.interact("shelter", "shelter")
 	state.interact("npc", "ori", "gesture_fallback")
-	state.interact("npc", "rowan", "gesture")
-	_expect(state.game_finished, "G4: gesture_fallback completes all three days without speech")
+	_sleep_nights(state, 3)
+	_expect(state.game_finished, "G4: gesture_fallback plus three nights completes the slice without speech")
 
 func _test_old_save_migrates() -> void:
 	var state := _fresh_state()
@@ -118,7 +120,6 @@ func _test_old_save_migrates() -> void:
 
 func _test_expression_signal_carries_both_dimensions() -> void:
 	var state := _fresh_state()
-	state.completed_steps["greet_mira"] = true
 	var captured := {}
 	var handler := func(target_id: String, expression: Dictionary) -> void:
 		captured["target"] = target_id
@@ -130,6 +131,24 @@ func _test_expression_signal_carries_both_dimensions() -> void:
 	_expect(float(captured.get("expression", {}).get("pronunciation", -1.0)) == 81.0
 		and float(captured.get("expression", {}).get("delivery", -1.0)) == 81.0,
 		"G2: pronunciation and delivery both ride the expression result")
+
+func _test_service_session_score_mixes_pronunciation_and_idiomaticity() -> void:
+	var state := _fresh_state()
+	_expect(state.can_start_service_dialogue("tavi"), "FR-42: food counter is open without a greeting")
+	_expect(state.can_start_service_dialogue("ori"), "FR-42: convenience store is open on day 1")
+	var before: int = state.berries
+	var band: String = state.settle_service_transaction("tavi", 55.0)
+	_expect(band == "sparse" and state.berries == before + 1, "FR-41: mixed session score uses FR-28 bands")
+	_expect(state.settle_service_transaction("ori", 30.0) == "none" and state.water == 0, "FR-41: below-band completed talk still grants nothing")
+
+
+func _sleep_nights(state: Node, nights: int) -> void:
+	for _i in range(nights):
+		if state.game_finished:
+			return
+		state.day_time = GameStateScript.DAY_DURATION * ((20.0 - GameStateScript.DAY_START_HOUR) / (GameStateScript.DAY_END_HOUR - GameStateScript.DAY_START_HOUR))
+		state.interact("shelter", "shelter")
+
 
 func _fresh_state() -> Node:
 	var state = GameStateScript.new()

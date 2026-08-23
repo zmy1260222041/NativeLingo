@@ -398,11 +398,11 @@ func _build_landmarks() -> void:
 		push_error("Main: prp_lantern_market_a.glb missing; primitive lantern fallback removed (art-bible §8.8)")
 
 func _build_interactables() -> void:
-	_add_npc("mira", tr("NPC_MIRA"), Vector3(-1.7, 1.0, -0.55), Color("f2a65a"), 0)
-	_add_npc("rowan", tr("NPC_ROWAN"), Vector3(3, 1.0, 0.5), Color("a56cc1"), 1)
-	_add_npc("tavi", tr("NPC_TAVI"), Vector3(-8, 1.0, 3), Color("ed6a5a"), 2)
-	_add_npc("vesh", tr("NPC_VESH"), Vector3(2, 1.0, -9), Color("6cc3a0"), 3)
-	_add_npc("ori", tr("NPC_ORI"), Vector3(10, 1.0, 8), Color("e6c84f"), 4)
+	_add_npc("mira", tr("NPC_MIRA"), _npc_anchor("mira", Vector3(0.1, 1.0, -0.4)), Color("f2a65a"), 0)
+	_add_npc("rowan", tr("NPC_ROWAN"), _npc_anchor("rowan", Vector3(3, 1.0, 0.5)), Color("a56cc1"), 1)
+	_add_npc("tavi", tr("NPC_TAVI"), _npc_anchor("tavi", Vector3(-1.8, 1.0, -2.75)), Color("ed6a5a"), 2)
+	_add_npc("vesh", tr("NPC_VESH"), _npc_anchor("vesh", Vector3(2, 1.0, -9)), Color("6cc3a0"), 3)
+	_add_npc("ori", tr("NPC_ORI"), _npc_anchor("ori", Vector3(10, 1.0, 8)), Color("e6c84f"), 4)
 	_add_pickup("berry", "berry_a", tr("ITEM_BERRY"), Vector3(-10, 0.65, -2), Color("5364c9"))
 	_add_pickup("berry", "berry_b", tr("ITEM_BERRY"), Vector3(-13, 0.65, 5), Color("5364c9"))
 	_add_pickup("scrap", "scrap_a", tr("ITEM_SCRAP"), Vector3(11, 0.45, -5), Color("b8c1c8"), "box")
@@ -416,6 +416,13 @@ func _build_social_simulator() -> void:
 	var simulator := SocialSimulator.new()
 	simulator.name = "SocialSimulator"
 	add_child(simulator)
+
+
+func _npc_anchor(npc_id: String, fallback: Vector3) -> Vector3:
+	var registry := get_tree().root.get_node_or_null(NodePath("NpcScenarioRegistry"))
+	if registry == null:
+		return fallback
+	return registry.workplace_anchor(npc_id, fallback)
 
 
 func _add_npc(npc_id: String, npc_name: String, position: Vector3, color: Color, profile: int) -> void:

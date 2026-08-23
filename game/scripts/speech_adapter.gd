@@ -332,6 +332,8 @@ func finish_recording() -> void:
 		url = _cloud_evaluate_url()
 		headers.append("Authorization: Bearer " + token)
 	headers.append("X-Stranger-Target: " + target_id)
+	if _wants_fast_transcribe(target_id):
+		headers.append("X-Stranger-Fast: 1")
 	pending_target_id = target_id
 	request_generation = generation
 	var error := http_request.request_raw(url, headers, HTTPClient.METHOD_POST, file.get_buffer(file.get_length()))
@@ -353,6 +355,16 @@ func _cloud_evaluate_url() -> String:
 
 func _cloud_register_url() -> String:
 	return _cloud_base_url() + CLOUD_REGISTER_PATH
+
+
+func _wants_fast_transcribe(target_id: String) -> bool:
+	var npc := target_id.strip_edges().to_lower()
+	if npc.is_empty():
+		return false
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service == null or not dynamic_service.enabled():
+		return false
+	return dynamic_service.is_session_active_for(npc) or GameState.can_start_service_dialogue(npc)
 
 
 func _word_score_url() -> String:
@@ -570,7 +582,8 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 	last_unavailable_reason = ""
 	if accepted:
 		_clear_recovery(false)
-		GameState.set_interaction_time_frozen(false)
+		if not _wants_fast_transcribe(target_id):
+			GameState.set_interaction_time_frozen(false)
 		recognition_finished.emit(target_id, true, transcript, reason, expression)
 	else:
 		recovery_active = true

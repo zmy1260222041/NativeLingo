@@ -77,8 +77,7 @@ func _ready() -> void:
 	free_npc.display_name = "维什"
 	add_child(free_npc)
 	free_npc._process(0.1)
-	_expect(free_npc.npc_greeted and Dialogue.word_practice_active, "After the guide, approaching an NPC offers guided word practice again")
-	Dialogue.finish_word_practice()
+	_expect(free_npc.npc_greeted and not Dialogue.word_practice_active, "Approaching an NPC starts a conversation, not word practice")
 	Dialogue.reset_all()
 	GameState.persistence_enabled = true
 	if failures == 0:

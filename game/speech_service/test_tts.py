@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import importlib.util
 import pathlib
+import threading
 import unittest
 from unittest import mock
 
@@ -30,6 +31,102 @@ class NpcLineCatalogTest(unittest.TestCase):
             self.assertIn(npc_id, server.NPC_LINES)
             self.assertIn("greeting", server.NPC_LINES[npc_id])
             self.assertTrue(server.NPC_LINES[npc_id]["greeting"].strip())
+
+
+class _FakeSynthesizer:
+    def __init__(self, chunks: list[bytes], error_after: int | None = None):
+        self._chunks = chunks
+        self._error_after = error_after
+        self.callback = None
+        self.calls: list[str] = []
+
+    def streaming_call(self, text: str) -> None:
+        self.calls.append(text)
+        def _deliver():
+            sent = 0
+            for chunk in self._chunks:
+                if self._error_after is not None and sent >= self._error_after:
+                    self.callback.on_error('{"error":"boom"}')
+                    return
+                self.callback.on_data(chunk)
+                sent += len(chunk)
+            self.callback.on_complete()
+        threading.Thread(target=_deliver, daemon=True).start()
+
+    def async_streaming_complete(self, complete_timeout_millis=600000) -> None:
+        return
+
+
+class _FakePool:
+    def __init__(self, synthesizer):
+        self.synthesizer = synthesizer
+        self.borrowed = 0
+        self.returned = 0
+
+    def borrow_synthesizer(self, **kwargs):
+        self.borrowed += 1
+        self.synthesizer.callback = kwargs.get("callback")
+        return self.synthesizer
+
+    def return_synthesizer(self, synthesizer) -> bool:
+        self.returned += 1
+        return True
+
+
+class StreamDynamicReplyTest(unittest.TestCase):
+    PCM = bytes(range(256)) * 96  # 24 KiB of bare samples
+    STREAM_WAV = (
+        b"RIFF" + (0x7FFFFF00).to_bytes(4, "little") + b"WAVE" + b"fmt " +
+        (16).to_bytes(4, "little") + (1).to_bytes(2, "little") +
+        (1).to_bytes(2, "little") + (24000).to_bytes(4, "little") +
+        (48000).to_bytes(4, "little") + (2).to_bytes(2, "little") +
+        (16).to_bytes(2, "little") + b"data" + (0x7FFFFF00).to_bytes(4, "little") + PCM
+    )
+
+    def setUp(self):
+        server._TTS_CACHE.clear()
+        server._DYNAMIC_REPLIES.clear()
+        self._old_key = server.QWEN_TTS_API_KEY
+        server.QWEN_TTS_API_KEY = "test-key"
+
+    def tearDown(self):
+        server._TTS_CACHE.clear()
+        server._DYNAMIC_REPLIES.clear()
+        server.QWEN_TTS_API_KEY = self._old_key
+
+    def test_stream_strips_header_and_caches_repaired_wav(self):
+        reply_id = server._register_spoken_reply("tavi", "You got it.", False, prefetch=False)
+        record = server._DYNAMIC_REPLIES[reply_id]
+        voice = str(record.get("voice") or "")
+        pool = _FakePool(_FakeSynthesizer([self.STREAM_WAV[:12000], self.STREAM_WAV[12000:]]))
+        with mock.patch.object(server, "_TTS_PREFETCH_ENABLED", False), \
+             mock.patch.object(server, "_tts_pool", return_value=pool):
+            chunks = list(server._stream_dynamic_reply_audio("tavi", reply_id))
+        self.assertEqual(b"".join(chunks), self.PCM)
+        self.assertEqual(pool.borrowed, 1)
+        self.assertEqual(pool.returned, 1)
+        # Repaired full WAV lands in the cache for the /game/tts fallback.
+        keys = [server._tts_key("tavi", reply_id, voice), server._tts_text_key("tavi", voice, "You got it.")]
+        cached = server._cached_wav(keys)
+        self.assertIsNotNone(cached)
+        self.assertEqual(cached, server._repair_wav_lengths(self.STREAM_WAV))
+        self.assertEqual(int.from_bytes(cached[4:8], "little"), len(self.STREAM_WAV) - 8)
+
+    def test_stream_error_raises_and_returns_synthesizer(self):
+        reply_id = server._register_spoken_reply("tavi", "You got it.", False, prefetch=False)
+        pool = _FakePool(_FakeSynthesizer([self.STREAM_WAV[:12000]], error_after=0))
+        with mock.patch.object(server, "_TTS_PREFETCH_ENABLED", False), \
+             mock.patch.object(server, "_tts_pool", return_value=pool):
+            with self.assertRaises(RuntimeError):
+                list(server._stream_dynamic_reply_audio("tavi", reply_id))
+        self.assertEqual(pool.returned, 1)
+
+    def test_unknown_reply_raises_before_pool(self):
+        pool = _FakePool(_FakeSynthesizer([self.STREAM_WAV]))
+        with mock.patch.object(server, "_tts_pool", return_value=pool):
+            with self.assertRaises(KeyError):
+                list(server._stream_dynamic_reply_audio("tavi", "reply-not-issued"))
+        self.assertEqual(pool.borrowed, 0)
 
 
 class SynthesizeNpcLineTest(unittest.TestCase):

@@ -3,7 +3,8 @@ extends Node
 ## interactable positions. Run as a scene so autoloads exist.
 
 const EXPECTED_TARGETS := {
-	"mira": Vector3(-1.7, 1.0, -0.55),
+	"mira": Vector3(0.1, 1.0, -0.4),
+	"tavi": Vector3(-1.8, 1.0, -2.75),
 	"rowan": Vector3(3, 1.0, 0.5),
 	"berry_a": Vector3(-10, 0.65, -2),
 	"heater": Vector3(-3.2, 0.7, 6.0),
@@ -74,6 +75,13 @@ func _do_checks() -> void:
 		if found.has(target_id):
 			var delta: float = found[target_id].distance_to(EXPECTED_TARGETS[target_id])
 			_check(delta < 0.05, "interactable %s stayed at authored position (delta=%.3f)" % [target_id, delta])
+	var stall := _find_named(_main, "env_market_stall_a")
+	if stall != null and found.has("tavi"):
+		var stall_flat := Vector3(stall.global_position.x, 0.0, stall.global_position.z)
+		var tavi_flat := Vector3(found["tavi"].x, 0.0, found["tavi"].z)
+		_check(tavi_flat.distance_to(stall_flat) < 2.0, "Tavi stands at the food stall (delta=%.3f)" % tavi_flat.distance_to(stall_flat))
+	if found.has("mira") and found.has("tavi"):
+		_check(found["mira"].z > found["tavi"].z, "Mira stays on the customer side of Tavi's counter")
 	_check(mira_interactable != null and _find_named(mira_interactable, "AuthoredStaticModel") != null, "playable Mira uses the baked authored GLB")
 	if mira_interactable != null:
 		var mira_visual := mira_interactable.get_node_or_null("CharacterVisual") as CharacterVisual

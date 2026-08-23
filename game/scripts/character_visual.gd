@@ -3,6 +3,9 @@ extends Node3D
 
 const IDLE_BREATH_DURATION := 2.4
 const PLAYER_MODEL_PATH := "res://assets/characters/chr_player_juvenile_mixamo.fbx"
+const PLAYER_BASE_COLOR_PATH := "res://assets/characters/chr_player_juvenile_base_color_2k.png"
+const PLAYER_NORMAL_PATH := "res://assets/characters/chr_player_juvenile_normal_2k.png"
+const PLAYER_AO_PATH := "res://assets/characters/chr_player_juvenile_ao_2k.png"
 const RUNTIME_IDLE := "anim_chr_player_idle_neutral"
 const RUNTIME_WALK := "anim_chr_player_walk_forward"
 const RUNTIME_RUN := "anim_chr_player_run_forward"
@@ -756,16 +759,46 @@ func _add_lod_from(path: String, skeleton: Skeleton3D, lod_index: int) -> void:
 		runtime_lod_groups[lod_index].append(mesh)
 	inst.queue_free()
 
-## Give every runtime mesh a named material (contract: 1..3 named materials).
+## Apply the selected-to-active high-poly bake to skinned LOD0. The current
+## LOD1/2 placeholders have independent topology and no UV0, so they retain a
+## named flat fallback until they receive their own versioned bake.
 func _assign_named_material() -> void:
-	var mat := StandardMaterial3D.new()
-	mat.resource_name = "mat_chr_player_juvenile"
-	mat.albedo_color = Color("bfa982")
+	var pbr_mat := _load_player_pbr_material()
+	var fallback_mat := StandardMaterial3D.new()
+	fallback_mat.resource_name = "mat_chr_player_juvenile_lod_fallback"
+	fallback_mat.albedo_color = Color("bfa982")
+	fallback_mat.metallic = 0.0
+	fallback_mat.roughness = 0.85
 	# scan the whole runtime tree (LOD1/2 are added after _collect_runtime_nodes)
 	var all_meshes: Array[MeshInstance3D] = []
 	_collect_all_meshes(runtime_root, all_meshes)
 	for mesh in all_meshes:
-		mesh.material_override = mat
+		var is_lod0 := "lod0__" in mesh.name.to_lower()
+		mesh.material_override = pbr_mat if is_lod0 and pbr_mat != null else fallback_mat
+
+func _load_player_pbr_material() -> StandardMaterial3D:
+	for path in [PLAYER_BASE_COLOR_PATH, PLAYER_NORMAL_PATH, PLAYER_AO_PATH]:
+		if not ResourceLoader.exists(path):
+			push_warning("Player baked PBR map missing: ", path)
+			return null
+	var base_color := load(PLAYER_BASE_COLOR_PATH) as Texture2D
+	var normal := load(PLAYER_NORMAL_PATH) as Texture2D
+	var ao := load(PLAYER_AO_PATH) as Texture2D
+	if base_color == null or normal == null or ao == null:
+		push_warning("Player baked PBR maps could not be loaded")
+		return null
+	var mat := StandardMaterial3D.new()
+	mat.resource_name = "mat_chr_player_juvenile_pbr"
+	mat.albedo_color = Color.WHITE
+	mat.albedo_texture = base_color
+	mat.metallic = 0.0
+	mat.roughness = 0.78
+	mat.normal_enabled = true
+	mat.normal_texture = normal
+	mat.normal_scale = 1.0
+	mat.ao_enabled = true
+	mat.ao_texture = ao
+	return mat
 
 func _collect_all_meshes(node: Node, out: Array[MeshInstance3D]) -> void:
 	if node is MeshInstance3D:

@@ -16,7 +16,7 @@
 | TR-concept-002 | Core Mechanics | 三类需求、时间与非破坏性昏倒 | Simulation |
 | TR-concept-003 | Core Mechanics | NPC 信任、承诺和持久记忆 | Feature/Save |
 | TR-concept-004 | Unique Hook | 语音意图与手势澄清共享任务结果 | Speech/API |
-| TR-concept-005 | Core Loop | 一个聚落的三日任务弧 | Quest/Data |
+| TR-concept-005 | Core Loop | 一个聚落的三日时间盒；主线按生理需求去对应的店，无指定任务顺序（FR-42） | Quest/Data |
 | TR-concept-006 | Platform | macOS 优先并保留 Windows 路径 | Platform |
 | TR-concept-007 | Pillar 2 | 语言错误不得损伤生存或关系状态 | Invariant |
 | TR-concept-008 | Long-term | 状态格式支持未来年龄阶段字段 | Save/Schema |
@@ -85,6 +85,17 @@ G → gesture (善意,不产出资源) / gesture_fallback (无语音/未激活,�
 service/error/low confidence ─────────────────────────────────────────────────┘
         → GameState.interact(kind, id, channel, expression)  (失败永不扣状态)
 ```
+
+服务柜台(FR-41 / NFR-9)拆成实时平面与工作平面:
+
+```text
+松键 → /transcribe (fast Whisper)
+     → POST /game/dialogue (Accept: text/event-stream)
+          实时: Gemini streamGenerateContent 首句 → 首句 TTS 缓存 → event speaking → NpcVoice
+          工作: player_turn JSON → event score → 播完后成交
+```
+
+T_speak≈1 秒内没有首句、或 429/503,则 stub 开口;已承诺台词不替换,地道分可后到。无 Gemini key 时才用 grok-4.3。开口目标 ≤ 3 秒。旧客户端不带 SSE 头时仍返回一次性 JSON。
 
 ### 远程评分模式(FR-29)
 

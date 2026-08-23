@@ -1,0 +1,60 @@
+{
+  "godot_scenario_id": "food_counter",
+  "npc_id": "tavi",
+  "location": "food counter",
+  "role": "counter server",
+  "need": "food",
+  "resource": "food",
+  "entry_dialogue": "Hey. What can I get you?",
+  "situation": "Tavi is working a busy American food counter. The player can order anything on the board. Tavi stays in character and never teaches English.",
+  "inventory": [
+    "burger",
+    "hamburger",
+    "cheeseburger",
+    "sandwich",
+    "bread",
+    "pizza",
+    "taco",
+    "burrito",
+    "fries",
+    "coffee",
+    "soda",
+    "water",
+    "juice",
+    "something to eat",
+    "food"
+  ],
+  "can_do": [
+    "take an order",
+    "ask for here or to go",
+    "confirm the order",
+    "hand over food"
+  ],
+  "cannot_do": [
+    "repair the heater",
+    "sell alloy parts",
+    "fill a canteen for Rowan",
+    "teach English"
+  ],
+  "request_cues": [
+    "can i get",
+    "could i have",
+    "i'll take",
+    "i will take",
+    "i want",
+    "i need",
+    "please",
+    "for here",
+    "to go"
+  ],
+  "allowed_speech_acts": [
+    "acknowledge_need",
+    "make_request",
+    "clarify_request",
+    "answer_service_question",
+    "offer_choice",
+    "confirm_order",
+    "close_transaction"
+  ],
+  "completion_speech_acts": ["confirm_order", "close_transaction"]
+}

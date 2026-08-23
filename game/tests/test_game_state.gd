@@ -12,6 +12,7 @@ func _init() -> void:
 	root.add_child(state)
 	_test_day_one(state)
 	_test_day_two(state)
+	_test_critical_nodes_reject_silent_shortcuts()
 	_test_language_fallback(state)
 	_test_faint_preserves_relationships(state)
 	_test_voice_wait_has_no_survival_cost()
@@ -26,25 +27,29 @@ func _init() -> void:
 	quit(failures)
 
 func _test_day_one(state: Node) -> void:
-	_expect(state.objective_text().contains("米拉"), "Day 1 begins with Mira")
-	state.interact("npc", "mira", "gesture")
+	_expect(state.can_start_service_dialogue("tavi") and state.can_start_service_dialogue("ori"), "Food counter and convenience store are open on day 1")
+	_expect(state.objective_text().contains("食物") or state.objective_text().contains("店"), "Day 1 objective follows hunger, not a named greeting")
 	state.interact("npc", "tavi", "voice", _expression(100.0))
+	_expect(state.berries >= 1, "Tavi serves food before any Mira greeting")
+	state.interact("npc", "ori", "voice", _expression(100.0))
+	_expect(state.water == 1, "Ori sells water on day 1")
+	_advance_to_evening(state)
 	state.interact("shelter", "shelter")
-	_expect(state.day == 2, "Day 1 can be completed through a voiced food request")
+	_expect(state.day == 2 and not state.game_finished, "Sleeping at night ends day 1 without a quest checklist")
 
 func _test_day_two(state: Node) -> void:
-	state.interact("npc", "vesh", "voice", _expression(100.0))
-	state.interact("heater", "heater")
-	_expect(state.heater_repaired, "Heater accepts two voiced-for scrap parts")
+	_expect(not state.heater_repaired, "The heater is off the critical path")
+	_advance_to_evening(state)
 	state.interact("shelter", "shelter")
-	_expect(state.day == 3, "Day 2 can be completed")
+	_expect(state.day == 3 and not state.game_finished, "A second night advances the time box without repairing the heater")
+
 
 func _test_memory_changes_later_feedback() -> void:
 	var state = GameStateScript.new()
 	state.persistence_enabled = false
 	root.add_child(state)
-	var first := _capture_message(state, func(): state.interact("npc", "mira", "gesture"))
-	_expect(first.contains("Welcome") or first.contains("手势"), "First Mira beat uses the welcome / gesture path")
+	var first := _capture_message(state, func(): state.interact("npc", "mira", "voice", _expression(80.0)))
+	_expect(first.contains("Welcome") or first.contains("米拉"), "First Mira beat uses an understood voice greeting")
 	var later := _capture_message(state, func(): state.interact("npc", "mira", "gesture"))
 	_expect(later.contains("塔维") or later.contains("Tavi") or later.contains("食物") or later.contains("food"), "After greeting, Mira points to the food supplier instead of repeating welcome")
 	var tavi := _capture_message(state, func(): state.interact("npc", "tavi", "gesture"))
@@ -56,9 +61,9 @@ func _test_blocker_copy() -> void:
 	state.persistence_enabled = false
 	root.add_child(state)
 	var heater_day1 := _capture_message(state, func(): state.interact("heater", "heater"))
-	_expect(heater_day1.contains("明天") or heater_day1.contains("tomorrow"), "Day-1 heater explains it is not today's job")
-	var sleep_before_mira := _capture_message(state, func(): state.interact("shelter", "shelter"))
-	_expect(sleep_before_mira.contains("米拉") or sleep_before_mira.contains("Mira"), "Blocked sleep names the missing Mira greeting")
+	_expect(heater_day1.contains("零件") or heater_day1.contains("parts") or heater_day1.contains("alloy"), "Optional heater still asks for parts instead of a calendar lock")
+	var sleep_before_night := _capture_message(state, func(): state.interact("shelter", "shelter"))
+	_expect(sleep_before_night.contains("早") or sleep_before_night.contains("early") or sleep_before_night.contains("柜台"), "Daytime sleep points to shops, not a missing quest")
 
 
 func _capture_message(state: Node, action: Callable) -> String:
@@ -69,6 +74,18 @@ func _capture_message(state: Node, action: Callable) -> String:
 	action.call()
 	state.message_requested.disconnect(handler)
 	return captured[0]
+
+
+func _advance_to_evening(state: Node) -> void:
+	state.day_time = GameStateScript.DAY_DURATION * ((20.0 - GameStateScript.DAY_START_HOUR) / (GameStateScript.DAY_END_HOUR - GameStateScript.DAY_START_HOUR))
+
+
+func _sleep_three_nights(state: Node) -> void:
+	for _i in range(3):
+		if state.game_finished:
+			return
+		_advance_to_evening(state)
+		state.interact("shelter", "shelter")
 
 
 func _expression(score: float) -> Dictionary:
@@ -83,9 +100,28 @@ func _expression(score: float) -> Dictionary:
 
 func _test_language_fallback(state: Node) -> void:
 	state.interact("npc", "ori", "gesture_fallback")
+	state.interact("npc", "rowan", "gesture_fallback")
+	_expect(not state.game_finished, "Helping Rowan is optional and does not end the slice")
+	_expect(int(state.relationships["rowan"]) == 3, "Helping Rowan still creates relationship memory")
+	_sleep_three_nights(state)
+	_expect(state.game_finished, "Three nights complete the slice")
+
+
+func _test_critical_nodes_reject_silent_shortcuts() -> void:
+	var state = GameStateScript.new()
+	state.persistence_enabled = false
+	root.add_child(state)
+	state.interact("npc", "mira", "action")
+	state.interact("npc", "mira", "gesture")
+	_expect(not state.completed_steps.has("greet_mira"), "Mira greeting cannot be completed with Observe/E or a normal gesture")
+	state.interact("npc", "mira", "voice", _expression(39.0))
+	_expect(not state.completed_steps.has("greet_mira"), "A low-score greeting keeps the first critical beat open")
+	state.interact("npc", "mira", "voice", _expression(40.0))
+	_expect(state.completed_steps.has("greet_mira"), "A clear-enough voice greeting still records the social beat")
+	state.water = 1
+	state.interact("npc", "rowan", "action")
 	state.interact("npc", "rowan", "gesture")
-	_expect(state.game_finished, "Gesture fallback completes the key interaction")
-	_expect(int(state.relationships["rowan"]) == 3, "Helping Rowan creates relationship memory")
+	_expect(not state.completed_steps.has("help_rowan") and state.water == 1, "Rowan delivery cannot be completed silently while speech is available")
 
 func _test_faint_preserves_relationships(state: Node) -> void:
 	var before: int = state.relationships["rowan"]
@@ -139,7 +175,7 @@ func _test_localization_resources() -> void:
 	var localized_state = GameStateScript.new()
 	localized_state.persistence_enabled = false
 	root.add_child(localized_state)
-	_expect(localized_state.objective_text().contains("Mira"), "English objective resolves from a string ID")
+	_expect(localized_state.objective_text().contains("hungry") or localized_state.objective_text().contains("food"), "English objective resolves from a string ID")
 	_expect(TranslationServer.translate("BTN_RESUME") == "Resume", "English UI translation resource is loaded")
 	TranslationServer.set_locale("zh_CN")
 	_expect(TranslationServer.translate("BTN_RESUME") == "继续游戏", "Chinese UI translation resource is loaded")

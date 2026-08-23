@@ -100,3 +100,14 @@ game/assets/wordlists/*.translation
 TTS.csv
 TTS.csv.import
 TTS.*.translation
+XAI.csv
+XAI.csv.import
+XAI.xlsx
+GEMINI.csv
+GEMINI.csv.import
+game/speech_service/*.xlsx
+
+# Licensed-caption corpus work stays outside the Godot package and source tree.
+# Only reviewed response-pattern JSON is promoted into game/data/dialogue/.
+game/speech_service/corpus_work/
+game/speech_service/raw_captions/

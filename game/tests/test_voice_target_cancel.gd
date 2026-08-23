@@ -11,6 +11,7 @@ func _ready() -> void:
 	_test_recording_cancel(player, target)
 	_test_pending_cancel(player, target)
 	_test_recovery_cancel(player, target)
+	_test_dynamic_dialogue_cancel(player)
 	if failures == 0:
 		print("PASS: Stranger voice target-cancel suite")
 	get_tree().quit(failures)
@@ -42,6 +43,17 @@ func _test_recovery_cancel(player: PlayerController, target: Node3D) -> void:
 	_leave_target(player, target)
 	_expect(not SpeechAdapter.is_recovery_active() and SpeechAdapter.session_target_id().is_empty() and not GameState.interaction_time_frozen, "Leaving range cancels recovery and unfreezes time")
 
+
+func _test_dynamic_dialogue_cancel(player: PlayerController) -> void:
+	var tavi := _npc_target("tavi")
+	_expect(tavi != null, "World exposes Tavi for dynamic cancellation")
+	if tavi == null:
+		return
+	NpcDialogueService.cancel()
+	_expect(NpcDialogueService.begin_scenario("tavi", "food_counter"), "Dynamic session starts for range cancellation")
+	_leave_target(player, tavi)
+	_expect(not NpcDialogueService.has_active_session(), "Leaving Tavi cancels the dynamic dialogue session")
+
 func _leave_target(player: PlayerController, target: Node3D) -> void:
 	player.nearby_target = target
 	player.previous_target_id = target.get_instance_id()
@@ -52,6 +64,13 @@ func _leave_target(player: PlayerController, target: Node3D) -> void:
 func _first_target() -> Node3D:
 	for candidate in get_tree().get_nodes_in_group("interactable"):
 		if candidate is Node3D:
+			return candidate
+	return null
+
+
+func _npc_target(npc_id: String) -> Node3D:
+	for candidate in get_tree().get_nodes_in_group("interactable"):
+		if candidate is Node3D and str(candidate.get("interaction_kind")) == "npc" and str(candidate.get("target_id")) == npc_id:
 			return candidate
 	return null
 

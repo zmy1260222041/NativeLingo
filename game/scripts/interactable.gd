@@ -33,7 +33,14 @@ func _ready() -> void:
 		visible = false
 		return
 	add_to_group("interactable")
+	if interaction_kind == "npc":
+		NpcVoice.register_speaker(target_id, self)
 	_build_marker()
+
+
+func _exit_tree() -> void:
+	if interaction_kind == "npc":
+		NpcVoice.unregister_speaker(target_id, self)
 
 func _process(delta: float) -> void:
 	animation_phase += delta
@@ -50,14 +57,12 @@ func _process(delta: float) -> void:
 				# NPC speech is voice-first: the localized text greeting is only
 				# the no-voice fallback (web/desktop beta without speech).
 				if not NpcVoice.request_line(target_id, "greeting"):
-					GameState.message_requested.emit(tr("NPC_GREETING_%s" % target_id.to_upper()), "good")
+					if not NpcVoice.is_available():
+						GameState.message_requested.emit(tr("NPC_GREETING_%s" % target_id.to_upper()), "good")
+				# Approaching an NPC is a conversation. Word practice must not
+				# steal V from greetings or the service counter (FR-32 / FR-36).
+				Dialogue.finish_word_practice()
 				Dialogue.begin(target_id)
-				# FR-30: guided word practice must not capture the V key while the
-				# onboarding speak step expects a voiced food request.
-				if not GameState.onboarding_active:
-					var practice_candidates := Vocabulary.candidate_words_for_practice(3)
-					if not practice_candidates.is_empty():
-						Dialogue.begin_word_practice(target_id, practice_candidates)
 		if player and global_position.distance_to(player.global_position) < 5.0:
 			var direction := player.global_position - global_position
 			var target_angle := atan2(-direction.x, -direction.z)

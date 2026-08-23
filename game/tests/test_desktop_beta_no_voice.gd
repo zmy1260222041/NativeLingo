@@ -74,20 +74,11 @@ func _first_npc() -> WorldInteractable:
 func _gesture_completes_three_day_run() -> bool:
 	GameState.persistence_enabled = false
 	GameState.reset_run()
-	GameState.interact("npc", "mira", "gesture")
 	GameState.interact("npc", "tavi", "gesture_fallback")
-	GameState.interact("npc", "tavi", "gesture_fallback")
-	GameState.interact("shelter", "shelter")
-	if GameState.day != 2:
-		return false
-	GameState.interact("npc", "vesh", "gesture_fallback")
-	GameState.interact("npc", "vesh", "gesture_fallback")
-	GameState.interact("heater", "heater")
-	GameState.interact("shelter", "shelter")
-	if GameState.day != 3:
-		return false
 	GameState.interact("npc", "ori", "gesture_fallback")
-	GameState.interact("npc", "rowan", "gesture")
+	for _i in range(3):
+		GameState.day_time = GameState.DAY_DURATION * ((20.0 - GameState.DAY_START_HOUR) / (GameState.DAY_END_HOUR - GameState.DAY_START_HOUR))
+		GameState.interact("shelter", "shelter")
 	return GameState.game_finished
 
 func _expect(condition: bool, label: String) -> void:

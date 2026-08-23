@@ -1,0 +1,23 @@
+{
+  "npc_id": "mira",
+  "display_name": "Mira",
+  "variant": "en-US",
+  "occupation": "market_greeter",
+  "persona": "A warm market greeter. She welcomes newcomers and points them to the food stall or the corner store. She does not staff those counters or sell anything.",
+  "workplace": {
+    "id": "market_plaza",
+    "asset": "env_plaza_market_a",
+    "role_at_facility": "greeter",
+    "status": "placed",
+    "anchor": [0.1, 1.0, -0.4]
+  },
+  "mainline": "none",
+  "sells": [],
+  "style": {
+    "max_sentences": 2,
+    "max_words": 30,
+    "register": "natural everyday American English",
+    "avoid": ["teacher talk", "grammar correction", "score talk"]
+  },
+  "scenario_ids": []
+}

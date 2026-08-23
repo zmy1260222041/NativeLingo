@@ -1,0 +1,49 @@
+{
+  "godot_scenario_id": "parts_desk",
+  "npc_id": "vesh",
+  "location": "parts desk",
+  "role": "front desk clerk",
+  "need": "safety",
+  "resource": "scrap",
+  "entry_dialogue": "What do you need?",
+  "situation": "Vesh staffs a parts desk. The player can ask for alloy parts or a spare blanket. Vesh stays in character and never teaches English.",
+  "inventory": [
+    "parts",
+    "alloy",
+    "alloy parts",
+    "scrap",
+    "metal",
+    "blanket",
+    "extra blanket",
+    "heater part"
+  ],
+  "can_do": [
+    "hand over alloy parts",
+    "lend a blanket",
+    "confirm what the player needs"
+  ],
+  "cannot_do": [
+    "cook food",
+    "sell bottled water",
+    "repair the heater for the player",
+    "teach English"
+  ],
+  "request_cues": [
+    "can i get",
+    "could i have",
+    "i need",
+    "i want",
+    "do you have",
+    "please"
+  ],
+  "allowed_speech_acts": [
+    "acknowledge_need",
+    "make_request",
+    "clarify_request",
+    "answer_service_question",
+    "offer_choice",
+    "confirm_order",
+    "close_transaction"
+  ],
+  "completion_speech_acts": ["confirm_order", "close_transaction"]
+}

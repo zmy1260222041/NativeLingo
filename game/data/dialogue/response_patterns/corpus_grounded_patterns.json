@@ -1,0 +1,468 @@
+{
+  "schema_version": 1,
+  "patterns": [
+    {
+      "id": "food_ask_bread_yt_01",
+      "scenario_id": "food_ask_bread",
+      "text": "How can I help you?",
+      "speech_act": "acknowledge_need",
+      "emotion": "warm",
+      "evidence_ids": [
+        "evidence-87a95d6ef5c3c81d"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 35,
+        "grounding": {
+          "evidence_id": "evidence-87a95d6ef5c3c81d",
+          "video_id": "FNKWnGUNYPU",
+          "source_url": "https://www.youtube.com/watch?v=FNKWnGUNYPU&t=35s",
+          "title": "Until we meet again",
+          "channel": "Alexandra Lourdes",
+          "tier": "us_onlocation_vlog_oembed",
+          "speaker_role": "counter_worker",
+          "observed_exchange": [
+            "Here's this one",
+            "How can I help you?",
+            "Uh one creme brulee donut",
+            "And is it going to be for here or to go?",
+            "For here"
+          ],
+          "grounded_turn_index": 1,
+          "verification": {
+            "american_variety_evidence": "US donut-shop counter; channel and title verified via Filmot card plus oEmbed",
+            "teaching_check": "channel_and_title_not_teaching",
+            "exchange_check": "adjacent_request_response_in_transcript_excerpt"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    },
+    {
+      "id": "food_ask_bread_yt_02",
+      "scenario_id": "food_ask_bread",
+      "text": "And is it going to be for here or to go?",
+      "speech_act": "offer_choice",
+      "emotion": "warm",
+      "evidence_ids": [
+        "evidence-a31cc049cfe1c708"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 35,
+        "grounding": {
+          "evidence_id": "evidence-a31cc049cfe1c708",
+          "video_id": "FNKWnGUNYPU",
+          "source_url": "https://www.youtube.com/watch?v=FNKWnGUNYPU&t=35s",
+          "title": "Until we meet again",
+          "channel": "Alexandra Lourdes",
+          "tier": "us_onlocation_vlog_oembed",
+          "speaker_role": "counter_worker",
+          "observed_exchange": [
+            "Uh one creme brulee donut",
+            "And is it going to be for here or to go?",
+            "For here"
+          ],
+          "grounded_turn_index": 1,
+          "verification": {
+            "american_variety_evidence": "US donut-shop counter; channel and title verified via Filmot card plus oEmbed",
+            "teaching_check": "channel_and_title_not_teaching",
+            "exchange_check": "adjacent_request_response_in_transcript_excerpt"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    },
+    {
+      "id": "food_ask_bread_yt_03",
+      "scenario_id": "food_ask_bread",
+      "text": "Anything else?",
+      "speech_act": "offer_choice",
+      "emotion": "warm",
+      "evidence_ids": [
+        "evidence-3d9f5bf2f2ffe9d9"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 46,
+        "grounding": {
+          "evidence_id": "evidence-3d9f5bf2f2ffe9d9",
+          "video_id": "-xRARWomIII",
+          "source_url": "https://www.youtube.com/watch?v=-xRARWomIII&t=46s",
+          "title": "Trying Supposedly One of The Best Burgers In NYC, Milk Burger In The Bronx",
+          "channel": "Mo's Tasting",
+          "tier": "us_onlocation_vlog_oembed",
+          "speaker_role": "counter_worker",
+          "observed_exchange": [
+            "And I'll do sweet potato fries, too",
+            "Anything else?",
+            "Yeah, so I think that would be good",
+            "All right, would you like that for here or to go?",
+            "To go, to go, yeah"
+          ],
+          "grounded_turn_index": 1,
+          "verification": {
+            "american_variety_evidence": "NYC burger counter; channel and title verified via Filmot card plus oEmbed",
+            "teaching_check": "channel_and_title_not_teaching",
+            "exchange_check": "adjacent_request_response_in_transcript_excerpt"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    },
+    {
+      "id": "food_ask_bread_yt_04",
+      "scenario_id": "food_ask_bread",
+      "text": "All right, would you like that for here or to go?",
+      "speech_act": "offer_choice",
+      "emotion": "warm",
+      "evidence_ids": [
+        "evidence-e6e4b26e08e6e277"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 46,
+        "grounding": {
+          "evidence_id": "evidence-e6e4b26e08e6e277",
+          "video_id": "-xRARWomIII",
+          "source_url": "https://www.youtube.com/watch?v=-xRARWomIII&t=46s",
+          "title": "Trying Supposedly One of The Best Burgers In NYC, Milk Burger In The Bronx",
+          "channel": "Mo's Tasting",
+          "tier": "us_onlocation_vlog_oembed",
+          "speaker_role": "counter_worker",
+          "observed_exchange": [
+            "Yeah, so I think that would be good",
+            "All right, would you like that for here or to go?",
+            "To go, to go, yeah"
+          ],
+          "grounded_turn_index": 1,
+          "verification": {
+            "american_variety_evidence": "NYC burger counter; channel and title verified via Filmot card plus oEmbed",
+            "teaching_check": "channel_and_title_not_teaching",
+            "exchange_check": "adjacent_request_response_in_transcript_excerpt"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    },
+    {
+      "id": "food_ask_bread_yt_05",
+      "scenario_id": "food_ask_bread",
+      "text": "Do you need anything else?",
+      "speech_act": "offer_choice",
+      "emotion": "warm",
+      "evidence_ids": [
+        "evidence-ee008578291d374a"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 208,
+        "grounding": {
+          "evidence_id": "evidence-ee008578291d374a",
+          "video_id": "rkWBu0yYVYI",
+          "source_url": "https://www.youtube.com/watch?v=rkWBu0yYVYI&t=208s",
+          "title": "I FOUND BEANIE SIGEL SPOT! YO MACK! ROC LA FAMILIA",
+          "channel": "Choke No Joke Arthur D. Alston III",
+          "tier": "us_onlocation_vlog_oembed",
+          "speaker_role": "counter_worker",
+          "observed_exchange": [
+            "Okay, I'll try that",
+            "Plain slice?",
+            "Yeah",
+            "Do you need anything else?",
+            "Uh no, that's all",
+            "Is that for here or to go?",
+            "Uh to go"
+          ],
+          "grounded_turn_index": 3,
+          "verification": {
+            "american_variety_evidence": "NYC pizza counter; channel and title verified via Filmot card plus oEmbed",
+            "teaching_check": "channel_and_title_not_teaching",
+            "exchange_check": "adjacent_request_response_in_transcript_excerpt"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    },
+    {
+      "id": "food_ask_bread_yt_06",
+      "scenario_id": "food_ask_bread",
+      "text": "Just one slice?",
+      "speech_act": "clarify_request",
+      "emotion": "warm",
+      "evidence_ids": [
+        "evidence-52d602c40d42ae98"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 15,
+        "grounding": {
+          "evidence_id": "evidence-52d602c40d42ae98",
+          "video_id": "Zvdhic-3NmI",
+          "source_url": "https://www.youtube.com/watch?v=Zvdhic-3NmI&t=15s",
+          "title": "pov not a plain slice and street fighter in nyc",
+          "channel": "POVintheCity",
+          "tier": "us_onlocation_vlog_oembed",
+          "speaker_role": "counter_worker",
+          "observed_exchange": [
+            "Um can I get the Calabrese?",
+            "Just one slice?",
+            "Just one, please"
+          ],
+          "grounded_turn_index": 1,
+          "verification": {
+            "american_variety_evidence": "NYC pizza counter; channel and title verified via Filmot card plus oEmbed",
+            "teaching_check": "channel_and_title_not_teaching",
+            "exchange_check": "adjacent_request_response_in_transcript_excerpt"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_yt_01",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "Fifth year in a row. It's crazy. We love it. The people, the products. It's awesome.",
+      "speech_act": "self_disclose",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "evidence-43e25bcd4dd9a6fe"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 41.01,
+        "grounding": {
+          "evidence_id": "evidence-43e25bcd4dd9a6fe",
+          "video_id": "8ewi1TByt90",
+          "source_url": "https://www.youtube.com/watch?v=8ewi1TByt90&t=41s",
+          "title": "Black Friday: The first person in line at Nebraska Furniture Mart",
+          "channel": "KSHB 41",
+          "tier": "screened_candidate_us_news",
+          "speaker_role": "person_waiting_in_line",
+          "observed_exchange": [
+            "Why'd you do it, Jon?",
+            "Fifth year in a row. It's crazy. We love it. The people, the products. It's awesome."
+          ],
+          "grounded_turn_index": 1,
+          "verification": {
+            "american_variety_evidence": "screener v3 candidate 100 (kshb us_news_org, nebraska, verified channel); manifest-verified range 41.01-45.50",
+            "teaching_check": "field_news_interview_not_teaching",
+            "exchange_check": "manifest_verified_interaction_range"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_yt_02",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "And what are you looking to get today?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "evidence-db55f751a4afb5fb"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 45.51,
+        "grounding": {
+          "evidence_id": "evidence-db55f751a4afb5fb",
+          "video_id": "8ewi1TByt90",
+          "source_url": "https://www.youtube.com/watch?v=8ewi1TByt90&t=45s",
+          "title": "Black Friday: The first person in line at Nebraska Furniture Mart",
+          "channel": "KSHB 41",
+          "tier": "screened_candidate_us_news",
+          "speaker_role": "news_reporter",
+          "observed_exchange": [
+            "It's awesome. A good time.",
+            "And what are you looking to get today?",
+            "Playstation 3, compact laptop and the 9 inch Android"
+          ],
+          "grounded_turn_index": 1,
+          "verification": {
+            "american_variety_evidence": "screener v3 candidate 100 (kshb us_news_org, nebraska, verified channel)",
+            "teaching_check": "field_news_interview_not_teaching",
+            "exchange_check": "adjacent_turns_in_en_orig_captions"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_yt_03",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "First time ever. I don't know if I'll do it again next year.",
+      "speech_act": "self_disclose",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "evidence-42efa483cc1fa715"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 45.32,
+        "grounding": {
+          "evidence_id": "evidence-42efa483cc1fa715",
+          "video_id": "RkmsbrWUm3U",
+          "source_url": "https://www.youtube.com/watch?v=RkmsbrWUm3U&t=45s",
+          "title": "Shoppers wait in line for Black Friday deals",
+          "channel": "Denver7",
+          "tier": "screened_candidate_us_news",
+          "speaker_role": "person_waiting_in_line",
+          "observed_exchange": [
+            "It's a Thanksgiving first for Tiffany Garcia.",
+            "First time ever. I don't know if I'll do it again next year.",
+            "Motivated by a good deal on this 50-inch flat screen TV."
+          ],
+          "grounded_turn_index": 1,
+          "verification": {
+            "american_variety_evidence": "screener v3 candidate 60 (denver7 us_news_org, en-orig captions)",
+            "teaching_check": "field_news_interview_not_teaching",
+            "exchange_check": "adjacent_turns_in_en_orig_captions"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_yt_04",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "First time I've done it. First time I've gone on Black Friday.",
+      "speech_act": "self_disclose",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "evidence-e599ee849b832bcc"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 63.12,
+        "grounding": {
+          "evidence_id": "evidence-e599ee849b832bcc",
+          "video_id": "XXLHg1CDPWM",
+          "source_url": "https://www.youtube.com/watch?v=XXLHg1CDPWM&t=63s",
+          "title": "black friday waiting",
+          "channel": "WPRI",
+          "tier": "screened_candidate_us_news",
+          "speaker_role": "person_waiting_in_line",
+          "observed_exchange": [
+            "He's just one of 97 million Americans expected to shop on Black Friday.",
+            "First time I've done it. First time I've gone on Black Friday.",
+            "A first for many."
+          ],
+          "grounded_turn_index": 1,
+          "verification": {
+            "american_variety_evidence": "screener v3 candidate 75 (wpri us_news_org, verified channel)",
+            "teaching_check": "field_news_interview_not_teaching",
+            "exchange_check": "adjacent_turns_in_en_orig_captions"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_yt_05",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "Eleven years total that we've been doing Black Friday.",
+      "speech_act": "self_disclose",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "evidence-f05e900bd510f6f5"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 78.64,
+        "grounding": {
+          "evidence_id": "evidence-f05e900bd510f6f5",
+          "video_id": "XXLHg1CDPWM",
+          "source_url": "https://www.youtube.com/watch?v=XXLHg1CDPWM&t=78s",
+          "title": "black friday waiting",
+          "channel": "WPRI",
+          "tier": "screened_candidate_us_news",
+          "speaker_role": "person_waiting_in_line",
+          "observed_exchange": [
+            "They've been waiting on Black Friday lines for more than a decade.",
+            "Eleven years total that we've been doing Black Friday.",
+            "And the deals keep getting better."
+          ],
+          "grounded_turn_index": 1,
+          "verification": {
+            "american_variety_evidence": "screener v3 candidate 75 (wpri us_news_org, verified channel)",
+            "teaching_check": "field_news_interview_not_teaching",
+            "exchange_check": "adjacent_turns_in_en_orig_captions"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_yt_06",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "I ended up meeting my husband in line.",
+      "speech_act": "self_disclose",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "evidence-276ea17ed5319efb"
+      ],
+      "provenance": {
+        "source_type": "corpus_grounded",
+        "source_id": "youtube_caption_research_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": 100.6,
+        "grounding": {
+          "evidence_id": "evidence-276ea17ed5319efb",
+          "video_id": "EdatmNxfdBw",
+          "source_url": "https://www.youtube.com/watch?v=EdatmNxfdBw&t=100s",
+          "title": "'Star Wars: The Force Awakens': Superfans Camp Out",
+          "channel": "Good Morning America",
+          "tier": "screened_candidate_us_news",
+          "speaker_role": "person_waiting_in_line",
+          "observed_exchange": [
+            "The line of the Chinese tradition was born.",
+            "I ended up meeting my husband in line.",
+            "And this is the result."
+          ],
+          "grounded_turn_index": 1,
+          "verification": {
+            "american_variety_evidence": "screener v3 candidate 85 (good morning america us_news_org); the Australian couple in the same clip is excluded",
+            "teaching_check": "field_news_interview_not_teaching",
+            "exchange_check": "adjacent_turns_in_en_orig_captions"
+          },
+          "rights_note": "Normalized project-owned line derived from research captions; the source clip stays research_pending and is not shipped."
+        }
+      }
+    }
+  ]
+}

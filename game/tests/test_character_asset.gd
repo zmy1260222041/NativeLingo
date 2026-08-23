@@ -68,12 +68,26 @@ func _do_checks() -> void:
 	var material_names: Dictionary = {}
 	var has_unnamed_material := [false]
 	var blend_shapes: Dictionary = {}
-	_collect_mesh_evidence(visual, lod_counts, material_names, has_unnamed_material, blend_shapes)
+	var lod0_pbr := {
+		"uv": false,
+		"tangent": false,
+		"material_name": false,
+		"base_color": false,
+		"normal": false,
+		"ao": false,
+	}
+	_collect_mesh_evidence(visual, lod_counts, material_names, has_unnamed_material, blend_shapes, lod0_pbr)
 	for lod in range(3):
 		_check(lod_counts[lod] >= 1, "LOD%d group present so runtime distance culling has meshes to toggle" % lod)
 	_check(material_names.size() >= 1 and material_names.size() <= MAX_MATERIAL_SLOTS, "runtime asset uses 1..%d named materials" % MAX_MATERIAL_SLOTS)
 	_check(not has_unnamed_material[0], "every material carries a non-empty resource_name (distinct slot identity)")
 	_check(blend_shapes.size() >= MIN_LOD0_FACIAL_MORPHS, "LOD0 carries facial morphs for blink/jaw/viseme animation (>= %d)" % MIN_LOD0_FACIAL_MORPHS)
+	_check(lod0_pbr.uv, "LOD0 carries the high-poly bake UV0")
+	_check(lod0_pbr.tangent, "LOD0 carries tangents for the baked normal map")
+	_check(lod0_pbr.material_name, "LOD0 uses mat_chr_player_juvenile_pbr")
+	_check(lod0_pbr.base_color, "LOD0 material carries baked Base Color")
+	_check(lod0_pbr.normal, "LOD0 material carries baked tangent-space Normal")
+	_check(lod0_pbr.ao, "LOD0 material carries baked AO")
 
 	print("CHARACTER_ASSET_EVIDENCE bones=%d lods=%s materials=%s morphs=%d" % [
 		skeleton.get_bone_count() if skeleton else 0,
@@ -84,7 +98,7 @@ func _do_checks() -> void:
 	visual.queue_free()
 	_finish()
 
-func _collect_mesh_evidence(node: Node, lod_counts: Array, material_names: Dictionary, has_unnamed_material: Array, blend_shapes: Dictionary) -> void:
+func _collect_mesh_evidence(node: Node, lod_counts: Array, material_names: Dictionary, has_unnamed_material: Array, blend_shapes: Dictionary, lod0_pbr: Dictionary) -> void:
 	if node is MeshInstance3D:
 		var mesh_instance := node as MeshInstance3D
 		var lower_name := mesh_instance.name.to_lower()
@@ -94,6 +108,10 @@ func _collect_mesh_evidence(node: Node, lod_counts: Array, material_names: Dicti
 				lod_counts[lod] += 1
 				lod_index = lod
 		if mesh_instance.mesh:
+			if lod_index == 0 and mesh_instance.mesh.get_surface_count() > 0:
+				var arrays := mesh_instance.mesh.surface_get_arrays(0)
+				lod0_pbr.uv = not arrays[Mesh.ARRAY_TEX_UV].is_empty()
+				lod0_pbr.tangent = not arrays[Mesh.ARRAY_TANGENT].is_empty()
 			# the runtime assembly assigns a named material via material_override;
 			# when present it replaces the (possibly unnamed) surface materials
 			var override_mat := mesh_instance.material_override
@@ -102,6 +120,12 @@ func _collect_mesh_evidence(node: Node, lod_counts: Array, material_names: Dicti
 					has_unnamed_material[0] = true
 				else:
 					material_names[override_mat.resource_name] = true
+				if lod_index == 0 and override_mat is StandardMaterial3D:
+					var pbr := override_mat as StandardMaterial3D
+					lod0_pbr.material_name = pbr.resource_name == "mat_chr_player_juvenile_pbr"
+					lod0_pbr.base_color = pbr.albedo_texture != null
+					lod0_pbr.normal = pbr.normal_enabled and pbr.normal_texture != null
+					lod0_pbr.ao = pbr.ao_enabled and pbr.ao_texture != null
 			else:
 				for surface in range(mesh_instance.mesh.get_surface_count()):
 					var material := mesh_instance.mesh.surface_get_material(surface)
@@ -114,7 +138,7 @@ func _collect_mesh_evidence(node: Node, lod_counts: Array, material_names: Dicti
 				for shape_index in range(mesh_instance.mesh.get_blend_shape_count()):
 					blend_shapes[mesh_instance.mesh.get_blend_shape_name(shape_index)] = true
 	for child in node.get_children():
-		_collect_mesh_evidence(child, lod_counts, material_names, has_unnamed_material, blend_shapes)
+		_collect_mesh_evidence(child, lod_counts, material_names, has_unnamed_material, blend_shapes, lod0_pbr)
 
 func _find_first(node: Node, class_name_value: String) -> Node:
 	if node.is_class(class_name_value):

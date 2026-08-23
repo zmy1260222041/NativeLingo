@@ -50,16 +50,30 @@ func _ready() -> void:
 	Vocabulary.observe_word("alloy")
 	Vocabulary.observe_word("canteen")
 	Vocabulary.observe_word("morning")
+	var word_practice_panel := hud.get_node_or_null("UIRoot/WordPracticePanel") as PanelContainer
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service != null:
+		dynamic_service.begin_scenario("tavi", "food_counter")
 	Dialogue.begin_word_practice("tavi", Vocabulary.candidate_words_for_practice(3))
 	await get_tree().process_frame
-	var word_practice_panel := hud.get_node_or_null("UIRoot/WordPracticePanel") as PanelContainer
-	_expect(word_practice_panel != null and word_practice_panel.visible, "FR-36: NPC voice-guided practice prompt appears during dialogue")
-	_expect(hud.word_practice_prompt_label.text.contains("塔维") or hud.word_practice_prompt_label.text.contains("Tavi"), "FR-36: practice prompt names the speaking NPC")
-	_expect(hud.word_practice_prompt_label.text.contains("alloy") and hud.word_practice_prompt_label.text.contains("canteen"), "FR-36: spoken options are part of the NPC sentence, not buttons")
-	_expect(hud.get_node_or_null("UIRoot/WordPracticePanel/Content/Options") == null, "FR-36: no displayed-choice button row exists")
+	_expect(word_practice_panel != null and not word_practice_panel.visible, "FR-36: word practice does not open during an NPC counter conversation")
+	if dynamic_service != null:
+		dynamic_service.cancel()
 	Dialogue.finish_word_practice()
+	var previous_voice: Variant = SpeechAdapter.availability_override
+	SpeechAdapter.availability_override = true
+	hud._on_dynamic_dialogue_ready("tavi", "reply-test", "You got it. One burger.")
 	await get_tree().process_frame
-	_expect(not word_practice_panel.visible, "FR-36: guided practice prompt closes when the turn ends")
+	var spoken: String = str(hud.interaction_label.text)
+	_expect(spoken.contains("塔维") or spoken.contains("Tavi"), "Voice-available HUD names the NPC being spoken to")
+	_expect(not spoken.contains("burger") and not spoken.contains("You got it"), "Voice-available HUD does not show NPC speech text")
+	hud._on_dynamic_dialogue_pending("tavi", "food_counter")
+	hud.voice_status_timer.start(0.05)
+	await get_tree().create_timer(0.12).timeout
+	_expect(hud.voice_state == "transcribing" and hud.voice_status_icon.visible, "Clock stays up while the counter reply is still being generated")
+	hud._on_npc_line_audio_ready("tavi", "reply-test")
+	_expect(hud.voice_state == "accepted", "Clock drops only after the NPC reply audio starts")
+	SpeechAdapter.availability_override = previous_voice
 	GameState.persistence_enabled = previous_persistence
 	var panel_style := hud.get_node("UIRoot").theme.get_stylebox("panel", "PanelContainer") as StyleBox
 	_expect(panel_style != null and not panel_style is StyleBoxFlat, "FR-37: panels use the Art Bible cut-corner silt-ink style instead of a flat modern card")

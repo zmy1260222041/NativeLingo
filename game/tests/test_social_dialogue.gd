@@ -57,17 +57,18 @@ func _test_npc_social_walking() -> void:
 	tavi_npc.interaction_kind = "npc"
 	tavi_npc.target_id = "tavi"
 	tavi_npc.display_name = "Tavi"
-	tavi_npc.position = Vector3(-8.0, 1.0, 3.0)
+	tavi_npc.position = Vector3(-1.8, 1.0, -2.75)
 	add_child(tavi_npc)
 	var mira_npc := InteractableScript.new()
 	mira_npc.interaction_kind = "npc"
 	mira_npc.target_id = "mira"
 	mira_npc.display_name = "Mira"
-	mira_npc.position = Vector3(-1.7, 1.0, -0.55)
+	mira_npc.position = Vector3(0.1, 1.0, -0.4)
 	add_child(mira_npc)
 	var walker := SocialSimulator.new()
 	walker.name = "SocialWalker"
 	add_child(walker)
+	_expect(NpcVoice.line_audio_finished.is_connected(walker._on_line_audio_finished), "Social scenes listen for actual line playback completion")
 	# The interval timer cannot fire inside this synchronous test, so the
 	# simulator stays running and its _process drives the phase machine.
 	_expect(walker._try_begin_scene(), "A social scene gathers when both family NPCs are free")
@@ -82,9 +83,13 @@ func _test_npc_social_walking() -> void:
 			break
 	_expect(talking, "Gathering completes and the scene starts talking")
 	_expect(not tavi_npc.is_walking() and not mira_npc.is_walking(), "Talkers stand still while the scene plays")
+	_expect(walker.talk_timer.time_left > 0.0, "No-voice dialogue still keeps both NPCs together for a readable speaking pause")
 	var talk_gap := tavi_npc.global_position.distance_to(mira_npc.global_position)
 	_expect(talk_gap < 2.4, "NPCs stand close together while talking (was %.2f m)" % talk_gap)
-	walker._end_talking()
+	walker.pending_line_keys.assign(["tavi/test_line_one", "mira/test_line_two"])
+	walker._on_line_audio_finished("tavi", "test_line_one")
+	_expect(walker.phase == SocialSimulator.Phase.TALKING and walker.pending_line_keys.size() == 1, "The first finished line never makes the NPCs leave early")
+	walker._on_line_audio_finished("mira", "test_line_two")
 	_expect(walker.phase == SocialSimulator.Phase.DISBURSING and tavi_npc.is_walking() and mira_npc.is_walking(), "After the talk both NPCs walk home")
 	var idle := false
 	for frame in range(240):

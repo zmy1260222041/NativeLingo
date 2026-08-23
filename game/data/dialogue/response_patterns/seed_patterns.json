@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "patterns": [
+    {
+      "id": "food_ask_bread_01",
+      "scenario_id": "food_ask_bread",
+      "text": "Of course. Is that for here or to go?",
+      "speech_act": "offer_choice",
+      "emotion": "warm",
+      "evidence_ids": [
+        "design_seed_food_01"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_design_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "food_ask_bread_02",
+      "scenario_id": "food_ask_bread",
+      "text": "Sure. What can I get for you?",
+      "speech_act": "confirm_order",
+      "emotion": "warm",
+      "evidence_ids": [
+        "design_seed_food_02"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_design_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_01",
+      "scenario_id": "water_ask_clean_water",
+      "text": "The sink is not for drinking. You can refill your bottle at the cafe.",
+      "speech_act": "give_direction",
+      "emotion": "clear",
+      "evidence_ids": [
+        "design_seed_water_01"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_design_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "water_ask_clean_water_02",
+      "scenario_id": "water_ask_clean_water",
+      "text": "Safe drinking water? Yes, I can show you where to refill.",
+      "speech_act": "give_direction",
+      "emotion": "helpful",
+      "evidence_ids": [
+        "design_seed_water_02"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_design_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_01",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "I have a spare blanket. Take this one.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "design_seed_warmth_01"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_design_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "warmth_ask_blanket_02",
+      "scenario_id": "warmth_ask_blanket",
+      "text": "It is cold tonight. Here, use this blanket.",
+      "speech_act": "confirm_help",
+      "emotion": "kind",
+      "evidence_ids": [
+        "design_seed_warmth_02"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_design_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_01",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Yes, you can sit inside until the rain passes.",
+      "speech_act": "grant_permission",
+      "emotion": "reassuring",
+      "evidence_ids": [
+        "design_seed_shelter_01"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_design_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "shelter_ask_sit_inside_02",
+      "scenario_id": "shelter_ask_sit_inside",
+      "text": "Come in. There is a dry seat right inside.",
+      "speech_act": "grant_permission",
+      "emotion": "welcoming",
+      "evidence_ids": [
+        "design_seed_shelter_02"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_design_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_01",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It is moving pretty slowly. Have you been waiting long?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "design_seed_belonging_01"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_design_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    },
+    {
+      "id": "belonging_small_talk_waiting_line_02",
+      "scenario_id": "belonging_small_talk_waiting_line",
+      "text": "It does look like a long line. Is this your first time here?",
+      "speech_act": "ask_follow_up",
+      "emotion": "relaxed",
+      "evidence_ids": [
+        "design_seed_belonging_02"
+      ],
+      "provenance": {
+        "source_type": "project_authored",
+        "source_id": "godot_design_seed_v1",
+        "rights": "project_owned",
+        "review_status": "automated_quality_gate_required",
+        "source_timestamp_seconds": null
+      }
+    }
+  ]
+}
