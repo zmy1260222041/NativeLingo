@@ -131,6 +131,14 @@
 >
 > **Survival 的评估是净新增能力。**现有全部评分(FR-4/FR-5/FR-6/FR-7/FR-11)都是 **reference-anchored** —— SSL 嵌入 + DTW 对比一条具体参考录音,回答"读得像不像"。"意思有没有传达到"在仓库里此前完全不存在。这也是本模块存在的理由:Speaking 结构性地回答不了成人学习者"说得通不通"的焦虑。
 
+### FR-44 — 可支配的生存物品（2026-09-06）
+
+优先级 P0；用户已授权设计及实施。以 `design/gdd/item-usage.md` 为详细规则：FR-41 具名成交后在柜台创建具体物件，
+食物/饮品由玩家现场吃喝或打包，在安全状态使用才恢复需求；毯子、合金零件、电池须放到自己住处的床铺、维修位、电力设备后使用。
+4 个消费品位 + 1 个住所用品位，按住临时物品条并支持切换模式、键鼠/手柄重映射。唯一交易、逐物品库存、分类效果、保存和旧档迁移不得重复发放或丢失物资。
+词汇观察与 `heard → spoken → used` 仍由原系统异步拥有；真实后续交流可独立证明 `used`，物品事件本身不驱动词汇。
+FR-42 三夜需求主线和运行时不可用时的手势保底继续可玩。符合性：R-30，实施证据见 `docs/reviews/2026-09-06-item-usage-fit.md`。
+
 ## 5. 非功能性需求与约束
 
 - **NFR-1 全本地/离线/隐私**:所有模型本地运行,录音不出设备;sidecar 绑定 127.0.0.1 + 随机 token。**唯一例外见 NFR-6**(Survival 模块的可选表达审核,默认关闭、只出文本)—— 该例外**不改变本条对 Speaking 与 Memorizing 的表述**:这两个模块的离线保证一字不变,录音、照片与音频在任何情况下都不出设备。
@@ -241,6 +249,8 @@
 > **Phase 4 `:app` 外壳(2026-07-27 启动)**:进入原生应用壳(此前 `:app` 仅有 `Placeholder.kt`,无 Activity)。范围:**内置 `7.1.mp4` → 选句 → 跟读录音 → 出分 + 逐词着色 + 提示 + A/B 回放**的端到端垂直切片为先,用户导入(FR-M2)为后。DI 用手工 `AppContainer`,UI 用 Compose + Navigation-Compose,播放用 Media3 ExoPlayer,录音用 AudioRecord `UNPROCESSED`。**本轮不做** FR-11(`:core-mdd`,v1.0 后)与 FR-12(Room,暂缓)。开工前先补一个真实洞:`:core-scoring` 此前没有暂停特征提取(`scoreTrackB` 的 `pausePerS`/`pauseRatio` 一直从 golden JSON 读、从未在 Kotlin 算),M0 移植 `prosody._pause_feats` 落进纯 JVM 层。模型投递先走 `DirectoryModelSource` + adb push 让外壳跑通,**Play install-time Asset Pack 的端到端投递验证提前做**(唯一没验过的发布链路)。实施计划见 `.claude/plans/scalable-brewing-wall.md`,进度回写 `docs/android-migration.md` §12。
 
 ## 7. 技术符合性评审记录
+
+- **R-30（2026-09-06）实体物品获得与使用 / FR-44** → `docs/reviews/2026-09-06-item-usage-fit.md`。实施前固定判据：具名成交后柜台实物；精确数量与幂等；主动吃喝才增益；日用品在住所先放后用；库存/携带/迁移；对话与词汇回归；实机交互证据。**首轮结果：核心链路通过**（180 项领域检查、26 项渲染场景检查、13 套相关回归）；最终逐件美术/动作/拟音和独立人工游玩仍待验收，未将 GDD 全部标准标为通过。
 
 - **R-1(2026-07-22)v0.2 校准使用合成声参考 vs FR-M1** → `docs/reviews/2026-07-22-calibration-ref-fit.md`。结论:**符合,无需校正**——三组实测(LibriSpeech 350 对 / CBS 新闻 62 对 / CMU ARCTIC 母语+L2 置换)表明真人参考下校准分数不降反略升(+0.8~1.9),低分尾更窄;fluency 特征为参考相对量,天然免疫。新参考音品类引入时用 `scripts/ref_swap_experiment.py` 抽查。
 - **R-2(2026-07-22)相对 DTW 参考集 vs FR-M1** → 同上文档。结论:经典相对 DTW 与"任意网络视频"需求冲突,降级;以"多 TTS 声平均"作为符合需求的替代方向。

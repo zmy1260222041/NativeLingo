@@ -17,6 +17,9 @@
     "extra blanket",
     "heater part"
   ],
+  "generic_inventory_terms": [
+    "parts"
+  ],
   "can_do": [
     "hand over alloy parts",
     "lend a blanket",

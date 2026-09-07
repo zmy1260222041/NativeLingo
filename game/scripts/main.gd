@@ -52,6 +52,8 @@ func _ready() -> void:
 	_build_alien_greens()
 	_build_landmarks()
 	_build_interactables()
+	var item_world := preload("res://scripts/item_world.gd").new()
+	add_child(item_world)
 	_build_social_simulator()
 
 func _process(_delta: float) -> void:
@@ -410,7 +412,8 @@ func _build_interactables() -> void:
 	_add_station("water", "reservoir", tr("STATION_RESERVOIR"), Vector3(10, 1.0, 9), Color("4fb6d3"))
 	# v03: 加热器移出庇护所基座（庇护所 x∈[-9.9,-4.1]，此前 -6 处整台埋进台基里）
 	_add_station("heater", "heater", tr("STATION_HEATER"), Vector3(-3.2, 0.7, 6.0), Color("e1724d"))
-	_add_station("shelter", "shelter", tr("STATION_SHELTER"), Vector3(-7, 0.8, 8.5), Color("f0d49b"))
+	# Exterior entrance: the imported shelter has no traversable interior.
+	_add_station("shelter", "shelter", tr("STATION_SHELTER"), Vector3(-7, 0.8, 11.5), Color("f0d49b"))
 
 func _build_social_simulator() -> void:
 	var simulator := SocialSimulator.new()

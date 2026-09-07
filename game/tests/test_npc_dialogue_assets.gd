@@ -78,7 +78,7 @@ func _run() -> void:
 	game_state.completed_steps["greet_mira"] = true
 	var old_steps: Dictionary = game_state.completed_steps.duplicate(true)
 	var before := Vector3i(game_state.berries, game_state.scrap, game_state.water)
-	_expect(runner.apply_validated_reply("tavi", "food_counter", "confirm_order", "closed", true), "Completed transaction can grant resources")
+	_expect(runner.apply_validated_reply("tavi", "food_counter", "confirm_order", "closed", true, "burger"), "Completed transaction can grant resources")
 	_expect(game_state.berries == before.x + 2, "Generous session score grants two food portions")
 	_expect(game_state.completed_steps == old_steps or game_state.completed_steps.has("greet_mira"), "Grant does not invent extra quest markers")
 	_expect(str(game_state.dialogue_scenario_progress.get("food_counter", {}).get("outcome", "")) == "success", "Runner records the completed service conversation")

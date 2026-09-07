@@ -20,6 +20,7 @@ func begin(npc_id: String, scenario_id: String) -> bool:
 	if scenario.is_empty() or str(scenario.get("npc_id", "")).to_lower() != npc:
 		return false
 	sessions[npc] = {
+		"transaction_id": get_tree().root.get_node("GameState").items.new_transaction_id(),
 		"scenario_id": scenario_key,
 		"scenario_state": "waiting_for_request",
 		"turns": [],
@@ -69,7 +70,14 @@ func running_score(npc_id: String) -> float:
 	return total / float(turns.size())
 
 
-func apply_validated_reply(npc_id: String, scenario_id: String, speech_act: String, next_state: String, transaction_complete := false) -> bool:
+func apply_validated_reply(
+	npc_id: String,
+	scenario_id: String,
+	speech_act: String,
+	next_state: String,
+	transaction_complete := false,
+	confirmed_item := "",
+) -> bool:
 	var npc := npc_id.strip_edges().to_lower()
 	var scenario_key := scenario_id.strip_edges().to_lower()
 	if not sessions.has(npc):
@@ -81,16 +89,27 @@ func apply_validated_reply(npc_id: String, scenario_id: String, speech_act: Stri
 	var scenario: Dictionary = registry.get_scenario(scenario_key) if registry != null else {}
 	if scenario.is_empty() or not speech_act in scenario.get("allowed_speech_acts", []):
 		return false
+	var clean_item := confirmed_item.strip_edges().to_lower()
+	var completion_valid: bool = transaction_complete \
+		and speech_act in scenario.get("completion_speech_acts", []) \
+		and clean_item in scenario.get("inventory", []) \
+		and not clean_item in scenario.get("generic_inventory_terms", [])
+	if transaction_complete and not completion_valid:
+		# Treat an unproven close as another conversational turn. Never erase the
+		# session or grant a resource from a bare model boolean.
+		session["scenario_state"] = "awaiting_follow_up"
+		scenario_state_changed.emit(npc, scenario_key, "awaiting_follow_up")
+		return true
 	if next_state != "closed":
 		session["scenario_state"] = "awaiting_follow_up"
 		scenario_state_changed.emit(npc, scenario_key, "awaiting_follow_up")
 		return true
 	var score := running_score(npc)
 	var outcome := "failure"
-	if transaction_complete:
+	if completion_valid:
 		var game_state := get_tree().root.get_node_or_null(NodePath("GameState"))
 		if game_state != null:
-			var band := str(game_state.settle_service_transaction(npc, score))
+			var band := str(game_state.settle_service_transaction(npc, score, clean_item, str(session.transaction_id)))
 			outcome = "success" if band != "none" else "failure"
 			game_state.record_dialogue_scenario_result(scenario_key, outcome)
 	else:

@@ -136,6 +136,41 @@ camera_down={
 ]
 }
 
+item_show={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":4194306)
+, Object(InputEventJoypadButton,"button_index":10)
+]
+}
+
+item_previous={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":4194320)
+, Object(InputEventJoypadButton,"button_index":11)
+]
+}
+
+item_next={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":4194322)
+, Object(InputEventJoypadButton,"button_index":12)
+]
+}
+
+item_secondary={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":82)
+, Object(InputEventJoypadButton,"button_index":14)
+]
+}
+
+item_pack_all={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":84)
+, Object(InputEventJoypadButton,"button_index":13)
+]
+}
+
 [internationalization]
 
 locale/translations=PackedStringArray("res://localization/stranger.zh_CN.translation", "res://localization/stranger.en.translation")

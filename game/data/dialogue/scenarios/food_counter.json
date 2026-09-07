@@ -24,6 +24,10 @@
     "something to eat",
     "food"
   ],
+  "generic_inventory_terms": [
+    "something to eat",
+    "food"
+  ],
   "can_do": [
     "take an order",
     "ask for here or to go",

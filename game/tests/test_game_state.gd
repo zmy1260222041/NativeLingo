@@ -29,10 +29,10 @@ func _init() -> void:
 func _test_day_one(state: Node) -> void:
 	_expect(state.can_start_service_dialogue("tavi") and state.can_start_service_dialogue("ori"), "Food counter and convenience store are open on day 1")
 	_expect(state.objective_text().contains("食物") or state.objective_text().contains("店"), "Day 1 objective follows hunger, not a named greeting")
-	state.interact("npc", "tavi", "voice", _expression(100.0))
+	state.settle_service_transaction("tavi", 100.0, "burger")
 	_expect(state.berries >= 1, "Tavi serves food before any Mira greeting")
-	state.interact("npc", "ori", "voice", _expression(100.0))
-	_expect(state.water == 1, "Ori sells water on day 1")
+	state.settle_service_transaction("ori", 100.0, "water")
+	_expect(state.water == 2, "Ori hands over two water bottles on day 1")
 	_advance_to_evening(state)
 	state.interact("shelter", "shelter")
 	_expect(state.day == 2 and not state.game_finished, "Sleeping at night ends day 1 without a quest checklist")
@@ -100,6 +100,8 @@ func _expression(score: float) -> Dictionary:
 
 func _test_language_fallback(state: Node) -> void:
 	state.interact("npc", "ori", "gesture_fallback")
+	var pending: Array = state.items.records("counter", "ori")
+	state.item_command("pack", [pending[0].id], {"safe": true, "location": "ori"})
 	state.interact("npc", "rowan", "gesture_fallback")
 	_expect(not state.game_finished, "Helping Rowan is optional and does not end the slice")
 	_expect(int(state.relationships["rowan"]) == 3, "Helping Rowan still creates relationship memory")
@@ -125,11 +127,12 @@ func _test_critical_nodes_reject_silent_shortcuts() -> void:
 
 func _test_faint_preserves_relationships(state: Node) -> void:
 	var before: int = state.relationships["rowan"]
-	state.berries = 2
-	state.scrap = 2
+	state.items = preload("res://scripts/item_state.gd").new()
+	state.items.migrate(2, 2, 0, false)
+	state._items_did_change()
 	state.faint()
 	_expect(state.relationships["rowan"] == before, "Fainting never damages relationships")
-	_expect(state.berries == 1 and state.scrap == 1, "Fainting loses only small common items")
+	_expect(state.berries == 1 and state.scrap == 2, "Fainting loses only one eligible carried unit")
 
 func _test_voice_wait_has_no_survival_cost() -> void:
 	var state = GameStateScript.new()

@@ -61,6 +61,9 @@ static func label_for_event(event: InputEvent, device_id := -1) -> String:
 	return event.as_text()
 
 static func label_for_button(button_index: int, style: String) -> String:
+	var directions := {JOY_BUTTON_DPAD_UP: "D-pad ↑", JOY_BUTTON_DPAD_DOWN: "D-pad ↓", JOY_BUTTON_DPAD_LEFT: "D-pad ←", JOY_BUTTON_DPAD_RIGHT: "D-pad →"}
+	if directions.has(button_index):
+		return directions[button_index]
 	match style:
 		"playstation":
 			return PLAYSTATION_LABELS.get(button_index, "Button %d" % button_index)

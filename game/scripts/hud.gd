@@ -55,6 +55,8 @@ const SiltInkPanelScript = preload("res://ui/silt_ink_panel.gd")
 @onready var completion_survey_button: Button = $UIRoot/CompletionOverlay/Center/Card/Content/SurveyButton
 
 var player: PlayerController
+var item_panel: PanelContainer
+var item_mode_button: Button
 var toast_timer: Timer
 var voice_status_timer: Timer
 var day_transition_timer: Timer
@@ -111,6 +113,12 @@ func _ready() -> void:
 	_build_onboarding_ui()
 	_build_word_unlock_ui()
 	_build_word_practice_ui()
+	item_panel = preload("res://scripts/item_panel.gd").new()
+	ui_root.add_child(item_panel)
+	item_mode_button = Button.new()
+	speech_mode_button.get_parent().add_child(item_mode_button)
+	item_mode_button.pressed.connect(_toggle_item_mode)
+	_update_item_mode_label()
 	_configure_focus_cycles()
 	get_viewport().size_changed.connect(_apply_safe_frame)
 	call_deferred("_bind_player")
@@ -183,6 +191,8 @@ func _connect_buttons() -> void:
 
 func _configure_focus_cycles() -> void:
 	var pause_buttons: Array[Button] = [resume_button, reduce_motion_button, ui_scale_button]
+	if is_instance_valid(item_mode_button):
+		pause_buttons.append(item_mode_button)
 	if SpeechAdapter.is_available():
 		pause_buttons.append(speech_mode_button)
 	if is_instance_valid(cloud_button) and cloud_button.visible:
@@ -1051,6 +1061,15 @@ func _apply_ui_scale() -> void:
 	ui_root.theme.default_base_scale = scale_value
 	ui_scale_button.text = tr("SETTING_UI_SCALE") % int(scale_value * 100.0)
 	call_deferred("_apply_safe_frame")
+	if is_instance_valid(item_panel):
+		item_panel.call_deferred("_layout")
+
+func _toggle_item_mode() -> void:
+	item_panel.set_toggle_mode(not item_panel.toggle_mode)
+	_update_item_mode_label()
+
+func _update_item_mode_label() -> void:
+	item_mode_button.text = GameState._item_text("物品条：", "Items: ") + (GameState._item_text("切换", "Toggle") if item_panel.toggle_mode else GameState._item_text("按住", "Hold"))
 
 func _toggle_speech_mode() -> void:
 	if not SpeechAdapter.is_available():

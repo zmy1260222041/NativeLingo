@@ -42,8 +42,14 @@ var retry_count := 0
 var pending_transcript := ""
 var pending_pronunciation := -1.0
 var current_reply_id := ""
+var current_reply_text := ""
 var current_reply_speech_act := ""
 var current_transaction_complete := false
+var current_confirmed_item := ""
+## Diagnostics for live acceptance tests and logs. These never drive rewards;
+## reply identity and validated player_turn remain authoritative.
+var last_reply_source := ""
+var last_reply_model := ""
 var session_timer: Timer
 var _pinned_certificate: X509Certificate
 var _stream_client: HTTPClient
@@ -151,7 +157,10 @@ func begin_scenario(npc_id: String, scenario_id := "") -> bool:
 	pending_transcript = ""
 	pending_pronunciation = -1.0
 	current_reply_id = ""
+	current_reply_text = ""
+	current_reply_speech_act = ""
 	current_transaction_complete = false
+	current_confirmed_item = ""
 	_score_received = false
 	_audio_finished_pending = false
 	_pending_next_state = "awaiting_follow_up"
@@ -535,6 +544,7 @@ func _apply_speaking(parsed: Dictionary) -> bool:
 		_retry_or_fail("VOICE_REASON_RESULT_INVALID")
 		return false
 	current_reply_id = reply_id
+	current_reply_text = text
 	if str(parsed.get("speech_act", "")).strip_edges() != "":
 		current_reply_speech_act = str(parsed.get("speech_act", ""))
 	_pending_next_state = next_state
@@ -683,8 +693,31 @@ func _apply_score(parsed: Dictionary) -> void:
 	if not bool(score_check.get("ok", false)):
 		return
 	current_reply_speech_act = str(parsed.get("speech_act", current_reply_speech_act))
+	var score_source := str(parsed.get("source", "")).strip_edges().to_lower()
+	if not score_source.is_empty():
+		last_reply_source = score_source
+	last_reply_model = str(parsed.get("model", "")).strip_edges()
+	var requested_complete := bool(player_turn.get("transaction_complete", false))
+	var confirmed_item := str(player_turn.get("confirmed_item", "")).strip_edges().to_lower()
+	var spoken_evidence := bool(player_turn.get("spoken_delivery_confirmed", false))
+	# Older/offline service contracts do not send the two audit fields above.
+	# The client can still prove the same fact from the already accepted spoken
+	# reply and the role-card inventory; a generic acknowledgement remains invalid.
+	if confirmed_item.is_empty() or not spoken_evidence:
+		confirmed_item = _concrete_item_named_in_reply(current_reply_text, current_reply_speech_act)
+		spoken_evidence = not confirmed_item.is_empty()
+	var off_inventory := bool(player_turn.get("off_inventory", false))
+	var confirmation_valid := requested_complete \
+		and spoken_evidence \
+		and not off_inventory \
+		and _spoken_reply_confirms_item(current_reply_text, confirmed_item, current_reply_speech_act)
+	current_transaction_complete = confirmation_valid
+	current_confirmed_item = confirmed_item if confirmation_valid else ""
 	_pending_next_state = str(parsed.get("next_state", _pending_next_state))
-	current_transaction_complete = bool(player_turn.get("transaction_complete", false))
+	if requested_complete and not confirmation_valid:
+		# A score flag can never close a conversation unless the already-played
+		# NPC line itself named and committed the concrete inventory item.
+		_pending_next_state = "awaiting_follow_up"
 	_score_received = true
 	if _awaiting_stream_audio and _stream_audio.is_empty():
 		# Old server or lost audio events: the score arrived without any audio,
@@ -731,6 +764,10 @@ func _validate_speaking(reply: Dictionary) -> Dictionary:
 
 
 func _validate_score(reply: Dictionary) -> Dictionary:
+	var reply_id := str(reply.get("reply_id", "")).strip_edges()
+	var npc := str(reply.get("npc_id", "")).strip_edges().to_lower()
+	if current_reply_id.is_empty() or reply_id != current_reply_id or npc != current_npc_id:
+		return {"ok": false, "reason": "VOICE_REASON_RESULT_INVALID"}
 	var speech_act := str(reply.get("speech_act", "")).strip_edges()
 	var scenario: Dictionary = _registry().get_scenario(current_scenario_id)
 	if not speech_act.is_empty() and not speech_act in scenario.get("allowed_speech_acts", []):
@@ -745,6 +782,55 @@ func _validate_score(reply: Dictionary) -> Dictionary:
 	if not is_finite(idiomaticity) or idiomaticity < 0.0 or idiomaticity > 100.0:
 		return {"ok": false, "reason": "VOICE_REASON_RESULT_INVALID"}
 	return {"ok": true}
+
+
+func _spoken_reply_confirms_item(text: String, confirmed_item: String, speech_act: String) -> bool:
+	var scenario: Dictionary = _registry().get_scenario(current_scenario_id)
+	if scenario.is_empty() or confirmed_item.is_empty():
+		return false
+	if not speech_act in scenario.get("completion_speech_acts", []):
+		return false
+	var inventory: Array = scenario.get("inventory", [])
+	var generic_terms: Array = scenario.get("generic_inventory_terms", [])
+	if not confirmed_item in inventory or confirmed_item in generic_terms:
+		return false
+	var clean := _dialogue_words(text)
+	if clean.contains("?") or not _contains_dialogue_phrase(clean, confirmed_item):
+		return false
+	for marker in [
+		"sure thing", "you got it", "got it", "here you go", "here's your", "here is your",
+		"coming right up", "i'll get", "i will get", "i can get", "i'll grab", "i will grab",
+		"i can grab", "i'll give", "i will give", "i can give", "i'll hand", "i will hand",
+		"i can hand", "i'll bring", "i will bring", "i can bring", "i'll lend", "i will lend",
+		"i can lend",
+	]:
+		if _contains_dialogue_phrase(clean, marker):
+			return true
+	return false
+
+
+func _concrete_item_named_in_reply(text: String, speech_act: String) -> String:
+	var scenario: Dictionary = _registry().get_scenario(current_scenario_id)
+	for alias in scenario.get("inventory", []):
+		var item := str(alias).strip_edges().to_lower()
+		if not item in scenario.get("generic_inventory_terms", []) \
+				and not GameState.items.resolve_item(item).is_empty() \
+				and _spoken_reply_confirms_item(text, item, speech_act):
+			return item
+	return ""
+
+
+func _dialogue_words(text: String) -> String:
+	var regex := RegEx.new()
+	regex.compile("[^a-z0-9'?]+")
+	return regex.sub(text.to_lower(), " ", true).strip_edges()
+
+
+func _contains_dialogue_phrase(clean_text: String, phrase: String) -> bool:
+	var clean_phrase := _dialogue_words(phrase)
+	if clean_phrase.is_empty():
+		return false
+	return (" " + clean_text + " ").contains(" " + clean_phrase + " ")
 
 
 func _validate_reply(reply: Dictionary) -> Dictionary:
@@ -819,7 +905,10 @@ func _fail(reason: String, close_session := false) -> void:
 
 func _fail_reply_audio(reason: String) -> void:
 	current_reply_id = ""
+	current_reply_text = ""
 	current_reply_speech_act = ""
+	current_transaction_complete = false
+	current_confirmed_item = ""
 	_fail(reason)
 
 
@@ -844,17 +933,27 @@ func _settle_finished_audio() -> void:
 	var reply_id := current_reply_id
 	var speech_act := current_reply_speech_act
 	var transaction_complete := current_transaction_complete
+	var confirmed_item := current_confirmed_item
 	var next_state: String = str(_dialogue().finish_speaking(npc, reply_id))
 	if not _pending_next_state.is_empty():
 		next_state = _pending_next_state
 	var scenario_id_value := current_scenario_id
 	current_reply_id = ""
+	current_reply_text = ""
 	current_reply_speech_act = ""
 	current_transaction_complete = false
+	current_confirmed_item = ""
 	_audio_finished_pending = false
 	var runner := _runner()
 	if runner != null:
-		runner.apply_validated_reply(npc, scenario_id_value, speech_act, next_state, transaction_complete)
+		runner.apply_validated_reply(
+			npc,
+			scenario_id_value,
+			speech_act,
+			next_state,
+			transaction_complete,
+			confirmed_item,
+		)
 	if next_state == "closed":
 		_close_session("completed", false, false)
 	else:
@@ -896,8 +995,10 @@ func _close_session(reason: String, cancel_runner := true, cancel_voice := true)
 	pending_transcript = ""
 	pending_pronunciation = -1.0
 	current_reply_id = ""
+	current_reply_text = ""
 	current_reply_speech_act = ""
 	current_transaction_complete = false
+	current_confirmed_item = ""
 	_score_received = false
 	_audio_finished_pending = false
 	_close_dialogue_stream()

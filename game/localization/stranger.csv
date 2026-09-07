@@ -114,6 +114,7 @@ ONBOARDING_STEP_INTERACT,"靠近发亮的物体或居民，按 E / 西键互动�
 ONBOARDING_STEP_GREET,"靠近米拉，按 V 用英语问候；只有语音不可用时才按 G 保底。","Approach Mira and greet her in English with V; use G only when speech is unavailable."
 ONBOARDING_STEP_SPEAK,"对塔维按 V 用英语请求食物；只有语音不可用时才按 G 保底。","Ask Tavi for food in English with V; use G only when speech is unavailable."
 ONBOARDING_STEP_SLEEP,"回到庇护所互动休息，结束第一天。","Return to your shelter and rest to end the first day."
+ONBOARDING_STEP_USE_ITEM,"靠近柜台物品互动：现场吃一份，或打包带走。随身物品可按住 Tab / RB 查看。","Interact with the counter item: eat here or pack it. Hold Tab / RB to see carried items."
 WORD_UNLOCK_TITLE,"解锁了新词","Word unlocked"
 WORD_UNLOCK_SPOKEN,"你已经能清楚地说出它。记住这个拼写。","You can now say it clearly. Remember this spelling."
 WORD_UNLOCK_CONTINUE,"继续","Continue"

@@ -11,7 +11,13 @@ signal day_started(day_value: int)
 signal onboarding_changed(step: String, active: bool)
 signal dialogue_scenario_changed(scenario_id: String, outcome: String)
 
-const SAVE_VERSION := 4
+const SAVE_VERSION := 5
+const ItemStateScript := preload("res://scripts/item_state.gd")
+var items = ItemStateScript.new()
+signal items_changed
+signal item_feedback(action: String, item_id: String)
+signal item_interaction_requested(kind: String, target_id: String)
+signal item_interaction_interrupted
 const MAX_NEED := 100.0
 const DAY_DURATION := 300.0
 const DAY_START_HOUR := 8.0
@@ -19,7 +25,7 @@ const DAY_END_HOUR := 22.0
 ## FR-30: onboarding steps are advanced by the owning input/domain edge, never by
 ## the UI. Critical speech steps accept understood voice or the explicit
 ## minimum-survival fallback so the guide remains completable in no-voice builds.
-const ONBOARDING_STEPS: Array[String] = ["move", "look", "sprint", "jump", "interact", "greet", "speak", "sleep"]
+const ONBOARDING_STEPS: Array[String] = ["move", "look", "sprint", "jump", "interact", "greet", "speak", "use_item", "sleep"]
 ## FR-28: voice-gated reward bands. Monotonic; below the sparse floor the NPC
 ## gives nothing but spends no opportunity and no state is harmed.
 const SCORE_GENEROUS_MIN := 70.0
@@ -123,21 +129,151 @@ func _try_begin_service_dialogue(npc_id: String) -> bool:
 	return bool(dynamic_service.begin_scenario(npc_id, service_scenario_for(npc_id)))
 
 
-func settle_service_transaction(npc_id: String, session_score: float) -> String:
+func settle_service_transaction(npc_id: String, session_score: float, confirmed_item := "", transaction_id := "") -> String:
 	var key := npc_id.strip_edges().to_lower()
+	var item := confirmed_item.strip_edges().to_lower()
+	if item.is_empty():
+		return "none"
+	var scenario_id := service_scenario_for(key)
+	var scenario: Dictionary = {}
+	if is_inside_tree():
+		var registry := get_tree().root.get_node_or_null(NodePath("NpcScenarioRegistry"))
+		if registry != null:
+			scenario = registry.get_scenario(scenario_id)
+	# Pure state tests and command-line tools may settle before autoload _ready.
+	# Read the same server-owned role card; never skip item validation just
+	# because the scene registry has not mounted yet.
+	if scenario.is_empty() and not scenario_id.is_empty():
+		var scenario_path := "res://data/dialogue/scenarios/%s.json" % scenario_id
+		var scenario_file := FileAccess.open(scenario_path, FileAccess.READ)
+		if scenario_file != null:
+			var parsed = JSON.parse_string(scenario_file.get_as_text())
+			if parsed is Dictionary:
+				scenario = parsed
+	if scenario.is_empty() \
+		or str(scenario.get("npc_id", "")).strip_edges().to_lower() != key \
+		or not item in scenario.get("inventory", []) \
+		or item in scenario.get("generic_inventory_terms", []):
+		return "none"
+	if not is_finite(session_score):
+		return "none"
 	var score := clampf(session_score, 0.0, 100.0)
 	var band := voice_band_for_score(score)
-	var expression := {"score": score, "text": "", "band": band}
-	match key:
-		"tavi":
-			_grant_food(score, "voice", expression, false)
-		"vesh":
-			_grant_scrap(score, "voice", expression, false)
-		"ori":
-			_grant_water(score, "voice", expression, false)
+	if band == "none":
+		message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_%s" % key.to_upper()), "neutral")
+	return _deliver_item(key, item, band, transaction_id)
+
+
+func _deliver_item(npc_id: String, alias: String, band: String, transaction_id := "") -> String:
+	var item_id: String = items.resolve_item(alias)
+	if item_id.is_empty() or band == "none":
+		return "none"
+	var tx: String = transaction_id if not transaction_id.is_empty() else items.new_transaction_id()
+	var quantity: int = items.offer_quantity(npc_id, item_id, band, day)
+	var result: Dictionary = items.deliver(tx, npc_id, item_id, band, quantity, day)
+	if not result.ok:
+		message_requested.emit(_item_text("这件物品暂时无法再领取。", "This item is not available right now."), "neutral")
+		return "none"
+	if not result.get("duplicate", false):
+		_items_did_change()
+		var label: String = items.Catalog.label(items.definitions[item_id].name)
+		message_requested.emit(_item_text("%s ×%d 已放到柜台。靠近物品选择现场使用或打包。", "%s ×%d is on the counter. Choose to use it here or pack it.") % [label, result.quantity], "good")
+		item_feedback.emit("deliver", item_id)
+		if npc_id == "tavi":
+			onboarding_action("speak")
+	return str(result.band)
+
+
+func _fallback_item(npc_id: String, alias: String) -> void:
+	if is_inside_tree():
+		var adapter := get_tree().root.get_node_or_null("SpeechAdapter")
+		if adapter != null and not adapter.runtime_speech_unavailable():
+			return
+	_deliver_item(npc_id, alias, "fallback")
+
+
+func _item_text(zh: String, en: String) -> String:
+	return zh if TranslationServer.get_locale().begins_with("zh") else en
+
+
+func _items_did_change(persist := true) -> void:
+	# Legacy counts are projections for older HUD/debug consumers, never rewards.
+	berries = 0
+	scrap = 0
+	water = 0
+	for record in items.instances.values():
+		if not record.state in items.ACTIVE_STATES:
+			continue
+		var category: String = items.definitions[record.item_id].category
+		if category == "food":
+			berries += 1
+		elif category == "component":
+			scrap += 1
+		elif category == "drink":
+			water += 1
+	heater_repaired = items.heater_progress >= items.heater_required
+	items_changed.emit()
+	state_changed.emit()
+	needs_changed.emit(food, warmth, energy)
+	objective_changed.emit(objective_text())
+	if persist:
+		save_game()
+
+
+## Context is supplied by the world/input boundary, never inferred from HUD text.
+func item_command(action: String, ids: Array, context: Dictionary, allow_waste := false) -> Dictionary:
+	if game_finished or not bool(context.get("safe", false)) or interaction_time_frozen:
+		return {"ok": false, "reason": "unsafe"}
+	var location := str(context.get("location", "player"))
+	# Revalidate at the command boundary: UI context is an intention, not authority.
+	if is_inside_tree():
+		var player := get_tree().get_first_node_in_group("player") as Node3D
+		if player != null:
+			if not player.item_use_is_safe():
+				return {"ok": false, "reason": "unsafe"}
+			if location != "player":
+				var world := get_tree().get_first_node_in_group("item_world")
+				if world == null or not world.anchors.has(location):
+					return {"ok": false, "reason": "location"}
+				var offset: Vector3 = player.global_position - world.anchors[location].global_position
+				if Vector2(offset.x, offset.z).length() > 4.0:
+					return {"ok": false, "reason": "location"}
+	var expected := int(context.get("revision", -1))
+	if expected >= 0 and expected != items.revision:
+		return {"ok": false, "reason": "stale"}
+	if ids.is_empty():
+		return {"ok": false, "reason": "missing"}
+	var id: String = ids[0]
+	var needs := {"food": food, "warmth": warmth, "energy": energy}
+	var result: Dictionary
+	match action:
+		"pack":
+			result = items.pack(ids, location, expected)
+		"consume":
+			result = items.consume(id, needs, true, location, allow_waste)
+		"place", "use_home", "reclaim", "deactivate":
+			if not bool(context.get("at_home", false)):
+				return {"ok": false, "reason": "home_only"}
+			if action == "place":
+				result = items.place(id, location)
+			elif action == "use_home":
+				result = items.use_home(id, location, needs, allow_waste)
+			elif action == "deactivate":
+				result = items.deactivate(id, location)
+			else:
+				result = items.reclaim(id, location)
 		_:
-			return "none"
-	return band
+			return {"ok": false, "reason": "invalid_action"}
+	if result.get("ok", false):
+		var effects: Dictionary = result.get("effects", {})
+		food = minf(MAX_NEED, food + float(effects.get("food", 0.0)))
+		warmth = minf(MAX_NEED, warmth + float(effects.get("warmth", 0.0)))
+		energy = minf(MAX_NEED, energy + float(effects.get("energy", 0.0)))
+		if action in ["pack", "consume"] and items.definitions[items.instances[id].item_id].category == "food":
+			onboarding_action("use_item")
+		_items_did_change()
+		item_feedback.emit(str(result.get("action", action)), str(items.instances[id].item_id))
+	return result
 
 
 func record_dialogue_scenario_result(scenario_id: String, outcome: String) -> bool:
@@ -253,16 +389,11 @@ func interact(kind: String, target_id: String, communication: String = "action",
 			message_requested.emit(tr("MSG_FORAGE_REDIRECT"), "neutral")
 		"water":
 			message_requested.emit(tr("MSG_RESERVOIR_REDIRECT"), "neutral")
+		"item_counter", "item_home":
+			item_interaction_requested.emit(kind, target_id)
 		"heater":
-			if heater_repaired:
-				message_requested.emit(tr("MSG_HEATER_ALREADY"), "good")
-			elif scrap >= 2:
-				heater_repaired = true
-				scrap -= 2
-				warmth = minf(MAX_NEED, warmth + 25.0)
-				message_requested.emit(tr("MSG_HEATER_REPAIRED"), "good")
-			else:
-				message_requested.emit(tr("MSG_HEATER_NEEDS_SCRAP"), "neutral")
+			message_requested.emit(_item_text("把零件放到住处维修位，再逐件安装。", "Place parts at the home workbench, then install each one."), "neutral")
+			item_interaction_requested.emit("item_home", "home_heater")
 		"shelter":
 			_try_sleep()
 	if kind == "npc" and not dynamic_scenario_started:
@@ -309,7 +440,14 @@ func _interact_rowan(communication: String, expression: Dictionary) -> void:
 	if water > 0 and not completed_steps.has("help_rowan"):
 		if not _critical_communication_understood("rowan", communication, expression):
 			return
-		water = 0
+		var transferred := false
+		for record in items.records("carried"):
+			if items.transfer(str(record.id), "rowan").ok:
+				transferred = true
+				break
+		if not transferred:
+			return
+		_items_did_change()
 		completed_steps["help_rowan"] = true
 		remember("rowan", "MEMORY_HELP_ROWAN", 3)
 		_emit_npc_line("rowan", communication, "thanks", "You came back. Thank you.")
@@ -319,113 +457,51 @@ func _interact_rowan(communication: String, expression: Dictionary) -> void:
 
 func _interact_food_supplier(communication: String, expression: Dictionary) -> void:
 	match communication:
-		"voice":
-			_grant_food(_voice_score(expression), communication, expression)
+		"gesture_fallback":
+			_fallback_item("tavi", "burger")
 		"gesture":
 			message_requested.emit(tr("MSG_GESTURE_NO_RESOURCE") % tr("NPC_TAVI"), "neutral")
-		"gesture_fallback":
-			# FR-30: only the explicit no-voice fallback can replace the guided
-			# request. The guide advances only after enough food exists to sleep.
-			berries += 1
-			food = minf(MAX_NEED, food + 6.0)
-			message_requested.emit(tr("MSG_FALLBACK_FOOD") % tr("NPC_TAVI"), "good")
-			if berries >= 2:
-				onboarding_action("speak")
+		"voice":
+			# A raw pronunciation result is not a completed concrete service order.
+			expression_evaluated.emit("tavi", expression)
+			message_requested.emit(_item_text("请在柜台对话中确认具体物品。", "Confirm a specific item with the counter server."), "neutral")
 		_:
 			_emit_npc_followup("tavi", communication)
 
 func _interact_scrap_supplier(communication: String, expression: Dictionary) -> void:
 	match communication:
-		"voice":
-			_grant_scrap(_voice_score(expression), communication, expression)
+		"gesture_fallback":
+			_fallback_item("vesh", "alloy parts")
 		"gesture":
 			message_requested.emit(tr("MSG_GESTURE_NO_RESOURCE") % tr("NPC_VESH"), "neutral")
-		"gesture_fallback":
-			scrap += 1
-			message_requested.emit(tr("MSG_FALLBACK_SCRAP") % tr("NPC_VESH"), "good")
+		"voice":
+			# A raw pronunciation result is not a completed concrete service order.
+			expression_evaluated.emit("vesh", expression)
+			message_requested.emit(_item_text("请在柜台对话中确认具体物品。", "Confirm a specific item with the counter server."), "neutral")
 		_:
 			_emit_npc_followup("vesh", communication)
 
 func _interact_water_supplier(communication: String, expression: Dictionary) -> void:
 	match communication:
-		"voice":
-			_grant_water(_voice_score(expression), communication, expression)
+		"gesture_fallback":
+			_fallback_item("ori", "water")
 		"gesture":
 			message_requested.emit(tr("MSG_GESTURE_NO_RESOURCE") % tr("NPC_ORI"), "neutral")
-		"gesture_fallback":
-			water = 1
-			energy = minf(MAX_NEED, energy + 6.0)
-			message_requested.emit(tr("MSG_FALLBACK_WATER") % tr("NPC_ORI"), "good")
+		"voice":
+			# A raw pronunciation result is not a completed concrete service order.
+			expression_evaluated.emit("ori", expression)
+			message_requested.emit(_item_text("请在柜台对话中确认具体物品。", "Confirm a specific item with the counter server."), "neutral")
 		_:
 			_emit_npc_followup("ori", communication)
 
-func _grant_food(score: float, communication: String, expression: Dictionary, speak_line := true) -> void:
-	if score < SCORE_SPARSE_MIN:
-		expression_evaluated.emit("tavi", expression)
-		if speak_line:
-			_speak_npc_line("tavi", "clarify")
-		message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_TAVI"), "neutral")
-		return
-	if score >= SCORE_GENEROUS_MIN:
-		berries += 2
-		food = minf(MAX_NEED, food + 14.0)
-		expression_evaluated.emit("tavi", expression)
-		if speak_line:
-			_speak_npc_line("tavi", "reward")
-		message_requested.emit(tr("MSG_REWARD_FOOD_2") % tr("NPC_TAVI"), "good")
-	else:
-		berries += 1
-		food = minf(MAX_NEED, food + 7.0)
-		expression_evaluated.emit("tavi", expression)
-		if speak_line:
-			_speak_npc_line("tavi", "reward")
-		message_requested.emit(tr("MSG_REWARD_FOOD_1") % tr("NPC_TAVI"), "good")
-	if berries >= 2:
-		onboarding_action("speak")
+func _grant_food(_score: float, communication: String, expression: Dictionary, _speak_line := true) -> void:
+	_interact_food_supplier(communication, expression)
 
+func _grant_scrap(_score: float, communication: String, expression: Dictionary, _speak_line := true) -> void:
+	_interact_scrap_supplier(communication, expression)
 
-func _grant_scrap(score: float, _communication: String, expression: Dictionary, speak_line := true) -> void:
-	if score < SCORE_SPARSE_MIN:
-		expression_evaluated.emit("vesh", expression)
-		if speak_line:
-			_speak_npc_line("vesh", "clarify")
-		message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_VESH"), "neutral")
-		return
-	if score >= SCORE_GENEROUS_MIN:
-		scrap += 2
-		expression_evaluated.emit("vesh", expression)
-		if speak_line:
-			_speak_npc_line("vesh", "reward")
-		message_requested.emit(tr("MSG_REWARD_SCRAP_2") % tr("NPC_VESH"), "good")
-	else:
-		scrap += 1
-		expression_evaluated.emit("vesh", expression)
-		if speak_line:
-			_speak_npc_line("vesh", "reward")
-		message_requested.emit(tr("MSG_REWARD_SCRAP_1") % tr("NPC_VESH"), "good")
-
-
-func _grant_water(score: float, _communication: String, expression: Dictionary, speak_line := true) -> void:
-	if score < SCORE_SPARSE_MIN:
-		expression_evaluated.emit("ori", expression)
-		if speak_line:
-			_speak_npc_line("ori", "clarify")
-		message_requested.emit(tr("MSG_NPC_DIDNT_UNDERSTAND") % tr("NPC_ORI"), "neutral")
-		return
-	water = 1
-	if score >= SCORE_GENEROUS_MIN:
-		energy = minf(MAX_NEED, energy + 12.0)
-		expression_evaluated.emit("ori", expression)
-		if speak_line:
-			_speak_npc_line("ori", "reward")
-		message_requested.emit(tr("MSG_REWARD_WATER_2") % tr("NPC_ORI"), "good")
-	else:
-		energy = minf(MAX_NEED, energy + 6.0)
-		expression_evaluated.emit("ori", expression)
-		if speak_line:
-			_speak_npc_line("ori", "reward")
-		message_requested.emit(tr("MSG_REWARD_WATER_1") % tr("NPC_ORI"), "good")
-
+func _grant_water(_score: float, communication: String, expression: Dictionary, _speak_line := true) -> void:
+	_interact_water_supplier(communication, expression)
 
 func _voice_score(expression: Dictionary) -> float:
 	if expression.is_empty() or not expression.has("score"):
@@ -575,7 +651,7 @@ func _try_sleep() -> void:
 	day += 1
 	day_time = 0.0
 	energy = MAX_NEED
-	warmth = minf(MAX_NEED, warmth + 30.0)
+	warmth = minf(MAX_NEED, warmth + 30.0 + items.sleep_warmth_bonus())
 	if day > SLICE_NIGHTS:
 		game_finished = true
 		run_completed.emit()
@@ -585,12 +661,13 @@ func _try_sleep() -> void:
 	save_game()
 
 func faint() -> void:
+	item_interaction_interrupted.emit()
 	food = 35.0
 	warmth = 40.0
 	energy = 55.0
 	day_time = minf(DAY_DURATION - 30.0, day_time + 45.0)
-	berries = maxi(0, berries - 1)
-	scrap = maxi(0, scrap - 1)
+	items.faint_loss()
+	_items_did_change()
 	message_requested.emit(tr("MSG_FAINTED"), "warning")
 	state_changed.emit()
 	needs_changed.emit(food, warmth, energy)
@@ -598,6 +675,7 @@ func faint() -> void:
 	objective_changed.emit(objective_text())
 
 func reset_run() -> void:
+	item_interaction_interrupted.emit()
 	if is_inside_tree():
 		var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
 		if dynamic_service != null and dynamic_service.has_active_session():
@@ -612,6 +690,8 @@ func reset_run() -> void:
 	scrap = 0
 	water = 0
 	heater_repaired = false
+	items = ItemStateScript.new()
+	items_changed.emit()
 	completed_steps.clear()
 	dialogue_scenario_progress.clear()
 	memories.clear()
@@ -628,12 +708,13 @@ func reset_run() -> void:
 func save_game() -> bool:
 	if not persistence_enabled:
 		return true
-	var file := FileAccess.open(save_path, FileAccess.WRITE)
+	var file := FileAccess.open(save_path + ".tmp", FileAccess.WRITE)
 	if file == null:
 		message_requested.emit(tr("MSG_SAVE_FAILED"), "warning")
 		return false
 	var data := {
 		"version": SAVE_VERSION,
+		"items": items.snapshot(),
 		"day": day,
 		"day_time": day_time,
 		"food": food,
@@ -655,7 +736,11 @@ func save_game() -> bool:
 		"dialogue_scenario_progress": dialogue_scenario_progress,
 	}
 	file.store_string(JSON.stringify(data))
-	return true
+	var write_error := file.get_error()
+	file.close()
+	if write_error != OK:
+		return false
+	return DirAccess.rename_absolute(ProjectSettings.globalize_path(save_path + ".tmp"), ProjectSettings.globalize_path(save_path)) == OK
 
 func load_game() -> bool:
 	if not FileAccess.file_exists(save_path):
@@ -673,6 +758,13 @@ func load_game() -> bool:
 	var saved_version := int(parsed.get("version", 1))
 	if saved_version < 1 or saved_version > SAVE_VERSION:
 		return false
+	var restored_items = ItemStateScript.new()
+	if saved_version >= 5:
+		if not parsed.get("items") is Dictionary or not restored_items.restore(parsed.items):
+			return false
+	else:
+		restored_items.migrate(int(parsed.get("berries", 0)), int(parsed.get("scrap", 0)), int(parsed.get("water", 0)), bool(parsed.get("heater_repaired", false)))
+	items = restored_items
 	interaction_time_frozen = false
 	day = int(parsed.get("day", 1))
 	day_time = float(parsed.get("day_time", 0.0))
@@ -702,5 +794,6 @@ func load_game() -> bool:
 	needs_changed.emit(food, warmth, energy)
 	clock_changed.emit(day, int(day_time))
 	objective_changed.emit(objective_text())
+	_items_did_change(false)
 	onboarding_changed.emit(onboarding_step, onboarding_active)
 	return true

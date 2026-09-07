@@ -19,12 +19,17 @@ const ACTIONS := [
 	[&"interact", "ACTION_INTERACT"],
 	[&"push_to_talk", "ACTION_SPEAK"],
 	[&"gesture", "ACTION_GESTURE"],
+	[&"item_show", "物品条 / Items"],
+	[&"item_previous", "上件物品 / Previous item"],
+	[&"item_next", "下件物品 / Next item"],
+	[&"item_secondary", "物品次动作 / Secondary item action"],
+	[&"item_pack_all", "整批打包 / Pack all"],
 	[&"ui_cancel", "ACTION_CANCEL"],
 	[&"pause", "ACTION_PAUSE"],
 ]
 
 ## 首轮网页内测不包含语音：重映射面板不展示「说话」动作。
-## 桌面构建保持 15 行动作不变。
+## FR-44 加入五个物品动作；有语音 20 行，无语音 19 行。
 func _active_actions() -> Array:
 	var actions: Array = []
 	for action_data in ACTIONS:

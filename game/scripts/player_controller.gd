@@ -119,7 +119,8 @@ func _physics_process(delta: float) -> void:
 		character_visual.set_motion(0.0, not is_on_floor())
 		return
 	jump_buffer_remaining = maxf(0.0, jump_buffer_remaining - delta)
-	if Input.is_action_just_pressed("jump"):
+	var item_panel := get_tree().get_first_node_in_group("item_panel")
+	if Input.is_action_just_pressed("jump") and not (item_panel != null and item_panel.visible):
 		jump_buffer_remaining = JUMP_BUFFER_SECONDS
 	var look_vector := Input.get_vector("camera_left", "camera_right", "camera_up", "camera_down")
 	if look_vector.length_squared() > 0.01:
@@ -366,6 +367,13 @@ func _find_nearby_target() -> void:
 			continue
 		var offset: Vector3 = global_position - candidate.global_position
 		var distance := Vector2(offset.x, offset.z).length()
+		# A pending tray on the customer's side takes priority over its clerk.
+		# Do not retarget in-flight speech when a different object's state changes.
+		var service := get_tree().root.get_node_or_null("NpcDialogueService")
+		if service != null and service.has_active_session() and (candidate.interaction_kind != "npc" or candidate.target_id != service.active_npc_id()):
+			continue
+		if candidate.get_meta("item_anchor", false) and distance < 2.8:
+			distance *= 0.6
 		if distance < best_distance:
 			best_distance = distance
 			nearby_target = candidate
@@ -405,6 +413,13 @@ func _attempt_interaction(communication: String) -> void:
 		# No target nearby: still play the user-authored pointing gesture so the
 		# player can see/demo the gesture animation standalone.
 		character_visual.play_reaction("point")
+
+func item_use_is_safe() -> bool:
+	var service := get_tree().root.get_node_or_null("NpcDialogueService")
+	return not get_tree().paused and not GameState.game_finished and not GameState.interaction_time_frozen \
+		and not SpeechAdapter.is_interaction_active() and not (service != null and service.has_active_session()) \
+		and is_on_floor() and not jump_anticipating and not jump_airborne_sequence and not turning_around \
+		and not Input.is_action_pressed("sprint") and Vector2(velocity.x, velocity.z).length() <= WALK_SPEED + 0.1
 
 func _is_npc_conversation_active() -> bool:
 	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))

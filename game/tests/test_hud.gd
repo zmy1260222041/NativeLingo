@@ -119,7 +119,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	var remap_card := hud.get_node("UIRoot/InputRemapOverlay/Center/Card") as Control
 	_expect(_inside_viewport(remap_card, Vector2i(hud.get_viewport().get_visible_rect().size)), "Input remapping panel reflows at 1152x720 / 150%")
-	_expect(remap.get_node("Center/Card/Content/Scroll/Actions").get_child_count() == 15, "Every core gameplay action has a remapping row")
+	_expect(remap.get_node("Center/Card/Content/Scroll/Actions").get_child_count() == 20, "All 15 core and 5 item actions have remapping rows")
 	_expect(not hud.get_node("UIRoot/PauseOverlay").visible and remap.is_ancestor_of(hud.get_viewport().gui_get_focus_owner()), "Input remapping hides the pause layer and owns initial focus")
 	var remap_focus_controls := _remap_focus_controls(remap)
 	_expect(_focus_cycle_stays_inside(remap, remap_focus_controls), "Tab and Shift-Tab form a complete remapping focus loop")

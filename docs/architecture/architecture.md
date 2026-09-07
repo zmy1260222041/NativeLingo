@@ -52,7 +52,9 @@ Platform      Godot 4.6.3 / Jolt / InputMap / localhost process boundary
 
 | 模块 | 独占拥有 | 暴露 | 消费 | Godot API |
 |---|---|---|---|---|
-| `GameState` | 天数、需求、资源、关系、记忆、目标 | `interact`、`save_game`、signals | 表达渠道结果 | Node、Signal、FileAccess、JSON |
+| `GameState` | 天数、需求、关系、记忆、目标；组合物品命令与需求效果 | `interact`、`item_command`、`save_game`、signals | 表达渠道结果、物品效果 | Node、Signal、FileAccess、JSON |
+| `ItemState` | 实例、交易/供应账本、携带容量、住所物品与设施进度 | `deliver/pack/consume/place/use_home/reclaim`、纯数据快照 | 具名成交结果、需求快照 | RefCounted（不依赖场景） |
+| `ItemWorld` / `ItemPanel` | 世界投影 / 临时物品选择 UI | 只读展示、向 GameState 发意图 | items_changed、持久实例 | Node3D / Control |
 | `PlayerController` | 移动速度、相机输入、最近交互对象 | `interaction_prompt` | InputMap、世界交互接口 | CharacterBody3D、SpringArm3D |
 | `WorldInteractable` | 世界对象身份和提示 | `interact`、`get_interaction_prompt` | GameState command | Node3D、groups |
 | `Main` | 当前关卡的场景构成 | 场景启动 | GameState load | MeshInstance3D、StaticBody3D |
@@ -60,6 +62,9 @@ Platform      Godot 4.6.3 / Jolt / InputMap / localhost process boundary
 | `SpeechAdapter` | 麦克风会话、本地服务或云端评分连接、设备激活与 token 存储 | `activate_cloud`、`recognition_finished(target, accepted, transcript, reason, expression)`、`cloud_auth_finished` | 本地 `127.0.0.1:17831` 或云 `/game/evaluate` | AudioEffectRecord、HTTPRequest、TLSOptions、ConfigFile |
 
 ## 关键数据流
+
+FR-44：具名且同轮语音结束的成交 → `ItemState` 原子交付到柜台 → 玩家领取或使用 → `GameState` 同步应用物品与需求变化。
+物品事件不推进词汇状态，原观察/练习/后续真实交流的异步词汇流程保持独立。详见 [ADR-0009](adr-0009-item-lifecycle.md)。
 
 ### 每帧更新
 

@@ -36,7 +36,7 @@ func _ready() -> void:
 	_expect(hud.build_tag.visible and hud.build_tag.text == "desktop-beta.1", "Desktop build tag is visible and correct")
 
 	var actions: Array = remap._active_actions()
-	_expect(actions.size() == 14, "Remap panel exposes 14 actions in desktop no-voice mode")
+	_expect(actions.size() == 19, "Remap panel exposes 19 actions in desktop no-voice mode")
 	var speak_row_found := false
 	for action_data in actions:
 		if action_data[0] == &"push_to_talk":

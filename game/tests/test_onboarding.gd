@@ -38,10 +38,12 @@ func _test_guided_flow() -> void:
 	_expect(state.onboarding_step == "greet" and not state.completed_steps.has("greet_mira"), "Observe/E cannot bypass the guided Mira greeting")
 	state.interact("npc", "mira", "voice", _expression(100.0))
 	_expect(state.onboarding_step == "speak" and state.completed_steps.has("greet_mira"), "The understood Mira greeting advances to the food request")
-	state.interact("npc", "tavi", "voice", _expression(40.0))
-	_expect(state.onboarding_step == "speak" and state.berries == 1, "A sparse food reward keeps the guide on the request until survival is secured")
-	state.interact("npc", "tavi", "voice", _expression(40.0))
-	_expect(state.onboarding_step == "sleep" and state.berries >= 2, "Enough voiced food requests advance to sleep and keep FR-28 rewards")
+	state.settle_service_transaction("tavi", 40.0, "burger")
+	_expect(state.onboarding_step == "use_item" and state.berries == 1, "A named sparse food reward teaches explicit item use")
+	state.settle_service_transaction("tavi", 40.0, "burger")
+	var id: String = state.items.records("counter", "tavi")[0].id
+	state.item_command("pack", [id], {"safe": true, "location": "tavi"})
+	_expect(state.onboarding_step == "sleep" and state.berries >= 2, "Explicit pickup advances to sleep while preserving both portions")
 	state.interact("shelter", "shelter")
 	_expect(state.onboarding_completed and not state.onboarding_active and state.day == 2, "Successful first-night sleep completes the guide and advances the day")
 
@@ -66,7 +68,7 @@ func _test_needs_guard_and_decay_resume() -> void:
 	state.day_time = 10.0
 	state._process(60.0)
 	_expect(is_equal_approx(state.food, 12.0) and is_equal_approx(state.warmth, 12.0) and is_equal_approx(state.energy, 12.0) and is_equal_approx(state.day_time, 10.0), "Active guide freezes all three needs and the survival clock")
-	for _index in range(7):
+	for _index in range(8):
 		state.onboarding_action(state.onboarding_step)
 	state.completed_steps["greet_mira"] = true
 	state.berries = 2

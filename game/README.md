@@ -17,6 +17,8 @@ Or import `game/project.godot` in Godot 4.6.3 and press **F6/F5**.
 - `Shift` / left-stick click: sprint
 - `Space` / gamepad south: jump
 - `E` / gamepad west: physical interaction
+- Hold `Tab` / right shoulder: carried items (pause settings also offer toggle mode)
+- In item selector: arrows / D-pad up-down select; `E` / west uses or places; `R` / D-pad right packs or reclaims; `T` / D-pad left packs all counter items
 - Hold `V` / left shoulder: record a key English interaction; release to send
 - `G` / gamepad north: gesture fallback and free retry path
 - `Esc` / Menu: pause; `Esc` / gamepad east cancels speech and closes modals
@@ -39,6 +41,15 @@ Resources still come from **finished service conversations** (FR-41 + FR-28).
 Talk in English; the session score is half pronunciation and half how
 idiomatic the lines were. Completing the order grants a banded reward.
 Walking away or scoring below 40 grants nothing and can be retried.
+
+FR-44: completed orders now put concrete items on the customer-side tray, not straight into needs or a backpack.
+Walk up and press `E`: eat/drink one on site or pack it for later. Only explicit use restores that item's own needs.
+Carry capacity is 4 food/drink slots and 1 household slot, with compatible stacks of 2 (canteens occupy one slot each).
+Blankets, batteries and heater parts must be carried to the home bed, power station or workbench, placed, then used in a second action.
+The current shelter has no walkable interior, so these named positions are in its exterior living area; sleep has a separate entrance interaction.
+The home chest can store carried items and holds overflow migrated from old saves. Save v5 preserves instances and transaction IDs.
+Vocabulary observation/practice/later spoken usage remains asynchronous and independent: no item event grants vocabulary progress.
+See [item rules](../design/gdd/item-usage.md) and [implementation evidence](../docs/reviews/2026-09-06-item-usage-fit.md).
 
 The three days are only a time box: last three nights and the slice ends.
 Repairing the heater and bringing water to Rowan are optional and do not

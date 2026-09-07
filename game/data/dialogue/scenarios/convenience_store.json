@@ -19,6 +19,9 @@
     "gum",
     "batteries"
   ],
+  "generic_inventory_terms": [
+    "snack"
+  ],
   "can_do": [
     "sell a drink or snack",
     "point to the cooler",

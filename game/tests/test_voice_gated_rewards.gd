@@ -35,7 +35,7 @@ func _test_food_bands_are_monotonic_and_lossless() -> void:
 	for score_and_expected in [[30.0, 0], [39.9, 0], [40.0, 1], [69.9, 1], [70.0, 2]]:
 		var state := _fresh_state()
 		var before := _resource_snapshot(state)
-		var message := _capture_message(state, func(): state.interact("npc", "tavi", "voice", _expr(score_and_expected[0])))
+		var message := _capture_message(state, func(): state.settle_service_transaction("tavi", score_and_expected[0], "burger"))
 		var after := _resource_snapshot(state)
 		var expected_berries: int = score_and_expected[1]
 		_expect(after[0] == before[0] + expected_berries,
@@ -44,14 +44,14 @@ func _test_food_bands_are_monotonic_and_lossless() -> void:
 			_expect(after == before, "G3: below-minimum food request changes no state")
 			_expect(message.contains("没听懂") or message.contains("did not understand"), "G3: low-score NPC reply stays inclusive and free")
 		else:
-			_expect(after[1] >= before[1], "G3: granted food also refills the food need")
+			_expect(after[1] == before[1], "FR-44: delivered food does not refill needs before use")
 		_expect(int(state.relationships["tavi"]) == 0, "G3: failed or sparse requests never harm relationships")
 
 func _test_scrap_bands_are_monotonic_and_lossless() -> void:
 	for score_and_expected in [[25.0, 0], [40.0, 1], [70.0, 2]]:
 		var state := _fresh_state()
 		var before := _resource_snapshot(state)
-		state.interact("npc", "vesh", "voice", _expr(score_and_expected[0]))
+		state.settle_service_transaction("vesh", score_and_expected[0], "alloy parts")
 		var after := _resource_snapshot(state)
 		_expect(after[2] == before[2] + score_and_expected[1],
 			"G3: scrap reward for score %.1f is %d part(s)" % [score_and_expected[0], score_and_expected[1]])
@@ -59,22 +59,22 @@ func _test_scrap_bands_are_monotonic_and_lossless() -> void:
 			_expect(after == before, "G3: below-minimum scrap request changes no state")
 
 func _test_water_bands_are_monotonic_and_lossless() -> void:
-	var previous_energy_gain := -1
+	var previous_quantity := 0
 	for score in [30.0, 40.0, 70.0]:
 		var state := _fresh_state()
 		var before_energy: float = state.energy
-		state.interact("npc", "ori", "voice", _expr(score))
+		state.settle_service_transaction("ori", score, "water")
 		if score < 40.0:
 			_expect(state.water == 0 and state.energy == before_energy, "G3: below-minimum water request changes no state")
 			continue
-		_expect(state.water == 1, "G3: voiced water request fills the canteen")
-		var gain: float = state.energy - before_energy
-		_expect(gain > previous_energy_gain, "G3: water reward energy bonus increases with score")
-		previous_energy_gain = int(gain)
+		_expect(state.water == (2 if score >= 70.0 else 1), "FR-44: water reward counts actual bottles")
+		_expect(state.water > previous_quantity and state.energy == before_energy, "FR-44: higher score increases bottles, not immediate energy")
+		previous_quantity = state.water
 
 func _test_rowan_voice_gate() -> void:
 	var state := _fresh_state()
-	state.water = 1
+	state.items.migrate(0, 0, 1, false)
+	state._items_did_change()
 	state.interact("npc", "rowan", "voice", _expr(20.0))
 	_expect(not state.completed_steps.has("help_rowan") and state.water == 1, "G3: unclear optional help costs nothing and keeps the water")
 	state.interact("npc", "rowan", "voice", _expr(45.0))
@@ -137,9 +137,10 @@ func _test_service_session_score_mixes_pronunciation_and_idiomaticity() -> void:
 	_expect(state.can_start_service_dialogue("tavi"), "FR-42: food counter is open without a greeting")
 	_expect(state.can_start_service_dialogue("ori"), "FR-42: convenience store is open on day 1")
 	var before: int = state.berries
-	var band: String = state.settle_service_transaction("tavi", 55.0)
+	var band: String = state.settle_service_transaction("tavi", 55.0, "burger")
 	_expect(band == "sparse" and state.berries == before + 1, "FR-41: mixed session score uses FR-28 bands")
-	_expect(state.settle_service_transaction("ori", 30.0) == "none" and state.water == 0, "FR-41: below-band completed talk still grants nothing")
+	_expect(state.settle_service_transaction("ori", 30.0, "water") == "none" and state.water == 0, "FR-41: below-band completed talk still grants nothing")
+	_expect(state.settle_service_transaction("tavi", 90.0) == "none" and state.berries == before + 1, "FR-41: no named confirmed item can never settle")
 
 
 func _sleep_nights(state: Node, nights: int) -> void:
