@@ -2,14 +2,14 @@
 
 Status: `CLOUD_PIPELINE_COMPLETE / GATE_D_15_of_16 / BLENDSHAPES_PENDING_MANUAL`
 
-The first player runtime GLB to reach `game/assets/characters/chr_player_juvenile.glb`. Built
+The first player runtime asset to reach `game/assets/characters/`. Built
 end-to-end from the v05 Hunyuan base via Tencent ai3d cloud jobs + a headless Blender assembly,
 with no manual modeling. Triangle budgets all met; 15 of 16 Gate D contract checks pass.
 
 ## Pipeline (all stages reproducible from this tree)
 
 Input: `../source_locked_v05/hunyuan_processed/hunyuan_multiview_v3_1_normalized.glb`
-(299 293 verts / 500 000 tris, unrigged, untextured — the v05 Hunyuan3D Pro base).
+(299 293 verts / 500 000 tris, unrigged, with one embedded 4096² Hunyuan Base Color map).
 
 | Stage | ai3d action | Output in `cloud_raw/` | Result |
 |---|---|---|---|
@@ -54,15 +54,35 @@ threshold, run above it, uses Point for grounded gestures, Gather for berry/scra
 Observe for fixed facilities, and synchronizes Turn/Jump with movement and contact markers;
 CharacterBody3D remains responsible for world movement.
 
+## High-poly PBR bake (2026-08-21)
+
+`../blender/bake_highpoly_pbr_v01.py` mirrors Mira's verified selected-to-active
+pipeline. It keeps the v05 Hunyuan GLB immutable as the visual source and the
+v06 ReduceFace-high GLB immutable as the LOD0 geometry target, Smart Projects a
+2K UV atlas, then bakes:
+
+- `baked_pbr_v01/chr_player_juvenile_base_color_2k.png`;
+- `baked_pbr_v01/chr_player_juvenile_normal_2k.png` (OpenGL tangent space);
+- `baked_pbr_v01/chr_player_juvenile_ao_2k.png`.
+
+The measured target-to-high surface distance is 1.403 mm mean / 5.777 mm P99 /
+12.638 mm max. The pass preserves all 5,648 vertices and 11,293 triangles. Its
+per-polygon UV transfer contract is consumed by
+`../blender/retarget_mixamo_actions.py`, which writes UV0 and the named PBR
+material onto `game/assets/characters/chr_player_juvenile_mixamo.fbx` without
+changing the 28-bone rig, weights, or action pipeline. `CharacterVisual` binds
+the external Base Color, Normal, and AO maps to skinned LOD0 in Godot; the
+current UV-less LOD1/2 placeholders retain a named flat fallback.
+
 ## Gate D status (`game/tests/test_character_asset.gd`)
 
 ```
-CHARACTER_ASSET_EVIDENCE bones=28 lods=[1,1,1] materials=["mat_chr_player_juvenile"] morphs=0
+CHARACTER_ASSET_EVIDENCE bones=28 lods=[1,1,1] materials=["mat_chr_player_juvenile_pbr", "mat_chr_player_juvenile_lod_fallback"] morphs=0
 ```
 
-Passing (15): GLB loads · Skeleton3D · 28 deform bones ≤72 · AnimationPlayer · all 5 cloud animation
-names present · idle + walk loop mode · LOD0/LOD1/LOD2 mesh groups (double-underscore substring)
-· 1 named material with non-empty resource_name.
+Passing: FBX loads · Skeleton3D · 28 bones ≤72 · AnimationPlayer · all runtime
+actions present · locomotion loop modes · LOD0/LOD1/LOD2 groups · named
+materials · LOD0 UV0/tangents · 2K Base Color/Normal/AO runtime bindings.
 
 Failing (1): **LOD0 facial blend shapes ≥3 (blink/jaw/viseme)**. No ai3d action generates morph
 targets, so this is a manual Blender hand-off — see the "Known gaps" section.
@@ -73,10 +93,10 @@ targets, so this is a manual Blender hand-off — see the "Known gaps" section.
    authored on the LOD0 mesh in Blender and re-exported. Until then
    `policy.runtime_export_allowed` in `ASSET_LOCK_MANIFEST.json` stays `false` and the 16th Gate
    D check stays red.
-2. **Visual quality** — proportions, orientation, gesture retarget fidelity, and material
-   flatness (no PBR texture yet; a single flat Art Bible color) need human review in the Godot
-   editor. The gesture retarget copies rotations in world space across two Mixamo naming
-   conventions; finger bones are absent so hands stay rigid.
+2. **Animation detail** — finger bones are absent, so hands stay rigid. The
+   selected `pose_direction` retarget is covered by walk/directional regression
+   tests; further gesture polish remains an animation hand-off rather than a
+   material blocker.
 3. **Crest / sail layers** — the art bible wants three rear-swept sail head crests; the cloud
    retopo preserved the single bifurcated v05 crest. Splitting it is a Gate A sculpt item that
    was deferred to keep the pipeline automated.
@@ -87,7 +107,10 @@ targets, so this is a manual Blender hand-off — see the "Known gaps" section.
 - `cloud_jobs.json` — append-only job log (action, job_id, status, output files, measures).
 - `cloud_outputs_inspect.json` — per-file structural dump (armatures, meshes, actions).
 - `assemble_c1_report.json` — what the assembly script emitted.
+- `baked_pbr_v01/` — repeatable high-to-low PBR bake, UV transfer contract,
+  editable Blend source, GLB review package, report, and four-view previews.
 - `README.md` (this file).
 
-The runtime GLB itself lives at `game/assets/characters/chr_player_juvenile.glb` (outside this
-tree, under the Godot project) and is registered in `ASSET_LOCK_MANIFEST.json`.
+The current animated runtime FBX lives at
+`game/assets/characters/chr_player_juvenile_mixamo.fbx`; the three external 2K
+runtime maps live beside it.

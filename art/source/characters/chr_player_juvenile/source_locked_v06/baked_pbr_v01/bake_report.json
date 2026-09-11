@@ -1,0 +1,146 @@
+{
+  "schema": "player_hunyuan_to_runtime_lod0_pbr_bake.v1",
+  "source_lock": {
+    "high_glb": "art/source/characters/chr_player_juvenile/source_locked_v05/hunyuan_processed/hunyuan_multiview_v3_1_normalized.glb",
+    "high_sha256": "8374890393273a2f29c6b07311d0ab50a400afb22339df93031cb792af9e31c0",
+    "low_glb": "art/source/characters/chr_player_juvenile/source_locked_v06/cloud_raw/reduceface_high_01.glb",
+    "low_sha256": "6ab153fd42eef234992d556bea0d09fedf056ca97b94a6a17327b6db9ee4c547",
+    "high_bounds": {
+      "min": [
+        -0.311299264,
+        -0.241814166,
+        1.9e-08
+      ],
+      "max": [
+        0.311299264,
+        0.241814166,
+        1.780000091
+      ],
+      "size": [
+        0.622598529,
+        0.483628333,
+        1.780000091
+      ]
+    },
+    "low_bounds": {
+      "min": [
+        -0.311060995,
+        -0.239700004,
+        0.000731
+      ],
+      "max": [
+        0.312891006,
+        0.243359998,
+        1.77926898
+      ],
+      "size": [
+        0.623952031,
+        0.483060002,
+        1.778537989
+      ]
+    }
+  },
+  "method": {
+    "reference_pipeline": "Mira selected-to-active PBR bake",
+    "selected_to_active": true,
+    "resolution": 2048,
+    "samples": 32,
+    "ray_distance_m": 0.023109255080531573,
+    "margin_px": 16,
+    "normal_convention": "OpenGL tangent space (+Y / green up)",
+    "global_resampling": false,
+    "vertex_positions_moved": 0,
+    "topology_changed": false
+  },
+  "alignment": {
+    "mean_m": 0.0014034589374419624,
+    "p95_m": 0.003951288906652582,
+    "p99_m": 0.005777313770132893,
+    "max_m": 0.01263801867293626
+  },
+  "uv": {
+    "name": "UVMap",
+    "loop_count": 33879,
+    "min": [
+      0.0,
+      0.0
+    ],
+    "max": [
+      0.9999999,
+      0.9999999
+    ]
+  },
+  "uv_transfer": {
+    "file": "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/chr_player_juvenile_lod0_uv_transfer.json",
+    "bytes": 1284566,
+    "sha256": "8976a677a65c0a4a2bbbaacb16e90506e5009f06d5e54ea77fe24b5e99d65f5f",
+    "vertices": 5648,
+    "faces": 11293,
+    "loops": 33879
+  },
+  "topology_before": {
+    "vertices": 5648,
+    "edges": 16939,
+    "faces": 11293,
+    "triangles": 11293
+  },
+  "topology_after": {
+    "vertices": 5648,
+    "edges": 16939,
+    "faces": 11293,
+    "triangles": 11293
+  },
+  "maps": {
+    "base_color": {
+      "file": "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/chr_player_juvenile_base_color_2k.png",
+      "bytes": 1926180,
+      "sha256": "74f990536163b379c78f69eac8f691b0f23e997b1e4d23c2464efd935ccae6d8",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "sampled_red_min": 0.0,
+      "sampled_red_max": 0.7960785031318665
+    },
+    "normal": {
+      "file": "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/chr_player_juvenile_normal_2k.png",
+      "bytes": 2413936,
+      "sha256": "8c01e17364b100d215bebb5cc407919f4d11a73943efe636408cdaac7eddc369",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "sampled_red_min": 0.011764707043766975,
+      "sampled_red_max": 0.9803922176361084
+    },
+    "ao": {
+      "file": "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/chr_player_juvenile_ao_2k.png",
+      "bytes": 1629623,
+      "sha256": "0349520dbd3769c3a766a22eb77a45e4bbb182c316d7cc6db8f7a706f4e7fe1f",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "sampled_red_min": 0.0,
+      "sampled_red_max": 1.0
+    }
+  },
+  "output": {
+    "source_glb": "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/chr_player_juvenile_lod0_baked_pbr_v01.glb",
+    "source_glb_bytes": 6485352,
+    "source_glb_sha256": "a95222b9e5392a31fc75541af73e966dee4b5d1c74651e80c91044761ef01ed3",
+    "blend": "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/chr_player_juvenile_lod0_baked_pbr_v01.blend",
+    "previews": [
+      "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/preview_front.png",
+      "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/preview_character_left.png",
+      "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/preview_back.png",
+      "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/preview_character_right.png"
+    ],
+    "runtime_maps": {
+      "base_color": "game/assets/characters/chr_player_juvenile_base_color_2k.png",
+      "normal": "game/assets/characters/chr_player_juvenile_normal_2k.png",
+      "ao": "game/assets/characters/chr_player_juvenile_ao_2k.png"
+    }
+  },
+  "runtime_status": "UV template and PBR maps ready; animated FBX UV transfer is owned by retarget_mixamo_actions.py"
+}

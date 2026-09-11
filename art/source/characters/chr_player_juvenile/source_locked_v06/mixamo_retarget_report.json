@@ -1,6 +1,21 @@
 {
   "target": "game/assets/characters/chr_player_juvenile.fbx",
   "output": "game/assets/characters/chr_player_juvenile_mixamo.fbx",
+  "baked_pbr": {
+    "template": "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/chr_player_juvenile_lod0_baked_pbr_v01.glb",
+    "uv_transfer": "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01/chr_player_juvenile_lod0_uv_transfer.json",
+    "topology_match": true,
+    "vertices": 5648,
+    "faces": 11293,
+    "uv_layer": "UVMap",
+    "uv_loops": 33879,
+    "material": "mat_chr_player_juvenile_pbr",
+    "maps": {
+      "base_color": "game/assets/characters/chr_player_juvenile_base_color_2k.png",
+      "normal": "game/assets/characters/chr_player_juvenile_normal_2k.png",
+      "ao": "game/assets/characters/chr_player_juvenile_ao_2k.png"
+    }
+  },
   "bone_map": {
     "mixamorig:Hips": "Hips",
     "mixamorig:Spine": "Spine",

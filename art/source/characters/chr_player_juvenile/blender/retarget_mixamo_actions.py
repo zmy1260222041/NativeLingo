@@ -54,6 +54,12 @@ SOURCE_DIR = PROJECT / "art/source/characters/chr_player_juvenile/source_locked_
 OUTPUT_FBX = PROJECT / "game/assets/characters/chr_player_juvenile_mixamo.fbx"
 REPORT_JSON = PROJECT / "art/source/characters/chr_player_juvenile/source_locked_v06/mixamo_retarget_report.json"
 RUNTIME_REPORT_JSON = PROJECT / "game/assets/characters/chr_player_juvenile_mixamo_retarget.json"
+BAKED_PBR_DIR = PROJECT / "art/source/characters/chr_player_juvenile/source_locked_v06/baked_pbr_v01"
+BAKED_PBR_TEMPLATE = BAKED_PBR_DIR / "chr_player_juvenile_lod0_baked_pbr_v01.glb"
+BAKED_PBR_UV_TRANSFER = BAKED_PBR_DIR / "chr_player_juvenile_lod0_uv_transfer.json"
+PLAYER_BASE_COLOR = PROJECT / "game/assets/characters/chr_player_juvenile_base_color_2k.png"
+PLAYER_NORMAL = PROJECT / "game/assets/characters/chr_player_juvenile_normal_2k.png"
+PLAYER_AO = PROJECT / "game/assets/characters/chr_player_juvenile_ao_2k.png"
 
 ALGORITHMS = ("local_delta", "world_rest", "pose_direction")
 IDENTITY_Q = Quaternion((1.0, 0.0, 0.0, 0.0))
@@ -687,6 +693,7 @@ def _export_target(target: bpy.types.Object) -> None:
         filepath=str(OUTPUT_FBX),
         use_selection=True,
         object_types={"ARMATURE", "MESH"},
+        path_mode="RELATIVE",
         bake_anim=True,
         # Export only keyed pose channels. Baking all bones forces Blender's
         # FBX unit conversion into a root scale track (Godot reads it as 100x).
@@ -703,9 +710,144 @@ def _export_target(target: bpy.types.Object) -> None:
     )
 
 
+def _load_baked_image(path: Path, non_color: bool) -> bpy.types.Image:
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"Missing baked player texture: {path}. Run bake_highpoly_pbr_v01.py first."
+        )
+    image = bpy.data.images.load(str(path), check_existing=True)
+    image.colorspace_settings.name = "Non-Color" if non_color else "sRGB"
+    return image
+
+
+def _build_baked_pbr_material(target_mesh: bpy.types.Object) -> bpy.types.Material:
+    """Attach the external PBR maps so the FBX remains useful outside Godot too."""
+    base_image = _load_baked_image(PLAYER_BASE_COLOR, False)
+    normal_image = _load_baked_image(PLAYER_NORMAL, True)
+    ao_image = _load_baked_image(PLAYER_AO, True)
+
+    material = bpy.data.materials.new("mat_chr_player_juvenile_pbr")
+    material.use_nodes = True
+    material.diffuse_color = (1.0, 1.0, 1.0, 1.0)
+    nodes = material.node_tree.nodes
+    links = material.node_tree.links
+    nodes.clear()
+
+    output = nodes.new(type="ShaderNodeOutputMaterial")
+    output.location = (620, 0)
+    principled = nodes.new(type="ShaderNodeBsdfPrincipled")
+    principled.location = (300, 0)
+    principled.inputs["Metallic"].default_value = 0.0
+    principled.inputs["Roughness"].default_value = 0.78
+
+    base = nodes.new(type="ShaderNodeTexImage")
+    base.name = "Player Base Color"
+    base.image = base_image
+    base.location = (-620, 160)
+    normal = nodes.new(type="ShaderNodeTexImage")
+    normal.name = "Player Normal"
+    normal.image = normal_image
+    normal.location = (-620, -80)
+    normal_map = nodes.new(type="ShaderNodeNormalMap")
+    normal_map.space = "TANGENT"
+    normal_map.location = (-180, -80)
+    ao = nodes.new(type="ShaderNodeTexImage")
+    ao.name = "Player AO"
+    ao.label = "AO is assigned explicitly by CharacterVisual in Godot"
+    ao.image = ao_image
+    ao.location = (-620, -320)
+
+    links.new(base.outputs["Color"], principled.inputs["Base Color"])
+    links.new(normal.outputs["Color"], normal_map.inputs["Color"])
+    links.new(normal_map.outputs["Normal"], principled.inputs["Normal"])
+    links.new(principled.outputs["BSDF"], output.inputs["Surface"])
+    target_mesh.data.materials.clear()
+    target_mesh.data.materials.append(material)
+    return material
+
+
+def _apply_baked_player_pbr(target: bpy.types.Object) -> dict[str, object]:
+    """Transfer the baked template UVs onto the matching skinned LOD0 mesh.
+
+    Tencent AutoRig preserves the ReduceFace-high vertex and polygon ordering,
+    while applying only a global affine transform. Copying loop UVs therefore
+    leaves the rig, weights, rest pose, and animation data untouched.
+    """
+    if not BAKED_PBR_TEMPLATE.is_file():
+        raise FileNotFoundError(
+            f"Missing baked UV template: {BAKED_PBR_TEMPLATE}. "
+            "Run bake_highpoly_pbr_v01.py first."
+        )
+    if not BAKED_PBR_UV_TRANSFER.is_file():
+        raise FileNotFoundError(
+            f"Missing baked UV transfer data: {BAKED_PBR_UV_TRANSFER}. "
+            "Run bake_highpoly_pbr_v01.py first."
+        )
+    target_meshes = [
+        obj for obj in bpy.data.objects if obj.type == "MESH" and obj.parent == target
+    ]
+    if len(target_meshes) != 1:
+        raise RuntimeError(
+            f"Expected one skinned player mesh, found {len(target_meshes)}"
+        )
+    target_mesh = target_meshes[0]
+
+    uv_transfer = json.loads(BAKED_PBR_UV_TRANSFER.read_text(encoding="utf-8"))
+    polygons = uv_transfer.get("polygons", [])
+    if (
+        uv_transfer.get("vertices") != len(target_mesh.data.vertices)
+        or uv_transfer.get("faces") != len(target_mesh.data.polygons)
+        or len(polygons) != len(target_mesh.data.polygons)
+    ):
+        raise RuntimeError(
+            "Animated player FBX counts no longer match the baked LOD0 UV contract"
+        )
+    while len(target_mesh.data.uv_layers) > 0:
+        target_mesh.data.uv_layers.remove(target_mesh.data.uv_layers[0])
+    target_uv = target_mesh.data.uv_layers.new(name="UVMap")
+    if len(target_uv.data) != uv_transfer.get("loops"):
+        raise RuntimeError(
+            f"UV loop count mismatch: target={len(target_uv.data)} "
+            f"template={uv_transfer.get('loops')}"
+        )
+    for face_index, target_polygon in enumerate(target_mesh.data.polygons):
+        source_polygon = polygons[face_index]
+        if list(target_polygon.vertices) != source_polygon.get("vertices"):
+            raise RuntimeError(
+                f"Animated player FBX topology differs at face {face_index}: "
+                f"target={list(target_polygon.vertices)} "
+                f"bake={source_polygon.get('vertices')}"
+            )
+        source_uvs = source_polygon.get("uv", [])
+        if len(source_uvs) != len(target_polygon.loop_indices):
+            raise RuntimeError(f"UV corner count differs at face {face_index}")
+        for loop_index, uv in zip(target_polygon.loop_indices, source_uvs):
+            target_uv.data[loop_index].uv = uv
+    target_mesh.data.uv_layers.active = target_uv
+    target_mesh.data.calc_tangents(uvmap=target_uv.name)
+    material = _build_baked_pbr_material(target_mesh)
+
+    return {
+        "template": str(BAKED_PBR_TEMPLATE.relative_to(PROJECT)),
+        "uv_transfer": str(BAKED_PBR_UV_TRANSFER.relative_to(PROJECT)),
+        "topology_match": True,
+        "vertices": len(target_mesh.data.vertices),
+        "faces": len(target_mesh.data.polygons),
+        "uv_layer": target_uv.name,
+        "uv_loops": len(target_uv.data),
+        "material": material.name,
+        "maps": {
+            "base_color": str(PLAYER_BASE_COLOR.relative_to(PROJECT)),
+            "normal": str(PLAYER_NORMAL.relative_to(PROJECT)),
+            "ao": str(PLAYER_AO.relative_to(PROJECT)),
+        },
+    }
+
+
 def main() -> None:
     bpy.ops.wm.read_factory_settings(use_empty=True)
     target = _import_fbx(TARGET_FBX)
+    baked_pbr = _apply_baked_player_pbr(target)
     # Keep the target armature name/path from the existing runtime FBX. The
     # procedural greet/offer/clarify actions use Armature/Skeleton3D track
     # paths, so renaming this object would break those legacy gestures.
@@ -722,6 +864,7 @@ def main() -> None:
     report: dict = {
         "target": str(TARGET_FBX.relative_to(PROJECT)),
         "output": str(OUTPUT_FBX.relative_to(PROJECT)),
+        "baked_pbr": baked_pbr,
         "bone_map": BONE_MAP,
         "algorithms": {
             "local_delta": "copy source matrix_basis rotation onto target rest axes",
