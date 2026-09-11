@@ -124,6 +124,7 @@ func talk() -> void:
 		NpcDialogueService.begin_scenario(npc_id(), GameState.service_scenario_for(npc_id()))
 	else:
 		GameState.interact("npc", npc_id(), "action")
+		feedback.emit("当前语音不可用，可点「手势」继续交流。" if SpeechAdapter.runtime_speech_unavailable() else "点「录音」，用英语向 %s 问好；再点一次结束。" % npc_id().capitalize())
 
 func record() -> void:
 	if SpeechAdapter.is_recording():
@@ -286,6 +287,7 @@ func begin_practice(word: String) -> void:
 		return
 	cancel_activity()
 	practice_word = word
+	scene_changed.emit()
 	Vocabulary.observe_word(word)
 	say(npc_id(), word)
 	feedback.emit("先听示范，再点「录音」说出这个词，点第二次结束。可以重听，练习不消耗时间。")

@@ -19,6 +19,7 @@ func _ready() -> void:
 	screen.boot_from_save = false
 	add_child(screen)
 	model = screen.model
+	await _test_ux_clarity()
 	await get_tree().process_frame
 	screen.place_buttons[1].pressed.emit()
 	check(model.location == "food", "Location button navigates through the screen")
@@ -237,3 +238,39 @@ func _test_spoken_handoff() -> void:
 	NpcScenarioRunner.apply_validated_reply("tavi", "food_counter", "confirm_order", "closed", true, "burger")
 	check(model.visible_items("counter").is_empty() and str(model.order_guidance().get("title", "")).contains("25 分"), "Low score explains the failed order without delivering food")
 	NpcDialogueService.request_override = Callable()
+
+
+func _test_ux_clarity() -> void:
+	model.travel("store")
+	model.play_social(1)
+	var right: Rect2 = screen.portrait.texture.region
+	var left: Rect2 = screen.second_portrait.texture.region
+	model.next_social()
+	check(screen.portrait.texture.region == right and screen.second_portrait.texture.region == left, "Theater cast keeps positions when the speaker changes")
+	check(screen.second_portrait.modulate == Color.WHITE and screen.portrait.modulate != Color.WHITE, "The active speaker is highlighted in place")
+	model.cancel_activity()
+	model.start()
+	screen._practice("morning")
+	check(screen.order_panel.visible and screen.order_title.text.contains("morning"), "Practice mode remains visible outside the toast")
+	check(screen.record_button.text.contains("录制这个词") and screen.gesture_button == null, "Practice exposes a word recording action without ambiguous gesture controls")
+	var interact := InputEventAction.new()
+	interact.action = "interact"
+	interact.pressed = true
+	screen._unhandled_input(interact)
+	check(model.practice_word == "morning", "Interaction shortcut cannot silently cancel a word practice")
+	screen._end_practice()
+	check(model.practice_word.is_empty() and screen.record_button.text.contains("录音"), "Explicit practice exit restores conversation controls")
+	model.travel("home")
+	GameState.day_time = 0.0
+	GameState.energy = 100.0
+	screen._refresh()
+	check(screen.home_action_button.text == "休息到夜晚", "Daytime primary action offers a valid rest")
+	screen.home_action_button.pressed.emit()
+	check(GameState._wants_sleep() and screen.home_action_button.text.contains("入睡"), "Rest changes the primary action to sleep")
+	GameState.day_time = 0.0
+	GameState.energy = GameState.ENERGY_TIRED - 1.0
+	screen._refresh()
+	check(screen.home_action_button.text.contains("入睡"), "Low energy still permits early sleep under the domain rule")
+	GameState.reset_run()
+	model.travel("plaza")
+	await get_tree().process_frame

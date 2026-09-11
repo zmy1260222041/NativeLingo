@@ -37,6 +37,8 @@
 
 字体与边框采用视觉小说的阅读层级：Noto Serif SC 宋体用于对白、姓名牌和标题，Noto Sans SC 常规字重用于操作与状态；细分隔线、轻选中标记和小圆角减少框线干扰。录音固定在对话操作区右侧；逐字出现时可点「显示全文」，小剧场先补全本句、再推进下一句，末句返回现场。大字号容纳三行中文，更长回应可滚动阅读，新回应回到顶部。字体与许可随包提供。验收：`docs/reviews/2026-09-11-novel-typography-fit.md`。
 
+2026-09-11 试玩优化：小剧场保持角色站位；单词练习使用独立操作区与常驻提示；住处根据入睡条件提供休息或入睡主操作；词汇阶段改为中文名称；首次引导简化为点餐三步，完整帮助保留在设置中。见 `docs/reviews/2026-09-11-ux-followup.md`。
+
 行囊与生活化体验验收：`docs/reviews/2026-09-11-everyday-inventory-fit.md`（R-36 / FR-47）。
 
 迁移矩阵和证据：`docs/reviews/2026-09-11-stranger-2d-dialogue-fit.md`（R-34 / FR-46）。美国 TTS 与口语闭环证据见 `docs/reviews/2026-09-11-stranger-2d-speaking-fit.md`（R-35）。

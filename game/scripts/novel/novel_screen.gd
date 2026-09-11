@@ -32,6 +32,7 @@ var clock_label: Label
 var objective_label: Label
 var relationship_label: Label
 var gesture_button: Button
+var home_action_button: Button
 var record_button: Button
 var action_row: HBoxContainer
 var advance_button: Button
@@ -405,6 +406,7 @@ func _rebuild_actions() -> void:
 	for child in action_row.get_children():
 		action_row.remove_child(child)
 		child.queue_free()
+	home_action_button = null
 	record_button = null
 	gesture_button = null
 	counter_button = null
@@ -418,14 +420,20 @@ func _rebuild_actions() -> void:
 		_button(action_row, "这段旅程的回忆", _open_panel.bind("growth"))
 		_action_space()
 		_button(action_row, "开始新旅程", _open_panel.bind("restart"))
+	elif not model.practice_word.is_empty():
+		_button(action_row, "重听示范", func(): model.listen_again())
+		_button(action_row, "结束练习", _end_practice)
+		_action_space()
+		record_button = _button(action_row, "录制这个词", func(): model.record())
 	elif model.location == "home":
 		_button(action_row, "整理住处", _open_panel.bind("home"))
-		_button(action_row, "休息到夜晚", func(): model.wait_until_evening(); _show_scene())
 		_button(action_row, "保存", _save)
 		_action_space()
-		_button(action_row, "入睡 · 下一天", func(): model.sleep())
+		home_action_button = _button(action_row, "", func():
+			if GameState._wants_sleep(): model.sleep()
+			else: model.wait_until_evening(); _show_scene())
 	else:
-		_button(action_row, "交谈  " + Glyphs.for_action("interact", false), func(): model.talk())
+		_button(action_row, ("交谈  " if GameState.can_start_service_dialogue(model.npc_id()) else "打招呼  ") + Glyphs.for_action("interact", false), func(): model.talk())
 		gesture_button = _button(action_row, "手势  G", func(): model.greet())
 		if GameState.can_start_service_dialogue(model.npc_id()):
 			counter_button = _button(action_row, "查看柜台", _open_panel.bind("counter"))
@@ -469,19 +477,26 @@ func _show_line(speaker: String, text: String) -> void:
 	dialogue_text.scroll_to_line(0)
 	text_elapsed = 0.0
 	if speaker in Content.CAST:
-		portrait.texture = _cast_texture(speaker)
 		portrait.visible = true
 		if model.social_index >= 0:
 			var lines: Array = Content.SOCIAL[model.social_index].lines
-			var other := ""
+			# Bind positions to the cast of this scene, never the current turn.
+			var right := str(lines[0][0])
+			var left := ""
 			for line in lines:
-				if str(line[0]) != speaker:
-					other = str(line[0])
+				if str(line[0]) != right:
+					left = str(line[0])
 					break
-			second_portrait.texture = _cast_texture(other)
-			second_portrait.modulate = Color(0.87, 0.88, 0.82, 0.95)
-			second_portrait.visible = true
+			portrait.texture = _cast_texture(right)
+			second_portrait.texture = _cast_texture(left)
+			var quiet := Color(0.87, 0.88, 0.82, 0.95)
+			portrait.modulate = Color.WHITE if speaker == right else quiet
+			second_portrait.modulate = Color.WHITE if speaker == left else quiet
+			second_portrait.visible = not left.is_empty()
 			role_label.text = "日常 · %s   %d / %d" % [Content.SOCIAL[model.social_index].title, model.social_line + 1, lines.size()]
+		else:
+			portrait.texture = _cast_texture(speaker)
+			portrait.modulate = Color.WHITE
 	_refresh()
 
 func _show_salience(_npc: String, transcript: String, errors: Array) -> void:
@@ -536,12 +551,22 @@ func _refresh() -> void:
 			action_row.move_child(counter_button, 2)
 			Palette.primary(record_button)
 	var guidance: Dictionary = model.order_guidance()
+	if not model.practice_word.is_empty():
+		guidance = {"title": "正在练习 · " + model.practice_word,
+			"detail": "听示范 → 录制这个词 → 查看反馈。结束练习后，再与角色交谈。"}
+		role_label.text = "单词练习 · " + model.practice_word
 	order_panel.visible = not guidance.is_empty()
 	order_title.text = str(guidance.get("title", ""))
 	order_detail.text = str(guidance.get("detail", ""))
 	relationship_label.text = "一段日常 · 随时可以离开" if model.social_index >= 0 else ("信任  %s  ·  %d" % [npc.capitalize(), GameState.relationships.get(npc, 0)] if not npc.is_empty() else "休息 · 安顿 · 明天")
+	if is_instance_valid(home_action_button):
+		home_action_button.text = "入睡 · 下一天" if GameState._wants_sleep() else "休息到夜晚"
+		order_panel.visible = true
+		order_title.text = "可以入睡了" if GameState._wants_sleep() else "先歇一会儿"
+		order_detail.text = "睡眠会进入下一天，恢复精力与温暖。" if GameState._wants_sleep() else "休息会快进到夜晚，并少量消耗饱腹、温暖和精力。"
 	if is_instance_valid(record_button):
-		record_button.text = ("结束录音  " if SpeechAdapter.is_recording() else "录音  ") + Glyphs.for_action("push_to_talk", false)
+		var label := "录制这个词  " if not model.practice_word.is_empty() else "录音  "
+		record_button.text = ("结束录音  " if SpeechAdapter.is_recording() else label) + Glyphs.for_action("push_to_talk", false)
 	if is_instance_valid(gesture_button):
 		gesture_button.text = ("手势领取  " if SpeechAdapter.runtime_speech_unavailable() and GameState.can_start_service_dialogue(npc) else "手势  ") + Glyphs.for_action("gesture", false)
 	if modal.visible and modal_kind in ["bag", "counter", "home", "growth"] and not panel_refresh_queued:
@@ -615,13 +640,23 @@ func _refresh_panel() -> void:
 		child.queue_free()
 	match modal_kind:
 		"guide":
-			modal_title.text = "欢迎来到异乡  /  从一句问候开始"
-			_row_label("不必奔跑，也不必急着开口。", 28)
-			_row_label("选一个地点，就能见到在那里生活的人。塔维做热食，奥里卖饮水，维什备着零件，米拉与罗文会记得你。")
-			_row_label("交谈时，点「录音」说话，再点一次结束。没有语音服务时，「手势领取」能得到最低份量。拿到物品后，打开柜台，现场使用或装进行囊。")
-			_row_label("在小剧场听别人怎样表达，到成长页练习新词。阅读与练习不消耗时间；去住处休息，度过三个夜晚。")
-			_row_label("键盘：1–6 切换地点 · E 交谈 · V 录音开关 · G 手势 · B 行囊 · Esc 设置/返回。Tab / 方向键选择按钮，Enter / 手柄 A 确认。", 18, MUTED)
-			_button(modal_body, "开始我的第一天", func(): GameState.presentation_state["guide_seen"] = true; model.save(); _close_panel())
+			modal_title.text = "第一天 / 先吃一顿热饭"
+			_row_label("慢慢来，从一句点餐开始。", 28)
+			_row_label("1  去塔维的餐摊，认识这里的店员。")
+			_row_label("2  点录音说出想吃什么，再点一次结束。不会说时，看看「开口灵感」。")
+			_row_label("3  对方交付后，点柜台领取：现在吃，或装进行囊。")
+			_row_label("阅读不消耗时间。没有语音连接时，可用手势领取。其他操作随时在设置中查看。", 18, MUTED)
+			_button(modal_body, "去餐摊，开始第一天", func():
+				GameState.presentation_state["guide_seen"] = true
+				_close_panel()
+				model.travel("food")
+				model.save())
+		"help":
+			modal_title.text = "操作说明 / 按自己的节奏"
+			_row_label("交谈：点录音说话，再点一次结束。对方说完交付物品后，到柜台领取。")
+			_row_label("成长：听单词示范，再录制这个词；练习结束后，在交谈中使用。小剧场可以逐句重听。")
+			_row_label("住处：白天休息到夜晚，再入睡。阅读和练习不扣需求，旅行与休息会推进时间。")
+			_row_label("键盘：1–6 地点 · E 交谈/打招呼 · V 录音开关 · G 手势 · B 行囊 · Esc 设置/返回。Tab / 方向键选择按钮，Enter / 手柄 A 确认。", 18, MUTED)
 		"bag", "counter", "home": _items_panel()
 		"growth": _growth_panel()
 		"theater":
@@ -701,7 +736,8 @@ func _item_action(action: String, id: String, allow_waste: bool) -> void:
 
 func _growth_panel() -> void:
 	modal_title.text = "成长手记  /  每一句，都算数"
-	_row_label("旅程   %d / 3 夜     ·     词汇阶段   %s" % [mini(GameState.day - 1, 3), Vocabulary.tier], 25)
+	_row_label("旅程   %d / 3 夜     ·     词汇阶段   %s" % [mini(GameState.day - 1, 3), {"infant": "初识", "toddler": "起步", "youth": "日常交流", "professional": "熟练表达"}.get(Vocabulary.tier, "起步")], 25)
+	_row_label("这是当前的词汇起点。听见新词、练习说出，再在交谈中使用，逐步积累自己的词汇。", 18, MUTED)
 	for npc in Content.CAST:
 		_row_label("%s    信任 %d" % [npc.capitalize(), GameState.relationships.get(npc, 0)], 19, ACCENT)
 	for memory in GameState.memories:
@@ -725,7 +761,7 @@ func _settings_panel() -> void:
 	_button(modal_body, "键盘 / 手柄按键设置", func(): _close_panel(); remap.open_panel())
 	_button(modal_body, "保存进度", _save)
 	_button(modal_body, "载入上次存档", _load_game)
-	_button(modal_body, "操作说明", _open_panel.bind("guide"))
+	_button(modal_body, "操作说明", _open_panel.bind("help"))
 	_button(modal_body, "开始新旅程…", _open_panel.bind("restart"))
 	if SpeechAdapter.cloud_mode_enabled():
 		_row_label("云端语音：" + ("已激活" if SpeechAdapter.cloud_activated() else "未激活"), 18, ACCENT)
@@ -754,6 +790,13 @@ func _practice(word: String) -> void:
 	_close_panel()
 	if model.location == "home": model.travel("plaza")
 	model.begin_practice(word)
+	_refresh()
+	record_button.grab_focus()
+
+func _end_practice() -> void:
+	model.cancel_activity()
+	model.start()
+	_toast("练习已结束，可以继续交谈。")
 
 func _save() -> void:
 	_toast("进度已保存。" if model.save() else "保存失败，请检查磁盘空间后重试。")
@@ -783,8 +826,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.is_action_pressed("item_show"): _open_panel("bag")
 		return
 	if event.is_action_pressed("push_to_talk"): model.record()
-	elif event.is_action_pressed("gesture"): model.greet()
-	elif event.is_action_pressed("interact"): model.talk()
+	elif event.is_action_pressed("gesture"):
+		if model.practice_word.is_empty(): model.greet()
+		else: _toast("正在练词；点「结束练习」后再打招呼。")
+	elif event.is_action_pressed("interact"):
+		if model.practice_word.is_empty(): model.talk()
+		else: _toast("正在练词；点「结束练习」后再交谈。")
 	elif event.is_action_pressed("item_show"): _open_panel("bag")
 	elif event is InputEventKey and event.pressed:
 		if event.keycode >= KEY_1 and event.keycode <= KEY_6:

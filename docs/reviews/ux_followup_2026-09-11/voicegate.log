@@ -1,0 +1,45 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+  OK  G1: forage tokens and the reservoir never change resources
+  OK  G3: food reward for score 30.0 is 0 berry/berries
+  OK  G3: below-minimum food request changes no state
+  OK  G3: low-score NPC reply stays inclusive and free
+  OK  G3: failed or sparse requests never harm relationships
+  OK  G3: food reward for score 39.9 is 0 berry/berries
+  OK  G3: below-minimum food request changes no state
+  OK  G3: low-score NPC reply stays inclusive and free
+  OK  G3: failed or sparse requests never harm relationships
+  OK  G3: food reward for score 40.0 is 1 berry/berries
+  OK  FR-44: delivered food does not refill needs before use
+  OK  G3: failed or sparse requests never harm relationships
+  OK  G3: food reward for score 69.9 is 1 berry/berries
+  OK  FR-44: delivered food does not refill needs before use
+  OK  G3: failed or sparse requests never harm relationships
+  OK  G3: food reward for score 70.0 is 2 berry/berries
+  OK  FR-44: delivered food does not refill needs before use
+  OK  G3: failed or sparse requests never harm relationships
+  OK  G3: scrap reward for score 25.0 is 0 part(s)
+  OK  G3: below-minimum scrap request changes no state
+  OK  G3: scrap reward for score 40.0 is 1 part(s)
+  OK  G3: scrap reward for score 70.0 is 2 part(s)
+  OK  G3: below-minimum water request changes no state
+  OK  FR-44: water reward counts actual bottles
+  OK  FR-44: higher score increases bottles, not immediate energy
+  OK  FR-44: water reward counts actual bottles
+  OK  FR-44: higher score increases bottles, not immediate energy
+  OK  G3: unclear optional help costs nothing and keeps the water
+  OK  G3: helping Rowan is optional and does not end the slice
+  OK  G1: Observe/E and a normal gesture cannot bypass the first voiced beat
+  OK  G1: an unclear voice greeting changes no progression state
+  OK  G1: a clear-enough voice greeting advances progression
+  OK  G4: gesture_fallback plus three nights completes the slice without speech
+  OK  G5: a version-1 save is accepted by SAVE_VERSION 2
+  OK  G5: legacy resources survive migration
+  OK  G2: expression_evaluated names the judging NPC
+  OK  G2: pronunciation and delivery both ride the expression result
+  OK  FR-42: food counter is open without a greeting
+  OK  FR-42: convenience store is open on day 1
+  OK  FR-41: mixed session score uses FR-28 bands
+  OK  FR-41: below-band completed talk still grants nothing
+  OK  FR-41: no named confirmed item can never settle
+PASS: Stranger voice-gated reward suite
