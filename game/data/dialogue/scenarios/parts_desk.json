@@ -6,7 +6,7 @@
   "need": "safety",
   "resource": "scrap",
   "entry_dialogue": "What do you need?",
-  "situation": "Vesh staffs a parts desk. The player can ask for alloy parts or a spare blanket. Vesh stays in character and never teaches English.",
+  "situation": "Vesh helps neighbors at the parts desk. Someone may have a cold home, a broken heater, or need an extra blanket for the night. Briefly acknowledge the situation, then help with the listed alloy parts or blanket. Vesh hands over supplies but cannot repair the heater for the player. Do not invent compatibility, technical instructions, stock counts or a lending policy.",
   "inventory": [
     "parts",
     "alloy",
@@ -48,5 +48,9 @@
     "confirm_order",
     "close_transaction"
   ],
-  "completion_speech_acts": ["confirm_order", "close_transaction"]
+  "completion_speech_acts": [
+    "confirm_order",
+    "close_transaction"
+  ],
+  "order_options": []
 }

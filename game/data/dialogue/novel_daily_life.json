@@ -1,0 +1,310 @@
+[
+  {
+    "id": "morning",
+    "title": "早安，睡得好吗",
+    "place": "plaza",
+    "hint": "清早碰见熟人，从昨晚睡得怎样聊起。",
+    "phrase": "Pretty well. How about you?",
+    "words": [
+      "morning",
+      "sleep",
+      "hungry"
+    ],
+    "lines": [
+      [
+        "mira",
+        "novel_morning_01",
+        "Good morning. Did you sleep well?"
+      ],
+      [
+        "tavi",
+        "novel_morning_02",
+        "Pretty well. Are you hungry?"
+      ],
+      [
+        "mira",
+        "novel_morning_03",
+        "A little. I could use some breakfast."
+      ],
+      [
+        "tavi",
+        "novel_morning_04",
+        "Sure. What sounds good?"
+      ]
+    ]
+  },
+  {
+    "id": "takeaway",
+    "title": "打包一份午餐",
+    "place": "food",
+    "hint": "中午赶着回家，点一份具体的食物，再说明带走。",
+    "phrase": "To go, please.",
+    "words": [
+      "burger",
+      "please",
+      "go",
+      "thanks",
+      "food"
+    ],
+    "lines": [
+      [
+        "mira",
+        "novel_takeaway_01",
+        "Can I get a burger, please?"
+      ],
+      [
+        "tavi",
+        "novel_takeaway_02",
+        "Sure. For here or to go?"
+      ],
+      [
+        "mira",
+        "novel_takeaway_03",
+        "To go, please."
+      ],
+      [
+        "tavi",
+        "novel_takeaway_04",
+        "You got it. I'll get your burger."
+      ]
+    ]
+  },
+  {
+    "id": "heater",
+    "title": "小屋里有点冷",
+    "place": "parts",
+    "hint": "和工坊店员说清楚要修什么，而不是只说“给我东西”。",
+    "phrase": "I need a part for my heater.",
+    "words": [
+      "heater",
+      "alloy",
+      "parts"
+    ],
+    "lines": [
+      [
+        "rowan",
+        "novel_heater_01",
+        "My heater isn't working. Do you have alloy parts?"
+      ],
+      [
+        "vesh",
+        "novel_heater_02",
+        "Yeah. I can get you an alloy part."
+      ],
+      [
+        "rowan",
+        "novel_heater_03",
+        "Thanks. I'll try that."
+      ],
+      [
+        "vesh",
+        "novel_heater_04",
+        "Hope it helps."
+      ]
+    ]
+  },
+  {
+    "id": "water",
+    "title": "想买点喝的",
+    "place": "store",
+    "hint": "先问有没有，再从具体饮品里做一个选择。",
+    "phrase": "I'll take a bottle of water.",
+    "words": [
+      "water",
+      "bottle",
+      "thirsty"
+    ],
+    "lines": [
+      [
+        "rowan",
+        "novel_water_01",
+        "I'm thirsty. Do you have bottled water?"
+      ],
+      [
+        "ori",
+        "novel_water_02",
+        "Yeah. Want a bottle?"
+      ],
+      [
+        "rowan",
+        "novel_water_03",
+        "Yes, please. I'll take a bottle of water."
+      ],
+      [
+        "ori",
+        "novel_water_04",
+        "Sure thing. I'll get you the bottled water."
+      ]
+    ]
+  },
+  {
+    "id": "neighbor",
+    "title": "顺路帮个小忙",
+    "place": "neighbor",
+    "hint": "准备去便利店时，问问邻居需不需要带点东西。",
+    "phrase": "Need anything while I’m out?",
+    "words": [
+      "help",
+      "bring",
+      "water"
+    ],
+    "lines": [
+      [
+        "mira",
+        "novel_neighbor_01",
+        "I'm heading to the store. Need anything?"
+      ],
+      [
+        "rowan",
+        "novel_neighbor_02",
+        "Could you bring me some water?"
+      ],
+      [
+        "mira",
+        "novel_neighbor_03",
+        "Of course. Anything else?"
+      ],
+      [
+        "rowan",
+        "novel_neighbor_04",
+        "That's it. Thanks for the help."
+      ]
+    ]
+  },
+  {
+    "id": "choice",
+    "title": "还没想好吃什么",
+    "place": "food",
+    "hint": "不确定吃什么时，可以先问两个选项，再做决定。",
+    "phrase": "I think I'll go with the sandwich.",
+    "words": [
+      "sandwich",
+      "bread",
+      "food"
+    ],
+    "lines": [
+      [
+        "mira",
+        "novel_choice_01",
+        "I'd like some food. Do you have sandwiches?"
+      ],
+      [
+        "tavi",
+        "novel_choice_02",
+        "Yeah, we have sandwiches and bread."
+      ],
+      [
+        "mira",
+        "novel_choice_03",
+        "I'll go with a sandwich, please."
+      ],
+      [
+        "tavi",
+        "novel_choice_04",
+        "Sure thing. I'll get you the sandwich."
+      ]
+    ]
+  },
+  {
+    "id": "batteries",
+    "title": "想起家里缺的东西",
+    "place": "store",
+    "hint": "出门补水，也顺便问问日用品；不编造型号或价格。",
+    "phrase": "Do you carry batteries?",
+    "words": [
+      "batteries",
+      "need",
+      "please"
+    ],
+    "lines": [
+      [
+        "vesh",
+        "novel_batteries_01",
+        "Do you carry batteries?"
+      ],
+      [
+        "ori",
+        "novel_batteries_02",
+        "Yeah. Need some?"
+      ],
+      [
+        "vesh",
+        "novel_batteries_03",
+        "Yes, please."
+      ],
+      [
+        "ori",
+        "novel_batteries_04",
+        "No problem. I'll get you the batteries."
+      ]
+    ]
+  },
+  {
+    "id": "blanket",
+    "title": "借一条毯子",
+    "place": "parts",
+    "hint": "把自己的处境说出来，再提出一个简单的请求。",
+    "phrase": "Could I get an extra blanket?",
+    "words": [
+      "cold",
+      "blanket",
+      "night"
+    ],
+    "lines": [
+      [
+        "rowan",
+        "novel_blanket_01",
+        "It's cold at night. Could I get an extra blanket?"
+      ],
+      [
+        "vesh",
+        "novel_blanket_02",
+        "Sure. I'll get you a blanket."
+      ],
+      [
+        "rowan",
+        "novel_blanket_03",
+        "Thanks. That should help."
+      ],
+      [
+        "vesh",
+        "novel_blanket_04",
+        "Stay warm."
+      ]
+    ]
+  },
+  {
+    "id": "visit",
+    "title": "在门廊坐一会儿",
+    "place": "neighbor",
+    "hint": "没有任务也能聊两句，接受邀请或礼貌地稍后再来。",
+    "phrase": "Maybe later. I need to head home.",
+    "words": [
+      "home",
+      "sit",
+      "later"
+    ],
+    "lines": [
+      [
+        "rowan",
+        "novel_visit_01",
+        "Hey. Want to sit for a bit?"
+      ],
+      [
+        "mira",
+        "novel_visit_02",
+        "Maybe later. I need to head home."
+      ],
+      [
+        "rowan",
+        "novel_visit_03",
+        "No worries. See you around."
+      ],
+      [
+        "mira",
+        "novel_visit_04",
+        "See you tomorrow."
+      ]
+    ]
+  }
+]

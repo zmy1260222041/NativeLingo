@@ -41,7 +41,19 @@ Reference audio for the five intents lives in `reference_audio/` and is the
 same set deployed to the cloud `/game/evaluate` endpoint (FR-29), so dev and
 production score against identical audio.
 
-## NPC voice (FR-32, optional)
+## Current 2D speech backend (FR-46, R-35)
+
+The default is **xAI TTS, US-East (`us-east-1`)**, using the existing server-only `XAI_API_KEY` or `XAI.csv`. All authored lines, word models and dynamic replies use `https://api.x.ai/v1/tts`; 24 kHz mono 16-bit PCM is streamed, then wrapped as valid WAV for playback/cache. The game never receives this credential. Gemini remains the text-only dialogue provider, and local Whisper/SSL-DTW remain the player recognition/scoring path. No player audio is sent to xAI TTS.
+
+`STRANGER_TTS_PROVIDER=qwen` explicitly selects the historical backend described below; there is no automatic Beijing fallback on US TTS errors. The 2D voice cache uses a new namespace so earlier Qwen files cannot mask the change. Voices: Mira/Eve, Tavi/Ara, Ori/Eve, Rowan/Rex, Vesh/Leo.
+
+`GET /health` reports `tts_provider`, `tts_region`, `tts_configured`, and a separate `dialogue_ready`; `GET /health?refresh=1` checks real Gemini generation. A configured key is not treated as successful dialogue. 2D requests include `require_live_dialogue=true`; model failure produces a retriable error, never a scored stub transaction.
+
+`game/run_novel.command` starts this service automatically for local desktop play. `probe_novel_live.py` is an opt-in paid API test: it plays synthetic WAVs through Godot's real recording effect and finish-recording upload path, and checks word acquisition, two-turn dialogue, audible playback completion and usable item rewards. It does not record the user's physical microphone.
+
+Official API contract: [xAI TTS guide](https://docs.x.ai/developers/model-capabilities/audio/text-to-speech), [US-East region](https://docs.x.ai/developers/models/text-to-speech). Read on 2026-09-11; Context7 was unavailable in this session, so official documentation was used directly.
+
+## Legacy Qwen NPC voice (FR-32, optional)
 
 `POST /game/tts` (also `/tts`) synthesises server-known NPC lines with Qwen
 `qwen-audio-3.0-tts-plus` over the dedicated WebSocket inference route
@@ -80,13 +92,30 @@ still returns one JSON object for tests and older clients. Godot then asks
 `/game/tts` for that `reply_id`; free text from the client is rejected.
 
 Set `GEMINI_API_KEY` (or a gitignored `GEMINI.csv` beside this service) to
-send text-only scene cards to Gemini `gemini-3.7-flash` with
-`thinking_level=LOW` over `streamGenerateContent`. Optional
+send text-only scene cards to Gemini `gemini-3.1-flash-lite` with
+`thinking_level=MINIMAL` over `streamGenerateContent`. Optional
 `GEMINI_DIALOGUE_MODEL` overrides the model id. Gemini never receives audio.
-If the first spoken sentence is not ready within about 1s, or the call
-returns 429/503, the same deterministic stub speaks instead of waiting.
-Late Gemini JSON may still fill `player_turn`; the already-spoken stub line
-is not replaced. Without a Gemini key, `XAI_API_KEY` / `XAI.csv` may still
+`GEMINI_PROXY` routes Google traffic: `auto` (default) probes a token-free
+direct GET first and only falls back to the `HTTPS_PROXY` env proxy when the
+machine cannot reach Google natively (several proxy exit regions are rejected
+by Gemini with "User location is not supported"); the winning route is cached
+and re-discovered on the next prewarm once it starts failing. `off` never
+proxies; `on` always honors the env proxy.
+`POST /game/prewarm` runs a token-free GET for the shared Google HTTPS connection,
+a tiny throttled streamed generation for the model data plane, and the TTS
+websocket concurrently. The configured/prewarmed
+live plane races two identical short-window requests (and starts a third only
+after a tail-latency delay); only a safe, request-relevant Gemini utterance can
+win. On a completion turn, a generic first sentence is not committed by itself:
+the service waits within the same short window for at most a second sentence that
+names the concrete inventory item and states the handoff. The online acceptance gate
+requires `speaking.source=gemini`; the deterministic
+stub remains only an outage/offline recovery path. Late Gemini JSON may improve
+idiomaticity, but cannot reverse the already-spoken real-time transaction
+commitment. `transaction_complete=true` additionally requires a completion speech
+act, a non-question handoff phrase, and `requested_item == confirmed_item` (allowing
+declared inventory aliases). Generic category terms are never settlement evidence.
+Without a Gemini key, `XAI_API_KEY` / `XAI.csv` may still
 call grok-4.3. With neither key, the stub completes in-inventory orders and
 refuses off-inventory requests so local tests stay offline.
 

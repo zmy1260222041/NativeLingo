@@ -78,6 +78,8 @@ func begin_generation(npc_id: String, transcript: String) -> bool:
 	if not has_dynamic_session(key):
 		return false
 	var session: Dictionary = sessions[key]
+	if str(session.get("state", "")) not in ["awaiting_player", "awaiting_follow_up", "clarify"]:
+		return false
 	var history: Array = session.get("history", [])
 	history.append({"role": "player", "text": transcript.strip_edges()})
 	if history.size() > 8:

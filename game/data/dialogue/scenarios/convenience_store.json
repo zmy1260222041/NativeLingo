@@ -6,7 +6,7 @@
   "need": "water",
   "resource": "water",
   "entry_dialogue": "Hey. You finding everything okay?",
-  "situation": "Ori is the cashier at a small American convenience store. The player can buy bottled water or other counter items. Ori stays in character and never teaches English.",
+  "situation": "Ori works the neighborhood convenience store. People stop in for a drink, a snack, or batteries they forgot to pick up. Respond to the practical need they mention. An availability question can be answered before asking whether they want that specific item; do not treat browsing as a completed sale. Do not invent battery sizes, prices or shelf locations.",
   "inventory": [
     "water",
     "bottle of water",
@@ -53,5 +53,9 @@
     "confirm_order",
     "close_transaction"
   ],
-  "completion_speech_acts": ["confirm_order", "close_transaction"]
+  "completion_speech_acts": [
+    "confirm_order",
+    "close_transaction"
+  ],
+  "order_options": []
 }

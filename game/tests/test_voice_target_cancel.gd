@@ -51,8 +51,11 @@ func _test_dynamic_dialogue_cancel(player: PlayerController) -> void:
 		return
 	NpcDialogueService.cancel()
 	_expect(NpcDialogueService.begin_scenario("tavi", "food_counter"), "Dynamic session starts for range cancellation")
+	# Dialogue generation deliberately freezes interaction time. Range checks
+	# must still cancel the request so walking away can never settle a purchase.
+	GameState.set_interaction_time_frozen(true)
 	_leave_target(player, tavi)
-	_expect(not NpcDialogueService.has_active_session(), "Leaving Tavi cancels the dynamic dialogue session")
+	_expect(not NpcDialogueService.has_active_session() and not GameState.interaction_time_frozen, "Leaving Tavi cancels frozen dynamic dialogue and unfreezes time")
 
 func _leave_target(player: PlayerController, target: Node3D) -> void:
 	player.nearby_target = target

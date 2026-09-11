@@ -46,6 +46,9 @@ def gemini_json_lines(payload: dict) -> list[bytes]:
 
 class DialogueAssetTest(unittest.TestCase):
     def setUp(self):
+        provider = mock.patch.object(server, "TTS_PROVIDER", "qwen")
+        provider.start()
+        self.addCleanup(provider.stop)
         self.env_patch = mock.patch.dict(
             server.os.environ,
             {"XAI_API_KEY": "", "GEMINI_API_KEY": "", "GOOGLE_API_KEY": ""},
@@ -168,6 +171,210 @@ class DialogueAssetTest(unittest.TestCase):
         self.assertTrue(heater["player_turn"]["off_inventory"])
         self.assertNotEqual(heater["next_state"], "closed")
 
+    def test_inventory_matching_does_not_accept_substrings(self):
+        scenario = server._DIALOGUE_SCENARIOS["food_counter"]
+        self.assertFalse(server._transcript_hits_inventory(scenario, "Can I get seafood, please?"))
+        reply = server.generate_dialogue_reply({
+            "npc_id": "tavi",
+            "scenario_id": "food_counter",
+            "transcript": "Can I get seafood, please?",
+            "history": [],
+        })
+        self.assertFalse(reply["player_turn"]["transaction_complete"])
+        self.assertTrue(reply["player_turn"]["off_inventory"])
+
+    def test_short_orders_and_spoken_promises_agree_in_the_stream(self):
+        # Reproduce the live log: 'give me a sandwich okay' was incorrectly
+        # offer_choice even though the model had already promised the sandwich.
+        for transcript in ("Give me a sandwich okay", "Sandwich.", "A sandwich, please.", "I'd like a sandwich", "I need a sandwich"):
+            with self.subTest(transcript=transcript):
+                with mock.patch.object(server, "_gemini_api_key", return_value="fixture"), mock.patch.object(server, "_race_gemini_first", return_value=("Sure thing, I'll get that sandwich for you.", None)):
+                    events = list(server.iter_dialogue_events({"npc_id": "tavi", "scenario_id": "food_counter", "transcript": transcript, "history": [], "require_live_dialogue": True}))
+                speaking = events[0]["data"]
+                score = next(event["data"] for event in events if event["event"] == "score")
+                self.assertEqual(speaking["speech_act"], "confirm_order")
+                self.assertTrue(score["player_turn"]["transaction_complete"])
+                self.assertEqual(score["player_turn"]["confirmed_item"], "sandwich")
+                self.assertEqual(score["next_state"], "closed")
+
+    def test_browsing_refusal_and_unresolved_choices_cannot_order(self):
+        scenario = server._DIALOGUE_SCENARIOS["food_counter"]
+        history = [{"role": "player", "text": "I want a burger"}, {"role": "npc", "text": "For here or to go?"}]
+        for transcript in ("I don't want a burger", "No burger please", "Cancel my burger", "Do you have a burger?", "How much is a burger?", "Burger or sandwich?", "If I wanted a burger", "I ate a burger today", "no", "no thanks"):
+            with self.subTest(transcript=transcript):
+                self.assertFalse(server._is_order_request(scenario, transcript, history))
+                turn = server._normalise_player_turn({"transaction_complete": True, "idiomaticity": 90}, transcript, scenario, history, "Sure thing, I'll get your burger.", "confirm_order")
+                self.assertFalse(turn["transaction_complete"])
+        self.assertTrue(server._is_order_request(scenario, "For here please", history))
+        browsing = [{"role": "player", "text": "Do you have a burger?"}]
+        self.assertFalse(server._is_order_request(scenario, "yes", browsing))
+
+    def test_natural_requests_distinguish_named_off_inventory_from_missing_reference(self):
+        scenario = server._DIALOGUE_SCENARIOS["convenience_store"]
+        for transcript in ("Do you sell phone chargers?", "I'm looking for a flashlight."):
+            turn = server._normalise_player_turn(
+                {"idiomaticity": 80, "transaction_complete": False, "off_inventory": False},
+                transcript,
+                scenario,
+                [],
+            )
+            self.assertTrue(turn["off_inventory"], transcript)
+        unresolved = server._normalise_player_turn(
+            {"idiomaticity": 80, "transaction_complete": False, "off_inventory": False},
+            "Could I get one, please?",
+            scenario,
+            [],
+        )
+        self.assertFalse(unresolved["off_inventory"])
+
+    def test_borrow_request_completes_but_location_question_does_not(self):
+        parts = server._DIALOGUE_SCENARIOS["parts_desk"]
+        blanket = server._stub_dialogue({
+            "transcript": "Any chance I could borrow an extra blanket?",
+            "history": [],
+        }, parts)
+        self.assertTrue(blanket["player_turn"]["transaction_complete"])
+        store = server._DIALOGUE_SCENARIOS["convenience_store"]
+        location = server._stub_dialogue({
+            "transcript": "Hey, where can I find the batteries?",
+            "history": [],
+        }, store)
+        self.assertFalse(location["player_turn"]["transaction_complete"])
+        self.assertEqual(location["speech_act"], "answer_service_question")
+        body = {"transcript": "Hey, where can I find the batteries?"}
+        self.assertFalse(server._model_text_fits_request(body, store, "Sure thing."))
+        self.assertTrue(server._model_text_fits_request(body, store, "I can point those out for you."))
+
+    def test_generic_category_requires_a_specific_item_before_completion(self):
+        scenario = server._DIALOGUE_SCENARIOS["food_counter"]
+        stub = server._stub_dialogue({
+            "transcript": "Can I have some food, please?",
+            "history": [],
+        }, scenario)
+        self.assertFalse(stub["player_turn"]["transaction_complete"])
+        self.assertEqual(stub["speech_act"], "clarify_request")
+        self.assertIn("specifically", stub["text"].lower())
+
+    def test_completion_requires_spoken_item_and_handoff_commitment(self):
+        scenario = server._DIALOGUE_SCENARIOS["convenience_store"]
+        raw = {
+            "idiomaticity": 90,
+            "progress": "done",
+            "transaction_complete": True,
+            "off_inventory": False,
+        }
+        generic = server._normalise_player_turn(
+            raw, "Can I get a bottle of water?", scenario, [], "Sure thing.", "confirm_order"
+        )
+        pronoun_only = server._normalise_player_turn(
+            raw, "Can I get some chips?", scenario, [], "Sure, I've got those.", "confirm_order"
+        )
+        substring_only = server._normalise_player_turn(
+            raw, "Can I get some chips?", scenario, [], "I forgot it, chips.", "confirm_order"
+        )
+        explicit = server._normalise_player_turn(
+            raw,
+            "Can I get a bottle of water?",
+            scenario,
+            [],
+            "You got it. I'll get you the water now.",
+            "confirm_order",
+        )
+        self.assertFalse(generic["transaction_complete"])
+        self.assertEqual(generic["transaction_evidence_reason"], "spoken_item_missing_or_different")
+        self.assertFalse(pronoun_only["transaction_complete"])
+        self.assertFalse(substring_only["transaction_complete"])
+        self.assertTrue(explicit["transaction_complete"])
+        self.assertTrue(explicit["spoken_delivery_confirmed"])
+        self.assertEqual(explicit["requested_item"], "bottle of water")
+        self.assertEqual(explicit["confirmed_item"], "water")
+
+    def test_question_cannot_complete_even_when_it_mentions_the_item(self):
+        scenario = server._DIALOGUE_SCENARIOS["food_counter"]
+        turn = server._normalise_player_turn(
+            {"idiomaticity": 90, "transaction_complete": True, "off_inventory": False},
+            "Can I get a burger?",
+            scenario,
+            [],
+            "Sure thing, do you want the burger for here or to go?",
+            "confirm_order",
+        )
+        self.assertFalse(turn["transaction_complete"])
+        self.assertEqual(turn["transaction_evidence_reason"], "spoken_reply_is_question")
+
+    def test_model_complete_flag_is_downgraded_when_spoken_line_is_generic(self):
+        lines = gemini_json_lines({
+            "candidates": [{"content": {"parts": [{"text": json.dumps({
+                "text": "Sure thing.",
+                "speech_act": "confirm_order",
+                "emotion": "neutral",
+                "next_state": "closed",
+                "player_turn": {
+                    "idiomaticity": 90,
+                    "progress": "done",
+                    "transaction_complete": True,
+                    "off_inventory": False,
+                },
+            })}]}}],
+        })
+        with mock.patch.dict(server.os.environ, {"GEMINI_API_KEY": "AIza-test-not-real-key-value"}, clear=False):
+            with mock.patch.object(server, "_gemini_post_stream", new=gemini_stream_factory(lines)):
+                reply = server.generate_dialogue_reply({
+                    "npc_id": "ori",
+                    "scenario_id": "convenience_store",
+                    "transcript": "Can I get a bottle of water?",
+                    "history": [],
+                })
+        self.assertEqual(reply["text"], "Sure thing.")
+        self.assertFalse(reply["player_turn"]["transaction_complete"])
+        self.assertFalse(reply["player_turn"]["spoken_delivery_confirmed"])
+        self.assertEqual(reply["next_state"], "awaiting_follow_up")
+        self.assertEqual(reply["speech_act"], "acknowledge_need")
+
+    def test_stub_keeps_service_context_across_turns(self):
+        first = server.generate_dialogue_reply({
+            "npc_id": "tavi",
+            "scenario_id": "food_counter",
+            "transcript": "Burger.",
+            "history": [],
+        })
+        self.assertEqual(first["text"], "You got it. I'll get you the burger now.")
+        self.assertTrue(first["player_turn"]["transaction_complete"])
+        second = server.generate_dialogue_reply({
+            "npc_id": "tavi",
+            "scenario_id": "food_counter",
+            "transcript": "To go, please.",
+            "history": [
+                {"role": "player", "text": "Burger."},
+                {"role": "npc", "text": first["text"]},
+            ],
+        })
+        self.assertTrue(second["player_turn"]["transaction_complete"])
+        self.assertEqual(second["next_state"], "closed")
+
+    def test_stub_sse_keeps_the_complete_service_question(self):
+        events = list(server.iter_dialogue_events({
+            "npc_id": "tavi",
+            "scenario_id": "food_counter",
+            "transcript": "Do you have a burger?",
+            "history": [],
+        }))
+        speaking = events[0]["data"]
+        score = next(item["data"] for item in events if item["event"] == "score")
+        self.assertEqual(speaking["text"], "Sure. For here or to go?")
+        self.assertEqual(score["next_state"], "awaiting_follow_up")
+
+    def test_idiomaticity_accepts_numeric_strings_and_null(self):
+        scenario = server._DIALOGUE_SCENARIOS["food_counter"]
+        string_turn = server._normalise_player_turn(
+            {"idiomaticity": "0.91"}, "Burger.", scenario, []
+        )
+        null_turn = server._normalise_player_turn(
+            {"idiomaticity": None}, "Burger.", scenario, []
+        )
+        self.assertEqual(string_turn["idiomaticity"], 91.0)
+        self.assertEqual(null_turn["idiomaticity"], 0.0)
+
     def test_irrelevant_transcript_is_rejected_before_generation(self):
         with self.assertRaisesRegex(ValueError, "irrelevant transcript"):
             server.generate_dialogue_reply({
@@ -188,6 +395,8 @@ class DialogueAssetTest(unittest.TestCase):
             "To go, please.",
             scenario,
             history,
+            "Sure thing. I'll get you the coffee now.",
+            "confirm_order",
         )
         self.assertFalse(turn["off_inventory"])
         self.assertTrue(turn["transaction_complete"])
@@ -212,6 +421,16 @@ class DialogueAssetTest(unittest.TestCase):
         gate = server._dialogue_gate(scenario, "Your pronunciation score is 80. Repeat after me.", "confirm_order")
         self.assertFalse(gate["accepted"])
         self.assertIn("teacher_talk", gate["violations"])
+        gate = server._dialogue_gate(scenario, "Sure thing, that'll be two bucks.", "confirm_order")
+        self.assertFalse(gate["accepted"])
+        self.assertIn("invented_price", gate["violations"])
+        self.assertEqual(server._sanitize_model_text(scenario, "Sure thing, that'll be two bucks."), "Sure thing.")
+        gate = server._dialogue_gate(scenario, "They're right behind me on the shelf.", "answer_service_question")
+        self.assertIn("invented_item_location", gate["violations"])
+        self.assertEqual(server._sanitize_model_text(scenario, "The batteries are on the shelf."), "")
+        gate = server._dialogue_gate(scenario, "Yeah, I've got one right here.", "confirm_order")
+        self.assertIn("invented_stock_quantity", gate["violations"])
+        self.assertEqual(server._sanitize_model_text(scenario, "Yeah, I've got one right here."), "Yeah.")
 
     def test_dynamic_tts_never_accepts_an_unknown_reply_id(self):
         with self.assertRaises(KeyError):
@@ -247,7 +466,7 @@ class DialogueAssetTest(unittest.TestCase):
                         "choices": [{
                             "message": {
                                 "content": json.dumps({
-                                    "text": "You got it.",
+                                    "text": "You got it. I'll get you the burger now.",
                                     "speech_act": "confirm_order",
                                     "emotion": "neutral",
                                     "next_state": "closed",
@@ -287,7 +506,7 @@ class DialogueAssetTest(unittest.TestCase):
         self.assertEqual(reply["source"], "grok")
         self.assertEqual(reply["model"], "grok-4.3")
 
-    def test_gemini_payload_is_text_only_and_pins_low_thinking(self):
+    def test_gemini_payload_is_text_only_and_pins_minimal_thinking(self):
         captured = {}
         lines = gemini_json_lines({
             "candidates": [{
@@ -319,24 +538,26 @@ class DialogueAssetTest(unittest.TestCase):
                     "history": [],
                     "game_context": {"pronunciation": 80},
                 })
-        self.assertIn("gemini-3.7-flash:streamGenerateContent", captured["url"])
+        self.assertIn("gemini-3.1-flash-lite:streamGenerateContent", captured["url"])
         self.assertEqual(captured["timeout"], server._gemini_socket_timeout())
-        # G3: the payload pins a low-or-lower thinking level. gemini-3.7-flash
-        # rejects "minimal"/"none" (400) and ignores thinkingBudget=0, so LOW is
-        # the accepted floor; the env override stays available for future models.
+        # G3: the live plane uses Flash-Lite's lowest-latency thinking level;
+        # the env override remains available for compatible future models.
         thinking_level = captured["body"]["generationConfig"]["thinkingConfig"]["thinkingLevel"]
         self.assertEqual(thinking_level, server._gemini_thinking_level())
-        self.assertIn(thinking_level, {"none", "minimal", "LOW"})
-        self.assertEqual(server._gemini_thinking_level(), "LOW")
+        self.assertIn(thinking_level.upper(), {"NONE", "MINIMAL", "LOW"})
+        self.assertEqual(server._gemini_thinking_level(), "MINIMAL")
         self.assertNotIn("responseMimeType", captured["body"]["generationConfig"])
         payload = json.dumps(captured["body"])
         self.assertNotIn("wav", payload.lower())
         self.assertNotIn("audio", payload.lower())
         self.assertNotIn("base64", payload.lower())
         self.assertIn("burger", payload)
+        system_prompt = captured["body"]["systemInstruction"]["parts"][0]["text"]
+        self.assertIn("Never invent a price", system_prompt)
+        self.assertIn("American contractions", system_prompt)
         self.assertTrue(reply["player_turn"]["transaction_complete"])
         self.assertEqual(reply["source"], "gemini")
-        self.assertEqual(reply["model"], "gemini-3.7-flash")
+        self.assertEqual(reply["model"], "gemini-3.1-flash-lite")
         self.assertEqual(reply["session"]["running_score"], 87.0)
 
     def test_gemini_thinking_level_follows_env_override(self):
@@ -524,12 +745,141 @@ class DialogueAssetTest(unittest.TestCase):
         speaking = events[0]["data"]
         score = next(item["data"] for item in events if item["event"] == "score")
         self.assertEqual(speaking["source"], "stub")
-        self.assertEqual(speaking["text"], "You got it.")
+        self.assertEqual(speaking["text"], "You got it. I'll get you the burger now.")
         self.assertTrue(score["player_turn"]["transaction_complete"])
         self.assertGreaterEqual(score["player_turn"]["idiomaticity"], 90)
 
+    def test_late_work_plane_cannot_reverse_the_spoken_commitment(self):
+        parsed_json = json.dumps({
+            "text": "Here you go.",
+            "speech_act": "close_transaction",
+            "emotion": "neutral",
+            "next_state": "closed",
+            "player_turn": {
+                "idiomaticity": 91,
+                "progress": "done",
+                "transaction_complete": True,
+                "off_inventory": False,
+            },
+        })
+        lines = gemini_json_lines({"candidates": [{"content": {"parts": [{"text": parsed_json}]}}]})
+        with mock.patch.dict(
+            server.os.environ,
+            {"GEMINI_API_KEY": "AIza-test-not-real-key-value", "GEMINI_SPEAK_SECONDS": "0.05"},
+            clear=False,
+        ):
+            with mock.patch.object(server, "_gemini_post_stream", new=gemini_stream_factory(lines, delay=0.12)):
+                events = list(server.iter_dialogue_events({
+                    "npc_id": "tavi",
+                    "scenario_id": "food_counter",
+                    "transcript": "Do you have a burger?",
+                    "history": [],
+                }))
+        speaking = events[0]["data"]
+        score = next(item["data"] for item in events if item["event"] == "score")
+        self.assertEqual(speaking["source"], "stub")
+        self.assertEqual(speaking["text"], "Sure. For here or to go?")
+        self.assertFalse(score["player_turn"]["transaction_complete"])
+        self.assertEqual(score["next_state"], "awaiting_follow_up")
+        self.assertEqual(score["player_turn"]["idiomaticity"], 91.0)
+
+    def test_gemini_tail_latency_hedge_uses_the_first_model_sentence(self):
+        slow = {"partial": "", "parsed": None, "done": False, "thread": mock.Mock()}
+        fast = {"partial": "Got it, one burger to go.", "parsed": None, "done": True, "thread": mock.Mock()}
+        with mock.patch.object(server, "_gemini_live", side_effect=[slow, fast]) as launch:
+            first, winner = server._race_gemini_first({}, {}, {}, 0.8)
+        self.assertEqual(first, "Got it, one burger to go.")
+        self.assertIs(winner, fast)
+        self.assertEqual(launch.call_count, 2)
+
+    def test_live_plane_uses_later_safe_model_sentence(self):
+        scenario = server._DIALOGUE_SCENARIOS["food_counter"]
+        state = {
+            "partial": "They're right behind me. Do you want me to point them out for you?",
+            "parsed": None,
+            "done": False,
+        }
+        first = server._live_safe_sentence(
+            state,
+            {"transcript": "Where can I find the sandwiches?"},
+            scenario,
+        )
+        self.assertEqual(first, "Do you want me to point them out for you?")
+
+    def test_completion_live_plane_waits_for_named_second_sentence(self):
+        scenario = server._DIALOGUE_SCENARIOS["food_counter"]
+        body = {
+            "transcript": "I'll take a taco to go, please.",
+            "history": [],
+        }
+        first_only = {
+            "partial": "Coming right up.",
+            "parsed": None,
+            "done": False,
+        }
+        complete = {
+            "partial": "Coming right up. I'll get that taco for you.",
+            "parsed": None,
+            "done": False,
+        }
+        self.assertEqual(
+            server._live_safe_sentence(first_only, body, scenario, True, "confirm_order"),
+            "",
+        )
+        self.assertEqual(
+            server._live_safe_sentence(complete, body, scenario, True, "confirm_order"),
+            "Coming right up. I'll get that taco for you.",
+        )
+
+    def test_live_plane_does_not_speak_incomplete_partial(self):
+        scenario = server._DIALOGUE_SCENARIOS["food_counter"]
+        state = {"partial": "We don", "parsed": None, "done": False}
+        self.assertEqual(
+            server._live_safe_sentence(
+                state,
+                {"transcript": "Do you sell phone chargers?"},
+                scenario,
+            ),
+            "",
+        )
+
+    def test_v_prewarm_uses_the_shared_session_without_model_tokens(self):
+        response = mock.Mock(status_code=200, url="https://generativelanguage.googleapis.com/v1beta/models/test")
+        session = mock.Mock()
+        session.get.return_value = response
+        with mock.patch.dict(server.os.environ, {"GEMINI_API_KEY": "AIza-test-not-real-key-value"}, clear=False):
+            with mock.patch.object(server, "_gemini_session", return_value=session):
+                self.assertTrue(server._prewarm_gemini_session("test", 1.0))
+        requested_url = session.get.call_args.args[0]
+        self.assertIn("/v1beta/models/gemini-3.1-flash-lite", requested_url)
+        self.assertNotIn("generateContent", requested_url)
+        response.close.assert_called_once()
+
+    def test_model_data_plane_prewarm_is_tiny_and_throttled(self):
+        lines = gemini_json_lines({
+            "candidates": [{"content": {"parts": [{"text": "Ready now."}]}}],
+        })
+        captured = {}
+        server._GEMINI_DATA_PLANE_LAST = 0.0
+        with mock.patch.dict(
+            server.os.environ,
+            {"GEMINI_API_KEY": "AIza-test-not-real-key-value"},
+            clear=False,
+        ):
+            with mock.patch.object(
+                server,
+                "_gemini_post_stream",
+                new=gemini_stream_factory(lines, captured=captured),
+            ) as post:
+                self.assertTrue(server._prewarm_gemini_data_plane("test", 1.0))
+                self.assertTrue(server._prewarm_gemini_data_plane("test", 1.0))
+        self.assertEqual(captured["body"]["generationConfig"]["maxOutputTokens"], 16)
+        self.assertEqual(captured["body"]["generationConfig"]["thinkingConfig"]["thinkingLevel"], "MINIMAL")
+        server._GEMINI_DATA_PLANE_LAST = 0.0
+
     def test_gemini_stream_can_speak_before_full_json(self):
-        spoken = "One coffee to go.\n\n" + json.dumps({
+        spoken_line = "Sure thing, one coffee to go."
+        spoken = spoken_line + "\n\n" + json.dumps({
             "speech_act": "close_transaction",
             "emotion": "neutral",
             "next_state": "closed",
@@ -540,7 +890,7 @@ class DialogueAssetTest(unittest.TestCase):
                 "off_inventory": False,
             },
         })
-        first_event = f"data: {json.dumps({'candidates': [{'content': {'parts': [{'text': 'One coffee to go.'}]}}]})}\n".encode()
+        first_event = f"data: {json.dumps({'candidates': [{'content': {'parts': [{'text': spoken_line}]}}]})}\n".encode()
         rest_event = f"data: {json.dumps({'candidates': [{'content': {'parts': [{'text': spoken}]}}]})}\n".encode()
 
         with mock.patch.dict(server.os.environ, {"GEMINI_API_KEY": "AIza-test-not-real-key-value"}, clear=False):
@@ -669,6 +1019,172 @@ class DialogueAssetTest(unittest.TestCase):
         self.assertEqual(kinds[-1], "done")
         failed = next(item["data"] for item in events if item["event"] == "audio_failed")
         self.assertEqual(failed["reason"], "VOICE_REASON_SERVICE_UNAVAILABLE")
+
+
+    def test_player_level_travels_to_scene_card_and_prompt(self):
+        scenario = server._DIALOGUE_SCENARIOS["food_counter"]
+        profile = server._DIALOGUE_PROFILES["tavi"]
+        card = server._scene_card(scenario, profile, "toddler")
+        self.assertEqual(card.get("player_level"), "toddler")
+        self.assertIn("beginner English learner", server._dialogue_system_prompt("toddler"))
+        # G-A2: professional and missing tiers stay byte-identical to the base.
+        base = server._dialogue_system_prompt()
+        self.assertEqual(server._dialogue_system_prompt("professional"), base)
+        self.assertEqual(server._dialogue_system_prompt("nonsense"), base)
+        self.assertNotIn("player_level", server._scene_card(scenario, profile))
+        self.assertNotIn("player_level", server._scene_card(scenario, profile, "professional"))
+
+    def test_player_level_is_read_from_game_context_only(self):
+        self.assertEqual(
+            server._player_level_from_body({"game_context": {"player_level": "Toddler"}}),
+            "toddler",
+        )
+        self.assertEqual(server._player_level_from_body({"game_context": {"player_level": "alien"}}), "")
+        self.assertEqual(server._player_level_from_body({}), "")
+
+    def test_error_spans_must_be_exact_substrings_of_the_transcript(self):
+        spans = server._validated_error_spans(
+            ["burger", "a burger please now okay", "espresso", "burger", 7],
+            "I want burger, please.",
+            62.0,
+        )
+        self.assertEqual(spans, ["burger"])
+        five_words = server._validated_error_spans(
+            ["one two three four five"], "one two three four five", 40.0
+        )
+        self.assertEqual(five_words, [])
+        rewritten = server._validated_error_spans(["can i get a burger"], "i want burger", 55.0)
+        self.assertEqual(rewritten, [])
+
+    def test_error_spans_capped_and_gated_by_idiomaticity(self):
+        raw = ["want", "please", "more"]
+        self.assertEqual(
+            server._validated_error_spans(raw, "I want more, please?", 84.0),
+            ["want", "please"],
+        )
+        self.assertEqual(server._validated_error_spans(raw, "I want more, please?", 85.0), [])
+        self.assertEqual(server._validated_error_spans(None, "I want burger", 10.0), [])
+
+    def test_normalised_player_turn_carries_validated_errors(self):
+        scenario = server._DIALOGUE_SCENARIOS["food_counter"]
+        turn = server._normalise_player_turn(
+            {"idiomaticity": 62, "errors": ["burger", "not in transcript"]},
+            "I want burger, please.",
+            scenario,
+        )
+        self.assertEqual(turn["errors"], ["burger"])
+        clean = server._normalise_player_turn(
+            {"idiomaticity": 92, "errors": ["burger"]},
+            "Can I get a burger?",
+            scenario,
+        )
+        self.assertEqual(clean["errors"], [])
+
+    def test_stub_player_turn_carries_no_error_marks(self):
+        reply = server.generate_dialogue_reply({
+            "npc_id": "tavi",
+            "scenario_id": "food_counter",
+            "transcript": "Burger.",
+            "history": [],
+            "game_context": {"player_level": "toddler"},
+        })
+        self.assertEqual(reply["player_turn"]["errors"], [])
+
+
+class GeminiRouteTest(unittest.TestCase):
+    """GEMINI_PROXY switch: direct first, env proxy only as a fallback."""
+
+    def setUp(self):
+        readiness = mock.patch.dict(server._GEMINI_READINESS, {"ready": False, "reason": "not_checked"})
+        readiness.start()
+        self.addCleanup(readiness.stop)
+        server._GEMINI_ROUTE["mode"] = ""
+        server._GEMINI_SESSIONS.clear()
+
+    def _sessions(self, direct_get, proxy_get):
+        direct = mock.Mock(name="direct-session")
+        proxy = mock.Mock(name="proxy-session")
+        if isinstance(direct_get, BaseException):
+            direct.get.side_effect = direct_get
+        else:
+            direct.get.return_value = direct_get
+        if isinstance(proxy_get, BaseException):
+            proxy.get.side_effect = proxy_get
+        else:
+            proxy.get.return_value = proxy_get
+        table = {"direct": direct, "proxy": proxy}
+        return direct, proxy, mock.Mock(side_effect=lambda route="": table.get(route, proxy))
+
+    @staticmethod
+    def _ok():
+        return mock.Mock(status_code=200, url="https://generativelanguage.googleapis.com/v1beta/models/x")
+
+    @staticmethod
+    def _region_blocked():
+        response = mock.Mock(status_code=400, url="https://generativelanguage.googleapis.com/v1beta/models/x")
+        response.text = "User location is not supported for the API use."
+        return response
+
+    def test_direct_session_ignores_env_proxy(self):
+        if server.requests is None:  # pragma: no cover - deployment without requests
+            self.skipTest("requests unavailable")
+        session = server._gemini_session("direct")
+        self.assertIsNotNone(session)
+        self.assertFalse(session.trust_env)
+        self.assertTrue(server._gemini_session("proxy").trust_env)
+
+    def test_auto_prefers_direct_when_native_get_works(self):
+        direct, proxy, session_factory = self._sessions(self._ok(), self._region_blocked())
+        with mock.patch.dict(server.os.environ, {"GEMINI_API_KEY": "AIza-test-not-real-key-value"}, clear=False):
+            with mock.patch.object(server, "_gemini_session", side_effect=session_factory):
+                self.assertTrue(server._prewarm_gemini_session("test", 1.0))
+        direct.get.assert_called_once()
+        proxy.get.assert_not_called()
+        self.assertEqual(server._GEMINI_ROUTE["mode"], "direct")
+
+    def test_auto_falls_back_to_proxy_when_direct_fails(self):
+        direct, proxy, session_factory = self._sessions(OSError("connection refused"), self._ok())
+        with mock.patch.dict(server.os.environ, {"GEMINI_API_KEY": "AIza-test-not-real-key-value"}, clear=False):
+            with mock.patch.object(server, "_gemini_session", side_effect=session_factory):
+                self.assertTrue(server._prewarm_gemini_session("test", 1.0))
+        direct.get.assert_called_once()
+        proxy.get.assert_called_once()
+        self.assertEqual(server._GEMINI_ROUTE["mode"], "proxy")
+        self.assertEqual(server._GEMINI_READINESS["reason"], "generation_not_checked")
+
+    def test_off_policy_never_uses_the_proxy_route(self):
+        direct, proxy, session_factory = self._sessions(OSError("connection refused"), self._ok())
+        env = {"GEMINI_API_KEY": "AIza-test-not-real-key-value", "GEMINI_PROXY": "off"}
+        with mock.patch.dict(server.os.environ, env, clear=False):
+            with mock.patch.object(server, "_gemini_session", side_effect=session_factory):
+                self.assertFalse(server._prewarm_gemini_session("test", 1.0))
+        proxy.get.assert_not_called()
+        self.assertEqual(server._GEMINI_ROUTE["mode"], "direct")
+
+    def test_on_policy_pins_the_proxy_route(self):
+        direct, proxy, session_factory = self._sessions(self._ok(), self._ok())
+        env = {"GEMINI_API_KEY": "AIza-test-not-real-key-value", "GEMINI_PROXY": "on"}
+        with mock.patch.dict(server.os.environ, env, clear=False):
+            with mock.patch.object(server, "_gemini_session", side_effect=session_factory):
+                self.assertTrue(server._prewarm_gemini_session("test", 1.0))
+        direct.get.assert_not_called()
+        proxy.get.assert_called_once()
+        self.assertEqual(server._GEMINI_ROUTE["mode"], "proxy")
+
+    def test_failed_cached_route_is_rediscovered(self):
+        server._GEMINI_ROUTE["mode"] = "proxy"
+        direct, proxy, session_factory = self._sessions(self._ok(), self._region_blocked())
+        with mock.patch.dict(server.os.environ, {"GEMINI_API_KEY": "AIza-test-not-real-key-value"}, clear=False):
+            with mock.patch.object(server, "_gemini_session", side_effect=session_factory):
+                self.assertTrue(server._prewarm_gemini_session("test", 1.0))
+        self.assertEqual(server._GEMINI_ROUTE["mode"], "direct")
+
+    def test_both_routes_down_reports_region_reason(self):
+        direct, proxy, session_factory = self._sessions(self._region_blocked(), self._region_blocked())
+        with mock.patch.dict(server.os.environ, {"GEMINI_API_KEY": "AIza-test-not-real-key-value"}, clear=False):
+            with mock.patch.object(server, "_gemini_session", side_effect=session_factory):
+                self.assertFalse(server._prewarm_gemini_session("test", 1.0))
+        self.assertEqual(server._GEMINI_READINESS["reason"], "region_unsupported")
 
 
 class DialogueHttpTest(unittest.TestCase):

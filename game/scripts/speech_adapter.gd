@@ -28,6 +28,15 @@ const LOCAL_WORD_SCORE_URL := "http://127.0.0.1:17831/score_word"
 const CLOUD_REGISTER_PATH := "/register"
 const CLOUD_TOKEN_PATH := "user://stranger_cloud.cfg"
 const CLOUD_DEVICE_PATH := "user://stranger_device.cfg"
+const RUNTIME_UNAVAILABLE_REASONS := [
+	"VOICE_REASON_MIC_UNAVAILABLE",
+	"VOICE_REASON_SERVICE_UNAVAILABLE",
+	"VOICE_REASON_SAVE_FAILED",
+	"VOICE_REASON_READ_FAILED",
+	"VOICE_REASON_RESULT_INVALID",
+	"VOICE_REASON_CLOUD_NOT_ACTIVATED",
+	"VOICE_REASON_CLOUD_UNAUTHORIZED",
+]
 
 var record_effect: AudioEffectRecord
 var microphone_player: AudioStreamPlayer
@@ -75,15 +84,15 @@ func runtime_speech_unavailable() -> bool:
 		return true
 	if cloud_mode_enabled() and cloud_token().is_empty():
 		return true
-	return last_unavailable_reason in [
-		"VOICE_REASON_MIC_UNAVAILABLE",
-		"VOICE_REASON_SERVICE_UNAVAILABLE",
-		"VOICE_REASON_SAVE_FAILED",
-		"VOICE_REASON_READ_FAILED",
-		"VOICE_REASON_RESULT_INVALID",
-		"VOICE_REASON_CLOUD_NOT_ACTIVATED",
-		"VOICE_REASON_CLOUD_UNAUTHORIZED",
-	]
+	return last_unavailable_reason in RUNTIME_UNAVAILABLE_REASONS
+
+
+func mark_runtime_unavailable(reason: String) -> void:
+	## Dialogue and TTS are downstream of transcription but share the same
+	## survival fallback contract. A partial outage must therefore make G use
+	## gesture_fallback just like a transcription outage does.
+	if reason in RUNTIME_UNAVAILABLE_REASONS:
+		last_unavailable_reason = reason
 
 func _ready() -> void:
 	if not is_available():
@@ -602,8 +611,7 @@ func _extract_expression(parsed: Dictionary) -> Dictionary:
 func _emit_failure(target_id: String, generation: int, reason: String) -> void:
 	if generation != session_generation:
 		return
-	if reason in ["VOICE_REASON_MIC_UNAVAILABLE", "VOICE_REASON_SERVICE_UNAVAILABLE", "VOICE_REASON_SAVE_FAILED", "VOICE_REASON_READ_FAILED", "VOICE_REASON_RESULT_INVALID", "VOICE_REASON_CLOUD_NOT_ACTIVATED", "VOICE_REASON_CLOUD_UNAUTHORIZED"]:
-		last_unavailable_reason = reason
+	mark_runtime_unavailable(reason)
 	recovery_active = true
 	recovery_target_id = target_id
 	recognition_finished.emit(target_id, false, "", reason, {})

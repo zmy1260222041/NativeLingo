@@ -22,6 +22,7 @@ import contextlib
 import csv
 import hashlib
 import json
+import io
 import math
 import os
 import queue
@@ -312,6 +313,7 @@ INTENTS = {
 NPC_LINES = {
     "mira": {
         "word_practice_ask": "",
+        "word_practice_model": "",
         "greeting": "Hey, little one. Come to the market. No need to be afraid.",
         "greet_reply": "Welcome, stranger.",
         "clarify": "Sorry? Say it again, little one.",
@@ -319,13 +321,16 @@ NPC_LINES = {
         "hint_heat": "Nights get cold. Vesh keeps the old alloy. Ask him in English.",
         "hint_rowan": "Rowan needs water today. Ask Ori for a canteen first.",
         "remembers": "You came yesterday. The stall still keeps your place.",
+        "social_ask_food": "Can I have some food, please?",
         "social_greeting": "Good morning. Did you sleep well?",
         "social_reply_food": "Of course. Take two portions.",
     },
     "rowan": {
         "word_practice_ask": "",
+        "word_practice_model": "",
         "greeting": "You look tired. Find water and warmth first.",
         "clarify": "Hmm? What do you need?",
+        "social_ask_water": "I need a canteen of water.",
         "needs_water": "I cannot walk that far. Ask Ori for water first.",
         "remembers": "You brought water. I will not forget.",
         "thanks": "You came back. Thank you.",
@@ -334,35 +339,49 @@ NPC_LINES = {
     },
     "tavi": {
         "word_practice_ask": "",
+        "word_practice_model": "",
         "greeting": "Hungry? Tell me once you are settled.",
         "clarify": "Sorry? I did not hear you. Try again.",
         "hint_food": "I can share food. Tell me in English.",
         "settled": "You have enough fruit. Go rest.",
         "reward": "Here you go. Eat well, little one.",
+        "service_entry": "Hey. What can I get you?",
+        "social_reply_food": "Of course. Take two portions.",
         "social_reply_greeting": "I slept. Are you hungry?",
         "social_ask_food": "Can I have some food, please?",
     },
     "vesh": {
         "word_practice_ask": "",
+        "word_practice_model": "",
         "greeting": "Cold nights are coming. Ask me for alloy parts.",
         "clarify": "Sorry? Say it once more.",
         "hint_scrap": "The heater needs alloy parts. Ask me in English.",
         "settled": "You have the parts. Go to the furnace.",
         "reward": "Here are the alloy parts.",
+        "service_entry": "What do you need?",
         "social_ask_scrap": "The heater needs two alloy parts. Do you have any?",
     },
     "ori": {
         "word_practice_ask": "",
+        "word_practice_model": "",
         "greeting": "I keep the water. Ask me when you need it.",
         "clarify": "Hmm? Say it again, please.",
         "hint_water": "I keep the reservoir. Ask me for water in English.",
         "settled": "The water is already with you. Go to Rowan.",
         "reward": "Here is your canteen of water.",
+        "service_entry": "Hey. You finding everything okay?",
+        "social_reply_water": "The cooler is right here.",
         "social_reply_scrap": "I have one. Ask Tavi for the other.",
         "social_ask_water": "I need a canteen of water.",
         "social_reply_help": "I will ask the little one to help.",
     },
 }
+
+# FR-47: shared 2D scenes own both the visible line and its server-known TTS ID.
+NOVEL_DAILY_LIFE = json.loads((DIALOGUE_ROOT / "novel_daily_life.json").read_text(encoding="utf-8"))
+for _scene in NOVEL_DAILY_LIFE:
+    for _npc, _line_id, _line_text in _scene["lines"]:
+        NPC_LINES[_npc][_line_id] = _line_text
 
 QWEN_TTS_MODEL = os.environ.get("QWEN_TTS_MODEL", "qwen-audio-3.0-tts-plus")
 QWEN_TTS_VOICE = os.environ.get("QWEN_TTS_VOICE", "")
@@ -380,6 +399,79 @@ NPC_TTS_VOICES = {
     "rowan": "longanlufeng",
     "vesh": "longanlufeng",
 }
+# FR-46: the default voice backend is the US-East xAI TTS API.
+TTS_PROVIDER = os.environ.get("STRANGER_TTS_PROVIDER", "xai").strip().lower()
+if TTS_PROVIDER not in {"xai", "qwen"}:
+    raise ValueError("STRANGER_TTS_PROVIDER must be xai or qwen")
+if TTS_PROVIDER == "xai":
+    NPC_TTS_VOICES = {"mira": "eve", "tavi": "ara", "ori": "eve", "rowan": "rex", "vesh": "leo"}
+    QWEN_TTS_VOICE = ""  # A legacy override must never select an invalid US voice.
+_XAI_TTS_SESSION = None
+_XAI_TTS_LOCK = threading.Lock()
+
+
+def _tts_configured() -> bool:
+    return bool(_xai_api_key()) if TTS_PROVIDER == "xai" else bool(QWEN_TTS_API_KEY)
+
+
+def _xai_tts_session():
+    global _XAI_TTS_SESSION
+    with _XAI_TTS_LOCK:
+        if _XAI_TTS_SESSION is None:
+            if requests is None:
+                raise RuntimeError("requests is required for US TTS")
+            _XAI_TTS_SESSION = requests.Session()
+        return _XAI_TTS_SESSION
+
+
+def _xai_tts_pcm(text: str, voice: str):
+    """US-East REST streaming, raw 24 kHz signed little-endian PCM; no audio uploads."""
+    key = _xai_api_key()
+    if not key:
+        raise RuntimeError("US TTS credential unavailable")
+    started = time.perf_counter()
+    with _xai_tts_session().post(
+        "https://api.x.ai/v1/tts",
+        headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"},
+        json={"text": text, "voice_id": voice, "language": "en", "output_format": {"codec": "pcm", "sample_rate": 24000}},
+        stream=True, timeout=(3.0, 10.0), allow_redirects=False,
+    ) as response:
+        if response.status_code != 200 or "audio/pcm" not in response.headers.get("Content-Type", ""):
+            raise RuntimeError("US TTS rejected request: HTTP " + str(response.status_code))
+        total = 0
+        pending = b""
+        for chunk in response.iter_content(chunk_size=8192):
+            pending += chunk
+            size = len(pending) - len(pending) % 2
+            if not size:
+                continue
+            total += size
+            if total > _TTS_MAX_BYTES:
+                raise RuntimeError("US TTS exceeded audio limit")
+            if total == size:
+                _log_stage("tts_first", int((time.perf_counter() - started) * 1000), provider="xai", region="us-east-1", voice=voice)
+            yield pending[:size]
+            pending = pending[size:]
+        if pending or total < 32:
+            raise RuntimeError("US TTS returned incomplete PCM")
+
+
+def _pcm_to_wav(pcm: bytes) -> bytes:
+    buffer = io.BytesIO()
+    with wave.open(buffer, "wb") as output:
+        output.setnchannels(1)
+        output.setsampwidth(2)
+        output.setframerate(24000)
+        output.writeframes(pcm)
+    return buffer.getvalue()
+
+
+def _synthesize_speech(text: str, voice: str) -> bytes:
+    if TTS_PROVIDER == "xai":
+        return _pcm_to_wav(b"".join(_xai_tts_pcm(text, voice)))
+    return _dashscope_speech(text, voice)
+
+
 _TTS_CACHE: dict[str, bytes] = {}
 _TTS_CACHE_LOCK = threading.Lock()
 _TTS_FETCH_LOCKS: dict[str, threading.Lock] = {}
@@ -555,8 +647,14 @@ def _tts_pool():
 
 
 def _prewarm_tts_pool() -> bool:
-    if not QWEN_TTS_API_KEY:
+    if not _tts_configured():
         return False
+    if TTS_PROVIDER == "xai":
+        try:
+            with _xai_tts_session().get("https://api.x.ai/v1/tts/voices", headers={"Authorization": "Bearer " + _xai_api_key()}, timeout=4.0, allow_redirects=False) as response:
+                return response.status_code == 200
+        except Exception:
+            return False
     try:
         from dashscope.audio.tts_v2 import AudioFormat
         voice = QWEN_TTS_VOICE or next(iter(NPC_TTS_VOICES.values()), "")
@@ -585,14 +683,42 @@ _TEACHING_MARKERS = (
 )
 _REQUEST_PHRASES = (
     "can i get",
+    "can i grab",
     "could i have",
+    "could i get",
+    "may i have",
     "i'll take",
+    "i'll have",
+    "i'll grab",
     "i will take",
+    "i would like",
+    "i'd like",
     "i want",
     "i need",
+    "give me",
+    "get me",
+    "can i have",
+    "i'm looking for",
+    "i am looking for",
+    "can i borrow",
+    "could i borrow",
+    "may i borrow",
+    "any chance i could",
     "do you have",
+    "do you sell",
+    "have you got",
+    "you got",
     "where is",
+    "where can i find",
+    "where do i find",
+    "which aisle",
     "please",
+)
+_LOCATION_REQUEST_PHRASES = (
+    "where is",
+    "where can i find",
+    "where do i find",
+    "which aisle",
 )
 _FOLLOW_UP_PHRASES = (
     "to go",
@@ -607,24 +733,57 @@ _FOLLOW_UP_PHRASES = (
     "yes",
     "no",
 )
+_DELIVERY_CONFIRMATION_PHRASES = (
+    "sure thing",
+    "you got it",
+    "got it",
+    "here you go",
+    "here's your",
+    "here is your",
+    "coming right up",
+    "i'll get",
+    "i will get",
+    "i can get",
+    "i'll grab",
+    "i will grab",
+    "i can grab",
+    "i'll give",
+    "i will give",
+    "i can give",
+    "i'll hand",
+    "i will hand",
+    "i can hand",
+    "i'll bring",
+    "i will bring",
+    "i can bring",
+    "i'll lend",
+    "i will lend",
+    "i can lend",
+)
 
 
 _XAI_DIALOGUE_MODEL = "grok-4.3"
 _GROK_TIMEOUT_SECONDS = 1.0
 _GROK_REASONING_EFFORT = "none"
-_GEMINI_DIALOGUE_MODEL = "gemini-3.7-flash"
+_GEMINI_DIALOGUE_MODEL = "gemini-3.1-flash-lite"
 ## Module-level defaults stay mutable: tests pin them directly. The adaptive
 ## helpers below override them from rolling P90 samples unless the operator
 ## pins GEMINI_SPEAK_SECONDS / GEMINI_TIMEOUT_SECONDS.
 _GEMINI_TIMEOUT_SECONDS = 3.0
-_GEMINI_SPEAK_SECONDS = 1.6
-## gemini-3.7-flash rejects "minimal"/"none" (400) and ignores thinkingBudget=0
-## (thought counts stay ~100+), so LOW is the accepted floor. The env override
-## exists so a future model can drop the level without a code change.
-_GEMINI_THINKING_LEVEL = "LOW"
-_GEMINI_SPEAK_WINDOW_MIN = 1.6
-_GEMINI_SPEAK_WINDOW_MAX = 2.6
+_GEMINI_SPEAK_SECONDS = 1.9
+## This is a short, in-character service exchange rather than a reasoning task.
+## Flash-Lite supports MINIMAL and gives the live plane a substantially lower
+## time-to-first-sentence than 3.7 Flash/LOW. Keep the env override so operators
+## can pin another compatible model without changing the client contract.
+_GEMINI_THINKING_LEVEL = "MINIMAL"
+_GEMINI_SPEAK_WINDOW_MIN = 1.9
+_GEMINI_SPEAK_WINDOW_MAX = 2.1
 _GEMINI_SPEAK_WINDOW_MARGIN = 0.35
+## Tail-latency hedge: two warm requests start together so one stalled
+## proxy/upstream connection cannot force a stub. A third starts only if both
+## miss the short delay. All candidates use the same model/text-only contract.
+_GEMINI_HEDGE_MAX = 3
+_GEMINI_HEDGE_DELAY = 0.35
 _GEMINI_TIMEOUT_FLOOR = 3.0
 _GEMINI_TIMEOUT_CEIL = 6.0
 _GEMINI_TIMEOUT_MARGIN = 2.0
@@ -733,15 +892,66 @@ def _dialogue_reasoning_effort(model_name: str) -> str | None:
     return None
 
 
-def _dialogue_system_prompt() -> str:
-    return (
+## FR-45: the only vocabulary signal that leaves the device is the tier enum.
+## infant/toddler/youth add a phrasing clause; professional and missing levels
+## keep the prompt byte-identical to the pre-FR-45 contract.
+_VALID_PLAYER_LEVELS = {"infant", "toddler", "youth", "professional"}
+_PLAYER_LEVEL_CLAUSES = {
+    "infant": (
+        "The player is a beginner English learner (CEFR A1). Use only the most "
+        "common everyday words and very short simple sentences. At most one word "
+        "in your reply may be new to the player."
+    ),
+    "toddler": (
+        "The player is a beginner English learner (CEFR A1-A2). Use only very "
+        "common everyday words and short simple sentences. At most one word in "
+        "your reply may be new to the player."
+    ),
+    "youth": (
+        "The player is an intermediate English learner (CEFR B1). Keep sentences "
+        "short and everyday, with at most two newer words."
+    ),
+}
+
+
+def _player_level_from_body(body: dict) -> str:
+    context = body.get("game_context", {})
+    if not isinstance(context, dict):
+        return ""
+    level = str(context.get("player_level", "")).strip().lower()
+    return level if level in _VALID_PLAYER_LEVELS else ""
+
+
+def _dialogue_system_prompt(player_level: str = "") -> str:
+    base = (
         "You are one American service worker in a spoken language-learning game. "
         "Stay in character. Use natural everyday American English. "
         "Reply in at most two short sentences and 30 words. "
+        "Respond to the player's situation before asking for the next detail. "
+        "Use the supplied recent conversation: do not repeat answered questions "
+        "or greet again mid-order. Ask at most one practical question per turn. "
+        "If the player is undecided, offer at most two concrete inventory choices. "
+        "Brief small talk is welcome, but never turn it into a lesson or assume "
+        "a purchase. A question about availability or a recommendation alone is "
+        "not permission to hand over an item. Do not invent ingredients, dietary "
+        "suitability, sizes, customization, payment steps, or a past relationship. "
         "Never teach English, never correct grammar, never mention scores, "
         "lessons, or that you are an AI. Sell or help only with inventory "
         "and can_do. If the player asks for something off inventory, refuse "
-        "in character and do not complete the transaction. "
+        "in character and do not complete the transaction. Never invent a "
+        "price, brand, quantity on hand, wait time, discount, or store policy "
+        "that is not explicitly present in the scene card. Prefer short, "
+        "conversational American contractions and ordinary clerk phrasing. "
+        "Do not say an unprovided shelf or item position such as 'behind me' "
+        "or 'right here', and do not say an on-hand count such as 'I've got "
+        "one'; you may repeat a quantity the player explicitly requested. For "
+        "a find request without a mapped position, offer to point the item out. "
+        "Never close a transaction with a generic acknowledgement. Before you "
+        "set transaction_complete true, your spoken reply must explicitly name "
+        "the specific requested inventory item and clearly say you will get, "
+        "give, hand, bring, or lend it to the player (or confirm it with a phrase "
+        "such as 'Sure thing' or 'coming right up'). A question or a generic "
+        "category such as food, snack, or parts is not a completed handoff. "
         "Score the player's latest utterance for how idiomatic it is in this "
         "exact situation from 0 to 100. "
         "Write the spoken NPC reply first as one plain-text line (at most two "
@@ -749,13 +959,37 @@ def _dialogue_system_prompt() -> str:
         "emotion, next_state, and player_turn. Do not wrap the spoken line in "
         "JSON. If you must return JSON only, put the spoken reply in text. "
         "player_turn must include idiomaticity, progress, transaction_complete, "
-        "and off_inventory. next_state must be awaiting_player, "
+        "off_inventory, and errors. errors lists at most two exact substrings "
+        "copied verbatim from the player's utterance that contain a grammar or "
+        "word-choice problem, each at most four words long. Copy the player's "
+        "own words exactly; never rewrite or correct them. Use an empty list "
+        "when the utterance is natural or the idiomaticity score is 85 or "
+        "higher. Never mention errors or any correction in the spoken reply. "
+        "next_state must be awaiting_player, "
         "awaiting_follow_up, or closed. "
         "Set transaction_complete true only when you would actually hand over "
-        "the item. After the player names an in-inventory item, you may ask "
-        "here or to go once. When they answer, hand it over, do not upsell, "
-        "and set transaction_complete true and next_state closed."
+        "the item. Inventory entries are complete items in this game: batteries "
+        "is one selectable item, not an unspecified size. The only purchase "
+        "options you may ask about are those in scene.order_options. If it is "
+        "empty, do not ask about size, type, brand, ingredients, payment, or any "
+        "other extra requirement; when the player requests a named item, hand "
+        "it over. Never force a player to answer an option the game cannot use. "
+        "Ask 'for here or to go' only if that detail is absent from "
+        "both the latest utterance and the history. If service_context contains "
+        "fulfillment_already_stated, do not ask it again. A request such as "
+        "'a sandwich to go, please' already answers that question: name and "
+        "hand over the sandwich, with no follow-up question, no upsell, "
+        "transaction_complete true and next_state closed. When response_mode is "
+        "handoff_without_follow_up_question, give one short declarative reply "
+        "naming that item and committing to hand it over. Do not ask anything "
+        "else, including 'Anything else?' or 'Is that all?'. Use confirm_order, "
+        "transaction_complete true and next_state closed. The player can start "
+        "a new order if they need something else."
     )
+    clause = _PLAYER_LEVEL_CLAUSES.get(player_level, "")
+    if clause:
+        return base + " " + clause
+    return base
 
 
 def _looks_like_xai_key(value: str) -> bool:
@@ -862,15 +1096,134 @@ def _inventory_terms(scenario: dict) -> list[str]:
     return terms
 
 
+def _generic_inventory_terms(scenario: dict) -> set[str]:
+    return {
+        normalise(str(raw)).lower()
+        for raw in scenario.get("generic_inventory_terms") or []
+        if normalise(str(raw))
+    }
+
+
+def _matched_inventory_terms(scenario: dict, text: str, specific_only: bool = False) -> list[str]:
+    clean = normalise(text).lower()
+    generic = _generic_inventory_terms(scenario)
+    matches = [
+        term
+        for term in _inventory_terms(scenario)
+        if (not specific_only or term not in generic) and accept_pattern(term).search(clean)
+    ]
+    return sorted(matches, key=lambda term: (-len(term.split()), -len(term), term))
+
+
+def _requested_inventory_term(scenario: dict, transcript: str, history: list | None = None) -> str:
+    current = _matched_inventory_terms(scenario, transcript, specific_only=True)
+    if current:
+        return current[0]
+    for turn in reversed(history or []):
+        if not isinstance(turn, dict) or str(turn.get("role", "")) != "player":
+            continue
+        matches = _matched_inventory_terms(scenario, str(turn.get("text", "")), specific_only=True)
+        if matches:
+            return matches[0]
+    return ""
+
+
+def _term_keywords(term: str) -> set[str]:
+    stop = {"a", "an", "the", "of", "to", "some"}
+    words: set[str] = set()
+    for token in re.findall(r"[a-z]+", normalise(term).lower()):
+        if token in stop:
+            continue
+        words.add(token[:-1] if token.endswith("s") and len(token) > 3 else token)
+    return words
+
+
+def _inventory_terms_related(requested: str, spoken: str) -> bool:
+    left = re.sub(r"[^a-z0-9]", "", requested.lower())
+    right = re.sub(r"[^a-z0-9]", "", spoken.lower())
+    if left and right and (left in right or right in left):
+        return True
+    return bool(_term_keywords(requested) & _term_keywords(spoken))
+
+
+def _spoken_transaction_evidence(
+    scenario: dict,
+    transcript: str,
+    history: list | None,
+    spoken_text: str,
+    speech_act: str,
+) -> dict:
+    requested = _requested_inventory_term(scenario, transcript, history)
+    clean = normalise(spoken_text)
+    spoken_candidates = _matched_inventory_terms(scenario, clean, specific_only=True)
+    spoken_item = next(
+        (term for term in spoken_candidates if requested and _inventory_terms_related(requested, term)),
+        "",
+    )
+    lowered = clean.lower()
+    commitment = next(
+        (phrase for phrase in _DELIVERY_CONFIRMATION_PHRASES if accept_pattern(phrase).search(lowered)),
+        "",
+    )
+    completion_act = speech_act in (scenario.get("completion_speech_acts") or [])
+    question = "?" in clean
+    confirmed = bool(requested and spoken_item and commitment and completion_act and not question)
+    reason = "confirmed"
+    if not requested:
+        reason = "no_specific_requested_item"
+    elif not spoken_item:
+        reason = "spoken_item_missing_or_different"
+    elif not commitment:
+        reason = "handoff_commitment_missing"
+    elif not completion_act:
+        reason = "speech_act_not_completion"
+    elif question:
+        reason = "spoken_reply_is_question"
+    return {
+        "confirmed": confirmed,
+        "requested_item": requested,
+        "confirmed_item": spoken_item if confirmed else "",
+        "commitment": commitment,
+        "reason": reason,
+    }
+
+
 def _transcript_hits_inventory(scenario: dict, transcript: str) -> bool:
     text = normalise(transcript).lower()
-    return any(term in text for term in _inventory_terms(scenario))
+    return any(accept_pattern(term).search(text) for term in _inventory_terms(scenario))
+
+
+def _scenario_request_phrases(scenario: dict) -> tuple[str, ...]:
+    cues = tuple(normalise(str(item)).lower() for item in scenario.get("request_cues") or [])
+    return tuple(phrase for phrase in (*_REQUEST_PHRASES, *cues) if phrase)
 
 
 def _has_request_phrase(transcript: str, scenario: dict) -> bool:
     text = normalise(transcript).lower()
-    cues = [normalise(str(item)).lower() for item in scenario.get("request_cues") or []]
-    return any(phrase in text for phrase in (*_REQUEST_PHRASES, *cues) if phrase)
+    return any(accept_pattern(phrase).search(text) for phrase in _scenario_request_phrases(scenario))
+
+
+def _is_location_request(transcript: str) -> bool:
+    text = normalise(transcript).lower()
+    return any(accept_pattern(phrase).search(text) for phrase in _LOCATION_REQUEST_PHRASES)
+
+
+def _is_unresolved_reference_request(transcript: str, scenario: dict) -> bool:
+    """True for requests such as "Could I get one, please?".
+
+    These need a clarifying question; they are not evidence that the player
+    requested an off-inventory product. Natural named requests retain at least
+    one non-filler token after their request phrase is removed.
+    """
+    remainder = normalise(transcript).lower()
+    for phrase in sorted(_scenario_request_phrases(scenario), key=len, reverse=True):
+        remainder = accept_pattern(phrase).sub(" ", remainder)
+    tokens = re.findall(r"[a-z]+", remainder)
+    fillers = {
+        "a", "an", "the", "one", "it", "that", "this", "some", "something", "anything",
+        "please", "thanks", "thank", "you", "me", "hey", "hi", "there",
+    }
+    return not tokens or all(token in fillers for token in tokens)
 
 
 def _dialogue_transcript_relevant(scenario: dict, transcript: str, history: list) -> bool:
@@ -902,18 +1255,102 @@ def _contains_teaching_talk(text: str) -> bool:
     return any(marker in lowered for marker in _TEACHING_MARKERS)
 
 
-def _scene_card(scenario: dict, profile: dict) -> dict:
-    return {
+_PRICE_CLAIM_PATTERN = re.compile(
+    r"(?:\$\s*\d|\b(?:\d+(?:\.\d+)?|zero|one|two|three|four|five|six|seven|eight|nine|ten)\s+"
+    r"(?:bucks?|dollars?|cents?)\b|\b(?:costs?|priced? at)\b)",
+    re.IGNORECASE,
+)
+_STOCK_COUNT_CLAIM_PATTERN = re.compile(
+    r"\b(?:i|we)(?:'ve| have)\s+got\s+(?:a\s+(?:couple|few)|one|two|three|\d+)\b",
+    re.IGNORECASE,
+)
+_ITEM_LOCATION_CLAIM_PATTERN = re.compile(
+    r"\b(?:right\s+(?:behind\s+me|here|over\s+there)|behind\s+me|back\s+here|"
+    r"on\s+(?:the\s+)?shelf|aisle\s+[a-z0-9]+)\b",
+    re.IGNORECASE,
+)
+
+
+def _contains_unsupported_price(scenario: dict, text: str) -> bool:
+    return not bool(scenario.get("prices")) and bool(_PRICE_CLAIM_PATTERN.search(normalise(text)))
+
+
+def _contains_unsupported_stock_count(scenario: dict, text: str) -> bool:
+    return not bool(scenario.get("stock_counts")) and bool(_STOCK_COUNT_CLAIM_PATTERN.search(normalise(text)))
+
+
+def _contains_unsupported_item_location(scenario: dict, text: str) -> bool:
+    return not bool(scenario.get("item_locations")) and bool(_ITEM_LOCATION_CLAIM_PATTERN.search(normalise(text)))
+
+
+def _sanitize_model_text(scenario: dict, text: str) -> str:
+    """Keep a model-authored safe prefix before an unsupported store fact."""
+    clean = normalise(text)
+    matches = []
+    if not scenario.get("prices"):
+        matches.append(_PRICE_CLAIM_PATTERN.search(clean))
+    if not scenario.get("stock_counts"):
+        matches.append(_STOCK_COUNT_CLAIM_PATTERN.search(clean))
+    if not scenario.get("item_locations"):
+        matches.append(_ITEM_LOCATION_CLAIM_PATTERN.search(clean))
+    valid_matches = [match for match in matches if match is not None]
+    if not valid_matches:
+        return clean
+    match = min(valid_matches, key=lambda item: item.start())
+    prefix = clean[:match.start()].rstrip(" ,;:-")
+    # A comma often separates a valid acknowledgement from the unsupported
+    # price: "Sure thing, that'll be two bucks." Keep only that model-authored
+    # acknowledgement and make it a complete spoken sentence.
+    comma = prefix.rfind(",")
+    if comma >= 0:
+        prefix = prefix[:comma].rstrip()
+    elif re.search(
+        r"\b(?:be|is|are|was|were|costs?|at|on|over|located|only|they're|they\s+are|it's|it\s+is)$",
+        prefix,
+        re.IGNORECASE,
+    ):
+        return ""
+    sentence = max(prefix.rfind("."), prefix.rfind("!"), prefix.rfind("?"))
+    if sentence >= 0:
+        prefix = prefix[:sentence + 1].strip()
+    if prefix and prefix[-1] not in ".!?":
+        prefix += "."
+    return normalise(prefix)
+
+
+def _model_text_fits_request(body: dict, scenario: dict, text: str) -> bool:
+    safe = _sanitize_model_text(scenario, text)
+    if not safe:
+        return False
+    transcript = normalise(str(body.get("transcript", "")))
+    if _is_location_request(transcript):
+        lowered = safe.lower()
+        return any(
+            phrase in lowered
+            for phrase in ("point", "show you", "help you find", "grab", "get that for you", "take you")
+        )
+    return True
+
+
+def _scene_card(scenario: dict, profile: dict, player_level: str = "") -> dict:
+    card = {
         "npc_id": profile.get("npc_id", ""),
         "occupation": profile.get("occupation", ""),
         "persona": profile.get("persona", ""),
         "location": scenario.get("location", ""),
         "role": scenario.get("role", ""),
+        "situation": scenario.get("situation", ""),
+        "order_options": list(scenario.get("order_options") or []),
         "inventory": list(scenario.get("inventory") or []),
         "can_do": list(scenario.get("can_do") or []),
         "cannot_do": list(scenario.get("cannot_do") or []),
         "allowed_speech_acts": list(scenario.get("allowed_speech_acts") or []),
     }
+    # Only tiers with a phrasing clause change the LLM payload at all, so a
+    # professional-tier or old-client request stays byte-identical (G-A2).
+    if _PLAYER_LEVEL_CLAUSES.get(player_level, ""):
+        card["player_level"] = player_level
+    return card
 
 
 def _dialogue_gate(scenario: dict, text: str, speech_act: str) -> dict:
@@ -930,6 +1367,12 @@ def _dialogue_gate(scenario: dict, text: str, speech_act: str) -> dict:
         violations.append("speech_act_not_allowed")
     if _contains_teaching_talk(clean):
         violations.append("teacher_talk")
+    if _contains_unsupported_price(scenario, clean):
+        violations.append("invented_price")
+    if _contains_unsupported_stock_count(scenario, clean):
+        violations.append("invented_stock_quantity")
+    if _contains_unsupported_item_location(scenario, clean):
+        violations.append("invented_item_location")
     lowered = clean.lower()
     for marker in ["ignore previous", "system message", "as an ai", "```", "http://", "https://"]:
         if marker in lowered:
@@ -951,7 +1394,47 @@ def _history_hits_inventory(scenario: dict, history: list) -> bool:
 
 def _is_service_follow_up(transcript: str) -> bool:
     text = normalise(transcript).lower()
-    return any(phrase in text for phrase in _FOLLOW_UP_PHRASES)
+    return any(accept_pattern(phrase).search(text) for phrase in _FOLLOW_UP_PHRASES)
+
+
+def _is_order_request(scenario: dict, transcript: str, history: list | None = None) -> bool:
+    """A named request or an elliptical counter answer, never a magic sentence.
+
+    This only classifies intent. The committed NPC audio must still name the
+    requested item and promise delivery before the client can settle anything.
+    """
+    text = normalise(transcript).lower().replace("’", "'")
+    if _is_location_request(text):
+        return False
+    if re.search(r"\b(?:not|don't|do not|never|cancel|without|if|whether|or)\b", text):
+        return False
+    if re.search(r"\b(?:do you (?:have|sell|carry)|have you got|how much|what|recommend|see|know|about|like eating)\b", text):
+        return False
+    current = _matched_inventory_terms(scenario, text, specific_only=True)
+    if current:
+        # Several aliases for one item are fine; unresolved choices are not.
+        if any(not _inventory_terms_related(current[0], item) for item in current[1:]):
+            return False
+        if re.search(r"\bno\b", text):
+            return False
+        if _has_request_phrase(text, scenario):
+            return True
+        remainder = text
+        for item in current:
+            remainder = accept_pattern(item).sub(" ", remainder)
+        words = re.findall(r"[a-z]+", remainder)
+        fillers = {"a", "an", "the", "some", "one", "two", "please", "thanks", "thank", "you", "okay", "ok", "then", "just", "actually", "instead", "for", "me", "to", "go", "here", "uh", "um"}
+        return all(word in fillers for word in words)
+    # An answer only refers to a previous genuine order, not any old noun in
+    # conversation history. A bare 'no' cancels rather than silently ordering.
+    if text.strip(" .!?") in {"no", "no thanks", "no thank you"}:
+        return False
+    if not _is_service_follow_up(text):
+        return False
+    for turn in reversed(history or []):
+        if turn.get("role") == "player" and _matched_inventory_terms(scenario, str(turn.get("text", "")), specific_only=True):
+            return _is_order_request(scenario, str(turn["text"]))
+    return False
 
 
 def _is_backchannel(transcript: str) -> bool:
@@ -963,46 +1446,111 @@ def _is_backchannel(transcript: str) -> bool:
     return len(text.split()) <= 2 and text in _BACKCHANNEL_PHRASES
 
 
-def _normalise_player_turn(raw: object, transcript: str, scenario: dict, history: list | None = None) -> dict:
+def _validated_error_spans(raw: object, transcript: str, idiomaticity: float) -> list[str]:
+    ## FR-45 salience marks: exact substrings of what the player actually said.
+    ## Model-rewritten or hallucinated spans are dropped, and high-scoring
+    ## turns carry no marks at all.
+    if idiomaticity >= 85.0 or not isinstance(raw, list):
+        return []
+    lowered = normalise(transcript).lower()
+    spans: list[str] = []
+    for item in raw:
+        if len(spans) >= 2:
+            break
+        if not isinstance(item, str):
+            continue
+        span = item.strip().strip('"').strip()
+        if not span or len(span) > 40 or len(span.split()) > 4:
+            continue
+        if span.lower() not in lowered:
+            continue
+        if any(span.lower() == seen.lower() for seen in spans):
+            continue
+        spans.append(span)
+    return spans
+
+
+def _normalise_player_turn(
+    raw: object,
+    transcript: str,
+    scenario: dict,
+    history: list | None = None,
+    spoken_text: str = "",
+    speech_act: str = "",
+) -> dict:
     data = raw if isinstance(raw, dict) else {}
     history = history or []
     current_hit = _transcript_hits_inventory(scenario, transcript)
-    known_item = current_hit or _history_hits_inventory(scenario, history)
+    requested_item = _requested_inventory_term(scenario, transcript, history)
+    known_item = bool(requested_item)
     follow_up = _is_service_follow_up(transcript)
-    asked_new_item = _has_request_phrase(transcript, scenario) and not current_hit and not follow_up
+    asked_new_item = (
+        _has_request_phrase(transcript, scenario)
+        and not current_hit
+        and not follow_up
+        and not _is_unresolved_reference_request(transcript, scenario)
+    )
     off_inventory = bool(data.get("off_inventory", False))
     if asked_new_item:
         off_inventory = True
     if current_hit or (known_item and follow_up):
         off_inventory = False
+    evidence = _spoken_transaction_evidence(scenario, transcript, history, spoken_text, speech_act)
     complete = (
         bool(data.get("transaction_complete", False))
+        and _is_order_request(scenario, transcript, history)
         and not off_inventory
         and known_item
         and not asked_new_item
+        and not _is_location_request(transcript)
         and not (_is_backchannel(transcript) and not known_item)
+        and bool(evidence["confirmed"])
     )
-    idiomaticity = data.get("idiomaticity", 50)
+    idiomaticity = _safe_gate_score(data.get("idiomaticity", 50))
     if idiomaticity <= 1:
-        idiomaticity = float(idiomaticity) * 100.0
+        idiomaticity *= 100.0
     return {
         "idiomaticity": _safe_idiomaticity(idiomaticity),
+        "errors": _validated_error_spans(data.get("errors"), transcript, idiomaticity),
         "progress": str(data.get("progress", "ordering")).strip() or "ordering",
         "transaction_complete": complete,
         "off_inventory": off_inventory,
+        "spoken_delivery_confirmed": bool(evidence["confirmed"]),
+        "requested_item": requested_item,
+        "confirmed_item": str(evidence["confirmed_item"]),
+        "transaction_evidence_reason": str(evidence["reason"]),
     }
 
 
 def _stub_dialogue(body: dict, scenario: dict) -> dict:
     transcript = normalise(body.get("transcript", ""))
+    history = body.get("history", [])
+    if not isinstance(history, list):
+        history = []
     retry_index = max(0, min(1, int(body.get("retry", 0) or 0)))
     hit = _transcript_hits_inventory(scenario, transcript)
-    asked = _has_request_phrase(transcript, scenario)
-    if hit and asked:
+    requested_item = _requested_inventory_term(scenario, transcript, history)
+    known_item = bool(requested_item)
+    follow_up = _is_service_follow_up(transcript)
+    asked = _has_request_phrase(transcript, scenario) and not _is_location_request(transcript)
+    if hit and asked and not requested_item:
+        return {
+            "text": "Sure. What specifically would you like?",
+            "speech_act": "clarify_request",
+            "emotion": "neutral",
+            "next_state": "awaiting_follow_up",
+            "player_turn": {
+                "idiomaticity": 70.0,
+                "progress": "clarifying",
+                "transaction_complete": False,
+                "off_inventory": False,
+            },
+        }
+    if known_item and _is_order_request(scenario, transcript, history):
         closing = (
-            "You got it."
+            f"You got it. I'll get you the {requested_item} now."
             if retry_index == 0
-            else "Coming right up."
+            else f"Sure thing. The {requested_item} is coming right up."
         )
         return {
             "text": closing,
@@ -1013,6 +1561,19 @@ def _stub_dialogue(body: dict, scenario: dict) -> dict:
                 "idiomaticity": 82.0,
                 "progress": "done",
                 "transaction_complete": True,
+                "off_inventory": False,
+            },
+        }
+    if hit and _is_location_request(transcript):
+        return {
+            "text": "I can point that out for you.",
+            "speech_act": "answer_service_question",
+            "emotion": "neutral",
+            "next_state": "awaiting_follow_up",
+            "player_turn": {
+                "idiomaticity": 78.0,
+                "progress": "finding_item",
+                "transaction_complete": False,
                 "off_inventory": False,
             },
         }
@@ -1029,7 +1590,7 @@ def _stub_dialogue(body: dict, scenario: dict) -> dict:
                 "off_inventory": False,
             },
         }
-    if asked:
+    if asked and not _is_unresolved_reference_request(transcript, scenario):
         return {
             "text": "I don't have that here.",
             "speech_act": "clarify_request",
@@ -1080,21 +1641,182 @@ def _gemini_request_url(model_name: str) -> str:
     )
 
 
-_GEMINI_SESSION = None
+_GEMINI_READINESS = {"ready": False, "reason": "not_checked"}
+_GEMINI_SESSIONS: dict = {}
+_GEMINI_ROUTE: dict = {"mode": ""}
 _GEMINI_SESSION_LOCK = threading.Lock()
+_GEMINI_DATA_PLANE_LOCK = threading.Lock()
+_GEMINI_DATA_PLANE_LAST = 0.0
+_GEMINI_DATA_PLANE_MAX_AGE = 30.0
+_GEMINI_DIRECT_OPENER = None
 
 
-def _gemini_session():
-    """Process-wide proxy-aware session so each turn reuses a warm TLS
-    connection instead of paying ~0.6s of connect+handshake through the proxy.
+def _gemini_proxy_policy() -> str:
+    """GEMINI_PROXY routes Google traffic: `off` never proxies, `on` always
+    honors the env proxy, `auto` (default) probes direct first and only falls
+    back to the proxy when the machine cannot reach Google natively — several
+    proxy exit regions are rejected by Gemini outright."""
+    raw = os.environ.get("GEMINI_PROXY", "").strip().lower()
+    if raw in {"off", "no", "0", "false", "direct", "never"}:
+        return "off"
+    if raw in {"on", "yes", "1", "true", "proxy", "always"}:
+        return "on"
+    return "auto"
+
+
+def _gemini_direct_opener():
+    global _GEMINI_DIRECT_OPENER
+    if _GEMINI_DIRECT_OPENER is None:
+        _GEMINI_DIRECT_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    return _GEMINI_DIRECT_OPENER
+
+
+def _gemini_session(route: str = ""):
+    """Process-wide per-route session so each turn reuses a warm TLS
+    connection instead of paying ~0.6s of connect+handshake. The `direct`
+    route ignores env proxies so a local Clash/V2Ray HTTPS_PROXY cannot
+    hijack Google traffic on networks that already reach it natively.
     Falls back to None (per-request urllib) when requests is unavailable."""
-    global _GEMINI_SESSION
     if requests is None:
         return None
+    route = route or _GEMINI_ROUTE.get("mode") or "proxy"
     with _GEMINI_SESSION_LOCK:
-        if _GEMINI_SESSION is None:
-            _GEMINI_SESSION = requests.Session()
-        return _GEMINI_SESSION
+        session = _GEMINI_SESSIONS.get(route)
+        if session is None:
+            session = requests.Session()
+            if route == "direct":
+                session.trust_env = False
+            _GEMINI_SESSIONS[route] = session
+        return session
+
+
+def _gemini_route_probe(route: str, api_key: str, timeout: float) -> tuple[bool, str, int]:
+    """One token-free model GET over `route`. Returns (ok, fail_reason, ms)."""
+    model_name = _dialogue_model_name()
+    started = time.perf_counter()
+    response = None
+    try:
+        response = _gemini_session(route).get(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}",
+            headers={"x-goog-api-key": api_key},
+            timeout=max(0.5, timeout),
+        )
+        if response.status_code == 200:
+            return True, "", int((time.perf_counter() - started) * 1000)
+        # Expose a fixed diagnostic code, never raw provider text or keys.
+        message = str(getattr(response, "text", "") or "").lower()
+        reason = "region_unsupported" if "user location is not supported" in message else "provider_rejected"
+        return False, reason, int((time.perf_counter() - started) * 1000)
+    except Exception as exc:  # noqa: BLE001 - probe is best effort
+        return False, _url_fail_reason(exc) or "connection_failed", int((time.perf_counter() - started) * 1000)
+    finally:
+        if response is not None:
+            response.close()
+
+
+def _prewarm_gemini_session(trigger: str = "voice", timeout: float = 4.0) -> bool:
+    """Warm the shared Google HTTPS connection without spending model tokens.
+
+    The desktop calls /game/prewarm as soon as V is pressed, so this handshake
+    runs while the player is recording rather than inside T_speak. Under the
+    default auto policy the winning route is cached; a cached route that later
+    fails is re-discovered here on the next prewarm.
+    """
+    api_key = _gemini_api_key()
+    if not api_key or _gemini_session() is None:
+        return False
+    policy = _gemini_proxy_policy()
+    route = "direct" if policy == "off" else "proxy" if policy == "on" else _GEMINI_ROUTE["mode"]
+    if route and policy != "auto":
+        # Pin the cache too so later _gemini_session() calls default to the
+        # same route the prewarm verified.
+        _GEMINI_ROUTE["mode"] = route
+    ok, reason, ms = False, "", 0
+    if route:
+        ok, reason, ms = _gemini_route_probe(route, api_key, timeout)
+    if not ok and policy == "auto":
+        _GEMINI_ROUTE["mode"] = ""
+        for candidate in ("direct", "proxy"):
+            ok, reason, ms = _gemini_route_probe(candidate, api_key, timeout)
+            if ok:
+                _GEMINI_ROUTE["mode"] = candidate
+                route = candidate
+                break
+    if ok:
+        # A token-free reconnect must not erase a generation already verified.
+        if not _GEMINI_READINESS["ready"]:
+            _GEMINI_READINESS.update(ready=False, reason="generation_not_checked")
+        _log_stage("gemini_prewarm", ms, trigger=trigger, route=route)
+        return True
+    _GEMINI_READINESS.update(ready=False, reason=reason or "connection_failed")
+    _log_stage("gemini_prewarm", ms, trigger=trigger, route=route or "undecided", reason=reason)
+    return False
+
+
+def _prewarm_gemini_data_plane(trigger: str = "voice", timeout: float = 5.0) -> bool:
+    """Run a tiny stream so the first player turn is not the first model POST.
+
+    The GET above still warms DNS/TLS without tokens. This scene-free second
+    stage is capped at 16 output tokens and throttled process-wide because it
+    does spend a very small model request.
+    """
+    global _GEMINI_DATA_PLANE_LAST
+    api_key = _gemini_api_key()
+    if not api_key:
+        return False
+    started = time.perf_counter()
+    with _GEMINI_DATA_PLANE_LOCK:
+        age = time.monotonic() - _GEMINI_DATA_PLANE_LAST
+        if _GEMINI_DATA_PLANE_LAST > 0.0 and age <= _GEMINI_DATA_PLANE_MAX_AGE:
+            _GEMINI_READINESS.update(ready=True, reason="")
+            _log_stage(
+                "gemini_model_prewarm",
+                int((time.perf_counter() - started) * 1000),
+                trigger=trigger,
+                model=_dialogue_model_name(),
+                cached=1,
+            )
+            return True
+        model_name = _dialogue_model_name()
+        request_body = {
+            "systemInstruction": {"parts": [{"text": "Reply with exactly: Ready now."}]},
+            "contents": [{"role": "user", "parts": [{"text": "Warm the real-time text path."}]}],
+            "generationConfig": {
+                "temperature": 0.0,
+                "maxOutputTokens": 16,
+                "thinkingConfig": {"thinkingLevel": _gemini_thinking_level()},
+            },
+        }
+        try:
+            with _gemini_post_stream(
+                _gemini_request_url(model_name),
+                {"Content-Type": "application/json", "x-goog-api-key": api_key},
+                json.dumps(request_body).encode("utf-8"),
+                max(0.5, timeout),
+            ) as lines:
+                raw, _usage, _first_ms = _read_gemini_stream(lines, started=started)
+            content, _meta = _gemini_content_from_body(raw)
+            if not normalise(content):
+                raise ValueError("empty Gemini prewarm response")
+            _GEMINI_DATA_PLANE_LAST = time.monotonic()
+            _GEMINI_READINESS.update(ready=True, reason="")
+            _log_stage(
+                "gemini_model_prewarm",
+                int((time.perf_counter() - started) * 1000),
+                trigger=trigger,
+                model=model_name,
+            )
+            return True
+        except Exception as exc:  # noqa: BLE001 - prewarm is best effort
+            _GEMINI_READINESS.update(ready=False, reason="generation_failed")
+            _log_stage(
+                "gemini_model_prewarm",
+                int((time.perf_counter() - started) * 1000),
+                trigger=trigger,
+                model=model_name,
+                reason=_url_fail_reason(exc),
+            )
+            return False
 
 
 @contextlib.contextmanager
@@ -1108,7 +1830,8 @@ def _gemini_post_stream(url: str, headers: dict, body: bytes, timeout: float):
     session = _gemini_session()
     if session is None:  # pragma: no cover - deployment without requests
         request = urllib.request.Request(url, data=body, headers=headers, method="POST")
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        opener = _gemini_direct_opener() if _gemini_proxy_policy() == "off" else urllib.request
+        with opener.open(request, timeout=timeout) as response:
             yield _iter_response_lines(response)
         return
     response = None
@@ -1292,19 +2015,58 @@ def _spoken_sentences(text: str) -> list[str]:
     return [part.strip() for part in parts if part.strip()]
 
 
+def _completed_spoken_sentences(text: str) -> list[str]:
+    """Return only sentences whose terminator has arrived in the SSE stream."""
+    clean = normalise(text)
+    if not clean or clean.startswith("{"):
+        return []
+    end = max(clean.rfind("."), clean.rfind("!"), clean.rfind("?"))
+    if end < 0:
+        return []
+    return _spoken_sentences(clean[:end + 1])
+
+
+def _dialogue_user_payload(body: dict, scenario: dict, profile: dict) -> dict:
+    history = body.get("history", [])[-8:]
+    transcript = str(body.get("transcript", ""))
+    user = {
+        "scene": _scene_card(scenario, profile, _player_level_from_body(body)),
+        "transcript": transcript,
+        "history": history,
+    }
+    # A convenience hint derived only from the already-authorized conversation.
+    # It never commits items or replaces the spoken-handoff evidence gate.
+    if scenario.get("godot_scenario_id") == "food_counter" and _requested_inventory_term(scenario, transcript, history):
+        fulfillment = ""
+        turns = [str(turn.get("text", "")) for turn in history if turn.get("role") == "player"] + [transcript]
+        for turn in turns:
+            for match in re.finditer(r"\b(for here|to go|takeout|takeaway)\b", turn.lower()):
+                prefix = turn[:match.start()].lower()
+                suffix = turn[match.end():].lower()
+                if match[0] == "to go" and (re.search(r"\b(?:need|have|want)\s+$", prefix) or re.match(r"\s+(?:home|back|out|to)\b", suffix)):
+                    continue
+                if re.search(r"\b(?:not|no)\s+$", prefix):
+                    fulfillment = ""
+                    continue
+                fulfillment = "for_here" if match[0] == "for here" else "to_go"
+        if fulfillment:
+            user["service_context"] = {"fulfillment_already_stated": fulfillment}
+    # Emphasize clear purchase requests without turning browsing into an order.
+    if _is_order_request(scenario, transcript, history):
+        user["response_mode"] = "handoff_without_follow_up_question"
+    return user
+
+
 def _gemini_dialogue(body: dict, scenario: dict, profile: dict, on_partial=None) -> dict | None:
     api_key = _gemini_api_key()
     if not api_key:
         return None
     model_name = os.environ.get("GEMINI_DIALOGUE_MODEL", _GEMINI_DIALOGUE_MODEL).strip() or _GEMINI_DIALOGUE_MODEL
-    user = {
-        "scene": _scene_card(scenario, profile),
-        "transcript": body.get("transcript", ""),
-        "history": body.get("history", [])[-8:],
-    }
+    player_level = _player_level_from_body(body)
+    user = _dialogue_user_payload(body, scenario, profile)
     thinking_level = _gemini_thinking_level()
     request_body = {
-        "systemInstruction": {"parts": [{"text": _dialogue_system_prompt()}]},
+        "systemInstruction": {"parts": [{"text": _dialogue_system_prompt(player_level)}]},
         "contents": [{"role": "user", "parts": [{"text": json.dumps(user, ensure_ascii=False)}]}],
         "generationConfig": {
             "temperature": 0.3,
@@ -1389,18 +2151,15 @@ def _grok_dialogue(body: dict, scenario: dict, profile: dict) -> dict | None:
     if not api_key:
         return None
     model_name = os.environ.get("XAI_DIALOGUE_MODEL", _XAI_DIALOGUE_MODEL).strip() or _XAI_DIALOGUE_MODEL
-    user = {
-        "scene": _scene_card(scenario, profile),
-        "transcript": body.get("transcript", ""),
-        "history": body.get("history", [])[-8:],
-    }
+    player_level = _player_level_from_body(body)
+    user = _dialogue_user_payload(body, scenario, profile)
     request_body = {
         "model": model_name,
         "temperature": 0.3,
         "max_tokens": 80,
         "response_format": {"type": "json_object"},
         "messages": [
-            {"role": "system", "content": _dialogue_system_prompt()},
+            {"role": "system", "content": _dialogue_system_prompt(player_level)},
             {"role": "user", "content": json.dumps(user, ensure_ascii=False)},
         ],
     }
@@ -1508,6 +2267,123 @@ def _wait_first_sentence(state: dict, speak_s: float) -> str:
     return _first_spoken_sentence(blob)
 
 
+def _live_first_sentence(state: dict) -> str:
+    parsed = state.get("parsed")
+    blob = str((parsed or {}).get("text") or state.get("partial") or "")
+    first = _first_spoken_sentence(blob)
+    if first:
+        return first
+    if blob and state.get("done"):
+        return normalise(blob)
+    return ""
+
+
+def _live_safe_sentence(
+    state: dict,
+    body: dict,
+    scenario: dict,
+    completion_expected: bool = False,
+    completion_speech_act: str = "",
+) -> str:
+    parsed = state.get("parsed")
+    blob = str((parsed or {}).get("text") or state.get("partial") or "")
+    completed = _completed_spoken_sentences(blob)
+    if completion_expected:
+        # The model often emits a fast acknowledgement followed a few hundred
+        # milliseconds later by the named handoff: "Coming right up. I'll get
+        # that taco for you." A completion turn may therefore use the shortest
+        # safe prefix (maximum two sentences) that contains the full auditable
+        # settlement evidence; never commit the generic first sentence alone.
+        for count in range(1, min(2, len(completed)) + 1):
+            candidate = normalise(" ".join(completed[:count]))
+            safe = _sanitize_model_text(scenario, candidate)
+            if not safe or not _model_text_fits_request(body, scenario, safe):
+                continue
+            evidence = _spoken_transaction_evidence(
+                scenario,
+                str(body.get("transcript", "")),
+                body.get("history", []) if isinstance(body.get("history", []), list) else [],
+                safe,
+                completion_speech_act,
+            )
+            if evidence["confirmed"]:
+                return safe
+        if blob and state.get("done"):
+            safe = _sanitize_model_text(scenario, blob)
+            evidence = _spoken_transaction_evidence(
+                scenario,
+                str(body.get("transcript", "")),
+                body.get("history", []) if isinstance(body.get("history", []), list) else [],
+                safe,
+                completion_speech_act,
+            )
+            if safe and _model_text_fits_request(body, scenario, safe) and evidence["confirmed"]:
+                return safe
+        return ""
+    for sentence in completed:
+        safe = _sanitize_model_text(scenario, sentence)
+        if safe and _model_text_fits_request(body, scenario, safe):
+            return safe
+    if blob and state.get("done"):
+        safe = _sanitize_model_text(scenario, blob)
+        if safe and _model_text_fits_request(body, scenario, safe):
+            return safe
+    return ""
+
+
+def _race_gemini_first(body: dict, scenario: dict, profile: dict, speak_s: float) -> tuple[str, dict]:
+    """Hedge only the real-time first sentence against upstream tail latency.
+
+    Two identical Gemini requests start immediately, with a third after a short
+    delay. The first safe model-authored sentence wins, and that same candidate
+    remains the late work plane for scoring metadata.
+    """
+    race_started = time.perf_counter()
+    deadline = race_started + speak_s
+    candidates = [
+        _gemini_live(body, scenario, profile),
+        _gemini_live(body, scenario, profile),
+    ]
+    deterministic_turn = _stub_dialogue(body, scenario)
+    completion_expected = bool(
+        (deterministic_turn.get("player_turn") or {}).get("transaction_complete", False)
+    )
+    completion_speech_act = str(deterministic_turn.get("speech_act", ""))
+    while time.perf_counter() < deadline:
+        elapsed = time.perf_counter() - race_started
+        if len(candidates) < _GEMINI_HEDGE_MAX and elapsed >= _GEMINI_HEDGE_DELAY:
+            candidates.append(_gemini_live(body, scenario, profile))
+        for index, candidate in enumerate(candidates):
+            first = _live_safe_sentence(
+                candidate,
+                body,
+                scenario,
+                completion_expected,
+                completion_speech_act,
+            )
+            if first:
+                _log_stage(
+                    "gemini_hedge",
+                    int((time.perf_counter() - race_started) * 1000),
+                    candidates=len(candidates),
+                    winner=index,
+                )
+                return first, candidate
+        if all(bool(candidate.get("done")) for candidate in candidates) and len(candidates) >= _GEMINI_HEDGE_MAX:
+            break
+        time.sleep(0.01)
+    # Keep one candidate as the late work plane even when the real-time plane
+    # missed; this preserves the existing idiomaticity-after-speaking behavior.
+    late = next((candidate for candidate in candidates if candidate.get("parsed")), candidates[0])
+    _log_stage(
+        "gemini_hedge",
+        int((time.perf_counter() - race_started) * 1000),
+        candidates=len(candidates),
+        winner="none",
+    )
+    return "", late
+
+
 def generate_dialogue_reply(body: dict) -> dict:
     npc_id = str(body.get("npc_id", "")).strip().lower()
     scenario_id = str(body.get("scenario_id", "")).strip().lower()
@@ -1545,15 +2421,33 @@ def generate_dialogue_reply(body: dict) -> dict:
     if generated is None:
         generated = _stub_dialogue(body, scenario)
         source = "stub"
+    if body.get("require_live_dialogue") and source == "stub":
+        raise RuntimeError("live dialogue provider unavailable")
     text = normalise(str(generated.get("text", "")))
+    if source in {"gemini", "grok"}:
+        safe_text = _sanitize_model_text(scenario, text)
+        if safe_text != text:
+            _log_stage("dialogue_sanitize", 0, source=source, reason="unsupported_store_fact", text=safe_text)
+            text = safe_text
     speech_act = str(generated.get("speech_act", "clarify_request")).strip()
     emotion = str(generated.get("emotion", "neutral")).strip() or "neutral"
     next_state = str(generated.get("next_state", "awaiting_follow_up")).strip()
-    player_turn = _normalise_player_turn(generated.get("player_turn"), transcript, scenario, clean_history)
+    raw_player_turn = generated.get("player_turn") if isinstance(generated.get("player_turn"), dict) else {}
+    claimed_complete = bool(raw_player_turn.get("transaction_complete", False))
+    player_turn = _normalise_player_turn(
+        raw_player_turn,
+        transcript,
+        scenario,
+        clean_history,
+        text,
+        speech_act,
+    )
     if player_turn["transaction_complete"]:
         next_state = "closed"
-    elif next_state == "closed":
-        player_turn["transaction_complete"] = False
+    elif claimed_complete:
+        next_state = "awaiting_follow_up"
+        if speech_act in (scenario.get("completion_speech_acts") or []):
+            speech_act = "clarify_request" if "?" in text else "acknowledge_need"
     gate = _dialogue_gate(scenario, text, speech_act)
     if next_state not in {"awaiting_player", "awaiting_follow_up", "closed"}:
         gate["violations"].append("next_state_not_allowed")
@@ -1585,10 +2479,13 @@ def generate_dialogue_reply(body: dict) -> dict:
         npc=npc_id,
         speech_act=speech_act,
         complete=int(bool(player_turn["transaction_complete"])),
+        requested=player_turn.get("requested_item", ""),
+        confirmed=player_turn.get("confirmed_item", ""),
+        evidence=player_turn.get("transaction_evidence_reason", ""),
         text=text,
     )
     _log_stage(
-        "first_audio",
+        "dialogue_ready",
         int(first_ms) if isinstance(first_ms, int) else (int(llm_ms) if isinstance(llm_ms, int) else 0),
         source=source,
         npc=npc_id,
@@ -1683,8 +2580,7 @@ def iter_dialogue_events(body: dict):
     first_text = ""
     live = None
     if _gemini_api_key():
-        live = _gemini_live(prepared, scenario, profile)
-        first_text = _wait_first_sentence(live, _gemini_speak_window())
+        first_text, live = _race_gemini_first(prepared, scenario, profile, _gemini_speak_window())
         if first_text:
             spoken_source = "gemini"
             generated = {
@@ -1703,18 +2599,33 @@ def iter_dialogue_events(body: dict):
         generated = stub_fallback
         spoken_source = "stub"
         first_text = normalise(str(generated.get("text", "")))
-    sentences = _spoken_sentences(first_text) or [first_text]
-    primary = sentences[0]
+    # The live Gemini path already returns only its first speakable sentence.
+    # Stub/Grok replies may intentionally contain two short sentences; keep the
+    # complete committed utterance so a service question is never truncated.
+    primary = normalise(first_text)
+    if spoken_source in {"gemini", "grok"}:
+        safe_primary = _sanitize_model_text(scenario, primary)
+        if safe_primary != primary:
+            _log_stage(
+                "dialogue_sanitize",
+                0,
+                source=spoken_source,
+                reason="unsupported_store_fact",
+                text=safe_primary,
+            )
+            primary = safe_primary
     gate = _dialogue_gate(scenario, primary, str(generated.get("speech_act", "clarify_request")))
     if not gate["accepted"]:
         generated = _stub_dialogue(prepared, scenario)
         spoken_source = "stub"
         primary = normalise(str(generated.get("text", "")))
-        sentences = [primary]
         gate = _dialogue_gate(scenario, primary, str(generated.get("speech_act", "clarify_request")))
         if not gate["accepted"]:
             raise ValueError("dialogue quality gate rejected response")
+    if body.get("require_live_dialogue") and spoken_source == "stub":
+        raise RuntimeError("live dialogue provider unavailable")
     first_reply = _register_spoken_reply(npc_id, primary, False, prefetch=False)
+    committed = dict(generated)
     yield {
         "event": "speaking",
         "data": {
@@ -1728,7 +2639,7 @@ def iter_dialogue_events(body: dict):
     }
     # Stream the spoken line inline so the desktop client starts playback
     # without a second HTTP round trip; JSON/web clients still use /game/tts.
-    if QWEN_TTS_API_KEY and _TTS_PREFETCH_ENABLED:
+    if _tts_configured() and _TTS_PREFETCH_ENABLED:
         seq = 0
         total_pcm = 0
         audio_began = False
@@ -1736,6 +2647,13 @@ def iter_dialogue_events(body: dict):
             for chunk in _stream_dynamic_reply_audio(npc_id, first_reply):
                 if not audio_began:
                     audio_began = True
+                    _log_stage(
+                        "first_audio",
+                        int((time.perf_counter() - turn_started) * 1000),
+                        source=spoken_source,
+                        npc=npc_id,
+                        reply=first_reply,
+                    )
                     yield {
                         "event": "audio_begin",
                         "data": {
@@ -1771,24 +2689,48 @@ def iter_dialogue_events(body: dict):
                     "event": "audio_failed",
                     "data": {"reply_id": first_reply, "npc_id": npc_id, "reason": "VOICE_REASON_SERVICE_UNAVAILABLE"},
                 }
+    late_player_turn = None
     if live is not None:
         live["thread"].join(timeout=max(0.05, _gemini_socket_timeout()))
         if live.get("parsed"):
-            generated = live["parsed"]
-            if spoken_source == "stub":
-                generated = {**generated, "text": primary}
-            elif normalise(str(generated.get("text") or "")) and _first_spoken_sentence(str(generated.get("text") or "")):
-                # Spoken text is already committed; keep scores only.
-                generated = {**generated, "text": primary}
+            late = live["parsed"]
+            late_player_turn = late.get("player_turn")
+            # GPT-Live-style split: the real-time plane commits the spoken line
+            # and deterministic transaction semantics. The late work plane may
+            # improve idiomaticity, but must not reverse what was just spoken.
+            generated = {
+                **committed,
+                "_provider": late.get("_provider", committed.get("_provider", "")),
+                "_model": late.get("_model", committed.get("_model", "")),
+                "_llm_ms": late.get("_llm_ms", committed.get("_llm_ms", 0)),
+                "text": primary,
+            }
     text = primary
     speech_act = str(generated.get("speech_act", "clarify_request")).strip()
     emotion = str(generated.get("emotion", "neutral")).strip() or "neutral"
     next_state = str(generated.get("next_state", "awaiting_follow_up")).strip()
-    player_turn = _normalise_player_turn(generated.get("player_turn"), transcript, scenario, clean_history)
+    raw_player_turn = generated.get("player_turn") if isinstance(generated.get("player_turn"), dict) else {}
+    claimed_complete = bool(raw_player_turn.get("transaction_complete", False))
+    player_turn = _normalise_player_turn(
+        raw_player_turn,
+        transcript,
+        scenario,
+        clean_history,
+        text,
+        speech_act,
+    )
+    if late_player_turn is not None:
+        late_turn = _normalise_player_turn(late_player_turn, transcript, scenario, clean_history, text, speech_act)
+        player_turn["idiomaticity"] = late_turn["idiomaticity"]
+        # FR-45: marks ride the same late work plane and stay consistent with
+        # the authoritative idiomaticity they were judged against.
+        player_turn["errors"] = late_turn["errors"]
     if player_turn["transaction_complete"]:
         next_state = "closed"
-    elif next_state == "closed":
-        player_turn["transaction_complete"] = False
+    elif claimed_complete:
+        next_state = "awaiting_follow_up"
+        if speech_act in (scenario.get("completion_speech_acts") or []):
+            speech_act = "clarify_request" if "?" in text else "acknowledge_need"
     score_gate = _dialogue_gate(scenario, text, speech_act)
     if next_state not in {"awaiting_player", "awaiting_follow_up", "closed"}:
         score_gate["violations"].append("next_state_not_allowed")
@@ -1798,7 +2740,14 @@ def iter_dialogue_events(body: dict):
         speech_act = str(stub.get("speech_act", speech_act))
         emotion = str(stub.get("emotion", emotion))
         next_state = str(stub.get("next_state", next_state))
-        player_turn = _normalise_player_turn(stub.get("player_turn"), transcript, scenario, clean_history)
+        player_turn = _normalise_player_turn(
+            stub.get("player_turn"),
+            transcript,
+            scenario,
+            clean_history,
+            text,
+            speech_act,
+        )
         score_gate = _dialogue_gate(scenario, text, speech_act)
     context = prepared.get("game_context", {})
     pronunciation = -1.0
@@ -1821,14 +2770,10 @@ def iter_dialogue_events(body: dict):
         npc=npc_id,
         speech_act=speech_act,
         complete=int(bool(player_turn["transaction_complete"])),
+        requested=player_turn.get("requested_item", ""),
+        confirmed=player_turn.get("confirmed_item", ""),
+        evidence=player_turn.get("transaction_evidence_reason", ""),
         text=text,
-    )
-    _log_stage(
-        "first_audio",
-        int((time.perf_counter() - turn_started) * 1000),
-        source=spoken_source,
-        npc=npc_id,
-        reply=first_reply,
     )
     yield {
         "event": "score",
@@ -1871,7 +2816,7 @@ def synthesize_dynamic_reply(npc_id: str, reply_id: str, voice: str = "") -> byt
     record = _DYNAMIC_REPLIES.get(reply_id)
     if not record or str(record.get("npc_id", "")) != npc_id:
         raise KeyError(f"unknown npc reply: {npc_id}/{reply_id}")
-    if not QWEN_TTS_API_KEY:
+    if not _tts_configured():
         raise RuntimeError("qwen tts is not configured")
     selected_voice = voice.strip() or QWEN_TTS_VOICE or NPC_TTS_VOICES.get(npc_id, "")
     if not selected_voice:
@@ -1890,7 +2835,7 @@ def synthesize_dynamic_reply(npc_id: str, reply_id: str, voice: str = "") -> byt
         if cached is not None:
             _log_stage("tts", int((time.perf_counter() - started) * 1000), npc=npc_id, reply=reply_id, cache=1, bytes=len(cached))
             return cached
-        body = _dashscope_speech(text, selected_voice)
+        body = _synthesize_speech(text, selected_voice)
         if len(body) < 44 or len(body) > _TTS_MAX_BYTES:
             raise RuntimeError("qwen tts returned invalid audio size")
         stored = _store_wav(keys, body)
@@ -1905,12 +2850,23 @@ def _stream_dynamic_reply_audio(npc_id: str, reply_id: str):
     repaired WAV is stored in the TTS cache so the /game/tts fallback and the
     JSON path still work; failures raise so the caller can emit audio_failed.
     """
+    if TTS_PROVIDER == "xai":
+        record = _DYNAMIC_REPLIES.get(reply_id)
+        if not record or str(record.get("npc_id", "")) != npc_id:
+            raise KeyError("unknown npc reply")
+        voice = str(record.get("voice", "")) or NPC_TTS_VOICES.get(npc_id, "eve")
+        full = bytearray()
+        for chunk in _xai_tts_pcm(str(record["text"]), voice):
+            full.extend(chunk)
+            yield chunk
+        _store_wav([_tts_key(npc_id, reply_id, voice), _tts_text_key(npc_id, voice, str(record["text"]))], _pcm_to_wav(bytes(full)))
+        return
     from dashscope.audio.tts_v2 import AudioFormat, ResultCallback
 
     record = _DYNAMIC_REPLIES.get(reply_id)
     if not record or str(record.get("npc_id", "")) != npc_id:
         raise KeyError(f"unknown npc reply: {npc_id}/{reply_id}")
-    if not QWEN_TTS_API_KEY:
+    if not _tts_configured():
         raise RuntimeError("qwen tts is not configured")
     text = str(record["text"])
     selected_voice = str(record.get("voice", "")).strip() or QWEN_TTS_VOICE
@@ -2004,12 +2960,17 @@ def synthesize_npc_line(npc_id: str, line_id: str, voice: str = "", options: lis
     profile = NPC_LINES.get(npc_id or "")
     if not profile or line_id not in profile:
         raise KeyError(f"unknown npc line: {npc_id}/{line_id}")
-    if not QWEN_TTS_API_KEY:
+    if not _tts_configured():
         raise RuntimeError("qwen tts is not configured")
     selected_voice = voice.strip() or QWEN_TTS_VOICE or NPC_TTS_VOICES.get(npc_id, "")
     if not selected_voice:
         raise RuntimeError("qwen tts has no voice configured")
-    line_text = word_practice_ask_text(options or []) if line_id == "word_practice_ask" else profile[line_id]
+    if line_id == "word_practice_model":
+        if len(options or []) != 1 or options[0] not in WORD_LINES:
+            raise KeyError("unknown practice word")
+        line_text = options[0]
+    else:
+        line_text = word_practice_ask_text(options or []) if line_id == "word_practice_ask" else profile[line_id]
     key = _tts_key(npc_id, line_id, selected_voice) + "/" + ",".join(options or [])
     started = time.perf_counter()
     with _TTS_CACHE_LOCK:
@@ -2018,7 +2979,7 @@ def synthesize_npc_line(npc_id: str, line_id: str, voice: str = "", options: lis
         _log_stage("tts", int((time.perf_counter() - started) * 1000), npc=npc_id, line=line_id, cache=1, bytes=len(cached))
         return cached
     try:
-        body = _dashscope_speech(line_text, selected_voice)
+        body = _synthesize_speech(line_text, selected_voice)
     except Exception as exc:  # noqa: BLE001 - provider detail stays server-side
         print(f"[speech] qwen tts rejected line={npc_id}/{line_id} voice={selected_voice}: {type(exc).__name__}: {str(exc)[:120]}")
         raise RuntimeError("qwen tts request failed") from exc
@@ -2049,6 +3010,11 @@ WORD_LINES = {
     "help": "help",
     "bring": "bring",
 }
+# Authored scene vocabulary remains an explicit lexical whitelist, never free text.
+for _scene in NOVEL_DAILY_LIFE:
+    for _word in _scene["words"]:
+        WORD_LINES.setdefault(_word, _word)
+
 
 _model = None
 _model_lock = threading.Lock()
@@ -2533,15 +3499,24 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "StrangerSpeech/2"
 
     def do_GET(self):
-        if self.path != "/health":
+        if self.path not in ("/health", "/health?refresh=1"):
             self.send_error(404)
             return
+        if self.path.endswith("?refresh=1") and _gemini_api_key():
+            connected = _prewarm_gemini_session("health", 4.0)
+            if connected and not _prewarm_gemini_data_plane("health", 4.0):
+                _GEMINI_READINESS.update(ready=False, reason="generation_failed")
         self._json(200, {
             "ok": True,
+            "dialogue_ready": _GEMINI_READINESS["ready"] if _gemini_api_key() else False,
+            "dialogue_reason": _GEMINI_READINESS["reason"] if _gemini_api_key() else "not_configured",
             "model": str(MODEL_DIR),
             "protocol": 2,
             "dialogue_model": _dialogue_model_name(),
             "dialogue_configured": _dialogue_llm_configured(),
+            "tts_provider": TTS_PROVIDER,
+            "tts_region": "us-east-1" if TTS_PROVIDER == "xai" else "legacy-configured",
+            "tts_configured": _tts_configured(),
             "dialogue_provider": "gemini" if _gemini_api_key() else ("grok" if _xai_api_key() else "stub"),
         })
 
@@ -2685,8 +3660,9 @@ class Handler(BaseHTTPRequestHandler):
             self._end_sse()
 
     def _handle_prewarm(self) -> None:
-        """V-press prewarm: keep the TTS websocket pool warm while the player
-        is still speaking. Fire-and-forget by contract; never fails hard."""
+        """V-press prewarm: keep both live-plane connections warm while the
+        player is still speaking. Fire-and-forget by contract; never fails
+        hard."""
         length = int(self.headers.get("Content-Length", "0") or 0)
         if length > 4096:
             self._json(400, {"ok": False, "reason": "VOICE_REASON_LENGTH"})
@@ -2697,12 +3673,44 @@ class Handler(BaseHTTPRequestHandler):
             body = {}
         if body and not isinstance(body, dict):
             body = {}
-        warmed = False
-        try:
-            warmed = _prewarm_tts_pool()
-        except Exception as exc:  # noqa: BLE001 - prewarm stays best effort
-            print(f"[speech] prewarm failed: {type(exc).__name__}")
-        self._json(200, {"ok": True, "tts_pool": warmed})
+        warm_result = {"tts": False, "gemini_session": False, "gemini_model": False}
+
+        def warm_tts() -> None:
+            try:
+                warm_result["tts"] = _prewarm_tts_pool()
+            except Exception as exc:  # noqa: BLE001 - prewarm stays best effort
+                print(f"[speech] prewarm failed: {type(exc).__name__}")
+
+        def warm_gemini_session() -> None:
+            try:
+                warm_result["gemini_session"] = _prewarm_gemini_session("voice", 5.0)
+            except Exception as exc:  # noqa: BLE001 - prewarm stays best effort
+                print(f"[speech] prewarm failed: {type(exc).__name__}")
+
+        def warm_gemini_model() -> None:
+            try:
+                warm_result["gemini_model"] = _prewarm_gemini_data_plane("voice", 5.0)
+            except Exception as exc:  # noqa: BLE001 - prewarm stays best effort
+                print(f"[speech] prewarm failed: {type(exc).__name__}")
+
+        # All three connections start together. A dropped idle GET must not
+        # postpone the model POST until after Godot's six-second request cap.
+        threads = [
+            threading.Thread(target=warm_tts, daemon=True, name="tts-v-prewarm"),
+            threading.Thread(target=warm_gemini_session, daemon=True, name="gemini-session-v-prewarm"),
+            threading.Thread(target=warm_gemini_model, daemon=True, name="gemini-model-v-prewarm"),
+        ]
+        for thread in threads:
+            thread.start()
+        join_deadline = time.monotonic() + 5.5
+        for thread in threads:
+            thread.join(timeout=max(0.0, join_deadline - time.monotonic()))
+        self._json(200, {
+            "ok": True,
+            "tts_pool": warm_result["tts"],
+            "gemini_session": warm_result["gemini_session"],
+            "gemini_model": warm_result["gemini_model"],
+        })
 
     def _handle_word_score(self) -> None:
         length = int(self.headers.get("Content-Length", "0"))
@@ -2785,7 +3793,7 @@ class Handler(BaseHTTPRequestHandler):
         if npc_id not in NPC_LINES or line_id not in NPC_LINES[npc_id]:
             self._json(404, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID"})
             return
-        if line_id == "word_practice_ask" and not options:
+        if line_id in ("word_practice_ask", "word_practice_model") and not options:
             self._json(400, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID"})
             return
         try:
@@ -2856,27 +3864,15 @@ def _prewarm() -> None:
 
 
 def _probe_gemini() -> None:
-    """One startup reachability probe; also warms the shared session's proxy
-    connection so the first real dialogue skips TCP+TLS setup."""
-    if not _gemini_api_key():
-        return
-    session = _gemini_session()
-    if session is None:  # pragma: no cover - deployment without requests
-        return
-    started = time.perf_counter()
-    try:
-        session.get(
-            "https://generativelanguage.googleapis.com/v1beta/models",
-            headers={"x-goog-api-key": _gemini_api_key()},
-            timeout=4.0,
-        )
-        _log_stage(
-            "gemini_probe",
-            int((time.perf_counter() - started) * 1000),
-            proxy=os.environ.get("HTTPS_PROXY", ""),
-        )
-    except Exception as exc:  # noqa: BLE001 - probe failure is diagnostic only
-        _log_stage("gemini_probe", 0, reason=_url_fail_reason(exc))
+    """Warm both the shared proxy connection and streamed model data plane."""
+    # Startup is off the request path. A proxy can drop the first attempted
+    # tunnel, so retry here instead of making the player's first turn pay it.
+    for _attempt in range(3):
+        session_ready = _prewarm_gemini_session("startup", 6.0)
+        model_ready = _prewarm_gemini_data_plane("startup", 6.0) if session_ready else False
+        if session_ready and model_ready:
+            return
+        time.sleep(0.25)
 
 
 if __name__ == "__main__":

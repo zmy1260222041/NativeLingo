@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Stranger"
-run/main_scene="res://scenes/Main.tscn"
+run/main_scene="res://scenes/Novel.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 
 [audio]
@@ -28,7 +28,6 @@ Dialogue="*res://scripts/dialogue_state.gd"
 NpcScenarioRegistry="*res://scripts/npc_scenario_registry.gd"
 NpcScenarioRunner="*res://scripts/npc_scenario_runner.gd"
 NpcDialogueService="*res://scripts/npc_dialogue_service.gd"
-AnimationDebugBridge="*res://scripts/animation_debug_bridge.gd"
 
 [desktop_beta]
 
@@ -208,3 +207,7 @@ allow_insecure_dev=false
 
 build_label="web-beta.1"
 survey_url=""
+
+[stranger_novel]
+
+enabled=true

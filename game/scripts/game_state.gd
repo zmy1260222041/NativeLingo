@@ -6,6 +6,7 @@ signal clock_changed(day_value: int, elapsed_seconds: int)
 signal objective_changed(objective: String)
 signal message_requested(text: String, tone: String)
 signal expression_evaluated(target_id: String, expression: Dictionary)
+signal npc_line_presented(npc_id: String, text: String)
 signal run_completed
 signal day_started(day_value: int)
 signal onboarding_changed(step: String, active: bool)
@@ -83,6 +84,7 @@ var vocabulary_entries: Dictionary = {}
 ## Separate from completed_steps and resource state. Only NpcScenarioRunner
 ## writes these terminal pilot outcomes after a validated conversation closes.
 var dialogue_scenario_progress: Dictionary = {}
+var presentation_state: Dictionary = {}
 
 func _process(delta: float) -> void:
 	if game_finished or interaction_time_frozen:
@@ -224,6 +226,9 @@ func _items_did_change(persist := true) -> void:
 func item_command(action: String, ids: Array, context: Dictionary, allow_waste := false) -> Dictionary:
 	if game_finished or not bool(context.get("safe", false)) or interaction_time_frozen:
 		return {"ok": false, "reason": "unsafe"}
+	var novel := get_tree().get_first_node_in_group("novel_world") if is_inside_tree() else null
+	if novel != null and not novel.validate_item_context(context):
+		return {"ok": false, "reason": "location"}
 	var location := str(context.get("location", "player"))
 	# Revalidate at the command boundary: UI context is an intention, not authority.
 	if is_inside_tree():
@@ -569,6 +574,8 @@ func _emit_npc_followup(npc_id: String, communication: String) -> void:
 	_emit_npc_line(npc_id, communication, str(entry.get("line_key", "")), str(entry.get("text", "")))
 
 func _emit_npc_line(npc_id: String, communication: String, line_key: String, text: String = "") -> void:
+	if not text.is_empty():
+		npc_line_presented.emit(npc_id, text)
 	## NPC dialogue is spoken (FR-32); the localized text narration is the
 	## fallback for builds where the voice channel itself is unavailable.
 	if _speak_npc_line(npc_id, line_key):
@@ -715,6 +722,7 @@ func save_game() -> bool:
 	var data := {
 		"version": SAVE_VERSION,
 		"items": items.snapshot(),
+		"presentation_state": presentation_state,
 		"day": day,
 		"day_time": day_time,
 		"food": food,
@@ -764,6 +772,8 @@ func load_game() -> bool:
 			return false
 	else:
 		restored_items.migrate(int(parsed.get("berries", 0)), int(parsed.get("scrap", 0)), int(parsed.get("water", 0)), bool(parsed.get("heater_repaired", false)))
+	var saved_presentation = parsed.get("presentation_state", {})
+	presentation_state = saved_presentation if saved_presentation is Dictionary else {}
 	items = restored_items
 	interaction_time_frozen = false
 	day = int(parsed.get("day", 1))

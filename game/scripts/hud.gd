@@ -4,6 +4,8 @@ const COLOR_GOOD := Color("78c9a4")
 const COLOR_NEUTRAL := Color("91b9c2")
 const COLOR_WARNING := Color("f2a85b")
 const COLOR_URGENT := Color("ff8b7f")
+## FR-45 speaker subtitle salience mark: red plus underline, never colour alone.
+const SPEAKER_MARK_COLOR_HEX := "#ff8b7f"
 const SETTINGS_PATH := "user://stranger_accessibility.cfg"
 const UI_SCALES := [0.8, 0.9, 1.0, 1.1, 1.25, 1.5]
 const WEB_BETA_FEATURE := "web_beta_no_voice"
@@ -93,6 +95,9 @@ var word_unlock_label: Label
 var word_unlock_button: Button
 var word_practice_panel: PanelContainer
 var word_practice_prompt_label: Label
+var speaker_subtitle_card: PanelContainer
+var speaker_subtitle_label: RichTextLabel
+var speaker_subtitle_timer: Timer
 var objective_timer: Timer
 var day_transition_started_msec := 0
 ## 测试钩子：null 表示按 OS feature 自动判断；true/false 强制覆盖 Web UI。
@@ -113,6 +118,7 @@ func _ready() -> void:
 	_build_onboarding_ui()
 	_build_word_unlock_ui()
 	_build_word_practice_ui()
+	_build_speaker_subtitle_ui()
 	item_panel = preload("res://scripts/item_panel.gd").new()
 	ui_root.add_child(item_panel)
 	item_mode_button = Button.new()
@@ -144,6 +150,10 @@ func _create_timers() -> void:
 	objective_timer.one_shot = true
 	objective_timer.timeout.connect(_collapse_objective)
 	add_child(objective_timer)
+	speaker_subtitle_timer = Timer.new()
+	speaker_subtitle_timer.one_shot = true
+	speaker_subtitle_timer.timeout.connect(_hide_speaker_subtitle)
+	add_child(speaker_subtitle_timer)
 
 func _connect_domain_signals() -> void:
 	GameState.state_changed.connect(_on_state_changed)
@@ -167,6 +177,8 @@ func _connect_domain_signals() -> void:
 		dynamic_service.dialogue_ready.connect(_on_dynamic_dialogue_ready)
 		dynamic_service.dialogue_failed.connect(_on_dynamic_dialogue_failed)
 		dynamic_service.dialogue_closed.connect(_on_dynamic_dialogue_closed)
+		dynamic_service.player_turn_displayed.connect(_on_player_turn_displayed)
+		dynamic_service.player_turn_scored.connect(_on_player_turn_scored)
 	var npc_voice := get_tree().root.get_node_or_null(NodePath("NpcVoice"))
 	if npc_voice != null:
 		npc_voice.line_audio_ready.connect(_on_npc_line_audio_ready)
@@ -385,6 +397,111 @@ func _build_word_unlock_ui() -> void:
 	word_unlock_button.text = tr("WORD_UNLOCK_CONTINUE")
 	word_unlock_button.pressed.connect(_close_word_unlock)
 	content.add_child(word_unlock_button)
+
+
+func _build_speaker_subtitle_ui() -> void:
+	## FR-45: bottom-centre card mirroring the player's own words. NPC lines
+	## stay voice-only; nothing here takes input or blocks movement.
+	if not is_instance_valid(ui_root):
+		return
+	speaker_subtitle_card = PanelContainer.new()
+	speaker_subtitle_card.name = "SpeakerSubtitleCard"
+	speaker_subtitle_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	speaker_subtitle_card.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	speaker_subtitle_card.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	speaker_subtitle_card.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	speaker_subtitle_card.offset_bottom = -96.0
+	speaker_subtitle_card.custom_minimum_size = Vector2(420.0, 0.0)
+	speaker_subtitle_card.visible = false
+	speaker_subtitle_card.modulate.a = 0.0
+	ui_root.add_child(speaker_subtitle_card)
+	speaker_subtitle_label = RichTextLabel.new()
+	speaker_subtitle_label.name = "SpeakerSubtitleLabel"
+	speaker_subtitle_label.bbcode_enabled = true
+	speaker_subtitle_label.fit_content = true
+	speaker_subtitle_label.scroll_active = false
+	speaker_subtitle_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	speaker_subtitle_label.add_theme_font_size_override("normal_font_size", 20)
+	speaker_subtitle_card.add_child(speaker_subtitle_label)
+
+
+func _on_player_turn_displayed(_npc_id: String, transcript: String) -> void:
+	_show_speaker_subtitle(transcript, [])
+
+
+func _on_player_turn_scored(_npc_id: String, transcript: String, errors: Array) -> void:
+	if transcript.strip_edges().is_empty():
+		return
+	_show_speaker_subtitle(transcript, errors)
+
+
+func _show_speaker_subtitle(transcript: String, error_spans: Array) -> void:
+	if speaker_subtitle_card == null or speaker_subtitle_label == null:
+		return
+	if speaker_subtitle_timer != null:
+		speaker_subtitle_timer.stop()
+	var rendered := _render_speaker_subtitle(transcript, error_spans)
+	if rendered.is_empty():
+		return
+	speaker_subtitle_label.text = rendered
+	speaker_subtitle_card.visible = true
+	if speaker_subtitle_card.modulate.a < 1.0:
+		var tween := create_tween()
+		tween.tween_property(speaker_subtitle_card, "modulate:a", 1.0, 0.12)
+
+
+func _hide_speaker_subtitle() -> void:
+	if speaker_subtitle_card == null:
+		return
+	speaker_subtitle_card.visible = false
+	speaker_subtitle_card.modulate.a = 0.0
+
+
+func _schedule_speaker_subtitle_hide(seconds := 3.0) -> void:
+	## G-B6: the subtitle lingers three seconds after the session ends, then
+	## dissolves; the next spoken turn replaces it outright.
+	if speaker_subtitle_timer == null or speaker_subtitle_card == null:
+		return
+	if speaker_subtitle_card.visible:
+		speaker_subtitle_timer.start(seconds)
+
+
+func _render_speaker_subtitle(transcript: String, error_spans: Array) -> String:
+	## The transcript is player speech, so brackets are neutralised rather than
+	## trusted as bbcode. Each validated span marks its first occurrence only;
+	## overlapping spans collapse so a word is never double-wrapped.
+	var safe := transcript.replace("[", "‹").replace("]", "›").replace("\n", " ").strip_edges()
+	if safe.is_empty():
+		return ""
+	var lower := safe.to_lower()
+	var ranges: Array = []
+	for span in error_spans:
+		var clean := str(span).strip_edges()
+		if clean.is_empty():
+			continue
+		var index := lower.find(clean.to_lower())
+		if index < 0:
+			continue
+		var end := index + clean.length()
+		var overlaps := false
+		for range_item in ranges:
+			if index < range_item[1] and range_item[0] < end:
+				overlaps = true
+				break
+		if not overlaps:
+			ranges.append([index, end])
+	ranges.sort_custom(func(a, b) -> bool: return a[0] < b[0])
+	var parts: PackedStringArray = PackedStringArray()
+	var cursor := 0
+	for range_item in ranges:
+		parts.append(safe.substr(cursor, range_item[0] - cursor))
+		parts.append("[color=%s][u]%s[/u][/color]" % [
+			SPEAKER_MARK_COLOR_HEX,
+			safe.substr(range_item[0], range_item[1] - range_item[0]),
+		])
+		cursor = range_item[1]
+	parts.append(safe.substr(cursor))
+	return "[center]%s[/center]" % "".join(parts)
 
 
 func _on_word_score_finished(lexical_id: String, accepted: bool, expression: Dictionary, reason: String) -> void:
@@ -774,11 +891,13 @@ func _on_dynamic_dialogue_failed(npc_id: String, reason: String) -> void:
 	voice_state = "clarify"
 	_stop_voice_status_timer()
 	_refresh_voice_card()
+	_schedule_speaker_subtitle_hide()
 
 
 func _on_dynamic_dialogue_closed(_npc_id: String, reason: String) -> void:
 	if reason in ["VOICE_REASON_DIALOGUE_CANCELLED", "completed"]:
 		_clear_voice_status(true)
+	_schedule_speaker_subtitle_hide()
 
 
 func _on_npc_line_audio_ready(npc_id: String, _line_id: String) -> void:

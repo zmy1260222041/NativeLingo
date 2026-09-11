@@ -32,7 +32,7 @@ const VOICE_SOURCE_HEIGHT := 1.45
 var availability_override: Variant = null
 var token_override: Variant = null
 var cache_enabled := true
-var audio_player: AudioStreamPlayer3D
+var audio_player: Node
 var http_request: HTTPRequest
 var reply_http_request: HTTPRequest
 var pending_npc_id := ""
@@ -49,16 +49,20 @@ var pending_reply_id := ""
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	audio_player = AudioStreamPlayer3D.new()
+	if bool(ProjectSettings.get_setting("stranger_novel/enabled", false)):
+		audio_player = AudioStreamPlayer.new()
+		audio_player.volume_db = VOICE_VOLUME_DB
+	else:
+		audio_player = AudioStreamPlayer3D.new()
+		audio_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+		audio_player.volume_db = VOICE_VOLUME_DB
+		audio_player.max_db = VOICE_MAX_DB
+		audio_player.unit_size = VOICE_UNIT_SIZE
+		audio_player.max_distance = VOICE_MAX_DISTANCE
+		audio_player.panning_strength = 0.85
+		audio_player.attenuation_filter_cutoff_hz = 5000.0
+		audio_player.attenuation_filter_db = -12.0
 	audio_player.name = "NpcVoicePlayer"
-	audio_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
-	audio_player.volume_db = VOICE_VOLUME_DB
-	audio_player.max_db = VOICE_MAX_DB
-	audio_player.unit_size = VOICE_UNIT_SIZE
-	audio_player.max_distance = VOICE_MAX_DISTANCE
-	audio_player.panning_strength = 0.85
-	audio_player.attenuation_filter_cutoff_hz = 5000.0
-	audio_player.attenuation_filter_db = -12.0
 	audio_player.finished.connect(_on_audio_finished)
 	add_child(audio_player)
 	http_request = HTTPRequest.new()
@@ -93,6 +97,8 @@ func unregister_speaker(npc_id: String, speaker: Node3D) -> void:
 
 
 func _sync_audio_position() -> void:
+	if not audio_player is AudioStreamPlayer3D:
+		return
 	if audio_player == null or playing_npc_id.is_empty():
 		return
 	var speaker: Variant = speaker_nodes.get(playing_npc_id)
@@ -343,7 +349,8 @@ func cloud_token() -> String:
 func _cache_key(npc_id: String, line_id: String, voice: String, options: Array = []) -> String:
 	var selected_voice := voice.strip_edges()
 	var option_key := ",".join(options)
-	return "%s/%s/%s/%s" % [npc_id, line_id, selected_voice if not selected_voice.is_empty() else "default", option_key if not option_key.is_empty() else "single"]
+	var key := "%s/%s/%s/%s" % [npc_id, line_id, selected_voice if not selected_voice.is_empty() else "default", option_key if not option_key.is_empty() else "single"]
+	return "xai-us-v1/" + key if bool(ProjectSettings.get_setting("stranger_novel/enabled", false)) else key
 
 
 func _cache_path(npc_id: String, line_id: String, voice: String, options: Array = []) -> String:
@@ -471,3 +478,19 @@ func _clear_pending() -> void:
 func _clear_pending_reply() -> void:
 	pending_reply_npc_id = ""
 	pending_reply_id = ""
+
+
+func stop_all() -> void:
+	# Scene transitions invalidate both authored lines and streamed replies.
+	line_queue.clear()
+	if http_request != null:
+		http_request.cancel_request()
+	if reply_http_request != null:
+		reply_http_request.cancel_request()
+	_clear_pending()
+	_clear_pending_reply()
+	if audio_player != null:
+		audio_player.stop()
+		audio_player.stream = null
+	playing_npc_id = ""
+	playing_line_id = ""

@@ -74,6 +74,26 @@ func _ready() -> void:
 	hud._on_npc_line_audio_ready("tavi", "reply-test")
 	_expect(hud.voice_state == "accepted", "Clock drops only after the NPC reply audio starts")
 	SpeechAdapter.availability_override = previous_voice
+	var subtitle_card := hud.get_node_or_null("UIRoot/SpeakerSubtitleCard") as PanelContainer
+	_expect(subtitle_card != null and not subtitle_card.visible, "FR-45: speaker subtitle card is built hidden")
+	_expect(hud.get_node_or_null("UIRoot/SpeakerSubtitleCard/SpeakerSubtitleLabel") is RichTextLabel, "FR-45: subtitle renders through a bbcode label")
+	_expect(subtitle_card.mouse_filter == Control.MOUSE_FILTER_IGNORE, "FR-45: subtitle card never intercepts input")
+	hud._on_player_turn_displayed("tavi", "I want espresso, please.")
+	_expect(subtitle_card.visible and hud.speaker_subtitle_label.text.contains("I want espresso, please."), "FR-45: transcript is mirrored the moment it is locked in")
+	hud._on_player_turn_scored("tavi", "I want espresso, please.", ["espresso"])
+	var scored_text: String = hud.speaker_subtitle_label.text
+	_expect(scored_text.contains("[color=%s][u]espresso[/u][/color]" % hud.SPEAKER_MARK_COLOR_HEX), "FR-45: marks render red plus underline around the exact span")
+	_expect(scored_text.contains("I want "), "FR-45: words outside the span stay unmarked")
+	hud._on_player_turn_scored("tavi", "Can I get an espresso?", ["pizza"])
+	_expect(not hud.speaker_subtitle_label.text.contains("[u]"), "FR-45: spans that do not match the transcript are never marked")
+	hud._on_player_turn_displayed("tavi", "Can I get a coffee?")
+	hud._on_player_turn_scored("tavi", "Can I get a coffee?", [])
+	var neutral_text: String = hud.speaker_subtitle_label.text
+	_expect(neutral_text.contains("Can I get a coffee?") and not neutral_text.contains("[u]"), "FR-45: stub or unscored turns keep the neutral subtitle")
+	hud._on_dynamic_dialogue_closed("tavi", "completed")
+	_expect(hud.speaker_subtitle_timer.time_left > 0.0, "FR-45: session close schedules the three-second dissolve")
+	hud._hide_speaker_subtitle()
+	_expect(not subtitle_card.visible, "FR-45: dissolve hides the card")
 	GameState.persistence_enabled = previous_persistence
 	var panel_style := hud.get_node("UIRoot").theme.get_stylebox("panel", "PanelContainer") as StyleBox
 	_expect(panel_style != null and not panel_style is StyleBoxFlat, "FR-37: panels use the Art Bible cut-corner silt-ink style instead of a flat modern card")

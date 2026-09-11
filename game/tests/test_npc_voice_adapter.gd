@@ -7,18 +7,23 @@ func _ready() -> void:
 	var previous_base_url: String = ProjectSettings.get_setting("stranger_cloud/base_url", "")
 	NpcVoice.cache_enabled = false
 	NpcVoice.availability_override = false
-	_expect(NpcVoice.audio_player is AudioStreamPlayer3D, "NPC lines use a spatial 3D audio source")
-	_expect(NpcVoice.audio_player.volume_db <= -8.0 and NpcVoice.audio_player.max_distance <= 10.0, "NPC voice is quieter and limited to a near-field listening radius")
-	var speaker := Node3D.new()
-	speaker.position = Vector3(4.0, 2.0, -3.0)
-	add_child(speaker)
-	NpcVoice.register_speaker("mira", speaker)
-	NpcVoice.playing_npc_id = "mira"
-	NpcVoice._sync_audio_position()
-	_expect(NpcVoice.audio_player.global_position.distance_to(speaker.global_position + Vector3.UP * NpcVoice.VOICE_SOURCE_HEIGHT) < 0.01, "Spatial voice follows the speaking NPC")
-	NpcVoice.playing_npc_id = ""
-	NpcVoice.unregister_speaker("mira", speaker)
-	speaker.queue_free()
+	if bool(ProjectSettings.get_setting("stranger_novel/enabled", false)):
+		_expect(NpcVoice.audio_player is AudioStreamPlayer, "Novel NPC lines use non-positional audio")
+		_expect(NpcVoice.audio_player.volume_db <= -8.0, "Novel voice retains comfortable playback volume")
+		NpcVoice._sync_audio_position() # Safe without a 3D speaker or camera.
+	else:
+		_expect(NpcVoice.audio_player is AudioStreamPlayer3D, "NPC lines use a spatial 3D audio source")
+		_expect(NpcVoice.audio_player.volume_db <= -8.0 and NpcVoice.audio_player.max_distance <= 10.0, "NPC voice is quieter and limited to a near-field listening radius")
+		var speaker := Node3D.new()
+		speaker.position = Vector3(4.0, 2.0, -3.0)
+		add_child(speaker)
+		NpcVoice.register_speaker("mira", speaker)
+		NpcVoice.playing_npc_id = "mira"
+		NpcVoice._sync_audio_position()
+		_expect(NpcVoice.audio_player.global_position.distance_to(speaker.global_position + Vector3.UP * NpcVoice.VOICE_SOURCE_HEIGHT) < 0.01, "Spatial voice follows the speaking NPC")
+		NpcVoice.playing_npc_id = ""
+		NpcVoice.unregister_speaker("mira", speaker)
+		speaker.queue_free()
 	var failures_seen: Array[String] = []
 	NpcVoice.line_audio_failed.connect(func(_npc_id: String, _line_id: String, reason: String) -> void:
 		failures_seen.append(reason))
@@ -58,7 +63,7 @@ func _test_feed_reply_pcm() -> void:
 		failed_seen.append(line_id))
 	NpcVoice.availability_override = false
 	_expect(NpcVoice.feed_reply_pcm("tavi", "reply-feed", pcm), "Streamed PCM reply plays without the availability gate")
-	_expect(NpcVoice.playing_npc_id == "tavi" and NpcVoice.playing_line_id == "reply-feed", "Fed reply owns the spatial audio player")
+	_expect(NpcVoice.playing_npc_id == "tavi" and NpcVoice.playing_line_id == "reply-feed", "Fed reply owns the audio player")
 	_expect(ready_seen == ["reply-feed"], "Fed reply emits the standard line_audio_ready signal")
 	_expect(not NpcVoice.feed_reply_pcm("tavi", "reply-empty", PackedByteArray()), "Empty PCM is rejected")
 	_expect(not NpcVoice.feed_reply_pcm("tavi", "reply-stereo", pcm, 24000, 2), "Non-mono PCM is rejected")

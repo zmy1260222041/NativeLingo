@@ -84,6 +84,9 @@ class StreamDynamicReplyTest(unittest.TestCase):
     )
 
     def setUp(self):
+        patch = mock.patch.object(server, "TTS_PROVIDER", "qwen")
+        patch.start()
+        self.addCleanup(patch.stop)
         server._TTS_CACHE.clear()
         server._DYNAMIC_REPLIES.clear()
         self._old_key = server.QWEN_TTS_API_KEY
@@ -131,6 +134,9 @@ class StreamDynamicReplyTest(unittest.TestCase):
 
 class SynthesizeNpcLineTest(unittest.TestCase):
     def setUp(self):
+        patch = mock.patch.object(server, "TTS_PROVIDER", "qwen")
+        patch.start()
+        self.addCleanup(patch.stop)
         server._TTS_CACHE.clear()
         self._old_key = server.QWEN_TTS_API_KEY
 

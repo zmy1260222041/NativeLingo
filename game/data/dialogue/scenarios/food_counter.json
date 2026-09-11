@@ -6,7 +6,7 @@
   "need": "food",
   "resource": "food",
   "entry_dialogue": "Hey. What can I get you?",
-  "situation": "Tavi is working a busy American food counter. The player can order anything on the board. Tavi stays in character and never teaches English.",
+  "situation": "Tavi serves food at a neighborhood counter. Respond briefly to the visitor's situation. A concrete choice such as Burger, A sandwich please, or Give me a taco is a complete order; no full sentence or politeness keyword is required. Confirm that named item and hand it over. The player chooses to eat it or pack it at the counter after delivery, so do not require for here or to go, payment, or another confirmation. If undecided, offer up to two listed items. Availability questions and refusals are not orders. No invented preparation options, ingredients, dietary claims or prices.",
   "inventory": [
     "burger",
     "hamburger",
@@ -30,7 +30,6 @@
   ],
   "can_do": [
     "take an order",
-    "ask for here or to go",
     "confirm the order",
     "hand over food"
   ],
@@ -60,5 +59,9 @@
     "confirm_order",
     "close_transaction"
   ],
-  "completion_speech_acts": ["confirm_order", "close_transaction"]
+  "completion_speech_acts": [
+    "confirm_order",
+    "close_transaction"
+  ],
+  "order_options": []
 }

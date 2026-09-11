@@ -384,7 +384,7 @@ func _find_nearby_target() -> void:
 		var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
 		if dynamic_service != null and dynamic_service.has_active_session():
 			var old_target_id := str(old_target.get("target_id")) if is_instance_valid(old_target) else ""
-			if old_target_id == dynamic_service.active_npc_id() and not GameState.interaction_time_frozen:
+			if old_target_id == dynamic_service.active_npc_id():
 				dynamic_service.cancel("VOICE_REASON_DIALOGUE_CANCELLED")
 		if is_instance_valid(old_target) and old_target.has_method("set_highlighted"):
 			old_target.set_highlighted(false)
@@ -439,13 +439,17 @@ func _start_voice_interaction() -> void:
 	if not is_instance_valid(nearby_target) or nearby_target.interaction_kind != "npc":
 		GameState.message_requested.emit(tr("MSG_NEAR_NPC_TO_SPEAK"), "neutral")
 		return
+	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
+	if dynamic_service != null and dynamic_service.is_session_active_for(nearby_target.target_id):
+		if Dialogue.state_for(nearby_target.target_id) in ["generating", "speaking"]:
+			GameState.message_requested.emit(tr("MSG_SPEECH_BUSY"), "neutral")
+			return
 	if not SpeechAdapter.start_recording(nearby_target.target_id):
 		if not SpeechAdapter.is_interaction_active():
 			GameState.message_requested.emit(tr("MSG_SPEECH_BUSY"), "neutral")
 		return
 	# The recording itself covers the connection warm-up window: prewarm the
 	# dialogue service's TTS pool while the player is still speaking.
-	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))
 	if dynamic_service != null:
 		dynamic_service.prewarm(nearby_target.target_id)
 

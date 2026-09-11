@@ -6,6 +6,7 @@ extends Node
 signal scenario_started(npc_id: String, scenario_id: String)
 signal scenario_state_changed(npc_id: String, scenario_id: String, state: String)
 signal scenario_finished(npc_id: String, scenario_id: String, outcome: String)
+signal service_settled(npc_id: String, detail: Dictionary)
 
 var sessions: Dictionary = {}
 
@@ -106,10 +107,12 @@ func apply_validated_reply(
 		return true
 	var score := running_score(npc)
 	var outcome := "failure"
+	var settled_band := "none"
 	if completion_valid:
 		var game_state := get_tree().root.get_node_or_null(NodePath("GameState"))
 		if game_state != null:
 			var band := str(game_state.settle_service_transaction(npc, score, clean_item, str(session.transaction_id)))
+			settled_band = band
 			outcome = "success" if band != "none" else "failure"
 			game_state.record_dialogue_scenario_result(scenario_key, outcome)
 	else:
@@ -117,6 +120,7 @@ func apply_validated_reply(
 		if game_state != null:
 			game_state.record_dialogue_scenario_result(scenario_key, "failure")
 	sessions.erase(npc)
+	service_settled.emit(npc, {"outcome": outcome, "score": score, "band": settled_band, "item": clean_item, "confirmed": completion_valid})
 	scenario_finished.emit(npc, scenario_key, outcome)
 	return true
 

@@ -8,6 +8,11 @@ signal scenario_opened(npc_id: String, scenario_id: String, text: String)
 signal dialogue_ready(npc_id: String, reply_id: String, text: String)
 signal dialogue_failed(npc_id: String, reason: String)
 signal dialogue_closed(npc_id: String, reason: String)
+## FR-45 speaker subtitle: the player's own words are mirrored the moment the
+## transcript is locked in; marks arrive later with the scored player_turn.
+signal player_turn_displayed(npc_id: String, transcript: String)
+signal player_turn_scored(npc_id: String, transcript: String, errors: Array)
+signal service_turn_updated(npc_id: String, detail: Dictionary)
 
 const LOCAL_URL := "http://127.0.0.1:17831/game/dialogue"
 const CLOUD_PATH := "/game/dialogue"
@@ -28,9 +33,17 @@ const RESPONSE_STATES := ["awaiting_player", "awaiting_follow_up", "closed"]
 ## The server streams reply PCM inside the SSE dialogue response; if it never
 ## arrives (old server, dropped events, TTS failure) fall back to the classic
 ## /game/tts fetch after this delay.
-const AUDIO_FALLBACK_SECONDS := 3.5
+## Keep the live plane inside NFR-9. Once speaking is committed, a missing first
+## audio event must fall back quickly enough that the classic TTS fetch can still
+## start playback inside the three-second end-to-end budget.
+const AUDIO_FALLBACK_SECONDS := 0.9
+## After audio starts, this timer becomes an inactivity watchdog. Valid longer
+## replies may exceed it in total as long as chunks continue to arrive.
+const AUDIO_STALL_SECONDS := 1.5
 const MAX_STREAM_AUDIO_BYTES := 2 * 1024 * 1024
 const PREWARM_THROTTLE_SECONDS := 10.0
+## FR-45: only the tier enum leaves the device; anything else is dropped.
+const VALID_PLAYER_TIERS := ["infant", "toddler", "youth", "professional"]
 
 var availability_override: Variant = null
 var request_override: Callable
@@ -41,6 +54,10 @@ var session_id := ""
 var retry_count := 0
 var pending_transcript := ""
 var pending_pronunciation := -1.0
+## Transcript of the in-flight turn. pending_transcript is cleared once the
+## reply commits, but the scored marks and the vocabulary rewiring still need
+## the exact words the player said.
+var current_turn_transcript := ""
 var current_reply_id := ""
 var current_reply_text := ""
 var current_reply_speech_act := ""
@@ -92,7 +109,9 @@ func _ready() -> void:
 	add_child(audio_fallback_timer)
 	prewarm_request = HTTPRequest.new()
 	prewarm_request.name = "NpcDialoguePrewarmHttp"
-	prewarm_request.timeout = 3.0
+	# The request is asynchronous and overlaps recording. Allow enough time for
+	# one dropped proxy connection to be replaced before the transcript arrives.
+	prewarm_request.timeout = 6.0
 	add_child(prewarm_request)
 	var npc_voice := get_tree().root.get_node_or_null(NodePath("NpcVoice"))
 	if npc_voice != null:
@@ -142,6 +161,8 @@ func begin_scenario(npc_id: String, scenario_id := "") -> bool:
 		return false
 	if is_session_active_for(npc):
 		return true
+	if has_active_session():
+		cancel("VOICE_REASON_DIALOGUE_CANCELLED")
 	var selected := scenario_id.strip_edges().to_lower()
 	if selected.is_empty():
 		selected = _registry().next_scenario_for(npc)
@@ -202,6 +223,8 @@ func submit_transcript(transcript: String, game_context: Dictionary = {}) -> boo
 	var text := transcript.strip_edges()
 	if text.is_empty() or not is_session_active_for(current_npc_id):
 		return false
+	if not current_reply_id.is_empty() or _awaiting_stream_audio:
+		return false
 	if http_request == null or http_request.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED or _stream_busy():
 		return false
 	if not is_available():
@@ -211,8 +234,12 @@ func submit_transcript(transcript: String, game_context: Dictionary = {}) -> boo
 		return false
 	pending_transcript = text
 	pending_pronunciation = float(game_context.get("pronunciation", -1.0))
+	current_turn_transcript = text
+	player_turn_displayed.emit(current_npc_id, text)
 	retry_count = 0
 	_score_received = false
+	last_reply_source = ""
+	last_reply_model = ""
 	_audio_finished_pending = false
 	_pending_next_state = "awaiting_follow_up"
 	_clear_stream_audio_state()
@@ -242,6 +269,9 @@ func _send_request(game_context: Dictionary = {}) -> bool:
 	var runner := _runner()
 	if runner != null:
 		context.merge(runner.game_context(current_npc_id), false)
+	var tier := _player_tier()
+	if not tier.is_empty():
+		context["player_level"] = tier
 	var body := {
 		"session_id": session_id,
 		"npc_id": current_npc_id,
@@ -250,6 +280,7 @@ func _send_request(game_context: Dictionary = {}) -> bool:
 		"history": _recent_history(),
 		"game_context": context,
 		"retry": retry_count,
+		"require_live_dialogue": bool(ProjectSettings.get_setting("stranger_novel/enabled", false)),
 	}
 	var headers := PackedStringArray(["Content-Type: application/json"])
 	if cloud_mode_enabled():
@@ -408,6 +439,7 @@ func _poll_dialogue_stream() -> void:
 				_drain_sse_buffer()
 		return
 	if status == HTTPClient.STATUS_DISCONNECTED:
+		var disconnected_client := _stream_client
 		var code := 200
 		if _stream_client.has_response():
 			code = _stream_client.get_response_code()
@@ -418,12 +450,15 @@ func _poll_dialogue_stream() -> void:
 			return
 		if not _stream_buffer.is_empty():
 			_drain_sse_buffer(true)
-		if _stream_client != null:
+		if _stream_client != disconnected_client:
 			# Drain already reacted (e.g. an error event retried with a fresh
-			# stream); closing here would kill that retry.
+			# stream, or done closed it); touching it here would kill that result.
 			return
+		var incomplete_score := has_active_session() and not _score_received
+		if _score_received and _awaiting_stream_audio:
+			_stream_audio_finish({"npc_id": current_npc_id, "reply_id": current_reply_id}, true)
 		_close_dialogue_stream()
-		if has_active_session() and current_reply_id.is_empty() and not _score_received:
+		if incomplete_score:
 			_retry_or_fail("VOICE_REASON_SERVICE_UNAVAILABLE")
 		return
 	if status == HTTPClient.STATUS_CONNECTION_ERROR or status == HTTPClient.STATUS_TLS_HANDSHAKE_ERROR:
@@ -531,12 +566,16 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 
 
 func _apply_speaking(parsed: Dictionary) -> bool:
+	if bool(ProjectSettings.get_setting("stranger_novel/enabled", false)) and str(parsed.get("source", "")).to_lower() == "stub":
+		_retry_or_fail("VOICE_REASON_SERVICE_UNAVAILABLE")
+		return false
 	var validation := _validate_speaking(parsed)
 	if not bool(validation.get("ok", false)):
 		_retry_or_fail(str(validation.get("reason", "VOICE_REASON_RESULT_INVALID")))
 		return false
 	var reply_id := str(parsed["reply_id"])
 	var text := str(parsed["text"])
+	last_reply_source = str(parsed.get("source", "")).strip_edges().to_lower()
 	var next_state := str(parsed.get("next_state", "awaiting_follow_up"))
 	if next_state.is_empty() or not next_state in RESPONSE_STATES:
 		next_state = "awaiting_follow_up"
@@ -592,6 +631,8 @@ func _stream_audio_begin(parsed: Dictionary) -> void:
 	if not _stream_reply_matches(parsed):
 		return
 	_stream_audio_sample_rate = clampi(int(parsed.get("sample_rate", 24000)), 8000, 96000)
+	if audio_fallback_timer != null:
+		audio_fallback_timer.start(AUDIO_STALL_SECONDS)
 
 
 func _stream_audio_chunk(parsed: Dictionary) -> void:
@@ -608,10 +649,12 @@ func _stream_audio_chunk(parsed: Dictionary) -> void:
 		_stream_audio_finish(parsed, true)
 		return
 	_stream_audio.append_array(chunk)
+	if audio_fallback_timer != null:
+		audio_fallback_timer.start(AUDIO_STALL_SECONDS)
 
 
 func _stream_audio_finish(parsed: Dictionary, failed: bool) -> void:
-	if not _stream_reply_matches(parsed) and not failed:
+	if not _stream_reply_matches(parsed):
 		return
 	if audio_fallback_timer != null:
 		audio_fallback_timer.stop()
@@ -719,18 +762,19 @@ func _apply_score(parsed: Dictionary) -> void:
 		# NPC line itself named and committed the concrete inventory item.
 		_pending_next_state = "awaiting_follow_up"
 	_score_received = true
-	if _awaiting_stream_audio and _stream_audio.is_empty():
-		# Old server or lost audio events: the score arrived without any audio,
-		# so stop waiting and fetch the reply audio the classic way.
-		_awaiting_stream_audio = false
-		if audio_fallback_timer != null:
-			audio_fallback_timer.stop()
-		_request_reply_audio()
+	# Score and audio race independently. The audio timeout/end event owns fallback.
 	var runner := _runner()
 	if runner != null:
 		var idiomaticity := float(player_turn.get("idiomaticity", 0.0))
 		var pronunciation := pending_pronunciation if pending_pronunciation >= 0.0 else idiomaticity
 		runner.record_player_turn(current_npc_id, pronunciation, idiomaticity)
+	_emit_player_turn_scored(player_turn, score_source)
+	_record_vocabulary_use(current_turn_transcript)
+	service_turn_updated.emit(current_npc_id, {
+		"confirmed": confirmation_valid,
+		"item": current_confirmed_item if confirmation_valid else str(player_turn.get("requested_item", "")),
+		"off_inventory": off_inventory,
+	})
 	if _audio_finished_pending:
 		_settle_finished_audio()
 
@@ -890,6 +934,7 @@ func _retry_or_fail(reason: String) -> void:
 
 func _fail(reason: String, close_session := false) -> void:
 	GameState.set_interaction_time_frozen(false)
+	SpeechAdapter.mark_runtime_unavailable(reason)
 	_clear_stream_audio_state()
 	var npc := current_npc_id
 	if not npc.is_empty() and _dialogue().has_dynamic_session(npc):
@@ -994,6 +1039,7 @@ func _close_session(reason: String, cancel_runner := true, cancel_voice := true)
 	session_id = ""
 	pending_transcript = ""
 	pending_pronunciation = -1.0
+	current_turn_transcript = ""
 	current_reply_id = ""
 	current_reply_text = ""
 	current_reply_speech_act = ""
@@ -1020,6 +1066,34 @@ func _response_reason(body: PackedByteArray, fallback: String) -> String:
 		if not reason.is_empty():
 			return reason
 	return fallback
+
+
+func _emit_player_turn_scored(player_turn: Dictionary, score_source: String) -> void:
+	## FR-45 G-B2: marks exist only for real scored turns; stub turns keep the
+	## neutral subtitle exactly as it was first displayed.
+	var errors: Array = []
+	var raw_errors = player_turn.get("errors", [])
+	if raw_errors is Array and score_source in ["gemini", "grok"]:
+		for span in raw_errors:
+			errors.append(str(span))
+	player_turn_scored.emit(current_npc_id, current_turn_transcript, errors)
+
+
+func _record_vocabulary_use(transcript: String) -> void:
+	## FR-45 G-C: real conversational production proves "used" for words the
+	## player has already practised aloud (spoken -> used only; the ladder and
+	## its rewards stay exactly as FR-36 defined them).
+	var text := transcript.strip_edges()
+	if text.is_empty():
+		return
+	var vocabulary := get_tree().root.get_node_or_null(NodePath("Vocabulary"))
+	if vocabulary != null:
+		vocabulary.record_words_used_from_text(text)
+
+
+func _player_tier() -> String:
+	var tier := str(GameState.vocabulary_tier).strip_edges().to_lower()
+	return tier if tier in VALID_PLAYER_TIERS else ""
 
 
 func _registry() -> Node:

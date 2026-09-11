@@ -181,8 +181,19 @@ func _try_begin_scene() -> bool:
 	var axis := second.global_position - first.global_position
 	axis.y = 0.0
 	axis = axis.normalized() if axis.length() > 0.001 else Vector3.RIGHT
-	first.walk_to(midpoint - axis * TALK_STANDOFF_M)
-	second.walk_to(midpoint + axis * TALK_STANDOFF_M)
+	# Tavi serves across a physical counter. A midpoint rendezvous crosses the
+	# counter mesh because ambient NPC walking is not physics navigation.
+	# Keep the authored workplace anchor and meet on the customer side instead.
+	var first_goal := midpoint - axis * TALK_STANDOFF_M
+	var second_goal := midpoint + axis * TALK_STANDOFF_M
+	if first.target_id == "tavi":
+		first_goal = NpcScenarioRegistry.workplace_anchor("tavi")
+		second_goal = first_goal + Vector3(0, 0, 1.90)
+	elif second.target_id == "tavi":
+		second_goal = NpcScenarioRegistry.workplace_anchor("tavi")
+		first_goal = second_goal + Vector3(0, 0, 1.90)
+	first.walk_to(first_goal)
+	second.walk_to(second_goal)
 	phase = Phase.GATHERING
 	return true
 

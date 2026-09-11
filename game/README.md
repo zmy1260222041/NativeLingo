@@ -1,3 +1,50 @@
+# Stranger · 2D 对话与养成分支
+
+本分支默认进入 `scenes/Novel.tscn`。六个地点、五名 NPC 立绘、逐字对话与双人小剧场、成长/词汇、行囊/柜台/住处、回看和设置构成新的游戏界面。原 3D 场景保留为历史参考。
+
+```sh
+/Applications/Godot-4.6.app/Contents/MacOS/Godot --path game
+```
+
+推荐双击 `game/run_novel.command`：自动启动本地语音服务，再打开游戏。服务保持运行供下次使用，日志在系统临时目录的 `stranger-novel-speech.log`。也可在语音服务已经运行时打开 `build/novel/Stranger2D.app`。专用导出预设为 **macOS 2D Novel**，只携带 2D 运行依赖、角色卡与词表，不包含 3D 模型。
+
+- 点左侧地点，或按 1–6 切换；E 交谈，V 开始/结束录音，G 手势，B 行囊，Esc 设置/返回。
+- Tab / 方向键选择按钮，Enter 或手柄 A 确认；原 InputMap 的交谈、手势、录音也可用。手柄通过界面地点按钮切换场景。
+- 语音不可用时，手势领取最低份量；语音可用时，仍需通过原有具名成交规则取得物品。柜台领取后可以现场使用或打包。
+- 成长页选择单词→听美国语音示范（可重听）→V 录音、再按 V 结束→得到发音反馈→在商店自然交谈中使用。播放示范时禁止录音，低分可免费重试。小剧场听九段四句日常对白，包含打包点餐、选饮品、买电池、借毯子和邻里往来；开口灵感按当前地点提供示例，仍需自己录音交流。在住处安放/安装物品，休息到夜晚，然后睡觉；度过三夜结束。
+- 行囊 / 柜台 / 住处支持分类与合并数量，详情显示来源、剩余次数、用途和当前实际恢复量；主要操作具名回执，满状态不消耗，浪费需确认。柜台提示待取数量，支持全部打包；空行囊可直接前往补给点。
+- 读文字、对话与练习不扣需求，只有明确行动推进时间。住处休息有较低需求消耗。
+- 首次启动读取已有 `stranger_save.json`，后续写入独立 `stranger_novel_save.json`。不会覆盖 3D 存档。设置可存读档、减少动态、调整对话字号、切换逐字显示、重映射键鼠/手柄动作和确认重开。
+- 本分支默认使用 xAI 美国 us-east-1 TTS（服务端已有 `XAI.csv` / `XAI_API_KEY`），Gemini 负责自然对话。设置中可重新检查连接；模型失败不会用脚本模拟评分或成交。历史 Qwen 配置仅供显式设置 `STRANGER_TTS_PROVIDER=qwen` 的旧版调试，默认不连接北京端点。
+
+验证：
+
+```sh
+/Applications/Godot-4.6.app/Contents/MacOS/Godot --headless --path game res://tests/NovelTest.tscn
+# 行囊、日常对白、焦点、真实鼠标遮挡与小尺寸渲染
+/Applications/Godot-4.6.app/Contents/MacOS/Godot --path game res://tests/NovelEverydayTest.tscn -- --everyday-capture
+# 真实生活情景对话与新台词美国 TTS（文字测试输入）
+.venv/bin/python game/speech_service/probe_everyday.py
+# 同时生成桌面截图（测试使用独立状态，不读取用户存档）
+/Applications/Godot-4.6.app/Contents/MacOS/Godot --path game res://tests/NovelTest.tscn -- --novel-capture
+# 真实 API + 游戏录音通道 + 多轮交谈 + 物资和词汇闭环（合成输入，不采集真人麦克风）
+.venv/bin/python game/speech_service/probe_novel_live.py
+# 本地导出
+/Applications/Godot-4.6.app/Contents/MacOS/Godot --headless --path game --export-release "macOS 2D Novel" ../build/novel/Stranger2D.app
+```
+
+界面配色统一为暖纸白、燕麦灰、鼠尾草绿和少量黄铜棕，涵盖对话、物品、提示与按键设置。配色与对比度验收：`docs/reviews/2026-09-11-soft-palette-fit.md`。
+
+字体与边框采用视觉小说的阅读层级：Noto Serif SC 宋体用于对白、姓名牌和标题，Noto Sans SC 常规字重用于操作与状态；细分隔线、轻选中标记和小圆角减少框线干扰。录音固定在对话操作区右侧；逐字出现时可点「显示全文」，小剧场先补全本句、再推进下一句，末句返回现场。大字号容纳三行中文，更长回应可滚动阅读，新回应回到顶部。字体与许可随包提供。验收：`docs/reviews/2026-09-11-novel-typography-fit.md`。
+
+行囊与生活化体验验收：`docs/reviews/2026-09-11-everyday-inventory-fit.md`（R-36 / FR-47）。
+
+迁移矩阵和证据：`docs/reviews/2026-09-11-stranger-2d-dialogue-fit.md`（R-34 / FR-46）。美国 TTS 与口语闭环证据见 `docs/reviews/2026-09-11-stranger-2d-speaking-fit.md`（R-35）。
+
+---
+
+以下为原 3D 版本及共享语音/领域模块的历史运行说明；移动、跳跃和场景快捷键不适用于本分支默认入口。
+
 # 异乡人 / Stranger — Vertical Slice
 
 A standalone Godot 4.6 third-person social-survival RPG prototype.
@@ -87,12 +134,24 @@ Walk up to a service point when you need something and talk:
 - Rowan — resident neighbor. Not a shopkeeper.
 
 The player speaks first. The local (or cloud) service sends the transcript,
-role card, and recent turns to Gemini (`gemini-3.7-flash` with
-`thinking_level=LOW` over `streamGenerateContent`). The first spoken sentence
-starts NPC audio; idiomaticity / transaction JSON may arrive after the
-mouth is already open. If Gemini misses a ~1s first-sentence budget, a stub
-line is spoken instead of stalling. Session score is `0.5 × pronunciation + 0.5 ×
-idiomaticity`. Resources are granted only when the transaction completes,
+role card, and recent turns to Gemini (`gemini-3.1-flash-lite` with
+`thinking_level=MINIMAL` over `streamGenerateContent`). Pressing `V` warms the
+shared Gemini HTTPS session, a tiny throttled streamed model probe, and the TTS
+websocket while the player records.
+The live plane races identical short-window Flash-Lite requests to absorb an
+occasional slow upstream connection; only a safe, request-relevant model utterance
+can win. A normal turn starts audio on the first safe sentence. A settlement turn may
+wait for the second short sentence when the first is only a generic acknowledgement,
+so the committed audio explicitly names the item and the handoff before it can close.
+Idiomaticity / transaction JSON may
+arrive after the mouth is already open. A deterministic stub remains an outage
+and offline recovery path, but a configured, prewarmed online latency acceptance
+run must report `source=gemini`, never `source=stub`. Session score is `0.5 × pronunciation + 0.5 ×
+idiomaticity`. Resources are granted only after the spoken reply names a concrete
+scenario-inventory item, contains a non-question handoff commitment, uses a completion
+speech act, and that same reply's audio has finished. Generic `Sure thing.` / category
+questions never settle even if a model completion flag claims otherwise. The server,
+Godot dialogue service, scenario runner, and GameState each enforce this boundary,
 using the same FR-28 bands as before. Walking away grants nothing. `G`
 remains goodwill only, or `gesture_fallback` when speech itself is
 unavailable.
@@ -103,6 +162,14 @@ to TTS. NPC replies are spoken through a server-issued `reply_id`. Without
 present; otherwise a deterministic stub keeps tests and offline integration
 running. YouTube discovery tools stay in `game/speech_service/` as optional
 research; they do not feed these counters.
+
+With the localhost service already running, the opt-in desktop SSE acceptance
+probe (it briefly opens a Godot window) is:
+
+```bash
+/Applications/Godot-4.6.app/Contents/MacOS/Godot --path game \
+  --script res://tests/test_live_npc_dialogue.gd
+```
 
 NPCs periodically meet for ambient need-expression scenes: the two family or
 partner NPCs **walk to a meeting point near each other**, exchange the lines

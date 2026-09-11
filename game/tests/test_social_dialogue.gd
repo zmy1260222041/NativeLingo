@@ -43,7 +43,12 @@ func _ready() -> void:
 	GameState.interact("npc", "tavi", "voice", _expression(30.0))
 	_expect(Dialogue.state_for("tavi") == "clarify" and GameState.berries == berries_before, "Low-score voice request keeps the dialogue open and grants nothing")
 	GameState.interact("npc", "tavi", "voice", _expression(100.0))
-	_expect(Dialogue.state_for("tavi") == "idle" and GameState.berries > berries_before, "Understood retry closes the session and applies the monotonic reward")
+	# FR-41: a raw pronunciation result is not a completed concrete service
+	# order. The understood retry closes the session, but only the counter
+	# dialogue settling a named inventory item applies the reward.
+	_expect(Dialogue.state_for("tavi") == "idle" and GameState.berries == berries_before, "Understood retry closes the session without granting before a confirmed order")
+	GameState.settle_service_transaction("tavi", 100.0, "burger")
+	_expect(GameState.berries > berries_before, "A completed counter order applies the monotonic reward")
 	Dialogue.reset_all()
 	if failures == 0:
 		print("PASS: Stranger social dialogue suite")
@@ -72,7 +77,7 @@ func _test_npc_social_walking() -> void:
 	# The interval timer cannot fire inside this synchronous test, so the
 	# simulator stays running and its _process drives the phase machine.
 	_expect(walker._try_begin_scene(), "A social scene gathers when both family NPCs are free")
-	_expect(walker.phase == SocialSimulator.Phase.GATHERING and tavi_npc.is_walking() and mira_npc.is_walking(), "Both NPCs start walking toward each other")
+	_expect(walker.phase == SocialSimulator.Phase.GATHERING and not tavi_npc.is_walking() and mira_npc.is_walking(), "Mira approaches the counter while Tavi stays at the service anchor")
 	var talking := false
 	for frame in range(160):
 		tavi_npc._process(0.1)
@@ -86,11 +91,13 @@ func _test_npc_social_walking() -> void:
 	_expect(walker.talk_timer.time_left > 0.0, "No-voice dialogue still keeps both NPCs together for a readable speaking pause")
 	var talk_gap := tavi_npc.global_position.distance_to(mira_npc.global_position)
 	_expect(talk_gap < 2.4, "NPCs stand close together while talking (was %.2f m)" % talk_gap)
+	_expect(tavi_npc.global_position.distance_to(NpcScenarioRegistry.workplace_anchor("tavi")) < 0.05, "Tavi remains behind the physical counter at the unchanged workplace anchor")
+	_expect(mira_npc.global_position.z > -1.05, "Customer-side social stand-off clears the counter front")
 	walker.pending_line_keys.assign(["tavi/test_line_one", "mira/test_line_two"])
 	walker._on_line_audio_finished("tavi", "test_line_one")
 	_expect(walker.phase == SocialSimulator.Phase.TALKING and walker.pending_line_keys.size() == 1, "The first finished line never makes the NPCs leave early")
 	walker._on_line_audio_finished("mira", "test_line_two")
-	_expect(walker.phase == SocialSimulator.Phase.DISBURSING and tavi_npc.is_walking() and mira_npc.is_walking(), "After the talk both NPCs walk home")
+	_expect(walker.phase == SocialSimulator.Phase.DISBURSING and not tavi_npc.is_walking() and mira_npc.is_walking(), "After the talk Mira walks home and Tavi is already at his work anchor")
 	var idle := false
 	for frame in range(240):
 		tavi_npc._process(0.1)

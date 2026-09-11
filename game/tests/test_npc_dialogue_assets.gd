@@ -55,10 +55,18 @@ func _run() -> void:
 	var valid_reply := {
 		"reply_id": "reply-contract",
 		"npc_id": "tavi",
-		"text": "You got it.",
+		"text": "You got it. I'll get you the burger now.",
 		"speech_act": "confirm_order",
 		"next_state": "closed",
-		"player_turn": {"idiomaticity": 82.0, "progress": "done", "transaction_complete": true, "off_inventory": false},
+		"player_turn": {
+			"idiomaticity": 82.0,
+			"progress": "done",
+			"transaction_complete": true,
+			"off_inventory": false,
+			"spoken_delivery_confirmed": true,
+			"requested_item": "burger",
+			"confirmed_item": "burger",
+		},
 		"gate": {"accepted": true, "violations": []},
 	}
 	_expect(bool(service._validate_reply(valid_reply).get("ok", false)), "Godot accepts the service-point reply contract")
@@ -68,7 +76,7 @@ func _run() -> void:
 	var invalid_score: Dictionary = valid_reply.duplicate(true)
 	invalid_score["player_turn"]["idiomaticity"] = NAN
 	_expect(not bool(service._validate_reply(invalid_score).get("ok", false)), "Godot rejects non-finite idiomaticity")
-	_expect(dialogue.accept_dynamic_reply("tavi", "reply-test", "You got it.", "closed"), "Validated reply can close after a completed order")
+	_expect(dialogue.accept_dynamic_reply("tavi", "reply-test", "I'll get you the burger now.", "closed"), "Validated reply can close after a completed order")
 	_expect(dialogue.finish_speaking("tavi", "reply-test") == "closed", "Completed transaction closes the conversation")
 	service.cancel()
 	_expect(service.begin_scenario("tavi", "food_counter"), "A new session can start after cancel")
@@ -85,10 +93,14 @@ func _run() -> void:
 	service.cancel()
 	service.request_override = Callable()
 	service.availability_override = null
+	_test_single_active_session(service, dialogue)
 	_test_stream_audio_events(service, dialogue)
 	_test_stream_audio_failure_falls_back(service, dialogue)
 	_test_stream_score_without_audio_falls_back(service, dialogue)
+	_test_spoken_settlement_gate(service, dialogue)
+	_test_dialogue_failure_marks_gesture_fallback(service)
 	_test_prewarm(service)
+	_test_speaker_subtitle_contract(service, dialogue)
 	if failures == 0:
 		print("PASS: Godot NPC dialogue asset suite")
 	quit(failures)
@@ -151,11 +163,13 @@ func _test_stream_audio_events(service: Node, dialogue: Node) -> void:
 		"gate": {"accepted": true, "violations": []},
 	})
 	_expect(ok and service._awaiting_stream_audio, "Stream-mode speaking defers audio to the SSE stream")
+	_expect(not dialogue.begin_generation("tavi", "Another burger."), "Speaking state rejects a second V submission")
 	var pcm := PackedByteArray()
 	pcm.resize(9600)
 	pcm.fill(3)
 	var b64 := Marshalls.raw_to_base64(pcm)
 	service._handle_sse_block("event: audio_begin\ndata: {\"reply_id\":\"reply-stream\",\"npc_id\":\"tavi\",\"sample_rate\":24000}")
+	_expect(is_equal_approx(service.audio_fallback_timer.wait_time, service.AUDIO_STALL_SECONDS), "audio_begin switches fallback into a chunk-stall watchdog")
 	service._handle_sse_block("event: audio\ndata: {\"reply_id\":\"reply-stream\",\"npc_id\":\"tavi\",\"seq\":0,\"pcm_b64\":\"" + b64 + "\"}")
 	_expect(service._stream_audio.size() == pcm.size(), "Audio chunks accumulate while streaming")
 	var npc_voice := root.get_node("NpcVoice")
@@ -202,13 +216,122 @@ func _test_stream_score_without_audio_falls_back(service: Node, dialogue: Node) 
 	var npc_voice := root.get_node("NpcVoice")
 	npc_voice.availability_override = true
 	service._apply_score({
+		"reply_id": "reply-from-an-old-turn", "npc_id": "tavi", "speech_act": "confirm_order",
+		"next_state": "closed",
+		"player_turn": {"idiomaticity": 99.0, "progress": "done", "transaction_complete": true, "off_inventory": false},
+	})
+	_expect(not service._score_received and npc_voice.pending_reply_id.is_empty(), "A score from another reply cannot settle or start audio")
+	service._apply_score({
 		"reply_id": "reply-score-fb", "npc_id": "tavi", "speech_act": "confirm_order",
 		"next_state": "awaiting_follow_up",
 		"player_turn": {"idiomaticity": 80.0, "progress": "ordering", "transaction_complete": false, "off_inventory": false},
 	})
+	# Score and streamed audio race on independent planes: a score alone never
+	# starts a /game/tts fetch while SSE audio may still arrive.
+	_expect(service._score_received and service._awaiting_stream_audio and npc_voice.pending_reply_id.is_empty(), "A score alone keeps waiting for streamed audio")
+	service._on_audio_fallback_timeout()
 	_expect(npc_voice.pending_reply_id == "reply-score-fb", "A score without streamed audio falls back to /game/tts")
 	npc_voice.availability_override = null
 	service.cancel()
+
+
+func _test_spoken_settlement_gate(service: Node, dialogue: Node) -> void:
+	if service.has_active_session():
+		service.cancel()
+	var state := root.get_node("GameState")
+	var before_generic: int = state.berries
+	_expect(service.begin_scenario("tavi", "food_counter"), "Generic-confirmation regression session starts")
+	dialogue.begin_generation("tavi", "Can I get a burger, please?")
+	service.pending_pronunciation = 80.0
+	service._streaming_response = true
+	_expect(service._apply_speaking({
+		"reply_id": "reply-generic-confirmation",
+		"npc_id": "tavi",
+		"text": "Sure thing.",
+		"speech_act": "confirm_order",
+		"gate": {"accepted": true, "violations": []},
+	}), "Generic spoken reply reaches the client speaking state")
+	# The live SSE contract delivers audio_end before score. This unit test
+	# drives playback completion manually, so mark the stream payload as already
+	# handed to NpcVoice instead of exercising the unrelated TTS fallback path.
+	service._awaiting_stream_audio = false
+	service._apply_score({
+		"reply_id": "reply-generic-confirmation",
+		"npc_id": "tavi",
+		"speech_act": "confirm_order",
+		"next_state": "closed",
+		"player_turn": {
+			"idiomaticity": 90.0,
+			"progress": "done",
+			"transaction_complete": true,
+			"off_inventory": false,
+			"spoken_delivery_confirmed": false,
+			"confirmed_item": "",
+		},
+	})
+	_expect(not service.current_transaction_complete and service._pending_next_state == "awaiting_follow_up", "Generic score is downgraded before audio completion")
+	service._on_reply_audio_finished("tavi", "reply-generic-confirmation")
+	_expect(state.berries == before_generic, "Generic 'Sure thing' cannot grant food even when score claims complete")
+	_expect(service.has_active_session() and dialogue.state_for("tavi") == "awaiting_follow_up", "Unproven completion keeps the conversation open (state=" + dialogue.state_for("tavi") + ")")
+	service.cancel()
+
+	var before_explicit: int = state.berries
+	_expect(service.begin_scenario("tavi", "food_counter"), "Explicit-confirmation regression session starts")
+	dialogue.begin_generation("tavi", "Can I get a burger, please?")
+	service.pending_pronunciation = 80.0
+	service._streaming_response = true
+	var explicit_text := "You got it. I'll get you the burger now."
+	_expect(service._apply_speaking({
+		"reply_id": "reply-explicit-confirmation",
+		"npc_id": "tavi",
+		"text": explicit_text,
+		"speech_act": "confirm_order",
+		"gate": {"accepted": true, "violations": []},
+	}), "Explicit item handoff reaches the client speaking state")
+	service._awaiting_stream_audio = false
+	service._apply_score({
+		"reply_id": "reply-explicit-confirmation",
+		"npc_id": "tavi",
+		"speech_act": "confirm_order",
+		"next_state": "closed",
+		"player_turn": {
+			"idiomaticity": 90.0,
+			"progress": "done",
+			"transaction_complete": true,
+			"off_inventory": false,
+			"spoken_delivery_confirmed": true,
+			"requested_item": "burger",
+			"confirmed_item": "burger",
+		},
+	})
+	_expect(service._spoken_reply_confirms_item(explicit_text, "burger", "confirm_order"), "Client recognizes the explicit named handoff sentence")
+	_expect(service.current_transaction_complete and service.current_confirmed_item == "burger", "Explicit score retains auditable settlement evidence")
+	_expect(state.berries == before_explicit, "Explicit confirmation still waits for the NPC audio to finish")
+	service._on_reply_audio_finished("tavi", "reply-explicit-confirmation")
+	_expect(state.berries == before_explicit + 2, "Explicit named handoff grants food only after audio finishes")
+	_expect(not service.has_active_session(), "Proven handoff closes the completed conversation")
+
+
+func _test_single_active_session(service: Node, dialogue: Node) -> void:
+	if service.has_active_session():
+		service.cancel()
+	_expect(service.begin_scenario("tavi", "food_counter"), "First dynamic NPC session starts")
+	_expect(service.begin_scenario("ori", "convenience_store"), "A second dynamic NPC can replace the first")
+	_expect(service.active_npc_id() == "ori" and not dialogue.has_dynamic_session("tavi"), "Replacing an NPC cancels the previous session")
+	service.cancel()
+
+
+func _test_dialogue_failure_marks_gesture_fallback(service: Node) -> void:
+	if service.has_active_session():
+		service.cancel()
+	var speech_adapter := root.get_node("SpeechAdapter")
+	var previous_reason: String = speech_adapter.last_unavailable_reason
+	speech_adapter.last_unavailable_reason = ""
+	service.begin_scenario("tavi", "food_counter")
+	service._fail("VOICE_REASON_SERVICE_UNAVAILABLE")
+	_expect(speech_adapter.runtime_speech_unavailable(), "Dialogue/TTS outage enables the survival gesture fallback")
+	service.cancel()
+	speech_adapter.last_unavailable_reason = previous_reason
 
 
 func _test_prewarm(service: Node) -> void:
@@ -221,6 +344,77 @@ func _test_prewarm(service: Node) -> void:
 	_expect(service._prewarm_last_msec != 0, "Prewarm fires for service-point NPCs")
 	service.prewarm("tavi")
 	service.availability_override = null
+
+
+func _test_speaker_subtitle_contract(service: Node, dialogue: Node) -> void:
+	if service.has_active_session():
+		service.cancel()
+	var vocabulary := root.get_node("Vocabulary")
+	var game_state := root.get_node("GameState")
+	var previous_tier: String = game_state.vocabulary_tier
+	service.availability_override = true
+	var request_bodies: Array[Dictionary] = []
+	service.request_override = func(_url: String, _headers: PackedStringArray, _method: int, body: String) -> int:
+		request_bodies.append(JSON.parse_string(body))
+		return OK
+	var displayed: Array = []
+	service.player_turn_displayed.connect(func(_npc_id: String, transcript: String) -> void:
+		displayed.append(transcript))
+	var scored: Array = []
+	service.player_turn_scored.connect(func(_npc_id: String, transcript: String, errors: Array) -> void:
+		scored.append([transcript, errors]))
+	game_state.vocabulary_tier = "toddler"
+	_expect(service.begin_scenario("tavi", "food_counter"), "Subtitle contract session starts")
+	vocabulary.observe_word("espresso")
+	vocabulary.record_word_spoken("espresso", 85.0)
+	_expect(vocabulary.word_state("espresso") == "spoken", "Precondition: espresso practised to spoken")
+	_expect(service.submit_transcript("I want espresso, please.", {"pronunciation": 80.0}), "Turn submission accepted")
+	_expect(displayed.size() == 1 and str(displayed[0]) == "I want espresso, please.", "G-B5: player words are mirrored the moment the turn starts")
+	_expect(str(request_bodies[0].get("game_context", {}).get("player_level", "")) == "toddler", "G-A1: the tier enum travels in game_context and nowhere else")
+	dialogue.accept_dynamic_reply("tavi", "reply-subtitle-1", "One espresso, coming up.", "awaiting_follow_up")
+	service.current_reply_id = "reply-subtitle-1"
+	service._apply_score({
+		"reply_id": "reply-subtitle-1",
+		"npc_id": "tavi",
+		"source": "gemini",
+		"player_turn": {
+			"idiomaticity": 62.0,
+			"errors": ["espresso"],
+			"progress": "ordering",
+			"transaction_complete": false,
+			"off_inventory": false,
+		},
+	})
+	_expect(scored.size() == 1 and str(scored[0][0]) == "I want espresso, please." and (scored[0][1] as Array).size() == 1 and str(scored[0][1][0]) == "espresso", "G-B2/G-B3: real scored turns carry the validated marks")
+	_expect(vocabulary.word_state("espresso") == "used", "G-C1: conversational production proves used for a practised word")
+	service.current_reply_id = "reply-subtitle-2"
+	service._apply_score({
+		"reply_id": "reply-subtitle-2",
+		"npc_id": "tavi",
+		"source": "stub",
+		"player_turn": {
+			"idiomaticity": 58.0,
+			"errors": ["espresso"],
+			"progress": "ordering",
+			"transaction_complete": false,
+			"off_inventory": false,
+		},
+	})
+	_expect(scored.size() == 2 and (scored[1][1] as Array).is_empty(), "G-B2: stub turns never carry marks")
+	dialogue.await_player("tavi")
+	service.current_reply_id = ""
+	game_state.vocabulary_tier = "professional"
+	_expect(service.submit_transcript("Can I get a coffee?", {}), "Second turn accepted")
+	_expect(str(request_bodies[1].get("game_context", {}).get("player_level", "")) == "professional", "G-A2: professional tier travels as the same enum")
+	dialogue.await_player("tavi")
+	service.current_reply_id = ""
+	game_state.vocabulary_tier = "not-a-tier"
+	_expect(service.submit_transcript("Another coffee, please.", {}), "Third turn accepted")
+	_expect(not request_bodies[2].get("game_context", {}).has("player_level"), "Invalid tiers are dropped before leaving the device")
+	service.cancel()
+	service.availability_override = null
+	service.request_override = Callable()
+	game_state.vocabulary_tier = previous_tier
 
 
 func _expect(condition: bool, label: String) -> void:
