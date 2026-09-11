@@ -1,0 +1,19 @@
+{
+  "asset": "prp_market_burger_v01",
+  "resolution": 512,
+  "selected_to_active": true,
+  "color_contains_lighting": false,
+  "normal_convention": "OpenGL +Y",
+  "high_subdivision": "SIMPLE 2",
+  "low_vertices": 766,
+  "contacts": [],
+  "maps": {
+    "base_color": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01_base_color.png",
+    "normal": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01_normal.png",
+    "ao": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01_ao.png",
+    "orm": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01_orm.png",
+    "roughness": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01_roughness.png"
+  },
+  "sha256": "8d2e3ff5e1f0c4cfe4b2ad1008f76ed8c2fe5b3bd2ed577e201c5d608a29b503",
+  "all_five_maps_packed": true
+}

@@ -1,0 +1,47 @@
+{
+  "asset": "env_market_stall_a",
+  "resolution": 2048,
+  "selected_to_active": true,
+  "color_contains_lighting": false,
+  "normal_convention": "OpenGL +Y",
+  "high_subdivision": "SIMPLE 2",
+  "low_vertices": 3472,
+  "contacts": [
+    {
+      "joint": "counter_support_to_top",
+      "support_top": 0.99,
+      "top_underside": 0.98,
+      "overlap_m": 0.01
+    },
+    {
+      "joint": "brace_to_roof",
+      "brace_end_z": 2.8256159999999997,
+      "roof_underside_z": 2.815616,
+      "overlap_m": 0.01
+    },
+    {
+      "joint": "food_to_counter",
+      "counter_top": 1.1,
+      "food_base_world_y": 1.1
+    },
+    {
+      "joint": "feet_to_ground",
+      "base": 0.01,
+      "ground": 0.018,
+      "overlap_m": 0.008
+    },
+    {
+      "service_clear_width_m": 0.82,
+      "npc_anchor_unchanged": true
+    }
+  ],
+  "maps": {
+    "base_color": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a_base_color.png",
+    "normal": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a_normal.png",
+    "ao": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a_ao.png",
+    "orm": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a_orm.png",
+    "roughness": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a_roughness.png"
+  },
+  "sha256": "617842b1a31bba8411819b111b1cec89a961e4c7c50faf08ea6a9b012116e4b7",
+  "all_five_maps_packed": true
+}

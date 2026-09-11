@@ -184,6 +184,8 @@ func _route(method: String, params: Dictionary, channel: String, peer_id: int) -
 			return _env_stats()
 		"game.capture_view":
 			return await _capture_view(params)
+		"game.profile_view":
+			return await _profile_view(params)
 		"game.bring_to_front":
 			DisplayServer.window_move_to_foreground(DisplayServer.MAIN_WINDOW_ID)
 			return {"result": {"front": true}}
@@ -290,6 +292,8 @@ func _sample_character_state(_params: Dictionary) -> Dictionary:
 	var player := get_tree().get_first_node_in_group("player")
 	if player != null and player.has_method("get_animation_debug_state"):
 		state["player"] = player.get_animation_debug_state()
+	state["render_draw_calls"] = Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+	state["frame_delta_ms"] = get_process_delta_time() * 1000.0
 	return _serialize(state)
 
 func _record_animation_frame() -> void:
@@ -488,8 +492,12 @@ func _set_property(params: Dictionary) -> Dictionary:
 		return {"error": {"code": -32111, "message": "node not found: %s" % node_path}}
 	if property.is_empty() or not property in target:
 		return {"error": {"code": -32112, "message": "property not found: %s" % property}}
+	if typeof(target.get(property)) == TYPE_VECTOR3 and value is Array and value.size() == 3:
+		value = Vector3(float(value[0]), float(value[1]), float(value[2]))
 	target.set(property, value)
-	return {"result": {"node": node_path, "property": property, "value": value}}
+	if target.name == "GameState" and property == "day_time":
+		target.emit_signal("state_changed")
+	return {"result": {"node": node_path, "property": property, "value": _serialize(value)}}
 
 
 func _env_stats() -> Dictionary:
@@ -527,7 +535,7 @@ func _capture_view(params: Dictionary) -> Dictionary:
 	if vp == null:
 		vp = SubViewport.new()
 		vp.name = "EnvReviewViewport"
-		vp.size = Vector2i(1280, 800)
+		vp.size = Vector2i(1440, 900)
 		vp.render_target_update_mode = SubViewport.UPDATE_ONCE
 		get_tree().root.add_child(vp)
 		var cam := Camera3D.new()
@@ -551,7 +559,7 @@ func _capture_view(params: Dictionary) -> Dictionary:
 	print("[capture_view] image=", image != null)
 	if image == null:
 		return {"error": {"code": -32113, "message": "subviewport capture returned no image"}}
-	var max_dim := clampi(int(params.get("max_dim", 800)), 160, 1280)
+	var max_dim := clampi(int(params.get("max_dim", 1440)), 160, 1440)
 	if image.get_width() > max_dim or image.get_height() > max_dim:
 		var new_width := image.get_width()
 		var new_height := image.get_height()
@@ -573,3 +581,75 @@ func _capture_view(params: Dictionary) -> Dictionary:
 	image.save_jpg(out_path)
 	print("[capture_view] saved ", out_path)
 	return {"result": {"format": "jpg", "path": out_path}}
+
+
+## Real frame timing, not the scene-node estimate. Review viewport is removed
+## before measuring; the visible root window alone renders at 1440 x 900.
+func _profile_view(params: Dictionary) -> Dictionary:
+	var pose = _parse_vec3(String(params.get("position", "0,2.8,13.4")))
+	var target = _parse_vec3(String(params.get("look_at", "0,1.2,0")))
+	if pose == null or target == null:
+		return {"error": {"code": -32110, "message": "Invalid camera pose"}}
+	var viewport := get_tree().root
+	var review := viewport.get_node_or_null("EnvReviewViewport")
+	if review != null:
+		review.queue_free()
+		await get_tree().process_frame
+	var previous_camera := viewport.get_camera_3d()
+	var camera := Camera3D.new()
+	viewport.add_child(camera)
+	camera.position = pose
+	camera.look_at(target)
+	camera.fov = float(params.get("fov", 68.0))
+	camera.make_current()
+	var old_size := viewport.size
+	viewport.size = Vector2i(1440, 900)
+	var old_vsync := DisplayServer.window_get_vsync_mode()
+	var old_cap := Engine.max_fps
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	DisplayServer.window_move_to_foreground()
+	Engine.max_fps = 0
+	var rid := viewport.get_viewport_rid()
+	RenderingServer.viewport_set_measure_render_time(rid, true)
+	for i in range(90):
+		await get_tree().process_frame
+	var frame_ms: Array[float] = []
+	var draw_calls: Array[float] = []
+	var cpu_ms: Array[float] = []
+	var gpu_ms: Array[float] = []
+	var previous_tick := Time.get_ticks_usec()
+	for i in range(clampi(int(params.get("frames", 300)), 60, 900)):
+		await get_tree().process_frame
+		var now := Time.get_ticks_usec()
+		frame_ms.append((now - previous_tick) / 1000.0)
+		previous_tick = now
+		draw_calls.append(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
+		cpu_ms.append(RenderingServer.viewport_get_measured_render_time_cpu(rid) + RenderingServer.get_frame_setup_time_cpu())
+		gpu_ms.append(RenderingServer.viewport_get_measured_render_time_gpu(rid))
+	var result := {"window_size": [viewport.size.x, viewport.size.y], "render_size": [viewport.get_texture().get_width(), viewport.get_texture().get_height()],
+		"renderer": RenderingServer.get_current_rendering_method(), "adapter": RenderingServer.get_video_adapter_name(),
+		"vsync": "disabled during measurement", "frame_ms": _sample_summary(frame_ms), "draw_calls": _sample_summary(draw_calls),
+		"render_cpu_ms": _sample_summary(cpu_ms), "render_gpu_ms": _sample_summary(gpu_ms),
+		"raw": {"frame_ms": frame_ms, "draw_calls": draw_calls, "cpu_ms": cpu_ms, "gpu_ms": gpu_ms}}
+	result["mean_fps"] = 1000.0 / result.frame_ms.mean
+	var game_state := viewport.get_node_or_null("GameState")
+	if game_state != null:
+		result["world_clock_hours"] = game_state.call("clock_hours")
+		result["day_time_seconds"] = game_state.get("day_time")
+	RenderingServer.viewport_set_measure_render_time(rid, false)
+	Engine.max_fps = old_cap
+	DisplayServer.window_set_vsync_mode(old_vsync)
+	viewport.size = old_size
+	if previous_camera != null:
+		previous_camera.make_current()
+	camera.queue_free()
+	return {"result": result}
+
+func _sample_summary(values: Array[float]) -> Dictionary:
+	var ordered := values.duplicate()
+	ordered.sort()
+	var sum := 0.0
+	for value in ordered:
+		sum += value
+	return {"samples": ordered.size(), "mean": sum / ordered.size(), "p50": ordered[int(ordered.size() * 0.50)],
+		"p95": ordered[mini(ordered.size() - 1, int(ordered.size() * 0.95))], "max": ordered.back()}

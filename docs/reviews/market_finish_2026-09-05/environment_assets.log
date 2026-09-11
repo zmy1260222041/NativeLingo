@@ -1,0 +1,101 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS: every env GLB loads as a PackedScene (10/10)
+PASS: env_market_stall_a contains a MeshInstance3D
+PASS: prp_lantern_market_a contains a MeshInstance3D
+PASS: env_ground_market_a contains a MeshInstance3D
+PASS: env_shelter_distant_a contains a MeshInstance3D
+PASS: env_rock_market_a contains a MeshInstance3D
+PASS: env_rock_market_b contains a MeshInstance3D
+PASS: fol_glowplant_a contains a MeshInstance3D
+PASS: prp_food_token_a contains a MeshInstance3D
+PASS: prp_food_token_b contains a MeshInstance3D
+PASS: prp_food_token_c contains a MeshInstance3D
+PASS: MarketCorner.tscn loads as a PackedScene
+2026-09-06 10:59:48 [INFO] (debug_bridge) runtime bridge starting ports={ "control": 6505, "telemetry": 6506, "test": 6507 }
+PASS: env_market_stall_a import-post meta forward_axis == -Z
+PASS: env_market_stall_a origin at base (top_y≈0 ground / min_y≈0 others)
+PASS: env_market_stall_a uses a valid env_/prp_/fol_ prefix
+PASS: hero env_market_stall_a has lod0__/lod1__/lod2__ groups
+PASS: env_market_stall_a material slots 1..3 (got 1)
+PASS: env_market_stall_a every material has a non-empty resource_name
+PASS: env_market_stall_a LOD0 tris 2948 <= §8.2 cap 16000
+PASS: env_market_stall_a LOD1 tris 1620 <= §8.2 cap 16000
+PASS: env_market_stall_a LOD2 tris 737 <= §8.2 cap 16000
+PASS: prp_lantern_market_a import-post meta forward_axis == -Z
+PASS: prp_lantern_market_a origin at base (top_y≈0 ground / min_y≈0 others)
+PASS: prp_lantern_market_a uses a valid env_/prp_/fol_ prefix
+PASS: prp_lantern_market_a material slots 1..2 (got 2)
+PASS: prp_lantern_market_a every material has a non-empty resource_name
+PASS: prp_lantern_market_a LOD0 tris 348 <= §8.2 cap 6000
+PASS: prp_lantern_market_a LOD1 tris 196 <= §8.2 cap 6000
+PASS: prp_lantern_market_a LOD2 tris 0 <= §8.2 cap 6000
+PASS: env_ground_market_a import-post meta forward_axis == -Z
+PASS: env_ground_market_a origin at base (top_y≈0 ground / min_y≈0 others)
+PASS: env_ground_market_a uses a valid env_/prp_/fol_ prefix
+PASS: env_ground_market_a material slots 1..1 (got 1)
+PASS: env_ground_market_a every material has a non-empty resource_name
+PASS: env_ground_market_a LOD0 tris 2592 <= §8.2 cap 3000
+PASS: env_ground_market_a LOD1 tris 0 <= §8.2 cap 3000
+PASS: env_ground_market_a LOD2 tris 0 <= §8.2 cap 3000
+PASS: env_shelter_distant_a import-post meta forward_axis == -Z
+PASS: env_shelter_distant_a origin at base (top_y≈0 ground / min_y≈0 others)
+PASS: env_shelter_distant_a uses a valid env_/prp_/fol_ prefix
+PASS: env_shelter_distant_a material slots 1..3 (got 3)
+PASS: env_shelter_distant_a every material has a non-empty resource_name
+PASS: env_shelter_distant_a LOD0 tris 1064 <= §8.2 cap 6000
+PASS: env_shelter_distant_a LOD1 tris 552 <= §8.2 cap 6000
+PASS: env_shelter_distant_a LOD2 tris 456 <= §8.2 cap 6000
+PASS: env_rock_market_a import-post meta forward_axis == -Z
+PASS: env_rock_market_a origin at base (top_y≈0 ground / min_y≈0 others)
+PASS: env_rock_market_a uses a valid env_/prp_/fol_ prefix
+PASS: env_rock_market_a material slots 1..1 (got 1)
+PASS: env_rock_market_a every material has a non-empty resource_name
+PASS: env_rock_market_a LOD0 tris 80 <= §8.2 cap 4000
+PASS: env_rock_market_a LOD1 tris 20 <= §8.2 cap 4000
+PASS: env_rock_market_a LOD2 tris 0 <= §8.2 cap 4000
+PASS: env_rock_market_b import-post meta forward_axis == -Z
+PASS: env_rock_market_b origin at base (top_y≈0 ground / min_y≈0 others)
+PASS: env_rock_market_b uses a valid env_/prp_/fol_ prefix
+PASS: env_rock_market_b material slots 1..1 (got 1)
+PASS: env_rock_market_b every material has a non-empty resource_name
+PASS: env_rock_market_b LOD0 tris 80 <= §8.2 cap 4000
+PASS: env_rock_market_b LOD1 tris 20 <= §8.2 cap 4000
+PASS: env_rock_market_b LOD2 tris 0 <= §8.2 cap 4000
+PASS: fol_glowplant_a import-post meta forward_axis == -Z
+PASS: fol_glowplant_a origin at base (top_y≈0 ground / min_y≈0 others)
+PASS: fol_glowplant_a uses a valid env_/prp_/fol_ prefix
+PASS: fol_glowplant_a material slots 1..1 (got 1)
+PASS: fol_glowplant_a every material has a non-empty resource_name
+PASS: fol_glowplant_a LOD0 tris 0 <= §8.2 cap 1200
+PASS: fol_glowplant_a LOD1 tris 0 <= §8.2 cap 1200
+PASS: fol_glowplant_a LOD2 tris 0 <= §8.2 cap 1200
+PASS: prp_food_token_a import-post meta forward_axis == -Z
+PASS: prp_food_token_a origin at base (top_y≈0 ground / min_y≈0 others)
+PASS: prp_food_token_a uses a valid env_/prp_/fol_ prefix
+PASS: prp_food_token_a material slots 1..1 (got 1)
+PASS: prp_food_token_a every material has a non-empty resource_name
+PASS: prp_food_token_a LOD0 tris 0 <= §8.2 cap 1800
+PASS: prp_food_token_a LOD1 tris 0 <= §8.2 cap 1800
+PASS: prp_food_token_a LOD2 tris 0 <= §8.2 cap 1800
+PASS: prp_food_token_b import-post meta forward_axis == -Z
+PASS: prp_food_token_b origin at base (top_y≈0 ground / min_y≈0 others)
+PASS: prp_food_token_b uses a valid env_/prp_/fol_ prefix
+PASS: prp_food_token_b material slots 1..1 (got 1)
+PASS: prp_food_token_b every material has a non-empty resource_name
+PASS: prp_food_token_b LOD0 tris 0 <= §8.2 cap 1800
+PASS: prp_food_token_b LOD1 tris 0 <= §8.2 cap 1800
+PASS: prp_food_token_b LOD2 tris 0 <= §8.2 cap 1800
+PASS: prp_food_token_c import-post meta forward_axis == -Z
+PASS: prp_food_token_c origin at base (top_y≈0 ground / min_y≈0 others)
+PASS: prp_food_token_c uses a valid env_/prp_/fol_ prefix
+PASS: prp_food_token_c material slots 1..1 (got 1)
+PASS: prp_food_token_c every material has a non-empty resource_name
+PASS: prp_food_token_c LOD0 tris 0 <= §8.2 cap 1800
+PASS: prp_food_token_c LOD1 tris 0 <= §8.2 cap 1800
+PASS: prp_food_token_c LOD2 tris 0 <= §8.2 cap 1800
+PASS: frame LOD0 tris 7112 <= 200000
+PASS: frame draw calls 12 <= 60
+PASS: at least one material uses cel_base.gdshader
+MARKET_CORNER_ASSET_EVIDENCE lod0_tris=7112 draw_calls=12 cel=true assets=10
+MARKET_CORNER_ASSET_TEST_PASS

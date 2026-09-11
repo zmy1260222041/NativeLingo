@@ -1,0 +1,4972 @@
+{
+  "method": "real player input + CharacterBody3D collision, not waypoint teleport",
+  "reached": [
+    {
+      "leg": "walk_01_path_day",
+      "passed": true,
+      "target": [
+        0,
+        4.7
+      ],
+      "position": [
+        0.0,
+        0.000312499701976776,
+        3.76999497413635
+      ]
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "passed": true,
+      "target": [
+        -0.45,
+        1.0
+      ],
+      "position": [
+        -0.452127397060394,
+        0.000312499701976776,
+        0.289581030607224
+      ]
+    },
+    {
+      "leg": "walk_03_service_day",
+      "passed": true,
+      "target": [
+        -1.65,
+        -0.55
+      ],
+      "position": [
+        -2.18006658554077,
+        0.00091087946202606,
+        -0.87151563167572
+      ]
+    },
+    {
+      "leg": "walk_06_return_night",
+      "passed": true,
+      "target": [
+        -0.2,
+        2.9
+      ],
+      "position": [
+        -0.103032477200031,
+        0.000873247627168894,
+        3.57039785385132
+      ]
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "passed": true,
+      "target": [
+        0,
+        8
+      ],
+      "position": [
+        0.000962356571108103,
+        0.000873247627168894,
+        8.83342361450195
+      ]
+    }
+  ],
+  "samples": [
+    {
+      "capture": "walk_00_entry_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          8.0
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 702.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          8.0
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 702.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          7.98499965667725
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.600000023841858,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -0.600000023841858
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 702.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          7.89499950408936
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 1.79999995231628,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -1.79999995231628
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 704.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          7.81999969482422
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 2.39999985694885,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -2.39999985694885
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 707.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          7.60999965667725
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 3.59999966621399,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -3.59999966621399
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 704.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          7.47499942779541
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 4.19999980926514,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -4.19999980926514
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 707.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          7.14499950408936
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -5.40000009536743
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 711.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          6.96499919891357
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -5.40000009536743
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 714.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          6.60499858856201
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -5.40000009536743
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 720.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          6.42499828338623
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -5.40000009536743
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 721.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          6.06499767303467
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -5.40000009536743
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 725.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          5.88499736785889
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -5.40000009536743
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 726.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          5.52499675750732
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -5.40000009536743
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 730.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          5.16499614715576
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -5.40000009536743
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 734.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          4.98499584197998
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          -5.40000009536743
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 733.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "capture": "walk_01_path_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          3.76999497413635
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 710.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.0,
+          0.000312499701976776,
+          3.76999497413635
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 710.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.160352975130081,
+          0.0,
+          -0.987059772014618
+        ],
+        "facing_error_degrees": 8.53773646251594e-07,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0165979713201523,
+          0.000312499701976776,
+          3.74037647247314
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 1.10172247886658,
+        "requested_move_direction": [
+          -0.16035296022892,
+          0.0,
+          -0.987059772014618
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.664519727230072,
+          0.0,
+          -0.878752529621124
+        ],
+        "visual_yaw_degrees": 8.53773544473844e-07,
+        "render_draw_calls": 700.0,
+        "frame_delta_ms": 9.09090909090909
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.156212598085403,
+          0.0,
+          -0.987723410129547
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0450888723134995,
+          0.000312499701976776,
+          3.6960244178772
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 1.70557999610901,
+        "requested_move_direction": [
+          -0.156212612986565,
+          0.0,
+          -0.987723469734192
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.843548059463501,
+          0.0,
+          -1.48237299919128
+        ],
+        "visual_yaw_degrees": 8.53773646251594e-07,
+        "render_draw_calls": 700.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.14852249622345,
+          0.0,
+          -0.988909065723419
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0999411940574646,
+          0.000312499701976776,
+          3.54698300361633
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 2.80593657493591,
+        "requested_move_direction": [
+          -0.14852249622345,
+          0.0,
+          -0.988909065723419
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.802021503448486,
+          0.0,
+          -2.6888735294342
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 698.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.13616056740284,
+          0.0,
+          -0.990686774253845
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.12556266784668,
+          0.000312499701976776,
+          3.44219088554382
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 3.37960863113403,
+        "requested_move_direction": [
+          -0.13616056740284,
+          0.0,
+          -0.99068683385849
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.735267043113708,
+          0.0,
+          -3.29865670204163
+        ],
+        "visual_yaw_degrees": 8.53773442696094e-07,
+        "render_draw_calls": 693.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.131689876317978,
+          0.0,
+          -0.991290986537933
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.173775732517242,
+          0.000312499701976776,
+          3.17217135429382
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 4.55775260925293,
+        "requested_move_direction": [
+          -0.131689876317978,
+          0.0,
+          -0.991290986537933
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.711125314235687,
+          0.0,
+          -4.50193405151367
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 692.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.126149162650108,
+          0.0,
+          -0.992011308670044
+        ],
+        "facing_error_degrees": 8.53773544473844e-07,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.196981236338615,
+          0.000312499701976776,
+          3.00704169273376
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.15107488632202,
+        "requested_move_direction": [
+          -0.126149147748947,
+          0.0,
+          -0.992011308670044
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.681205451488495,
+          0.0,
+          -5.10583305358887
+        ],
+        "visual_yaw_degrees": 8.53773442696094e-07,
+        "render_draw_calls": 692.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.125075563788414,
+          0.0,
+          -0.992147207260132
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.242201671004295,
+          0.000312499701976776,
+          2.64989304542542
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          -0.125075563788414,
+          0.0,
+          -0.992147207260132
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.675408065319061,
+          0.0,
+          -5.35759496688843
+        ],
+        "visual_yaw_degrees": 4.26886721348047e-07,
+        "render_draw_calls": 687.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.124959349632263,
+          0.0,
+          -0.992161870002747
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.287197530269623,
+          0.000312499701976776,
+          2.29271578788757
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          -0.124959349632263,
+          0.0,
+          -0.992161870002747
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.674780488014221,
+          0.0,
+          -5.35767412185669
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 682.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.124951332807541,
+          0.0,
+          -0.992162883281708
+        ],
+        "facing_error_degrees": 4.26886823125797e-07,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.309689491987228,
+          0.000312499701976776,
+          2.11412644386292
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          -0.124951340258121,
+          0.0,
+          -0.992162883281708
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.674737215042114,
+          0.0,
+          -5.35767936706543
+        ],
+        "visual_yaw_degrees": -4.26886772236922e-07,
+        "render_draw_calls": 679.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.124950714409351,
+          0.0,
+          -0.992163002490997
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.354671865701675,
+          0.000312499701976776,
+          1.7569477558136
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000057220459,
+        "requested_move_direction": [
+          -0.124950714409351,
+          0.0,
+          -0.992163002490997
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.674733877182007,
+          0.0,
+          -5.35768032073975
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 673.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.124950565397739,
+          0.0,
+          -0.992163002490997
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.399654120206833,
+          0.000312499701976776,
+          1.39976906776428
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000057220459,
+        "requested_move_direction": [
+          -0.124950557947159,
+          0.0,
+          -0.992162942886353
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.67473304271698,
+          0.0,
+          -5.35768032073975
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 665.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "capture": "walk_02_approach_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.124950438737869,
+          0.0,
+          -0.992163002490997
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.452127397060394,
+          0.000312499701976776,
+          0.289581030607224
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 661.0,
+        "frame_delta_ms": 9.09090909090909
+      }
+    },
+    {
+      "leg": "walk_03_service_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.124950438737869,
+          0.0,
+          -0.992163002490997
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.452127397060394,
+          0.000312499701976776,
+          0.289581030607224
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 661.0,
+        "frame_delta_ms": 9.09090909090909
+      }
+    },
+    {
+      "leg": "walk_03_service_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.328502267599106,
+          0.0,
+          -0.944503247737885
+        ],
+        "facing_error_degrees": 35.7957476097566,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.484048187732697,
+          0.000312499701976776,
+          0.261829942464828
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 1.2681440114975,
+        "requested_move_direction": [
+          -0.818888068199158,
+          0.0,
+          -0.57395327091217
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.985532999038696,
+          0.0,
+          -0.798068821430206
+        ],
+        "visual_yaw_degrees": -35.795744194662,
+        "render_draw_calls": 477.0,
+        "frame_delta_ms": 9.09090909090909
+      }
+    },
+    {
+      "leg": "walk_03_service_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.684265792369843,
+          0.0,
+          -0.729232788085938
+        ],
+        "facing_error_degrees": 11.9733523508836,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.615400373935699,
+          0.000312499701976776,
+          0.183415994048119
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 2.90512776374817,
+        "requested_move_direction": [
+          -0.820663213729858,
+          0.0,
+          -0.571412146091461
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -2.58848786354065,
+          0.0,
+          -1.31890070438385
+        ],
+        "visual_yaw_degrees": -11.9733549122046,
+        "render_draw_calls": 469.0,
+        "frame_delta_ms": 9.09090909090909
+      }
+    },
+    {
+      "leg": "walk_03_service_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.815810739994049,
+          0.0,
+          -0.578319072723389
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.722714126110077,
+          0.000312499701976776,
+          0.138617768883705
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 3.68181991577148,
+        "requested_move_direction": [
+          -0.815810680389404,
+          0.0,
+          -0.578319013118744
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -3.42665433883667,
+          0.0,
+          -1.34678852558136
+        ],
+        "visual_yaw_degrees": -5.12264065617657e-06,
+        "render_draw_calls": 469.0,
+        "frame_delta_ms": 9.09090909090909
+      }
+    },
+    {
+      "leg": "walk_03_service_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.802836418151855,
+          0.0,
+          -0.596199452877045
+        ],
+        "facing_error_degrees": 1.70754729250319e-06,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.995569050312042,
+          0.000312499701976776,
+          -0.00411729887127876
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.07341957092285,
+        "requested_move_direction": [
+          -0.802836358547211,
+          0.0,
+          -0.596199452877045
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -4.33531665802002,
+          0.0,
+          -2.63526320457458
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 462.0,
+        "frame_delta_ms": 9.09090909090909
+      }
+    },
+    {
+      "leg": "walk_03_service_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.76791900396347,
+          0.0,
+          -0.640546917915344
+        ],
+        "facing_error_degrees": 1.70754729250319e-06,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -1.13693714141846,
+          0.000312499701976776,
+          -0.110687583684921
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          -0.767919063568115,
+          0.0,
+          -0.640546917915344
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -4.14676284790039,
+          0.0,
+          -3.45895338058472
+        ],
+        "visual_yaw_degrees": -3.41509377078438e-06,
+        "render_draw_calls": 486.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_03_service_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.759589970111847,
+          0.0,
+          -0.650402307510376
+        ],
+        "facing_error_degrees": 1.70754729250319e-06,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -1.41188883781433,
+          0.000312499701976776,
+          -0.343058466911316
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          -0.759589910507202,
+          0.0,
+          -0.650402307510376
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -4.10178565979004,
+          0.0,
+          -3.51217246055603
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 465.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "capture": "walk_03_service_day",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.7547807097435,
+          0.0,
+          -0.655977189540863
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18006658554077,
+          0.00091087946202606,
+          -0.87151563167572
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -1.70754688539219e-06,
+        "render_draw_calls": 402.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "capture": "walk_04_camera_left",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.7547807097435,
+          0.0,
+          -0.655977189540863
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18006658554077,
+          0.00091087946202606,
+          -0.87151563167572
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -53.858029190599,
+        "render_draw_calls": 468.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "capture": "walk_04_camera_right",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.7547807097435,
+          0.0,
+          -0.655977189540863
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18006658554077,
+          0.00091087946202606,
+          -0.87151563167572
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 53.8580257755044,
+        "render_draw_calls": 612.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "capture": "walk_05_service_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.7547807097435,
+          0.0,
+          -0.655977189540863
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18006658554077,
+          0.00091087946202606,
+          -0.87151563167572
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 53.8580257755044,
+        "render_draw_calls": 633.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.7547807097435,
+          0.0,
+          -0.655977189540863
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18006658554077,
+          0.00091087946202606,
+          -0.87151563167572
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 53.8580257755044,
+        "render_draw_calls": 633.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 47.8580290236338,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.300000011920929,
+        "requested_move_direction": [
+          0.0845789983868599,
+          0.0,
+          -0.996416807174683
+        ],
+        "turn_requested_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_target_direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          -0.300000011920929,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 47.8580290236338,
+        "render_draw_calls": 633.0,
+        "frame_delta_ms": 9.09090909090909
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.9,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 5.866
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.833333333333333,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 7.81674074074074
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.799999999999999,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 7.34166666666667
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.733333333333333,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.33333333333333
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.699999999999999,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.33333333333333
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.633333333333332,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.33333333333333
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.599999999999999,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.33333333333333
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.533333333333332,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 9.09090909090909
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.499999999999999,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.33333333333333
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.433333333333332,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.33333333333333
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.399999999999999,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.33333333333333
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.333333333333332,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.33333333333333
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.299999999999999,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.233333333333332,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.166666666666665,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.133333333333332,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          -0.682077646255493,
+          0.0,
+          -0.731279730796814
+        ],
+        "facing_error_degrees": 164.753123988899,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0666666666666653,
+        "turning_around": true,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": -164.753123988899,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "facing_error_degrees": 15.2468810200577,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.18506669998169,
+          0.000988481566309929,
+          -0.87149977684021
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 15.2468793125104,
+        "render_draw_calls": 432.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.515131056308746,
+          0.0,
+          0.857111513614655
+        ],
+        "facing_error_degrees": 3.24687961891024,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.1706166267395,
+          0.000988481566309929,
+          -0.856004416942596
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.847365319728851,
+        "requested_move_direction": [
+          0.46575865149498,
+          0.0,
+          0.884911775588989
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.566998064517975,
+          0.0,
+          0.629715144634247
+        ],
+        "visual_yaw_degrees": 3.24688047268389,
+        "render_draw_calls": 542.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.464596211910248,
+          0.0,
+          0.885522723197937
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.08531045913696,
+          0.000988481566309929,
+          -0.76190048456192
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 2.54102253913879,
+        "requested_move_direction": [
+          0.464596182107925,
+          0.0,
+          0.885522663593292
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          1.72876501083374,
+          0.0,
+          1.86230158805847
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 541.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.457741141319275,
+          0.0,
+          0.889085531234741
+        ],
+        "facing_error_degrees": 1.70754729250319e-06,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -2.01296448707581,
+          0.000988481566309929,
+          -0.684563636779785
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 3.38900876045227,
+        "requested_move_direction": [
+          0.457741111516953,
+          0.0,
+          0.889085531234741
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          2.31199932098389,
+          0.0,
+          2.47791028022766
+        ],
+        "visual_yaw_degrees": 3.41508969967438e-06,
+        "render_draw_calls": 542.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.4513278901577,
+          0.0,
+          0.892358183860779
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -1.8493320941925,
+          0.000988481566309929,
+          -0.46877908706665
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 4.42690181732178,
+        "requested_move_direction": [
+          0.4513278901577,
+          0.0,
+          0.892358183860779
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          2.43717050552368,
+          0.0,
+          3.69562697410583
+        ],
+        "visual_yaw_degrees": 1.70754484983719e-06,
+        "render_draw_calls": 573.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.439720898866653,
+          0.0,
+          0.898134469985962
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -1.76913774013519,
+          0.000988481566309929,
+          -0.330070495605469
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 4.93560314178467,
+        "requested_move_direction": [
+          0.439720898866653,
+          0.0,
+          0.898134469985962
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          2.37449288368225,
+          0.0,
+          4.32688808441162
+        ],
+        "visual_yaw_degrees": 1.70754464628169e-06,
+        "render_draw_calls": 576.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.436959475278854,
+          0.0,
+          0.899481177330017
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -1.61133539676666,
+          0.000988481566309929,
+          -0.0102169960737228
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.39999961853027,
+        "requested_move_direction": [
+          0.436959475278854,
+          0.0,
+          0.899481177330017
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          2.35958123207092,
+          0.0,
+          4.8571982383728
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 581.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.436354011297226,
+          0.0,
+          0.899775087833405
+        ],
+        "facing_error_degrees": 1.70754729250319e-06,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -1.52208876609802,
+          0.000873247627168894,
+          0.116511754691601
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 3.66225743293762,
+        "requested_move_direction": [
+          0.436353981494904,
+          0.0,
+          0.899775087833405
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          3.50537109375,
+          0.0,
+          1.06042623519897
+        ],
+        "visual_yaw_degrees": 1.70754464628169e-06,
+        "render_draw_calls": 582.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.429038822650909,
+          0.0,
+          0.903286039829254
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -1.33843302726746,
+          0.000873247627168894,
+          0.237990826368332
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 3.25330829620361,
+        "requested_move_direction": [
+          0.429038822650909,
+          0.0,
+          0.903286039829254
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          2.31680965423584,
+          0.0,
+          2.2839457988739
+        ],
+        "visual_yaw_degrees": -1.70754484983719e-06,
+        "render_draw_calls": 581.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.393210798501968,
+          0.0,
+          0.919448375701904
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -1.19042801856995,
+          0.000873247627168894,
+          0.443214386701584
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 4.15610361099243,
+        "requested_move_direction": [
+          0.393210798501968,
+          0.0,
+          0.919448375701904
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          2.12333822250366,
+          0.0,
+          3.57276225090027
+        ],
+        "visual_yaw_degrees": 1.70754464628169e-06,
+        "render_draw_calls": 588.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.373899698257446,
+          0.0,
+          0.927469193935394
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -1.1213880777359,
+          0.000873247627168894,
+          0.578032314777374
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 4.67481517791748,
+        "requested_move_direction": [
+          0.373899668455124,
+          0.0,
+          0.92746913433075
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          2.01905846595764,
+          0.0,
+          4.21631336212158
+        ],
+        "visual_yaw_degrees": 1.70754464628169e-06,
+        "render_draw_calls": 589.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.368835866451263,
+          0.0,
+          0.929494559764862
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.987695574760437,
+          0.000873247627168894,
+          0.900885164737701
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.39999961853027,
+        "requested_move_direction": [
+          0.368835866451263,
+          0.0,
+          0.929494559764862
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          1.99171364307404,
+          0.0,
+          5.01927042007446
+        ],
+        "visual_yaw_degrees": -1.70754464628169e-06,
+        "render_draw_calls": 588.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.366591215133667,
+          0.0,
+          0.930382132530212
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.855318665504456,
+          0.000873247627168894,
+          1.23566293716431
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.366591215133667,
+          0.0,
+          0.930382132530212
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          1.9795925617218,
+          0.0,
+          5.02406358718872
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 566.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.366365194320679,
+          0.0,
+          0.930471181869507
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.789352595806122,
+          0.000873247627168894,
+          1.40313971042633
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.366365164518356,
+          0.0,
+          0.930471122264862
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          1.97837209701538,
+          0.0,
+          5.02454423904419
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 559.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.366352558135986,
+          0.0,
+          0.930476188659668
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.657463371753693,
+          0.000873247627168894,
+          1.73811018466949
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000057220459,
+        "requested_move_direction": [
+          0.366352528333664,
+          0.0,
+          0.930476129055023
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          1.97830379009247,
+          0.0,
+          5.02457141876221
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 536.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.366350561380386,
+          0.0,
+          0.93047696352005
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.591520071029663,
+          0.000873247627168894,
+          1.90559601783752
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000057220459,
+        "requested_move_direction": [
+          0.366350531578064,
+          0.0,
+          0.930476903915405
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          1.97829306125641,
+          0.0,
+          5.02457571029663
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 527.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.366350561380386,
+          0.0,
+          0.93047696352005
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.459633827209473,
+          0.000873247627168894,
+          2.24056768417358
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000057220459,
+        "requested_move_direction": [
+          0.366350531578064,
+          0.0,
+          0.930476903915405
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          1.97829306125641,
+          0.0,
+          5.02457571029663
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 501.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.36635035276413,
+          0.0,
+          0.930477023124695
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.327747642993927,
+          0.000873247627168894,
+          2.57553911209106
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.366350322961807,
+          0.0,
+          0.93047696352005
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          1.97829186916351,
+          0.0,
+          5.02457571029663
+        ],
+        "visual_yaw_degrees": 3.41508969967438e-06,
+        "render_draw_calls": 476.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "capture": "walk_06_return_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.366350114345551,
+          0.0,
+          0.930477142333984
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.103032477200031,
+          0.000873247627168894,
+          3.57039785385132
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 3.41508929256339e-06,
+        "render_draw_calls": 422.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.366350114345551,
+          0.0,
+          0.930477142333984
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.103032477200031,
+          0.000873247627168894,
+          3.57039785385132
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 3.41508929256339e-06,
+        "render_draw_calls": 422.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.164887443184853,
+          0.0,
+          0.986312389373779
+        ],
+        "facing_error_degrees": 8.15824005317263,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0752813592553139,
+          0.000873247627168894,
+          3.60231876373291
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 1.2681440114975,
+        "requested_move_direction": [
+          0.0232536438852549,
+          0.0,
+          0.999729633331299
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.798068881034851,
+          0.0,
+          0.985532939434052
+        ],
+        "visual_yaw_degrees": 8.15824005317263,
+        "render_draw_calls": 319.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0171158649027348,
+          0.0,
+          0.999853551387787
+        ],
+        "facing_error_degrees": 2.13443411562898e-07,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0672295838594437,
+          0.000873247627168894,
+          3.65303373336792
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 1.68189740180969,
+        "requested_move_direction": [
+          0.0171158611774445,
+          0.0,
+          0.999853551387787
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.092425674200058,
+          0.0,
+          1.67935597896576
+        ],
+        "visual_yaw_degrees": 3.20164633900036e-07,
+        "render_draw_calls": 313.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0154640786349773,
+          0.0,
+          0.999880433082581
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0613651871681213,
+          0.000873247627168894,
+          3.81499576568604
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 2.88071608543396,
+        "requested_move_direction": [
+          0.0154640786349773,
+          0.0,
+          0.999880433082581
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0835060253739357,
+          0.0,
+          2.87950539588928
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 313.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0146616529673338,
+          0.0,
+          0.99989253282547
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0586538687348366,
+          0.000873247627168894,
+          3.92598056793213
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 3.48047208786011,
+        "requested_move_direction": [
+          0.0146616529673338,
+          0.0,
+          0.99989253282547
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0791729241609573,
+          0.0,
+          3.47957134246826
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 313.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0143956057727337,
+          0.0,
+          0.99989640712738
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0534235611557961,
+          0.000873247627168894,
+          4.20795297622681
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 4.68023777008057,
+        "requested_move_direction": [
+          0.0143956057727337,
+          0.0,
+          0.99989640712738
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0777362734079361,
+          0.0,
+          4.67959213256836
+        ],
+        "visual_yaw_degrees": 0.0,
+        "render_draw_calls": 316.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140868863090873,
+          0.0,
+          0.999900817871094
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0482967123389244,
+          0.000873247627168894,
+          4.55892133712769
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000057220459,
+        "requested_move_direction": [
+          0.0140868863090873,
+          0.0,
+          0.999900817871094
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0760691836476326,
+          0.0,
+          5.39946460723877
+        ],
+        "visual_yaw_degrees": -5.33607638351935e-08,
+        "render_draw_calls": 313.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.014033961109817,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 5.33608465296153e-08,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0457658357918262,
+          0.000873247627168894,
+          4.73890352249146
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.014033961109817,
+          0.0,
+          0.999901533126831
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0757833868265152,
+          0.0,
+          5.39946842193604
+        ],
+        "visual_yaw_degrees": -1.06721527670387e-07,
+        "render_draw_calls": 307.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140325324609876,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0407138653099537,
+          0.000873247627168894,
+          5.09886789321899
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.014032531529665,
+          0.0,
+          0.999901533126831
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0757756754755974,
+          0.0,
+          5.39946842193604
+        ],
+        "visual_yaw_degrees": 5.33607638351935e-08,
+        "render_draw_calls": 288.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140322940424085,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0381880290806293,
+          0.000873247627168894,
+          5.27885007858276
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0140322931110859,
+          0.0,
+          0.999901533126831
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0757743865251541,
+          0.0,
+          5.39946842193604
+        ],
+        "visual_yaw_degrees": 5.33607638351935e-08,
+        "render_draw_calls": 284.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140322940424085,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0331364013254642,
+          0.000873247627168894,
+          5.6388144493103
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0140322931110859,
+          0.0,
+          0.999901533126831
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0757743865251541,
+          0.0,
+          5.39946842193604
+        ],
+        "visual_yaw_degrees": 5.33607638351935e-08,
+        "render_draw_calls": 281.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140325324609876,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0306105669587851,
+          0.000873247627168894,
+          5.81879663467407
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.014032531529665,
+          0.0,
+          0.999901533126831
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0757756754755974,
+          0.0,
+          5.39946842193604
+        ],
+        "visual_yaw_degrees": 5.33607638351935e-08,
+        "render_draw_calls": 282.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140325324609876,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0255588572472334,
+          0.000873247627168894,
+          6.17876100540161
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.014032531529665,
+          0.0,
+          0.999901533126831
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0757756754755974,
+          0.0,
+          5.39946842193604
+        ],
+        "visual_yaw_degrees": 5.33607638351935e-08,
+        "render_draw_calls": 273.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140322940424085,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0205072090029716,
+          0.000873247627168894,
+          6.53872537612915
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0140322931110859,
+          0.0,
+          0.999901533126831
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0757743865251541,
+          0.0,
+          5.39946842193604
+        ],
+        "visual_yaw_degrees": 5.33607638351935e-08,
+        "render_draw_calls": 250.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140322940424085,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0179813951253891,
+          0.000873247627168894,
+          6.71870756149292
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0140322931110859,
+          0.0,
+          0.999901533126831
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0757743865251541,
+          0.0,
+          5.39946842193604
+        ],
+        "visual_yaw_degrees": 5.33607638351935e-08,
+        "render_draw_calls": 246.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140325324609876,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0129297245293856,
+          0.000873247627168894,
+          7.07867193222046
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.014032531529665,
+          0.0,
+          0.999901533126831
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0757756754755974,
+          0.0,
+          5.39946842193604
+        ],
+        "visual_yaw_degrees": 5.33607638351935e-08,
+        "render_draw_calls": 240.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140322940424085,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.0104038892313838,
+          0.000873247627168894,
+          7.25865411758423
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0140322931110859,
+          0.0,
+          0.999901533126831
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0757743865251541,
+          0.0,
+          5.39946842193604
+        ],
+        "visual_yaw_degrees": 5.33607638351935e-08,
+        "render_draw_calls": 228.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "leg": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140322940424085,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          -0.00535226240754128,
+          0.000873247627168894,
+          7.61861848831177
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 5.40000009536743,
+        "requested_move_direction": [
+          0.0140322931110859,
+          0.0,
+          0.999901533126831
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0757743865251541,
+          0.0,
+          5.39946842193604
+        ],
+        "visual_yaw_degrees": 5.33607638351935e-08,
+        "render_draw_calls": 212.0,
+        "frame_delta_ms": 8.474
+      }
+    },
+    {
+      "capture": "walk_07_entry_night",
+      "state": {
+        "debug_frozen": false,
+        "facing_direction": [
+          0.0140325324609876,
+          0.0,
+          0.999901592731476
+        ],
+        "facing_error_degrees": 0.0,
+        "gesture_rejection_count": 0,
+        "global_position": [
+          0.000962356571108103,
+          0.000873247627168894,
+          8.83342361450195
+        ],
+        "jump_airborne_sequence": false,
+        "jump_anticipating": false,
+        "jump_authored_lift": 0.0,
+        "jump_buffer_remaining": 0.0,
+        "jump_physical_height": 0.0,
+        "jump_physical_impulse": 0.0,
+        "planar_speed": 0.0,
+        "requested_move_direction": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "turn_requested_direction": [
+          0.464837700128555,
+          0.0,
+          0.8853959441185
+        ],
+        "turn_target_direction": [
+          0.682077646255493,
+          0.0,
+          0.731279730796814
+        ],
+        "turn_time_remaining": 0.0,
+        "turning_around": false,
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "visual_yaw_degrees": 5.33607638351935e-08,
+        "render_draw_calls": 156.0,
+        "frame_delta_ms": 8.474
+      }
+    }
+  ]
+}

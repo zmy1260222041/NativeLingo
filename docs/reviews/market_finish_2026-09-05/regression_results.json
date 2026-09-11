@@ -1,0 +1,77 @@
+{
+  "material_lod": {
+    "exit_code": 0,
+    "command": [
+      "/Applications/Godot-4.6.app/Contents/MacOS/Godot",
+      "--headless",
+      "--path",
+      "/Users/a86138/Developer/NativeLingo/game",
+      "--script",
+      "res://tests/test_env_material_contract.gd"
+    ],
+    "script_errors": false,
+    "engine_errors": false
+  },
+  "environment_assets": {
+    "exit_code": 0,
+    "command": [
+      "/Applications/Godot-4.6.app/Contents/MacOS/Godot",
+      "--headless",
+      "--path",
+      "/Users/a86138/Developer/NativeLingo/game",
+      "--script",
+      "res://tests/test_market_corner_asset.gd"
+    ],
+    "script_errors": false,
+    "engine_errors": false
+  },
+  "main_integration": {
+    "exit_code": 0,
+    "command": [
+      "/Applications/Godot-4.6.app/Contents/MacOS/Godot",
+      "--headless",
+      "--path",
+      "/Users/a86138/Developer/NativeLingo/game",
+      "res://tests/MainEnvIntegration.tscn"
+    ],
+    "script_errors": false,
+    "engine_errors": false
+  },
+  "npc_workplace": {
+    "exit_code": 0,
+    "command": [
+      "/Applications/Godot-4.6.app/Contents/MacOS/Godot",
+      "--headless",
+      "--path",
+      "/Users/a86138/Developer/NativeLingo/game",
+      "--script",
+      "res://tests/test_npc_dialogue_assets.gd"
+    ],
+    "script_errors": false,
+    "engine_errors": false
+  },
+  "social_counter_clearance": {
+    "exit_code": 0,
+    "command": [
+      "/Applications/Godot-4.6.app/Contents/MacOS/Godot",
+      "--headless",
+      "--path",
+      "/Users/a86138/Developer/NativeLingo/game",
+      "res://tests/SocialDialogueTest.tscn"
+    ],
+    "script_errors": false,
+    "engine_errors": false
+  },
+  "desktop_no_voice": {
+    "exit_code": 0,
+    "command": [
+      "/Applications/Godot-4.6.app/Contents/MacOS/Godot",
+      "--headless",
+      "--path",
+      "/Users/a86138/Developer/NativeLingo/game",
+      "res://tests/DesktopBetaNoVoiceTest.tscn"
+    ],
+    "script_errors": false,
+    "engine_errors": false
+  }
+}

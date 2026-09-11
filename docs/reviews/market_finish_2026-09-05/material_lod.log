@@ -1,0 +1,4 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+2026-09-06 10:59:47 [INFO] (debug_bridge) runtime bridge starting ports={ "control": 6505, "telemetry": 6506, "test": 6507 }
+ENV_MATERIAL_LOD_CONTRACT_PASS

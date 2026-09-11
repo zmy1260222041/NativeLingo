@@ -1,0 +1,19 @@
+{
+  "asset": "prp_market_wrap_v01",
+  "resolution": 512,
+  "selected_to_active": true,
+  "color_contains_lighting": false,
+  "normal_convention": "OpenGL +Y",
+  "high_subdivision": "SIMPLE 2",
+  "low_vertices": 648,
+  "contacts": [],
+  "maps": {
+    "base_color": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01_base_color.png",
+    "normal": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01_normal.png",
+    "ao": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01_ao.png",
+    "orm": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01_orm.png",
+    "roughness": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01_roughness.png"
+  },
+  "sha256": "ea80123e50f614d24e8e182ed924ead0924484b29228ce837476e43518aeb76e",
+  "all_five_maps_packed": true
+}

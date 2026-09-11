@@ -1,0 +1,446 @@
+{
+  "env_ground_market_a": {
+    "passed": true,
+    "source_high_objects": 1,
+    "visible_source_meshes": [
+      "lod0__env_ground_market_a"
+    ],
+    "maps": {
+      "base_color": {
+        "size": [
+          2048,
+          2048
+        ],
+        "packed": true,
+        "color_space": "sRGB"
+      },
+      "normal": {
+        "size": [
+          2048,
+          2048
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "ao": {
+        "size": [
+          2048,
+          2048
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "roughness": {
+        "size": [
+          2048,
+          2048
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "orm": {
+        "size": [
+          2048,
+          2048
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      }
+    },
+    "export_triangles_by_node": {
+      "lod0__env_ground_market_a": 2592
+    },
+    "export_material_slots": 1,
+    "runtime_matches_source": true,
+    "glb_sha256": "6382e094efa1e4cf1144e7f4e1c59927e6e1f1466e2190c7829c5baeb87dc33f"
+  },
+  "env_market_stall_a": {
+    "passed": true,
+    "source_high_objects": 1,
+    "visible_source_meshes": [
+      "lod0__env_market_stall_a"
+    ],
+    "maps": {
+      "base_color": {
+        "size": [
+          2048,
+          2048
+        ],
+        "packed": true,
+        "color_space": "sRGB"
+      },
+      "normal": {
+        "size": [
+          2048,
+          2048
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "ao": {
+        "size": [
+          2048,
+          2048
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "roughness": {
+        "size": [
+          2048,
+          2048
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "orm": {
+        "size": [
+          2048,
+          2048
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      }
+    },
+    "export_triangles_by_node": {
+      "lod0__env_market_stall_a": 2948,
+      "lod1__env_market_stall_a": 1620,
+      "lod2__env_market_stall_a": 737
+    },
+    "export_material_slots": 1,
+    "runtime_matches_source": true,
+    "glb_sha256": "617842b1a31bba8411819b111b1cec89a961e4c7c50faf08ea6a9b012116e4b7"
+  },
+  "env_plaza_market_a": {
+    "passed": true,
+    "source_high_objects": 1,
+    "visible_source_meshes": [
+      "lod0__env_plaza_market_a"
+    ],
+    "maps": {
+      "base_color": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "sRGB"
+      },
+      "normal": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "ao": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "roughness": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "orm": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      }
+    },
+    "export_triangles_by_node": {
+      "lod0__env_plaza_market_a": 112
+    },
+    "export_material_slots": 1,
+    "runtime_matches_source": true,
+    "glb_sha256": "d452320986b19f07e040b4c076183be50bc1e84511c07da6d95b48e3e871f84d"
+  },
+  "fol_ground_tufts_a": {
+    "passed": true,
+    "source_high_objects": 1,
+    "visible_source_meshes": [
+      "lod0__fol_ground_tufts_a"
+    ],
+    "maps": {
+      "base_color": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "sRGB"
+      },
+      "normal": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "ao": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "roughness": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "orm": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      }
+    },
+    "export_triangles_by_node": {
+      "lod0__fol_ground_tufts_a": 2430
+    },
+    "export_material_slots": 1,
+    "runtime_matches_source": true,
+    "glb_sha256": "edb597500b85775ccd008ec2cc5a9b1695d26060b00bf9bb0b31f8b02179df81"
+  },
+  "fol_tree_stranger_a": {
+    "passed": true,
+    "source_high_objects": 1,
+    "visible_source_meshes": [
+      "lod0__tree_a_canopy_finish"
+    ],
+    "maps": {
+      "base_color": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "sRGB"
+      },
+      "normal": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "ao": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "roughness": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "orm": {
+        "size": [
+          1024,
+          1024
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      }
+    },
+    "export_triangles_by_node": {
+      "lod0__tree_a_canopy_finish": 1534,
+      "lod1__tree_a_canopy_finish": 842,
+      "lod2__tree_a_canopy_finish": 383
+    },
+    "export_material_slots": 1,
+    "runtime_matches_source": true,
+    "glb_sha256": "8243fb8c9a3bf6ef9d91b34bf491706da8f29481cfeb1cdc24c1f0674f04893f"
+  },
+  "prp_market_burger_v01": {
+    "passed": true,
+    "source_high_objects": 16,
+    "visible_source_meshes": [
+      "lod0__prp_market_burger_v01"
+    ],
+    "maps": {
+      "base_color": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "sRGB"
+      },
+      "normal": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "ao": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "roughness": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "orm": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      }
+    },
+    "export_triangles_by_node": {
+      "lod0__prp_market_burger_v01": 1475
+    },
+    "export_material_slots": 1,
+    "runtime_matches_source": true,
+    "glb_sha256": "8d2e3ff5e1f0c4cfe4b2ad1008f76ed8c2fe5b3bd2ed577e201c5d608a29b503"
+  },
+  "prp_market_wrap_v01": {
+    "passed": true,
+    "source_high_objects": 1,
+    "visible_source_meshes": [
+      "lod0__prp_market_wrap_v01"
+    ],
+    "maps": {
+      "base_color": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "sRGB"
+      },
+      "normal": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "ao": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "roughness": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "orm": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      }
+    },
+    "export_triangles_by_node": {
+      "lod0__prp_market_wrap_v01": 1254
+    },
+    "export_material_slots": 1,
+    "runtime_matches_source": true,
+    "glb_sha256": "ea80123e50f614d24e8e182ed924ead0924484b29228ce837476e43518aeb76e"
+  },
+  "prp_market_drink_v01": {
+    "passed": true,
+    "source_high_objects": 1,
+    "visible_source_meshes": [
+      "lod0__prp_market_drink_v01"
+    ],
+    "maps": {
+      "base_color": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "sRGB"
+      },
+      "normal": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "ao": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "roughness": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      },
+      "orm": {
+        "size": [
+          512,
+          512
+        ],
+        "packed": true,
+        "color_space": "Non-Color"
+      }
+    },
+    "export_triangles_by_node": {
+      "lod0__prp_market_drink_v01": 1392
+    },
+    "export_material_slots": 1,
+    "runtime_matches_source": true,
+    "glb_sha256": "ba5949e96fca9f7cc3935ac5c7d5273476026554123b0eda78e4bd24743b5590"
+  }
+}

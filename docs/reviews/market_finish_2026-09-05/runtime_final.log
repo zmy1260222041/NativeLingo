@@ -1,0 +1,1368 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5
+
+2026-09-06 10:53:29 [INFO] (debug_bridge) runtime bridge starting ports={ "control": 6505, "telemetry": 6506, "test": 6507 }
+2026-09-06 10:53:29 [INFO] (debug_bridge) channel=control listening port=6505
+2026-09-06 10:53:29 [INFO] (debug_bridge) channel=telemetry listening port=6506
+2026-09-06 10:53:29 [INFO] (debug_bridge) channel=test listening port=6507
+2026-09-06 10:53:29 [INFO] (animation) jump_markers takeoff=1.300 landing=1.933 authored_lift=0.095
+2026-09-06 10:53:29 [INFO] (animation) turn_phase_match animation=anim_chr_player_walk_forward time=0.000 foot_error=0.0290 aligned_error=0.0001 correction=(-0.021274, 0.000021, -0.019668) rotation_error_deg=9.14
+2026-09-06 10:53:29 [INFO] (animation) turn_phase_match animation=anim_chr_player_run_forward time=1.053 foot_error=0.2526 aligned_error=0.1057 correction=(-0.030646, -0.214524, -0.086255) rotation_error_deg=36.29
+2026-09-06 10:53:29 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+2026-09-06 10:53:44 [INFO] (debug_bridge) client connected channel=control peer=1
+[MCP] game.capture_frames
+[MCP] input.simulate_action: action=move_forward pressed=true
+2026-09-06 10:53:44 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.300
+WARNING: File size 163784 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _process (res://scripts/interactable.gd:59)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _process (res://scripts/interactable.gd:59)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _process (res://scripts/interactable.gd:59)
+[MCP] input.simulate_action: action=move_forward pressed=false
+2026-09-06 10:53:45 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+[MCP] game.capture_frames
+[MCP] input.simulate_action: action=move_forward pressed=true
+2026-09-06 10:53:46 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.300
+[MCP] input.simulate_action: action=move_forward pressed=false
+2026-09-06 10:53:46 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+[MCP] game.capture_frames
+[MCP] input.simulate_action: action=move_forward pressed=true
+2026-09-06 10:53:47 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.424
+[MCP] input.simulate_action: action=move_forward pressed=false
+2026-09-06 10:53:47 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.176
+[MCP] game.capture_frames
+[MCP] input.simulate_action: action=camera_left pressed=true
+[MCP] input.simulate_action: action=camera_left pressed=false
+[MCP] game.capture_frames
+[MCP] input.simulate_action: action=camera_right pressed=true
+WARNING: File size 201744 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+[MCP] input.simulate_action: action=camera_right pressed=false
+[MCP] game.capture_frames
+[MCP] game.capture_frames
+[MCP] input.simulate_action: action=move_forward pressed=true
+2026-09-06 10:53:49 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.300
+2026-09-06 10:53:49 [INFO] (animation) transition=anim_chr_player_turn_180 reason=large_direction_change speed=1.000 motion=0.300
+2026-09-06 10:53:49 [INFO] (movement) turn_180_start requested_angle_deg=164.69 authored_target=(0.682078, 0.0, 0.73128) requested_target=(0.464838, 0.0, 0.885396)
+2026-09-06 10:53:50 [INFO] (animation) transition=anim_chr_player_walk_forward reason=turn_complete_phase_match speed=1.003 motion=5.400
+2026-09-06 10:53:50 [INFO] (movement) turn_180_complete facing=(0.682078, 0.0, 0.73128) resume_speed=5.400 phase={ "anim_chr_player_walk_forward": 0.0, "anim_chr_player_run_forward": 1.05260412581265 }
+[MCP] input.simulate_action: action=move_forward pressed=false
+2026-09-06 10:53:51 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.225
+[MCP] game.capture_frames
+[MCP] input.simulate_action: action=move_forward pressed=true
+2026-09-06 10:53:51 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.424
+[MCP] input.simulate_action: action=move_forward pressed=false
+WARNING: File size 117704 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+2026-09-06 10:53:53 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+[MCP] game.capture_frames
+2026-09-06 10:53:53 [INFO] (debug_bridge) client disconnected channel=control peer=1
+WARNING: File size 94664 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 109604 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 155884 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 113864 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 136904 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 79524 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 94664 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 109604 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 155884 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 113864 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 136904 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 79524 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 94664 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 109604 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 155884 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 113864 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 136904 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 79524 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 94664 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 109604 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 155884 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 113864 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 136904 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 79524 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 94664 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 109604 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 155884 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 113864 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 136904 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 79524 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 94664 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 109604 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 155884 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 113864 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 136904 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 79524 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 94664 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 109604 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 155884 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 113864 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 136904 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 79524 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 94664 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 109604 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 155884 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 113864 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 136904 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 79524 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: File size 94664 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: File size 109604 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+2026-09-06 11:13:43 [INFO] (animation) transition=anim_chr_player_turn_180 reason=large_direction_change speed=1.000 motion=0.000
+2026-09-06 11:13:43 [INFO] (movement) turn_180_start requested_angle_deg=162.63 authored_target=(-0.014033, 0.0, -0.999902) requested_target=(-0.311907, 0.0, -0.950113)
+2026-09-06 11:13:44 [INFO] (animation) transition=anim_chr_player_walk_forward reason=turn_complete_phase_match speed=1.003 motion=5.400
+2026-09-06 11:13:44 [INFO] (movement) turn_180_complete facing=(-0.014033, 0.0, -0.999902) resume_speed=5.400 phase={ "anim_chr_player_walk_forward": 0.0, "anim_chr_player_run_forward": 1.05260412581265 }
+2026-09-06 11:13:45 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.799 motion=6.539
+2026-09-06 11:13:45 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=1.158 motion=6.233
+2026-09-06 11:13:45 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.814 motion=6.660
+2026-09-06 11:13:45 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=2.686
+2026-09-06 11:13:46 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.810 motion=6.623
+2026-09-06 11:13:46 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=1.161 motion=6.250
+2026-09-06 11:13:46 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.790 motion=6.465
+2026-09-06 11:13:47 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=1.187 motion=6.389
+2026-09-06 11:13:47 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.810 motion=6.626
+2026-09-06 11:13:48 [INFO] (animation) transition=anim_chr_player_jump reason=fall speed=1.000 motion=0.000
+2026-09-06 11:13:48 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.199
+2026-09-06 11:13:48 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.500
+2026-09-06 11:13:48 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.794 motion=6.492
+2026-09-06 11:13:49 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=1.141 motion=6.144
+2026-09-06 11:13:49 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.812 motion=6.644
+2026-09-06 11:13:49 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+2026-09-06 11:13:50 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.336
+2026-09-06 11:13:50 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.825 motion=6.753
+2026-09-06 11:13:50 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.929 motion=4.999
+2026-09-06 11:13:50 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.794 motion=6.494
+2026-09-06 11:13:50 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=1.136 motion=6.114
+2026-09-06 11:13:50 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.818 motion=6.692
+2026-09-06 11:13:51 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=3.523
+2026-09-06 11:13:52 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.058
+2026-09-06 11:13:52 [INFO] (animation) transition=anim_chr_player_turn_180 reason=large_direction_change speed=1.000 motion=0.000
+2026-09-06 11:13:52 [INFO] (movement) turn_180_start requested_angle_deg=135.00 authored_target=(0.996078, 0.0, 0.088482) requested_target=(0.641767, 0.0, 0.7669)
+2026-09-06 11:13:53 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=turn_complete speed=1.000 motion=0.000
+2026-09-06 11:13:53 [INFO] (movement) turn_180_complete facing=(0.996078, 0.0, 0.088482) resume_speed=0.000 phase={ "anim_chr_player_walk_forward": 0.0, "anim_chr_player_run_forward": 1.05260412581265 }
+2026-09-06 11:13:53 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.424
+2026-09-06 11:13:53 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.794 motion=6.492
+2026-09-06 11:13:55 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=1.176 motion=6.328
+2026-09-06 11:13:56 [INFO] (animation) transition=anim_chr_player_turn_180 reason=large_direction_change speed=1.000 motion=0.798
+2026-09-06 11:13:56 [INFO] (movement) turn_180_start requested_angle_deg=156.00 authored_target=(0.334316, 0.0, 0.942461) requested_target=(-0.077921, 0.0, 0.99696)
+2026-09-06 11:13:57 [INFO] (animation) transition=anim_chr_player_walk_forward reason=turn_complete_phase_match speed=1.003 motion=5.400
+2026-09-06 11:13:57 [INFO] (movement) turn_180_complete facing=(0.334316, 0.0, 0.942461) resume_speed=5.400 phase={ "anim_chr_player_walk_forward": 0.0, "anim_chr_player_run_forward": 1.05260412581265 }
+2026-09-06 11:13:57 [INFO] (animation) transition=anim_chr_player_turn_180 reason=large_direction_change speed=1.000 motion=0.884
+2026-09-06 11:13:57 [INFO] (movement) turn_180_start requested_angle_deg=180.00 authored_target=(0.077921, 0.0, -0.99696) requested_target=(0.077921, 0.0, -0.99696)
+2026-09-06 11:13:58 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=turn_complete speed=1.000 motion=0.000
+2026-09-06 11:13:58 [INFO] (movement) turn_180_complete facing=(0.077921, 0.0, -0.99696) resume_speed=0.000 phase={ "anim_chr_player_walk_forward": 0.0, "anim_chr_player_run_forward": 1.05260412581265 }
+2026-09-06 11:13:58 [INFO] (animation) transition=anim_chr_player_interact_gather reason=reaction speed=1.000 motion=0.000
+2026-09-06 11:14:01 [INFO] (animation) transition=anim_chr_player_turn_180 reason=large_direction_change speed=1.000 motion=0.000
+2026-09-06 11:14:01 [INFO] (movement) turn_180_start requested_angle_deg=170.12 authored_target=(-0.077921, 0.0, 0.99696) requested_target=(0.094253, 0.0, 0.995548)
+2026-09-06 11:14:02 [INFO] (animation) transition=anim_chr_player_walk_forward reason=turn_complete_phase_match speed=1.003 motion=5.400
+2026-09-06 11:14:02 [INFO] (movement) turn_180_complete facing=(-0.077921, 0.0, 0.99696) resume_speed=5.400 phase={ "anim_chr_player_walk_forward": 0.0, "anim_chr_player_run_forward": 1.05260412581265 }
+2026-09-06 11:14:03 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.814 motion=6.663
+2026-09-06 11:14:04 [INFO] (animation) transition=anim_chr_player_jump reason=jump_anticipation speed=1.600 motion=8.200
+2026-09-06 11:14:04 [INFO] (movement) jump_sequence_start chained=false chain_count=0 entry_time=0.000
+2026-09-06 11:14:04 [INFO] (animation) jump_stage=airborne animation_time=1.300 speed=0.452
+2026-09-06 11:14:04 [INFO] (movement) jump_takeoff impulse=6.865 physical_height=2.405 authored_lift=0.095
+2026-09-06 11:14:06 [INFO] (animation) jump_stage=recovery animation_time=1.933 speed=1.250
+2026-09-06 11:14:06 [INFO] (movement) jump_landing
+2026-09-06 11:14:06 [INFO] (animation) transition=anim_chr_player_turn_180 reason=large_direction_change speed=1.000 motion=0.000
+2026-09-06 11:14:06 [INFO] (movement) turn_180_start requested_angle_deg=180.00 authored_target=(-0.834927, 0.0, 0.550361) requested_target=(-0.834927, 0.0, 0.550361)
+2026-09-06 11:14:07 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=turn_complete speed=1.000 motion=0.000
+2026-09-06 11:14:07 [INFO] (movement) turn_180_complete facing=(-0.834927, 0.0, 0.550361) resume_speed=0.000 phase={ "anim_chr_player_walk_forward": 0.0, "anim_chr_player_run_forward": 1.05260412581265 }
+2026-09-06 11:14:07 [INFO] (animation) transition=anim_chr_player_jump reason=jump_anticipation speed=1.600 motion=0.000
+2026-09-06 11:14:07 [INFO] (movement) jump_sequence_start chained=false chain_count=0 entry_time=0.000
+2026-09-06 11:14:08 [INFO] (animation) jump_stage=airborne animation_time=1.300 speed=0.452
+2026-09-06 11:14:08 [INFO] (movement) jump_takeoff impulse=6.865 physical_height=2.405 authored_lift=0.095
+WARNING: File size 155884 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _begin_talking (res://scripts/social_simulator.gd:211)
+       [4] _process (res://scripts/social_simulator.gd:146)
+2026-09-06 11:14:09 [INFO] (animation) jump_stage=recovery animation_time=1.933 speed=1.250
+2026-09-06 11:14:09 [INFO] (movement) jump_landing
+2026-09-06 11:14:10 [INFO] (animation) transition=anim_chr_player_jump_chain_internal reason=jump_chain_phase_match speed=1.600 motion=0.847
+2026-09-06 11:14:10 [INFO] (animation) jump_chain_match count=1 from_time=2.142 entry_time=0.975 pose_error_m=0.1666 rotation_error_deg=21.69 blend=0.180
+2026-09-06 11:14:10 [INFO] (movement) jump_sequence_start chained=true chain_count=1 entry_time=0.975
+2026-09-06 11:14:10 [INFO] (animation) jump_stage=airborne animation_time=1.300 speed=0.452
+2026-09-06 11:14:10 [INFO] (movement) jump_takeoff impulse=6.865 physical_height=2.405 authored_lift=0.095
+2026-09-06 11:14:11 [INFO] (animation) jump_stage=recovery animation_time=1.933 speed=1.250
+2026-09-06 11:14:11 [INFO] (movement) jump_landing
+2026-09-06 11:14:12 [INFO] (animation) transition=anim_chr_player_jump reason=jump_chain_phase_match speed=1.600 motion=2.816
+2026-09-06 11:14:12 [INFO] (animation) jump_chain_match count=2 from_time=2.957 entry_time=0.000 pose_error_m=0.0238 rotation_error_deg=7.89 blend=0.180
+2026-09-06 11:14:12 [INFO] (movement) jump_sequence_start chained=true chain_count=2 entry_time=0.000
+WARNING: File size 113864 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] _on_audio_finished (res://scripts/npc_voice_adapter.gd:461)
+2026-09-06 11:14:13 [INFO] (animation) jump_stage=airborne animation_time=1.300 speed=0.452
+2026-09-06 11:14:13 [INFO] (movement) jump_takeoff impulse=6.865 physical_height=2.405 authored_lift=0.095
+2026-09-06 11:14:14 [INFO] (animation) jump_stage=recovery animation_time=1.933 speed=1.250
+2026-09-06 11:14:14 [INFO] (movement) jump_landing
+2026-09-06 11:14:14 [INFO] (animation) transition=anim_chr_player_jump_chain_internal reason=jump_chain_phase_match speed=1.600 motion=4.333
+2026-09-06 11:14:14 [INFO] (animation) jump_chain_match count=3 from_time=2.039 entry_time=0.943 pose_error_m=0.1411 rotation_error_deg=24.53 blend=0.180
+2026-09-06 11:14:14 [INFO] (movement) jump_sequence_start chained=true chain_count=3 entry_time=0.943
+2026-09-06 11:14:14 [INFO] (animation) jump_stage=airborne animation_time=1.300 speed=0.452
+2026-09-06 11:14:14 [INFO] (movement) jump_takeoff impulse=6.865 physical_height=2.405 authored_lift=0.095
+2026-09-06 11:14:16 [INFO] (animation) jump_stage=recovery animation_time=1.933 speed=1.250
+2026-09-06 11:14:16 [INFO] (movement) jump_landing
+2026-09-06 11:14:17 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+2026-09-06 11:14:18 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.300
+2026-09-06 11:14:18 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+2026-09-06 11:14:18 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.300
+2026-09-06 11:14:19 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.143
+2026-09-06 11:14:19 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.458
+2026-09-06 11:14:19 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.157
+2026-09-06 11:14:20 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.300
+2026-09-06 11:14:20 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+2026-09-06 11:14:20 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.300
+2026-09-06 11:14:23 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.116
+2026-09-06 11:14:23 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.357
+2026-09-06 11:14:23 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+2026-09-06 11:14:23 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.631
+WARNING: File size 175304 is smaller than the expected size 2147483591.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:683)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _process (res://scripts/interactable.gd:59)
+WARNING: Data chunk size is smaller than expected. Proceeding with actual data size.
+   at: load_from_buffer (scene/resources/audio_stream_wav.cpp:775)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _process (res://scripts/interactable.gd:59)
+ERROR: Condition "p_position > length" is true.
+   at: seek (core/io/file_access_memory.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _play_file (res://scripts/npc_voice_adapter.gd:358)
+       [1] _advance_queue (res://scripts/npc_voice_adapter.gd:292)
+       [2] request_line (res://scripts/npc_voice_adapter.gd:184)
+       [3] _process (res://scripts/interactable.gd:59)
+2026-09-06 11:14:25 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.817 motion=6.685
+2026-09-06 11:14:25 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=1.179 motion=6.344
+2026-09-06 11:14:26 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.814 motion=6.661
+2026-09-06 11:14:26 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+2026-09-06 11:14:26 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.329
+2026-09-06 11:14:27 [INFO] (animation) transition=anim_chr_player_jump reason=fall speed=1.000 motion=3.125
+2026-09-06 11:14:27 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=3.677
+2026-09-06 11:14:27 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.816 motion=6.676
+2026-09-06 11:14:27 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=1.041 motion=5.604
+2026-09-06 11:14:27 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.799 motion=6.540
+2026-09-06 11:14:28 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=1.175 motion=6.326
+2026-09-06 11:14:29 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+2026-09-06 11:14:29 [INFO] (animation) transition=anim_chr_player_walk_forward reason=locomotion speed=0.720 motion=0.300
+2026-09-06 11:14:30 [INFO] (animation) transition=anim_chr_player_jump reason=jump_anticipation speed=1.600 motion=5.400
+2026-09-06 11:14:30 [INFO] (movement) jump_sequence_start chained=false chain_count=3 entry_time=0.000
+2026-09-06 11:14:30 [INFO] (animation) jump_stage=airborne animation_time=1.300 speed=0.452
+2026-09-06 11:14:30 [INFO] (movement) jump_takeoff impulse=6.865 physical_height=2.405 authored_lift=0.095
+2026-09-06 11:14:31 [INFO] (animation) jump_stage=recovery animation_time=1.933 speed=1.250
+2026-09-06 11:14:31 [INFO] (movement) jump_landing
+2026-09-06 11:14:32 [INFO] (animation) transition=anim_chr_player_jump_chain_internal reason=jump_chain_phase_match speed=1.600 motion=0.000
+2026-09-06 11:14:32 [INFO] (animation) jump_chain_match count=4 from_time=2.474 entry_time=1.008 pose_error_m=0.1224 rotation_error_deg=22.66 blend=0.180
+2026-09-06 11:14:32 [INFO] (movement) jump_sequence_start chained=true chain_count=4 entry_time=1.008
+2026-09-06 11:14:32 [INFO] (animation) jump_stage=airborne animation_time=1.300 speed=0.452
+2026-09-06 11:14:32 [INFO] (movement) jump_takeoff impulse=6.865 physical_height=2.405 authored_lift=0.095
+2026-09-06 11:14:33 [INFO] (animation) jump_stage=recovery animation_time=1.933 speed=1.250
+2026-09-06 11:14:33 [INFO] (movement) jump_landing
+2026-09-06 11:14:34 [INFO] (animation) transition=anim_chr_player_jump reason=jump_chain_phase_match speed=1.600 motion=5.400
+2026-09-06 11:14:34 [INFO] (animation) jump_chain_match count=5 from_time=2.775 entry_time=0.000 pose_error_m=0.0643 rotation_error_deg=15.29 blend=0.180
+2026-09-06 11:14:34 [INFO] (movement) jump_sequence_start chained=true chain_count=5 entry_time=0.000
+2026-09-06 11:14:35 [INFO] (animation) jump_stage=airborne animation_time=1.300 speed=0.452
+2026-09-06 11:14:35 [INFO] (movement) jump_takeoff impulse=6.865 physical_height=2.405 authored_lift=0.095
+2026-09-06 11:14:36 [INFO] (animation) jump_stage=recovery animation_time=1.933 speed=1.250
+2026-09-06 11:14:36 [INFO] (movement) jump_landing
+2026-09-06 11:14:37 [INFO] (animation) transition=anim_chr_player_run_forward reason=locomotion speed=0.900 motion=7.367
+2026-09-06 11:14:38 [INFO] (animation) transition=anim_chr_player_jump reason=jump_anticipation speed=1.600 motion=8.200
+2026-09-06 11:14:38 [INFO] (movement) jump_sequence_start chained=false chain_count=5 entry_time=0.000
+2026-09-06 11:14:39 [INFO] (animation) jump_stage=airborne animation_time=1.300 speed=0.452
+2026-09-06 11:14:39 [INFO] (movement) jump_takeoff impulse=6.865 physical_height=2.405 authored_lift=0.095
+2026-09-06 11:14:40 [INFO] (animation) jump_stage=recovery animation_time=1.933 speed=1.250
+2026-09-06 11:14:40 [INFO] (movement) jump_landing
+2026-09-06 11:14:40 [INFO] (animation) transition=anim_chr_player_jump_chain_internal reason=jump_chain_phase_match speed=1.600 motion=6.816
+2026-09-06 11:14:40 [INFO] (animation) jump_chain_match count=6 from_time=2.268 entry_time=1.008 pose_error_m=0.2175 rotation_error_deg=21.82 blend=0.180
+2026-09-06 11:14:40 [INFO] (movement) jump_sequence_start chained=true chain_count=6 entry_time=1.008
+2026-09-06 11:14:41 [INFO] (animation) jump_stage=airborne animation_time=1.300 speed=0.452
+2026-09-06 11:14:41 [INFO] (movement) jump_takeoff impulse=6.865 physical_height=2.405 authored_lift=0.095
+2026-09-06 11:14:42 [INFO] (animation) jump_stage=recovery animation_time=1.933 speed=1.250
+2026-09-06 11:14:42 [INFO] (movement) jump_landing
+2026-09-06 11:14:42 [INFO] (animation) transition=anim_chr_player_jump reason=jump_chain_phase_match speed=1.600 motion=0.000
+2026-09-06 11:14:42 [INFO] (animation) jump_chain_match count=7 from_time=2.103 entry_time=0.975 pose_error_m=0.1373 rotation_error_deg=19.33 blend=0.180
+2026-09-06 11:14:42 [INFO] (movement) jump_sequence_start chained=true chain_count=7 entry_time=0.975
+2026-09-06 11:14:42 [INFO] (animation) jump_stage=airborne animation_time=1.300 speed=0.452
+2026-09-06 11:14:42 [INFO] (movement) jump_takeoff impulse=6.865 physical_height=2.405 authored_lift=0.095
+2026-09-06 11:14:43 [INFO] (animation) jump_stage=recovery animation_time=1.933 speed=1.250
+2026-09-06 11:14:43 [INFO] (movement) jump_landing

@@ -20,8 +20,77 @@ func _post_import(scene: Node) -> Object:
 	scene.set_meta("source", "hand_modeled_blender_5.2")
 	var is_hero := _is_hero(scene.name)
 	_set_cast_shadow(scene, is_hero)
+	_merge_static_surfaces(scene)
 	_apply_cel_materials(scene)
 	return scene
+
+
+## Geometry-preserving batching of legacy fragmented static facilities. Keep
+## authored LODs and emissive/foliage semantics separate; never batch characters.
+func _merge_static_surfaces(scene: Node) -> void:
+	var file := get_source_file().get_file()
+	var eligible := false
+	for stem in ["env_hut_residential", "env_shelter", "env_terrace", "prp_crate", "prp_amphora", "prp_reservoir", "prp_drying_rack"]:
+		if file.begins_with(stem):
+			eligible = true
+	if not eligible:
+		return
+	var groups := {}
+	var sources: Array[MeshInstance3D] = []
+	for child in scene.get_children():
+		_gather_batch_surfaces(child, Transform3D.IDENTITY, groups, sources)
+	var input_triangles := 0
+	var output_triangles := 0
+	for key in groups:
+		var group: Dictionary = groups[key]
+		var builder := SurfaceTool.new()
+		builder.begin(Mesh.PRIMITIVE_TRIANGLES)
+		builder.set_material(group.material)
+		for entry in group.surfaces:
+			var arrays: Array = entry.mesh.surface_get_arrays(entry.surface)
+			input_triangles += (arrays[Mesh.ARRAY_INDEX].size() if arrays[Mesh.ARRAY_INDEX].size() > 0 else arrays[Mesh.ARRAY_VERTEX].size()) / 3
+			builder.append_from(entry.mesh, entry.surface, entry.transform)
+		var combined := MeshInstance3D.new()
+		combined.name = group.name
+		combined.mesh = builder.commit()
+		var output_arrays := combined.mesh.surface_get_arrays(0)
+		output_triangles += (output_arrays[Mesh.ARRAY_INDEX].size() if output_arrays[Mesh.ARRAY_INDEX].size() > 0 else output_arrays[Mesh.ARRAY_VERTEX].size()) / 3
+		combined.cast_shadow = group.shadow
+		scene.add_child(combined)
+		combined.owner = scene
+	for source in sources:
+		source.get_parent().remove_child(source)
+		source.free()
+	scene.set_meta("static_batching", "same_material_same_lod_same_semantic_no_geometry_change")
+	scene.set_meta("batch_input_triangles", input_triangles)
+	scene.set_meta("batch_output_triangles", output_triangles)
+	assert(input_triangles == output_triangles, "Static batching must not lose or add triangles")
+
+func _gather_batch_surfaces(node: Node, parent_transform: Transform3D, groups: Dictionary, sources: Array[MeshInstance3D]) -> void:
+	var transform := parent_transform
+	if node is Node3D:
+		transform *= node.transform
+	if node is MeshInstance3D and node.mesh != null:
+		var name_lower := String(node.name).to_lower()
+		var lod := 0
+		for i in range(3):
+			if "lod%d__" % i in name_lower:
+				lod = i
+		var semantic := "surface"
+		for word in ["window", "bulb", "glyph", "canopy", "trunk", "valley_floor", "valley_foothill"]:
+			if word in name_lower:
+				semantic = word
+		for surface in range(node.mesh.get_surface_count()):
+			var material: Material = node.get_active_material(surface)
+			var identity := material.get_instance_id() if material != null else 0
+			var key := "%d_%d_%s_%d" % [lod, identity, semantic, node.mesh.surface_get_format(surface)]
+			if not groups.has(key):
+				var mat_name := material.resource_name if material != null else "default"
+				groups[key] = {"material": material, "surfaces": [], "name": "lod%d__batch_%s_%s" % [lod, mat_name, semantic], "shadow": node.cast_shadow}
+			groups[key].surfaces.append({"mesh": node.mesh, "surface": surface, "transform": transform})
+		sources.append(node)
+	for child in node.get_children():
+		_gather_batch_surfaces(child, transform, groups, sources)
 
 
 ## Swap every surface material for a cel_base ShaderMaterial, carrying the baked
@@ -41,33 +110,7 @@ func _apply_cel_materials(node: Node) -> void:
 
 
 func _cel_from(src: Material) -> ShaderMaterial:
-	if src == null:
-		return null
-	var shader := load(CEL_BASE) as Shader
-	if shader == null:
-		push_warning("env_import_post: cel_base shader missing")
-		return null
-	var sm := ShaderMaterial.new()
-	sm.shader = shader
-	sm.resource_name = src.resource_name if src.resource_name != "" else "mat_env_default"
-	sm.set_shader_parameter("base_color", Color(1, 1, 1))
-	if src is StandardMaterial3D:
-		var std := src as StandardMaterial3D
-		sm.set_shader_parameter("base_color", Color(1, 1, 1))
-		if std.albedo_texture != null:
-			sm.set_shader_parameter("albedo_tex", std.albedo_texture)
-		if std.normal_texture != null:
-			sm.set_shader_parameter("normal_tex", std.normal_texture)
-		if std.roughness_texture != null:
-			sm.set_shader_parameter("orm_tex", std.roughness_texture)
-	elif src is ShaderMaterial:
-		var src_sm := src as ShaderMaterial
-		for pname in ["albedo_tex", "normal_tex", "orm_tex"]:
-			var tex = src_sm.get_shader_parameter(pname)
-			if tex != null:
-				sm.set_shader_parameter(pname, tex)
-	return sm
-
+	return preload("res://scripts/env_material_factory.gd").from_material(src)
 
 func _is_hero(root_name: String) -> bool:
 	var lower := root_name.to_lower()

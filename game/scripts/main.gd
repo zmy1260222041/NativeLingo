@@ -147,15 +147,7 @@ func _build_authored_environment() -> void:
 	if stall != null:
 		_add_fitted_collision(stall)
 		_enable_mesh_shadows(stall)
-		_ground_stall_counter(stall)
-		_detail_stall_bowls(stall)
-		for offset in [Vector3(-0.65, 1.12, 0.15), Vector3(0.65, 1.12, -0.1)]:
-			var token: Node3D = _instantiate_env("prp_food_token_c.glb")
-			if token != null:
-				stall.add_child(token)
-				token.position = offset
-				token.rotation.y = 0.7 if offset.x < 0 else -0.3
-				_enable_mesh_shadows(token)
+		preload("res://scripts/market_finish_assets.gd").dress_stall(stall)
 	var shelter := _try_load_env(
 		"env_shelter_distant_a.glb",
 		Vector3(-7, 0, 8.5),
@@ -211,7 +203,7 @@ func _add_residence(file: String, position: Vector3, rotation_y: float, _collisi
 ## §3.7.A 球形法线异星树：英雄树近广场 + 边缘树围出天际线（§5.2 边缘采集区）
 func _build_stylized_flora() -> void:
 	var trees := [
-		[Vector3(2.2, 0, 5.6), 0.4],
+		[Vector3(4.5, 0, 6.0), 0.4],
 		[Vector3(-10.5, 0, -6.5), 1.2],
 		[Vector3(10.8, 0, -3.6), -0.9],
 		[Vector3(-3.4, 0, 12.2), 2.4],
@@ -224,7 +216,7 @@ func _build_stylized_flora() -> void:
 			push_error("Main: missing fol_tree_stranger_a.glb (primitive tree fallback removed)")
 			continue
 		tree.rotation.y = entry[1]
-		_add_fitted_collision(tree, PackedStringArray(["canopy", "leaf"]))
+		preload("res://scripts/market_finish_assets.gd").tree_collision(tree)
 		_enable_mesh_shadows(tree)
 		_enable_tree_sway(tree)
 	# §3.4 远景轮廓层：左右山谷山脊 + 谷地地板，带碰撞
@@ -333,12 +325,11 @@ func _apply_tree_sway(
 			else:
 				var mat := ShaderMaterial.new()
 				mat.shader = foliage
-				mat.set_shader_parameter("base_color", Color(1, 1, 1))
 				var src := mi.material_override
 				if src == null and mi.mesh != null and mi.mesh.get_surface_count() > 0:
 					src = mi.mesh.surface_get_material(0)
 				if src is ShaderMaterial:
-					for pname in ["albedo_tex", "normal_tex", "orm_tex"]:
+					for pname in ["albedo_tex", "normal_tex", "orm_tex", "base_color", "orm_strength", "rough"]:
 						var tex = (src as ShaderMaterial).get_shader_parameter(pname)
 						if tex != null:
 							mat.set_shader_parameter(pname, tex)
@@ -347,7 +338,7 @@ func _apply_tree_sway(
 				mat.set_shader_parameter("phase_offset", phase)
 				# 树干与树冠同一光照模型（cel_foliage 禁环境光 + 暗影量化），
 				# 修复树干夜里被环境光洗白、与树冠色调脱节（v04 复查）。
-				mat.set_shader_parameter("vcol_strength", 0.92 if is_trunk else 0.55)
+				mat.set_shader_parameter("vcol_strength", 1.0)
 				mi.material_override = mat
 	for child in node.get_children():
 		_apply_tree_sway(child, foliage, phase, sway_amp, canopy_height)
@@ -557,10 +548,10 @@ func _try_load_env(file: String, position: Vector3, hero: bool, collision_size: 
 		return null
 	inst.position = position
 	add_child(inst)
-	if hero:
-		var lod := EnvLodScript.new()
-		lod.configure(true)
-		inst.add_child(lod)
+	var lod := EnvLodScript.new()
+	lod.name = "EnvironmentLod"
+	lod.configure(hero)
+	inst.add_child(lod)
 	if collision_size != Vector3.ZERO:
 		_add_env_collision(inst, collision_size)
 	return inst
@@ -572,6 +563,10 @@ func _attach_env_visual(parent: Node3D, file: String) -> bool:
 		return false
 	inst.position = Vector3.ZERO
 	parent.add_child(inst)
+	var lod := EnvLodScript.new()
+	lod.name = "EnvironmentLod"
+	lod.configure(false)
+	inst.add_child(lod)
 	return true
 
 
@@ -728,6 +723,8 @@ func _apply_ground_tex(node: Node, tex: Texture2D) -> void:
 		var mi := node as MeshInstance3D
 		if mi.material_override is ShaderMaterial:
 			var sm := mi.material_override as ShaderMaterial
+			if sm.resource_name.begins_with("mat_finish_"):
+				return
 			sm.set_shader_parameter("albedo_tex", tex)
 			sm.set_shader_parameter("use_triplanar", true)
 			sm.set_shader_parameter("base_color", Color(1, 1, 1))
@@ -736,6 +733,8 @@ func _apply_ground_tex(node: Node, tex: Texture2D) -> void:
 				var mat := mi.mesh.surface_get_material(s)
 				if mat is ShaderMaterial:
 					var sm2 := mat as ShaderMaterial
+					if sm2.resource_name.begins_with("mat_finish_"):
+						continue
 					sm2.set_shader_parameter("albedo_tex", tex)
 					sm2.set_shader_parameter("use_triplanar", true)
 					sm2.set_shader_parameter("base_color", Color(1, 1, 1))
@@ -749,7 +748,7 @@ func _add_lantern_light(position: Vector3) -> void:
 	light.position = position
 	light.light_color = Color("ffcb78")
 	light.light_energy = 0.12
-	light.omni_range = 3.4
+	light.omni_range = 4.5
 	light.shadow_enabled = false
 	add_child(light)
 	_lantern_lights.append(light)
@@ -776,7 +775,7 @@ func _update_authored_glow(evening: float) -> void:
 	for mat in _glow_lanterns:
 		mat.set_shader_parameter("fill", lerpf(0.28, 0.85, evening))
 	for mat in _glow_heaters:
-		mat.set_shader_parameter("fill", lerpf(0.55, 0.90, evening))
+		mat.set_shader_parameter("heat_glow", lerpf(0.18, 0.90, evening))
 	for mat in _glow_plants:
 		mat.set_shader_parameter("fill", lerpf(0.06, 0.80, evening))
 	for mat in _glow_windows:
@@ -784,9 +783,9 @@ func _update_authored_glow(evening: float) -> void:
 	for mat in _glow_relics:
 		mat.set_shader_parameter("fill", lerpf(0.10, 0.42, evening))
 	for light in _lantern_lights:
-		light.light_energy = lerpf(0.10, 0.42, evening)
+		light.light_energy = lerpf(0.02, 1.10, evening)
 	if _heater_light != null:
-		_heater_light.light_energy = lerpf(0.26, 0.55, evening)
+		_heater_light.light_energy = lerpf(0.06, 0.48, evening)
 
 
 func _paint_env_asset(node: Node, file: String) -> void:
@@ -810,73 +809,22 @@ func _paint_env_node(node: Node, stem: String) -> void:
 
 func _paint_shader_material(mat: ShaderMaterial, stem: String, hint: String) -> void:
 	var key := (stem + " " + hint).to_lower()
-	var color := Color("c4a574")
-	var rim := Color.TRANSPARENT
-	var is_floor := "ground" in key or "path" in key or "plaza" in key \
-			or "valley" in key or "foothill" in key
-	mat.set_shader_parameter("contact_enabled", not is_floor)
-	if "hut" in key or "shelter" in key or "terrace" in key or "plaza" in key \
-			or "heater" in key or "reservoir" in key or "beacon" in key \
-			or "crate" in key or "drying" in key or "amphora" in key \
-			or "tufts" in key or "tree" in key or "rock_facet" in key \
-			or "frond" in key or "monolith" in key:
-		# 住宅/庇护所/绿地组件走贴图 × 顶点色 tint，禁止再染成暮靛黑块。
-		mat.set_shader_parameter("base_color", Color(1, 1, 1))
-		if "tree" in key:
-			mat.set_shader_parameter("vcol_strength", 0.92)
-		if "amber" in key or "window" in key:
-			mat.set_shader_parameter("functional_rim", true)
-			mat.set_shader_parameter("rim_color", Color("f2a85b"))
-			mat.set_shader_parameter("rim_strength", 0.45)
-			mat.set_shader_parameter("fill", 0.28)
-			_register_glow_mat(_glow_windows, mat)
-		if "monolith" in key and "glyph" in key:
-			mat.set_shader_parameter("functional_rim", true)
-			mat.set_shader_parameter("rim_color", Color("9a6acb"))
-			mat.set_shader_parameter("rim_strength", 0.5)
-			mat.set_shader_parameter("fill", 0.14)
-			_register_glow_mat(_glow_relics, mat)
-		if "heater" in key:
-			mat.set_shader_parameter("fill", 0.55)
-			_register_glow_mat(_glow_heaters, mat)
+	if mat.shader == null or not mat.shader.resource_path.ends_with("cel_base.gdshader"):
 		return
-	if "stall" in key:
-		if "bowl" in key:
-			color = Color("8a5538")
-		elif "cap" in key:
-			color = Color("c49a52")
-		else:
-			return
-	elif "ground" in key or "path" in key or "valley" in key or "ridge" in key:
-		color = Color(1, 1, 1)
-	elif "grate" in key:
-		color = Color("17243b")
-	elif "rock" in key:
-		color = Color("4b5268")
-	elif "bulb" in key:
-		color = Color("f2a85b")
-		rim = Color("ff9e63")
-		mat.set_shader_parameter("fill", 0.45)
+	mat.set_shader_parameter("soft_surface", true)
+	var is_floor := "ground" in key or "path" in key or "plaza" in key or "valley" in key
+	mat.set_shader_parameter("contact_enabled", not is_floor)
+	mat.set_shader_parameter("fill", 0.0)
+	# Never repaint a whole appliance, wall or canopy as a light source.
+	if "bulb" in key:
+		mat.set_shader_parameter("base_color", Color("f2c078"))
 		_register_glow_mat(_glow_lanterns, mat)
-	elif "lantern" in key or "alloy" in key:
-		color = Color("2a3144")
-		if "lantern" in key:
-			mat.set_shader_parameter("fill", 0.32)
-			_register_glow_mat(_glow_lanterns, mat)
-	elif "glow" in key or "plant" in key:
-		color = Color("4aa888")
-		rim = Color("78c9a4")
-		mat.set_shader_parameter("fill", 0.08)
-		_register_glow_mat(_glow_plants, mat)
-	elif "token" in key or "food" in key:
-		color = Color("78c9a4")
-		rim = Color("78c9a4")
-	mat.set_shader_parameter("base_color", color)
-	if rim.a > 0.0:
-		mat.set_shader_parameter("functional_rim", true)
-		mat.set_shader_parameter("rim_color", rim)
-		mat.set_shader_parameter("rim_strength", 0.45)
-
+	elif "window" in key:
+		_register_glow_mat(_glow_windows, mat)
+	elif "heat_core" in key or ("heater" in key and "clay" in key):
+		_register_glow_mat(_glow_heaters, mat)
+	elif "glyph" in key:
+		_register_glow_mat(_glow_relics, mat)
 
 func _find_named_child(node: Node, stem: String) -> Node:
 	if stem.to_lower() in String(node.name).to_lower():
@@ -888,49 +836,6 @@ func _find_named_child(node: Node, stem: String) -> Node:
 	return null
 
 
-func _ground_stall_counter(stall: Node3D) -> void:
-	var leg_color := Color("2a3144")
-	for x in [-1.42, 1.42]:
-		for z in [-0.36, 0.36]:
-			var mesh := CylinderMesh.new()
-			mesh.top_radius = 0.055
-			mesh.bottom_radius = 0.075
-			mesh.height = 0.82
-			var leg := MeshInstance3D.new()
-			leg.name = "CounterLeg"
-			leg.mesh = mesh
-			leg.position = Vector3(x, 0.41, z)
-			leg.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-			leg.material_override = _material(leg_color)
-			stall.add_child(leg)
-			_add_inverted_outline(leg)
-
-
-func _detail_stall_bowls(stall: Node3D) -> void:
-	var bowls: Array[MeshInstance3D] = []
-	_collect_named_meshes(stall, "bowl", bowls)
-	for bowl in bowls:
-		bowl.material_override = _material(Color("8a5538"))
-		_add_inverted_outline(bowl)
-		var inner := CylinderMesh.new()
-		inner.top_radius = 0.11
-		inner.bottom_radius = 0.11
-		inner.height = 0.016
-		var disc := MeshInstance3D.new()
-		disc.name = "BowlInterior"
-		disc.mesh = inner
-		disc.position = Vector3(0.0, 0.04, 0.0)
-		disc.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		disc.material_override = _material(Color("3a2116"))
-		bowl.add_child(disc)
-
-
-func _collect_named_meshes(node: Node, stem: String, out: Array[MeshInstance3D]) -> void:
-	if node is MeshInstance3D and stem in String(node.name).to_lower():
-		if not String(node.name).ends_with("_outline"):
-			out.append(node as MeshInstance3D)
-	for child in node.get_children():
-		_collect_named_meshes(child, stem, out)
 
 
 func _disable_collisions(node: Node) -> void:
@@ -944,6 +849,8 @@ func _disable_collisions(node: Node) -> void:
 
 
 func _enable_mesh_shadows(node: Node) -> void:
+	if node.name == "SurfaceOutline":
+		return
 	if node is MeshInstance3D and not String(node.name).ends_with("_outline"):
 		(node as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	for child in node.get_children():
@@ -990,6 +897,10 @@ func _add_fitted_collision(host: Node3D, skip_tokens: PackedStringArray = Packed
 
 
 func _add_asset_outlines(host: Node, limit: int) -> void:
+	var lod := host.get_node_or_null("EnvironmentLod") as EnvLod
+	if lod != null:
+		lod.request_outlines(limit)
+		return
 	var meshes: Array[MeshInstance3D] = []
 	_collect_meshes(host, meshes)
 	meshes.sort_custom(func(a, b): return _mesh_vertex_count(a) > _mesh_vertex_count(b))
@@ -999,6 +910,8 @@ func _add_asset_outlines(host: Node, limit: int) -> void:
 
 
 func _collect_meshes(node: Node, out: Array[MeshInstance3D]) -> void:
+	if node.name == "SurfaceOutline":
+		return
 	if node is MeshInstance3D and not String(node.name).ends_with("_outline"):
 		var lower := String(node.name).to_lower()
 		if "lod1__" in lower or "lod2__" in lower:
@@ -1020,16 +933,20 @@ func _mesh_vertex_count(mi: MeshInstance3D) -> int:
 func _add_inverted_outline(mi: MeshInstance3D) -> void:
 	if mi == null or mi.mesh == null or mi.get_parent() == null:
 		return
+	if mi.get_node_or_null("SurfaceOutline") != null:
+		return
 	var shader := load("res://shaders/cel_outline.gdshader") as Shader
 	if shader == null:
 		return
-	var outline := mi.duplicate() as MeshInstance3D
-	outline.name = String(mi.name) + "_outline"
+	var outline := MeshInstance3D.new()
+	outline.mesh = mi.mesh
+	outline.name = "SurfaceOutline"
 	var mat := ShaderMaterial.new()
 	mat.shader = shader
+	mat.set_shader_parameter("outline_width", 0.004)
 	outline.material_override = mat
 	outline.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mi.get_parent().add_child(outline)
+	mi.add_child(outline)
 
 
 func _hide_meshes(node: Node) -> void:

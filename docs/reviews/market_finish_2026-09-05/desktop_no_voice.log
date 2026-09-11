@@ -1,0 +1,24 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+2026-09-06 10:59:50 [INFO] (debug_bridge) runtime bridge starting ports={ "control": 6505, "telemetry": 6506, "test": 6507 }
+2026-09-06 10:59:50 [INFO] (animation) jump_markers takeoff=1.300 landing=1.933 authored_lift=0.095
+2026-09-06 10:59:50 [INFO] (animation) turn_phase_match animation=anim_chr_player_walk_forward time=0.000 foot_error=0.0290 aligned_error=0.0001 correction=(-0.021274, 0.000021, -0.019668) rotation_error_deg=9.14
+2026-09-06 10:59:50 [INFO] (animation) turn_phase_match animation=anim_chr_player_run_forward time=1.053 foot_error=0.2526 aligned_error=0.1057 correction=(-0.030646, -0.214524, -0.086255) rotation_error_deg=36.29
+2026-09-06 10:59:50 [INFO] (animation) transition=anim_chr_player_idle_neutral reason=locomotion speed=1.000 motion=0.000
+  OK  Desktop no-voice mode reports speech unavailable
+  OK  SpeechAdapter never starts recording or freezes time in desktop no-voice mode
+  OK  SpeechAdapter creates no HTTPRequest in desktop no-voice mode
+  OK  Pause menu hides the speech-mode setting
+  OK  Pause menu shows the no-voice explanation
+  OK  Desktop no-voice notice is desktop-specific
+  OK  Pause menu shows the desktop save note
+  OK  Desktop save note explains local persistence
+  OK  Desktop build tag is visible and correct
+  OK  Remap panel exposes 14 actions in desktop no-voice mode
+  OK  Remap panel removes the Speak action
+  OK  World exposes an NPC target
+  OK  NPC prompt keeps the gesture path
+  OK  NPC prompt removes the speak path
+  OK  Speak key is ignored in desktop no-voice mode
+  OK  Gesture fallback completes the full three-day flow
+PASS: Stranger desktop-beta no-voice suite

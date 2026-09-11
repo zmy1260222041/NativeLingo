@@ -94,10 +94,11 @@ func _try_load_env(file: String, position: Vector3, hero: bool) -> void:
 	var inst := packed.instantiate() as Node3D
 	inst.position = position
 	add_child(inst)
-	if hero:
-		var lod := EnvLodScript.new()
-		lod.configure(true)
-		inst.add_child(lod)
+	var lod := EnvLodScript.new()
+	lod.configure(hero)
+	inst.add_child(lod)
+	if file == "env_market_stall_a.glb":
+		preload("res://scripts/market_finish_assets.gd").dress_stall(inst)
 
 
 func _add_glow_plants() -> void:
@@ -129,11 +130,12 @@ func _add_glow_plants() -> void:
 func _build_characters() -> void:
 	var player := CharacterVisual.new()
 	player.name = "PlayerVisual"
+	add_child(player)
 	player.configure(Color("bfa982"), Color("5a3f58"), 4, true)
 	player.position = Vector3(2.3, 0, 3.0)
-	add_child(player)
 	var mira := CharacterVisual.new()
 	mira.name = "MiraVisual"
+	add_child(mira)
 	mira.configure(Color("f2a85b"), Color("d8665b"), 0, false)
 	if not mira.use_authored_static_model(
 		MIRA_MODEL_PATH,
@@ -143,7 +145,6 @@ func _build_characters() -> void:
 	):
 		push_warning("MarketCorner: authored Mira model unavailable; using procedural fallback")
 	mira.position = Vector3(-1.7, 1.0, -0.55)
-	add_child(mira)
 
 
 func _find_mesh(node: Node) -> MeshInstance3D:

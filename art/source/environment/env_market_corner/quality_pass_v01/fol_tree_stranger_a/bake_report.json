@@ -1,0 +1,26 @@
+{
+  "asset": "fol_tree_stranger_a",
+  "resolution": 1024,
+  "selected_to_active": true,
+  "color_contains_lighting": false,
+  "normal_convention": "OpenGL +Y",
+  "high_subdivision": "SIMPLE 2",
+  "low_vertices": 1093,
+  "contacts": [
+    {
+      "joint": "root_tips_to_soil",
+      "root_tip_z": 0.015,
+      "terrain_z": 0.018,
+      "overlap_m": 0.003
+    }
+  ],
+  "maps": {
+    "base_color": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a_base_color.png",
+    "normal": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a_normal.png",
+    "ao": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a_ao.png",
+    "orm": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a_orm.png",
+    "roughness": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a_roughness.png"
+  },
+  "sha256": "8243fb8c9a3bf6ef9d91b34bf491706da8f29481cfeb1cdc24c1f0674f04893f",
+  "all_five_maps_packed": true
+}

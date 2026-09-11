@@ -1,0 +1,19 @@
+{
+  "asset": "env_plaza_market_a",
+  "resolution": 1024,
+  "selected_to_active": true,
+  "color_contains_lighting": false,
+  "normal_convention": "OpenGL +Y",
+  "high_subdivision": "SIMPLE 2",
+  "low_vertices": 64,
+  "contacts": [],
+  "maps": {
+    "base_color": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a_base_color.png",
+    "normal": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a_normal.png",
+    "ao": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a_ao.png",
+    "orm": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a_orm.png",
+    "roughness": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a_roughness.png"
+  },
+  "sha256": "d452320986b19f07e040b4c076183be50bc1e84511c07da6d95b48e3e871f84d",
+  "all_five_maps_packed": true
+}

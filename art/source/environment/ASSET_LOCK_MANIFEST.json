@@ -1,6 +1,7 @@
 {
   "schema": "stranger.environment_asset_lock.v1",
-  "generated_at": "2026-08-15",
+  "generated_at": "2026-09-06",
+  "quality_pass_note": "quality_pass_v01 appended after scoped runtime and source validation. Original 110 protected entries remain unchanged. No Git commit or push.",
   "policy": {
     "hash_algorithm": "sha256",
     "listed_files_are_immutable": true,
@@ -1009,6 +1010,508 @@
           "bytes": 25334,
           "sha256": "e6c23f212b09898bd2478a557a8e35525c3fa02c7450ca898c3532b64093aa59",
           "role": "glyph_tile"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_ground_market_a_quality_pass_v01",
+      "source_lock": "quality_pass_v01",
+      "category": "market_finish_derivative",
+      "pipeline": "Blender 5.2 Cycles selected-to-active high/low bake; unlit color, OpenGL +Y normal, ORM R=AO G=roughness B=metallic",
+      "gate_e_status": "scoped_runtime_qa_pass_2026-09-06",
+      "evidence": "docs/reviews/market_finish_2026-09-05/README.md",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_ground_market_a/env_ground_market_a.blend",
+          "bytes": 11041347,
+          "sha256": "0bd1b71d93876cb137b2279b2589a5ebb78fb1d43b806ee87e9751bd2db9cd20",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_ground_market_a/env_ground_market_a.glb",
+          "bytes": 8078432,
+          "sha256": "6382e094efa1e4cf1144e7f4e1c59927e6e1f1466e2190c7829c5baeb87dc33f",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_ground_market_a/env_ground_market_a_base_color.png",
+          "bytes": 973321,
+          "sha256": "694deba3d35a58e02e460f61c78104644ce3d06f10168da57241ac765abcb4f1",
+          "role": "base_color_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_ground_market_a/env_ground_market_a_normal.png",
+          "bytes": 4172242,
+          "sha256": "be9fb67414b16f0d59ae3df64c40a34d4c340c47ac52120e2c028dc5a417853c",
+          "role": "normal_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_ground_market_a/env_ground_market_a_ao.png",
+          "bytes": 60832,
+          "sha256": "340bf0d2526a99c01194671184865a4037ca0b67c0a66c5ac861fbd7cd598e7e",
+          "role": "ao_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_ground_market_a/env_ground_market_a_roughness.png",
+          "bytes": 2859398,
+          "sha256": "4c6f32060f797ece4f1a766f9c216e1a7073afb090410679b97fc2eb13bd57c1",
+          "role": "roughness_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_ground_market_a/env_ground_market_a_orm.png",
+          "bytes": 2849678,
+          "sha256": "ca8e090a00a3194dd82093c5895423dae8e324dae44d0c9ee362ed7b4c1d3e04",
+          "role": "orm_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_ground_market_a/bake_report.json",
+          "bytes": 1151,
+          "sha256": "912caf277d942270071ef4a6f0067a15862df8ff82b35ecfdcadc582b538d1f6",
+          "role": "bake_report"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_market_stall_a_quality_pass_v01",
+      "source_lock": "quality_pass_v01",
+      "category": "market_finish_derivative",
+      "pipeline": "Blender 5.2 Cycles selected-to-active high/low bake; unlit color, OpenGL +Y normal, ORM R=AO G=roughness B=metallic",
+      "gate_e_status": "scoped_runtime_qa_pass_2026-09-06",
+      "evidence": "docs/reviews/market_finish_2026-09-05/README.md",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a.blend",
+          "bytes": 6361838,
+          "sha256": "a4cd101f774097d713855e7045ff791fd60120184e0c542480971ed91326fcbf",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a.glb",
+          "bytes": 4174020,
+          "sha256": "617842b1a31bba8411819b111b1cec89a961e4c7c50faf08ea6a9b012116e4b7",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a_base_color.png",
+          "bytes": 611087,
+          "sha256": "907600e3bd962ba8439df3046b904c5ce77af4eb02a4cc76a97b58f9871699c6",
+          "role": "base_color_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a_normal.png",
+          "bytes": 1092217,
+          "sha256": "9f7175788c9e59d43293d63056833b2a253cc38b30054c2ad717d2afa5a12715",
+          "role": "normal_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a_ao.png",
+          "bytes": 1406433,
+          "sha256": "e857fbada05aedfb638948f84e9dd9a6bbd57654a87c673d43dcbdb1b9bae420",
+          "role": "ao_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a_roughness.png",
+          "bytes": 1082672,
+          "sha256": "be8b3cc4717da4d2c22087a780dda7e873a273ec2d92969382d148f40788259c",
+          "role": "roughness_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/env_market_stall_a_orm.png",
+          "bytes": 1968064,
+          "sha256": "6841a9cd59283d5666b103e30a5569438ea9948896157918ff5a27f6e728049f",
+          "role": "orm_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_market_stall_a/bake_report.json",
+          "bytes": 1569,
+          "sha256": "1a8a09ed4bf3441a84173cd295cfebdbacd9f21c045b668cb3aceb9b22e58b01",
+          "role": "bake_report"
+        }
+      ]
+    },
+    {
+      "asset_id": "env_plaza_market_a_quality_pass_v01",
+      "source_lock": "quality_pass_v01",
+      "category": "market_finish_derivative",
+      "pipeline": "Blender 5.2 Cycles selected-to-active high/low bake; unlit color, OpenGL +Y normal, ORM R=AO G=roughness B=metallic",
+      "gate_e_status": "scoped_runtime_qa_pass_2026-09-06",
+      "evidence": "docs/reviews/market_finish_2026-09-05/README.md",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a.blend",
+          "bytes": 999111,
+          "sha256": "ebdd5786f8b0c461c97cd8b2becbebce17f8731c513baf711bea26f8f09219ea",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a.glb",
+          "bytes": 581624,
+          "sha256": "d452320986b19f07e040b4c076183be50bc1e84511c07da6d95b48e3e871f84d",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a_base_color.png",
+          "bytes": 64400,
+          "sha256": "880d59798ab7d2dc1ed6cccc5929b8cbc6079f2f213136915bbc7c37744ef7d8",
+          "role": "base_color_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a_normal.png",
+          "bytes": 193859,
+          "sha256": "b4163e684e54d17249ef344b761c451f434da37346e83a81cbc60088e3fe5475",
+          "role": "normal_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a_ao.png",
+          "bytes": 109956,
+          "sha256": "a37ecaafbbc2ae61b7cc6af7f09d1b80c8b2e7316e24f3a6d9be096141d27dba",
+          "role": "ao_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a_roughness.png",
+          "bytes": 234093,
+          "sha256": "af2503cfafe89aea04d87368d7ce841bf92f5fcd10c8d13cbe9cc1d246b2bcf1",
+          "role": "roughness_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/env_plaza_market_a_orm.png",
+          "bytes": 309997,
+          "sha256": "61dbb145879e7e9fb3bfa11fac984e0a609dd7968ba38db114ecc6aa2cb922a2",
+          "role": "orm_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/env_plaza_market_a/bake_report.json",
+          "bytes": 982,
+          "sha256": "c0d81cbf35704b44f91f11c736e6cfb6985a900bd1dc31c2a4b2893858cfb70f",
+          "role": "bake_report"
+        }
+      ]
+    },
+    {
+      "asset_id": "fol_ground_tufts_a_quality_pass_v01",
+      "source_lock": "quality_pass_v01",
+      "category": "market_finish_derivative",
+      "pipeline": "Blender 5.2 Cycles selected-to-active high/low bake; unlit color, OpenGL +Y normal, ORM R=AO G=roughness B=metallic",
+      "gate_e_status": "scoped_runtime_qa_pass_2026-09-06",
+      "evidence": "docs/reviews/market_finish_2026-09-05/README.md",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_ground_tufts_a/fol_ground_tufts_a.blend",
+          "bytes": 1902211,
+          "sha256": "d9dfa686578b152080b40fd32f75372c0b595531296f599d1d07fab9c315f59c",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_ground_tufts_a/fol_ground_tufts_a.glb",
+          "bytes": 1265384,
+          "sha256": "edb597500b85775ccd008ec2cc5a9b1695d26060b00bf9bb0b31f8b02179df81",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_ground_tufts_a/fol_ground_tufts_a_base_color.png",
+          "bytes": 126570,
+          "sha256": "9be757e28b75fe8d7b8484bdf64c772f3a3d6cbab493d322e6da1db15ab543f6",
+          "role": "base_color_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_ground_tufts_a/fol_ground_tufts_a_normal.png",
+          "bytes": 376306,
+          "sha256": "f45dbe20512983c331ec06fb1d1e57ddee554986d3f4261355bbb5e3815b410c",
+          "role": "normal_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_ground_tufts_a/fol_ground_tufts_a_ao.png",
+          "bytes": 426728,
+          "sha256": "168c7f643c182e16d253ab7d98f58b663445146eaa6e23968f0684000c5eb2f8",
+          "role": "ao_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_ground_tufts_a/fol_ground_tufts_a_roughness.png",
+          "bytes": 270829,
+          "sha256": "ad7aa065fedb4b32ce72226526665bf2422b1d085f8eb5b4b464a860f42f806d",
+          "role": "roughness_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_ground_tufts_a/fol_ground_tufts_a_orm.png",
+          "bytes": 524813,
+          "sha256": "c724a6e50052c05e05ac6a25bac58af937627b47188c7b5fb6ae23c1a9e234fb",
+          "role": "orm_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_ground_tufts_a/bake_report.json",
+          "bytes": 984,
+          "sha256": "1c627d22488fac0c66ed343b08f598c868082dadb62de60703f63b552f52caa0",
+          "role": "bake_report"
+        }
+      ]
+    },
+    {
+      "asset_id": "fol_tree_stranger_a_quality_pass_v01",
+      "source_lock": "quality_pass_v01",
+      "category": "market_finish_derivative",
+      "pipeline": "Blender 5.2 Cycles selected-to-active high/low bake; unlit color, OpenGL +Y normal, ORM R=AO G=roughness B=metallic",
+      "gate_e_status": "scoped_runtime_qa_pass_2026-09-06",
+      "evidence": "docs/reviews/market_finish_2026-09-05/README.md",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a.blend",
+          "bytes": 2496769,
+          "sha256": "47a1698223425e9d4effc0e0ce1a638b03d746f324f8e6ac86cf232f9da792be",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a.glb",
+          "bytes": 1739180,
+          "sha256": "8243fb8c9a3bf6ef9d91b34bf491706da8f29481cfeb1cdc24c1f0674f04893f",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a_base_color.png",
+          "bytes": 140823,
+          "sha256": "5eb7441d4c95923ba75d9832e9327e3296df041f0d567ca7766653e6785ef670",
+          "role": "base_color_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a_normal.png",
+          "bytes": 730085,
+          "sha256": "8cc7d15a22cd5bdf9e69e4f34da02a03f71b2a0a2691bc273b827390b9e125a5",
+          "role": "normal_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a_ao.png",
+          "bytes": 327859,
+          "sha256": "b0ea568f6839d9363bd29556c57de74e53c28e12df009502441cdbbd3df1f233",
+          "role": "ao_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a_roughness.png",
+          "bytes": 480901,
+          "sha256": "fed225b016142e6fb4565de0af303094c99e2f8fe771a3aabaa83472ecb73213",
+          "role": "roughness_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/fol_tree_stranger_a_orm.png",
+          "bytes": 665672,
+          "sha256": "c295367dfbfc9e2de2fafc170739d8fadbf49285e4fab3c7cb3aab9db32dcdd2",
+          "role": "orm_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/fol_tree_stranger_a/bake_report.json",
+          "bytes": 1124,
+          "sha256": "65fbf0fe8d247db6e0e9bfd90852397b199c6e600074a920d922ab07f9300aab",
+          "role": "bake_report"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_market_burger_v01_quality_pass_v01",
+      "source_lock": "quality_pass_v01",
+      "category": "market_finish_derivative",
+      "pipeline": "Blender 5.2 Cycles selected-to-active high/low bake; unlit color, OpenGL +Y normal, ORM R=AO G=roughness B=metallic",
+      "gate_e_status": "scoped_runtime_qa_pass_2026-09-06",
+      "evidence": "docs/reviews/market_finish_2026-09-05/README.md",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01.blend",
+          "bytes": 991845,
+          "sha256": "0cb406da76e092f65df56b95fe58275f7b807a65a3d8868d2a4efa74683c2f05",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01.glb",
+          "bytes": 616020,
+          "sha256": "8d2e3ff5e1f0c4cfe4b2ad1008f76ed8c2fe5b3bd2ed577e201c5d608a29b503",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01_base_color.png",
+          "bytes": 53783,
+          "sha256": "d4aeffdeb02ce4ba6f93defa9c2d18c4165d62e4ca21e3249a2e302c4ebf0f6a",
+          "role": "base_color_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01_normal.png",
+          "bytes": 265946,
+          "sha256": "78e5b827e28d9b7119adce9f46dc31f712571f67a82555b5ff1244997911aebb",
+          "role": "normal_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01_ao.png",
+          "bytes": 159478,
+          "sha256": "9c5ae19797f49ad78ea0ac8ede453459fb1c1ef69d1adfffbcfc5cc117caeeac",
+          "role": "ao_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01_roughness.png",
+          "bytes": 119745,
+          "sha256": "b82ab0f4d5161a1aefb8b92107441a5327a28ab000eadaeb4b277f18fd57df4d",
+          "role": "roughness_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/prp_market_burger_v01_orm.png",
+          "bytes": 233344,
+          "sha256": "26b8c4fd43f60f8c0bcd6b2bdeb75be5d049df92a4ce999bc649d6308e416633",
+          "role": "orm_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_burger_v01/bake_report.json",
+          "bytes": 1015,
+          "sha256": "f680f6c00361f67134deabace585e2fbf9d081ab97c7ec156bf3a4cdebe6025c",
+          "role": "bake_report"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_market_wrap_v01_quality_pass_v01",
+      "source_lock": "quality_pass_v01",
+      "category": "market_finish_derivative",
+      "pipeline": "Blender 5.2 Cycles selected-to-active high/low bake; unlit color, OpenGL +Y normal, ORM R=AO G=roughness B=metallic",
+      "gate_e_status": "scoped_runtime_qa_pass_2026-09-06",
+      "evidence": "docs/reviews/market_finish_2026-09-05/README.md",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01.blend",
+          "bytes": 914455,
+          "sha256": "f6c13e9fac3565e508ff6645e92e4b7c1b932d261a03efd3222c350ab6c1337b",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01.glb",
+          "bytes": 572368,
+          "sha256": "ea80123e50f614d24e8e182ed924ead0924484b29228ce837476e43518aeb76e",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01_base_color.png",
+          "bytes": 56121,
+          "sha256": "31d41329ddf34b5f8d57691fc03431b72bbaf304f17db36d7934d4f3a068fa5e",
+          "role": "base_color_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01_normal.png",
+          "bytes": 243376,
+          "sha256": "c3c11c0c3e341ef238bd7de54c0465a093948108e5e4639b4cbf207b3f8039c4",
+          "role": "normal_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01_ao.png",
+          "bytes": 138738,
+          "sha256": "4261770c4e5078b5fb946f49e89d480079489e07b41578459acb7a5c354464d5",
+          "role": "ao_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01_roughness.png",
+          "bytes": 118262,
+          "sha256": "a10f681e6962078ba65853785dcea0a141ecbd8281ad0099bc3d63545c58c84b",
+          "role": "roughness_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/prp_market_wrap_v01_orm.png",
+          "bytes": 214523,
+          "sha256": "a02ebf35ea86894c68ae28e496a470a7961a57ee19182e4f25ccf13dd96e0338",
+          "role": "orm_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_wrap_v01/bake_report.json",
+          "bytes": 993,
+          "sha256": "7a6278ed31adfa1ae2df334e2badd08ee33dd2d03a7a234da47be4b310fa1f02",
+          "role": "bake_report"
+        }
+      ]
+    },
+    {
+      "asset_id": "prp_market_drink_v01_quality_pass_v01",
+      "source_lock": "quality_pass_v01",
+      "category": "market_finish_derivative",
+      "pipeline": "Blender 5.2 Cycles selected-to-active high/low bake; unlit color, OpenGL +Y normal, ORM R=AO G=roughness B=metallic",
+      "gate_e_status": "scoped_runtime_qa_pass_2026-09-06",
+      "evidence": "docs/reviews/market_finish_2026-09-05/README.md",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01.blend",
+          "bytes": 865514,
+          "sha256": "4a5728524cef3b3fea85af6c4087f0e22e9a6c01fd301eb8f819d912c655af98",
+          "role": "source_blend"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01.glb",
+          "bytes": 537396,
+          "sha256": "ba5949e96fca9f7cc3935ac5c7d5273476026554123b0eda78e4bd24743b5590",
+          "role": "runtime_glb_source"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01_base_color.png",
+          "bytes": 35359,
+          "sha256": "41179f9ee52b306f5e27e73eea95554dc2c78002d0f5022ad227cac8ea965a6b",
+          "role": "base_color_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01_normal.png",
+          "bytes": 226230,
+          "sha256": "8c5456ff918f3d3f80688c105966403574a6639b99c210e4ad7c73d771d1f4ad",
+          "role": "normal_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01_ao.png",
+          "bytes": 142927,
+          "sha256": "b312e17d6c121a87112c0fe5c99df45109cb6703f1d13e008fd20bab82192051",
+          "role": "ao_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01_roughness.png",
+          "bytes": 104539,
+          "sha256": "2d7a08d51ad96d6cc6a18325d8b6df23ba0f4990397ef58f02233598c0a9a831",
+          "role": "roughness_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01_orm.png",
+          "bytes": 210483,
+          "sha256": "fdd99430859712582321cf28c4de7b7f01734a21c54be65ab4e8e6cda2d6806c",
+          "role": "orm_atlas"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/bake_report.json",
+          "bytes": 1004,
+          "sha256": "6ced14ffec31db8b8305f3025fef40872e9c38ef04b55989a60ff8e3d6f66531",
+          "role": "bake_report"
+        }
+      ]
+    },
+    {
+      "asset_id": "market_finish_quality_pass_v01_pipeline",
+      "source_lock": "quality_pass_v01",
+      "category": "shared_source_pipeline",
+      "gate_e_status": "eight_source_archives_and_runtime_exports_verified_2026-09-06",
+      "files": [
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/asset_runner.py",
+          "bytes": 13638,
+          "sha256": "4dec8dcc45cd0e28e574cfce46b3c31e9156f0b2b713a417b786fdbc6717d618",
+          "role": "bake_export_support"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/build_market_finish.py",
+          "bytes": 14311,
+          "sha256": "2cb99f4c70e99d08f91a157e5a4ad6e152e76f6f324a23d60be66086f1642dc0",
+          "role": "model_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/deploy.py",
+          "bytes": 1298,
+          "sha256": "e665014c027345dc09ca58c057ebbfb0bcdd1a14c2f425662c6140d8328e9e48",
+          "role": "deployment_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/pack_source_maps.py",
+          "bytes": 1555,
+          "sha256": "302eadd4b9b2a3ddee3f2ee95088a62ef850fa92fa0bc34f3122214ee89c8746",
+          "role": "source_archive_script"
+        },
+        {
+          "path": "art/source/environment/env_market_corner/quality_pass_v01/README.md",
+          "bytes": 4024,
+          "sha256": "1ff9d53626f467ba5eb9cde89c5e5e0ede0acd02a56ebe4d71dc377de0fab008",
+          "role": "source_readme"
         }
       ]
     }

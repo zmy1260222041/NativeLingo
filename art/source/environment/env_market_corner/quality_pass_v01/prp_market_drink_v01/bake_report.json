@@ -1,0 +1,19 @@
+{
+  "asset": "prp_market_drink_v01",
+  "resolution": 512,
+  "selected_to_active": true,
+  "color_contains_lighting": false,
+  "normal_convention": "OpenGL +Y",
+  "high_subdivision": "SIMPLE 2",
+  "low_vertices": 706,
+  "contacts": [],
+  "maps": {
+    "base_color": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01_base_color.png",
+    "normal": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01_normal.png",
+    "ao": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01_ao.png",
+    "orm": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01_orm.png",
+    "roughness": "art/source/environment/env_market_corner/quality_pass_v01/prp_market_drink_v01/prp_market_drink_v01_roughness.png"
+  },
+  "sha256": "ba5949e96fca9f7cc3935ac5c7d5273476026554123b0eda78e4bd24743b5590",
+  "all_five_maps_packed": true
+}

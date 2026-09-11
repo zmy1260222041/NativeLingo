@@ -18,19 +18,19 @@ class Look:
 	var sun_angle_max := 58.0
 	var sun_curve := 0.09
 	var sky_energy := 1.28
-	var ambient := Color.WHITE
-	var ambient_energy := 0.62
-	var sun_color := Color.WHITE
-	var sun_energy := 1.32
+	var ambient := Color("c3d6e3")
+	var ambient_energy := 0.48
+	var sun_color := Color("fff0d8")
+	var sun_energy := 1.65
 	var sun_altitude := -62.0
 	var sun_azimuth := -26.0
 	var fog := Color("cde3f2")
-	var fog_density := 0.0034
+	var fog_density := 0.0018
 	var fog_sky_affect := 0.08
 	var fog_aerial := 0.06
 	var fog_sun_scatter := 0.05
-	var fog_height := 16.0
-	var fog_height_density := -0.0018
+	var fog_height := 3.0
+	var fog_height_density := -0.008
 
 	func blend(other: Look, t: float) -> Look:
 		var out := Look.new()
@@ -134,10 +134,10 @@ func night_look() -> Look:
 	look.sun_angle_max = 18.0
 	look.sky_energy = 0.42
 	look.ambient = Color("59618b")
-	look.ambient_energy = 0.28
+	look.ambient_energy = 0.48
 	look.sun_color = Color("8aa0c8")
-	look.sun_energy = 0.08
-	look.sun_altitude = -6.0
+	look.sun_energy = 0.24
+	look.sun_altitude = -48.0
 	look.fog = Color("4a4e72")
 	look.fog_density = 0.0050
 	look.fog_sky_affect = 0.18
