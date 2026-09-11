@@ -66,6 +66,10 @@ func _run() -> void:
 	await _frames(8)
 	_expect(panel.visible and panel.entries.size() == 2, "Player can open the nearby counter")
 	_expect(root.get_visible_rect().encloses(panel.get_global_rect()) and panel.get_global_rect().encloses(panel.pack_all.get_global_rect()), "Populated counter and pack-all fit inside viewport")
+	_expect(not (panel.get_theme_stylebox("panel") is StyleBoxFlat), "Item selector uses the project silt-ink cut-corner frame")
+	_expect(panel.row_buttons[0].find_child("CategoryGlyph", true, false) != null, "Item rows pair names with a distinct category glyph")
+	_expect(panel.is_ancestor_of(root.gui_get_focus_owner()), "Opening the selector moves focus inside the item surface")
+	_expect(is_zero_approx(main.get_node("HUD/UIRoot/SafeAreaRoot/HudRoot/InteractionAnchor").modulate.a), "Underlying interaction prompt yields visual priority to the selector")
 	_expect(player.item_use_is_safe(), "Player is grounded in front of the counter")
 	await _screenshot("counter.png")
 	await _world_screenshot("counter-objects.png", Vector3(-0.7, 2.6, 0.8), world.anchors.tavi.global_position)
@@ -76,6 +80,7 @@ func _run() -> void:
 	await _frames()
 	_expect(game.items.records("carried").size() == 1 and game.items.records("counter").is_empty(), "Pack button moves remaining portion without consuming")
 	panel.close_panel()
+	_expect(is_equal_approx(main.get_node("HUD/UIRoot/SafeAreaRoot/HudRoot/InteractionAnchor").modulate.a, 1.0), "Closing the selector restores world interaction feedback")
 	game.settle_service_transaction("vesh", 90, "blanket", "runtime_blanket")
 	player.global_position = Vector3(2, 0.15, -6.7)
 	await _frames(24)
@@ -149,7 +154,10 @@ func _run() -> void:
 	var rect: Rect2 = panel.get_global_rect()
 	var visible_rect: Rect2 = root.get_visible_rect()
 	_expect(visible_rect.encloses(rect), "Item selector stays in viewport at 1152x648 / 150%")
-	_expect(rect.encloses(panel.primary.get_global_rect()), "Primary action remains inside selector")
+	_expect(rect.size.x <= visible_rect.size.x * 0.90 + 1.0 and rect.size.y <= visible_rect.size.y * 0.75 + 1.0, "Item selector respects its 90% × 75% visual budget")
+	for control in [panel.header, panel.capacity, panel.scroll, panel.detail.get_parent(), panel.primary, panel.close_button]:
+		_expect(rect.encloses(control.get_global_rect()), "%s remains inside selector at 150%%" % control.name)
+	_expect(_focus_loop_stays_inside(panel), "Keyboard and D-pad focus form a closed loop inside the selector")
 	await _screenshot("inventory-150.png")
 	main.get_node("HUD")._open_pause()
 	await _frames()
@@ -164,6 +172,24 @@ func _run() -> void:
 	main.queue_free()
 	await process_frame
 	quit(failures)
+
+
+func _focus_loop_stays_inside(item_panel: Control) -> bool:
+	var controls: Array[Button] = []
+	controls.append_array(item_panel.row_buttons)
+	if not item_panel.primary.disabled:
+		controls.append(item_panel.primary)
+	if item_panel.secondary.visible:
+		controls.append(item_panel.secondary)
+	if item_panel.pack_all.visible:
+		controls.append(item_panel.pack_all)
+	controls.append(item_panel.close_button)
+	for control in controls:
+		for path in [control.focus_previous, control.focus_next, control.focus_neighbor_top, control.focus_neighbor_bottom, control.focus_neighbor_left, control.focus_neighbor_right]:
+			var target := control.get_node_or_null(path)
+			if target == null or not item_panel.is_ancestor_of(target):
+				return false
+	return true
 
 func _action(action: String, pressed: bool) -> void:
 	var event := InputEventAction.new()
