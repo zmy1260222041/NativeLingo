@@ -1,0 +1,52 @@
+{
+  "provider": "xai",
+  "region": "us-east-1",
+  "dialogue_ready": true,
+  "voices": [
+    {
+      "npc": "mira",
+      "status": 200,
+      "sample_rate": 24000,
+      "channels": 1,
+      "sample_width": 2,
+      "duration_seconds": 4.07,
+      "ready_ms": 810
+    },
+    {
+      "npc": "tavi",
+      "status": 200,
+      "sample_rate": 24000,
+      "channels": 1,
+      "sample_width": 2,
+      "duration_seconds": 2.31,
+      "ready_ms": 610
+    },
+    {
+      "npc": "ori",
+      "status": 200,
+      "sample_rate": 24000,
+      "channels": 1,
+      "sample_width": 2,
+      "duration_seconds": 2.63,
+      "ready_ms": 692
+    },
+    {
+      "npc": "vesh",
+      "status": 200,
+      "sample_rate": 24000,
+      "channels": 1,
+      "sample_width": 2,
+      "duration_seconds": 3.91,
+      "ready_ms": 768
+    },
+    {
+      "npc": "rowan",
+      "status": 200,
+      "sample_rate": 24000,
+      "channels": 1,
+      "sample_width": 2,
+      "duration_seconds": 3.27,
+      "ready_ms": 668
+    }
+  ]
+}

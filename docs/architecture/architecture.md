@@ -189,3 +189,14 @@ GameState.load_game() -> bool
 - 最终卡通渲染是否需要 Forward+，由角色与市场角落 art test 决定。
 - 本地 ASR 是复用精简版 faster-whisper，还是使用平台原生识别；以离线、延迟和包体测试决定。
 - NPC 日程使用 Resource 资产还是 JSON 内容表；在第二名复杂 NPC 实现前决定。
+
+
+## FR-46：2D 分支的默认呈现层（2026-09-11）
+
+`Novel.tscn → novel_screen.gd → novel_controller.gd → GameState / ItemState / Dialogue / Vocabulary / SpeechAdapter / NpcDialogueService`。
+
+`novel_content.gd` 提供六个地点和五段社会对白的轻量数据。屏幕只生成 Control / TextureRect / RichTextLabel / Container；地点身份替代世界距离。`GameState` 接入 `novel_world.validate_item_context` 复核物品命令；静态 NPC 台词通过只读信号同步呈现。原服务角色卡、具体库存、成交和习得判据继续由原领域模块拥有。
+
+控制器在挂载期间关闭 GameState 的实时时钟，仅行动命令调用既有需求推进。睡眠、关系、交易、消耗仍由领域处理。存档使用独立文件，附加 `presentation_state` 保存地点、历史和 2D 引导完成标记。NpcVoice 根据 `stranger_novel/enabled` 选择非空间音频；原 3D 分支模式仍能选择空间音频。
+
+本分支默认入口与专用导出不再包含玩家控制器、碰撞、环境模型、3D 灯光或 AnimationDebugBridge。完整迁移矩阵见 R-34。

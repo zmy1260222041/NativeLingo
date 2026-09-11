@@ -1,0 +1,10 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+  OK  World exposes an interaction target
+  OK  Leaving range cancels Listening and unfreezes time
+  OK  Leaving range cancels Transcribing and invalidates its target
+  OK  Leaving range cancels recovery and unfreezes time
+  OK  World exposes Tavi for dynamic cancellation
+  OK  Dynamic session starts for range cancellation
+  OK  Leaving Tavi cancels frozen dynamic dialogue and unfreezes time
+PASS: Stranger voice target-cancel suite

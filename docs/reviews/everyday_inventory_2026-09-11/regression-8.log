@@ -1,0 +1,110 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+  OK  Mira no longer hosts scripted service counters
+  OK  Tavi hosts the food counter
+  OK  Ori hosts the convenience store
+  OK  Vesh hosts the parts desk
+  OK  Scenario loads: food_counter
+  OK  Scenario has a role: food_counter
+  OK  Scenario has inventory: food_counter
+  OK  Scenario has an opening: food_counter
+  OK  Scenario loads: convenience_store
+  OK  Scenario has a role: convenience_store
+  OK  Scenario has inventory: convenience_store
+  OK  Scenario has an opening: convenience_store
+  OK  Scenario loads: parts_desk
+  OK  Scenario has a role: parts_desk
+  OK  Scenario has inventory: parts_desk
+  OK  Scenario has an opening: parts_desk
+  OK  Tavi has a service persona
+  OK  tavi occupation is locked
+  OK  tavi mainline duty is locked
+  OK  tavi workplace asset is locked
+  OK  ori occupation is locked
+  OK  ori mainline duty is locked
+  OK  ori workplace asset is locked
+  OK  mira occupation is locked
+  OK  mira mainline duty is locked
+  OK  mira workplace asset is locked
+  OK  vesh occupation is locked
+  OK  vesh mainline duty is locked
+  OK  vesh workplace asset is locked
+  OK  rowan occupation is locked
+  OK  rowan mainline duty is locked
+  OK  rowan workplace asset is locked
+  OK  Only Tavi sells food and only Ori sells water
+  OK  Mira does not sell
+  OK  Tavi stands at the food stall
+  OK  Mira stays on the customer side of the stall
+  OK  Service points open without the Mira greeting
+  OK  Tavi action starts the food counter on day 1
+  OK  Opening a service point does not grant resources
+  OK  Dynamic scenario session starts
+  OK  Dynamic session is isolated from legacy dialogue
+  OK  Session records the service scenario id
+  OK  Opening advances to awaiting_player
+  OK  Empty recognition becomes clarify without fabricated player text
+  OK  Empty recognition does not enter conversation history
+  OK  Dynamic session accepts an open transcript
+  OK  Generation state stays open for the server response
+  OK  Pronunciation travels with the transcript
+  OK  HTTP 422 triggers exactly one replacement-candidate retry
+  OK  Internal retry does not duplicate the player turn
+  OK  Second quality rejection stops retrying and keeps the scenario open
+  OK  Godot accepts the service-point reply contract
+  OK  Godot rejects teacher-talk NPC replies
+  OK  Godot rejects non-finite idiomaticity
+  OK  Validated reply can close after a completed order
+  OK  Completed transaction closes the conversation
+  OK  A new session can start after cancel
+  OK  Runner accepts the food counter
+  OK  Session score averages pronunciation and idiomaticity
+  OK  Completed transaction can grant resources
+  OK  Generous session score grants two food portions
+  OK  Grant does not invent extra quest markers
+  OK  Runner records the completed service conversation
+  OK  First dynamic NPC session starts
+  OK  A second dynamic NPC can replace the first
+  OK  Replacing an NPC cancels the previous session
+  OK  Stream-mode speaking defers audio to the SSE stream
+  OK  Speaking state rejects a second V submission
+  OK  audio_begin switches fallback into a chunk-stall watchdog
+  OK  Audio chunks accumulate while streaming
+  OK  audio_end feeds the reply straight into playback
+  OK  Streamed reply owns the audio player
+  OK  audio_failed falls back to the /game/tts fetch
+  OK  Fallback clears the stream-audio wait
+  OK  A score from another reply cannot settle or start audio
+  OK  A score alone keeps waiting for streamed audio
+  OK  A score without streamed audio falls back to /game/tts
+  OK  Generic-confirmation regression session starts
+  OK  Generic spoken reply reaches the client speaking state
+  OK  Generic score is downgraded before audio completion
+  OK  Generic 'Sure thing' cannot grant food even when score claims complete
+  OK  Unproven completion keeps the conversation open (state=awaiting_follow_up)
+  OK  Explicit-confirmation regression session starts
+  OK  Explicit item handoff reaches the client speaking state
+  OK  Client recognizes the explicit named handoff sentence
+  OK  Explicit score retains auditable settlement evidence
+  OK  Explicit confirmation still waits for the NPC audio to finish
+  OK  Explicit named handoff grants food only after audio finishes
+  OK  Proven handoff closes the completed conversation
+  OK  Dialogue/TTS outage enables the survival gesture fallback
+  OK  Prewarm targets the local service boundary
+  OK  Prewarm skips NPCs without a service scenario
+  OK  Prewarm fires for service-point NPCs
+  OK  Subtitle contract session starts
+  OK  Precondition: espresso practised to spoken
+  OK  Turn submission accepted
+  OK  G-B5: player words are mirrored the moment the turn starts
+  OK  G-A1: the tier enum travels in game_context and nowhere else
+  OK  G-B2/G-B3: real scored turns carry the validated marks
+  OK  G-C1: conversational production proves used for a practised word
+  OK  G-B2: stub turns never carry marks
+  OK  Second turn accepted
+  OK  G-A2: professional tier travels as the same enum
+  OK  Third turn accepted
+  OK  Invalid tiers are dropped before leaving the device
+PASS: Godot NPC dialogue asset suite
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2663)

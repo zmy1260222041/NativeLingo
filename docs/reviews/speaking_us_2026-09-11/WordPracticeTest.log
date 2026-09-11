@@ -1,0 +1,9 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+  OK  Local word practice targets the optional localhost endpoint
+  OK  Cloud word practice pins POST /game/score_word
+  OK  Unavailable speech never starts a word recording
+  OK  Word practice failure reports the safe localizable reason
+  OK  Unavailable speech never starts a spoken-choice recording
+  OK  Spoken-choice failure reports the same safe localizable reason
+PASS: Stranger word practice adapter suite

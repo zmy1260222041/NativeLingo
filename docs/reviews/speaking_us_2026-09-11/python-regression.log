@@ -1,0 +1,161 @@
+.......[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_adaptive ms=0 speak=2.1 timeout=5.0 samples=3
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+.[speech] heard channel=dialogue text='yeah' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=clarify_request complete=0 evidence=no_specific_requested_item text='Sorry, could you say that again?'
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-e596fcbe55ab4ad09175
+....[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_adaptive ms=0 speak=2.1 timeout=5.0 samples=3
+.[speech] heard channel=dialogue text='Can I get a bottle of water?' npc=ori scenario=convenience_store
+[speech] stage=dialogue ms=0 source=stub npc=ori speech_act=confirm_order complete=1 requested=bottle of water confirmed=bottle of water evidence=confirmed text="You got it. I'll get you the bottle of water now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=ori reply=reply-e05d0fa226c74cdd9bc6
+[speech] heard channel=dialogue text='Can I get you to repair the heater?' npc=ori scenario=convenience_store
+[speech] stage=dialogue ms=0 source=stub npc=ori speech_act=clarify_request complete=0 evidence=no_specific_requested_item text="I don't have that here."
+[speech] stage=dialogue_ready ms=0 source=stub npc=ori reply=reply-f3b62ae09a56406fbffe
+...[speech] stage=gemini_adaptive ms=0 speak=2.5 timeout=4.5 samples=1
+....[speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='You got it.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='You got it.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=acknowledge_need complete=0 requested=burger evidence=spoken_item_missing_or_different text='You got it.'
+[speech] stage=dialogue_ready ms=0 source=gemini npc=tavi reply=reply-f3e19befdff6489a9b95
+.[speech] heard channel=dialogue text='Can I get a burger to go?' npc=tavi scenario=food_counter
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=close_transaction complete=1 requested=burger confirmed=burger evidence=confirmed text='Sure thing, one burger to go.'
+[speech] stage=dialogue_ready ms=0 source=gemini npc=tavi reply=reply-46ff7faeb7c54a778dac
+.[speech] heard channel=dialogue text='Can I get a burger to go?' npc=tavi scenario=food_counter
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=close_transaction complete=1 requested=burger confirmed=burger evidence=confirmed text='Sure thing, one burger to go.'
+[speech] stage=dialogue_ready ms=0 source=gemini npc=tavi reply=reply-e3dd1f3870de48fbb203
+.[speech] heard channel=dialogue text='Could I have a coffee to go?' npc=tavi scenario=food_counter
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one coffee to go.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one coffee to go.Sure thing, one coffee to go.'
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one coffee to go.'
+[speech] stage=gemini_hedge ms=0 candidates=2 winner=0
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one coffee to go.Sure thing, one coffee to go.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=confirm_order complete=1 requested=coffee confirmed=coffee evidence=confirmed text='Sure thing, one coffee to go.Sure thing, one coffee to go.'
+.[speech] stage=gemini_hedge ms=0 candidates=2 winner=1
+.[speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=minimal text='You got it.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=minimal text='You got it.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=acknowledge_need complete=0 requested=burger evidence=spoken_item_missing_or_different text='You got it.'
+[speech] stage=dialogue_ready ms=0 source=gemini npc=tavi reply=reply-b1b3e17eb44048189ad5
+....[speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=grok ms=0 source=grok reason=ok model=grok-4.3 reasoning=none text="You got it. I'll get you the burger now."
+[speech] stage=dialogue ms=0 source=grok model=grok-4.3 npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=grok npc=tavi reply=reply-b47e184d10dc4b548bda
+.[speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=grok ms=0 source=none reason=timeout model=grok-4.3 reasoning=none timeout_s=1.0
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-efbd785b96f8495dba51
+..[speech] heard channel=dialogue text='Can I get seafood, please?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=clarify_request complete=0 evidence=no_specific_requested_item text="I don't have that here."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-2b9f2fa8a70840a1acec
+.[speech] heard channel=dialogue text='Tell me how to repair a spaceship.' npc=tavi scenario=food_counter
+.[speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+.[speech] heard channel=dialogue text='Burger.' npc=tavi scenario=food_counter
+[speech] stage=gemini_hedge ms=59 candidates=2 winner=none
+[speech] stage=gemini_adaptive ms=0 speak=0.05 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Here you go.'
+[speech] stage=gemini ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Here you go.'
+[speech] stage=gemini_first ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Here you go.'
+[speech] stage=gemini ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Here you go.'
+[speech] stage=dialogue ms=130 source=stub model=gemini-3.1-flash-lite npc=tavi speech_act=offer_choice complete=0 requested=burger evidence=spoken_item_missing_or_different text='Sure. For here or to go?'
+....[speech] heard channel=dialogue text='Can I get a bottle of water?' npc=ori scenario=convenience_store
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=ori speech_act=acknowledge_need complete=0 requested=bottle of water evidence=spoken_item_missing_or_different text='Sure thing.'
+[speech] stage=dialogue_ready ms=0 source=gemini npc=ori reply=reply-a72f343b287641229f1b
+.[speech] stage=gemini_model_prewarm ms=0 trigger=test model=gemini-3.1-flash-lite
+[speech] stage=gemini_model_prewarm ms=0 trigger=test model=gemini-3.1-flash-lite cached=1
+........[speech] heard channel=dialogue text='Can I get a burger?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-ef7115761d644fe88ed8
+[speech] heard channel=dialogue text='Can I get a burger?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text='Sure thing. The burger is coming right up.'
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-d8849d18d2b54b24b14f
+.[speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-4403513e14bc4158b8e0
+[speech] heard channel=dialogue text='Could I have a coffee to go?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=coffee confirmed=coffee evidence=confirmed text="You got it. I'll get you the coffee now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-9cebed5afd294f8bab2d
+.[speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=gemini_hedge ms=60 candidates=2 winner=none
+[speech] stage=gemini_adaptive ms=0 speak=0.05 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=gemini_first ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=gemini ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=gemini ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=dialogue ms=130 source=stub model=gemini-3.1-flash-lite npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+.[speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=first_audio ms=0 source=stub npc=tavi reply=reply-e7e52813be5645c0a084
+[speech] stage=tts_stream ms=0 npc=tavi reply=reply-e7e52813be5645c0a084 reason=RuntimeError
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+.[speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=first_audio ms=0 source=stub npc=tavi reply=reply-e48db838eccc4124b371
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+.[speech] heard channel=dialogue text='Burger.' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=offer_choice complete=0 requested=burger evidence=spoken_item_missing_or_different text='Sure. For here or to go?'
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-d042cb34e3954730a1ff
+[speech] heard channel=dialogue text='To go, please.' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-f9f30a5f421046daa3ef
+.[speech] heard channel=dialogue text='Burger.' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=offer_choice complete=0 requested=burger evidence=spoken_item_missing_or_different text='Sure. For here or to go?'
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-fa71850f03bc40959749
+.[speech] heard channel=dialogue text='Burger.' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=offer_choice complete=0 requested=burger evidence=spoken_item_missing_or_different text='Sure. For here or to go?'
+...[speech] stage=gemini_prewarm ms=0 trigger=test route=direct
+.[speech] 127.0.0.1 "POST /game/dialogue HTTP/1.1" 400 -
+[speech] heard channel=dialogue text='Explain orbital mechanics.' npc=tavi scenario=food_counter
+[speech] 127.0.0.1 "POST /game/dialogue HTTP/1.1" 422 -
+.[speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-d5d9731aafa6473fb7bc
+[speech] 127.0.0.1 "POST /game/dialogue HTTP/1.1" 200 -
+.[speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] 127.0.0.1 "POST /game/dialogue HTTP/1.1" 200 -
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+.[speech] 127.0.0.1 "POST /game/prewarm HTTP/1.1" 200 -
+[speech] 127.0.0.1 "POST /game/prewarm HTTP/1.1" 200 -
+.[speech] tts unknown reply tavi/reply-forged
+[speech] 127.0.0.1 "POST /game/tts HTTP/1.1" 404 -
+.[speech] stage=gemini_prewarm ms=0 trigger=test route=proxy
+.[speech] stage=gemini_prewarm ms=0 trigger=test route=direct
+.[speech] stage=gemini_prewarm ms=0 trigger=test route=undecided reason=region_unsupported
+..[speech] stage=gemini_prewarm ms=0 trigger=test route=direct
+.[speech] stage=gemini_prewarm ms=0 trigger=test route=direct reason=OSError
+.[speech] stage=gemini_prewarm ms=0 trigger=test route=proxy
+..........................[speech] stage=gemini_prewarm ms=1 trigger=test route=proxy
+...[speech] heard channel=dialogue text='a burger please' npc=tavi scenario=food_counter
+[speech] heard channel=dialogue text='a burger please' npc=tavi scenario=food_counter
+.[speech] stage=gemini_prewarm ms=0 trigger=test route=proxy reason=region_unsupported
+.[speech] stage=tts ms=0 npc=mira line=word_practice_model cache=0 bytes=100
+......../Users/a86138/Developer/NativeLingo/.venv/lib/python3.13/site-packages/dashscope/__init__.py:59: DeprecationWarning: The Assistants API (dashscope.assistants) is deprecated and will be removed in a future release. Please migrate to the Responses API. See https://help.aliyun.com/zh/model-studio/synchronous-call-api-reference for migration details.
+  from dashscope.assistants import Assistant, AssistantList, Assistants
+.[speech] stage=tts_stream ms=0 npc=tavi reply=reply-c2b4c459b2f643878216 bytes=24620
+..[speech] heard channel=score_word_choice text='food water' options=food,water
+..[speech] heard channel=score_word_choice text='I want food' options=food,water,parts
+.[speech] stage=tts ms=0 npc=mira line=greeting cache=0 bytes=44
+[speech] stage=tts ms=0 npc=mira line=greeting cache=1 bytes=44
+[speech] stage=tts ms=0 npc=mira line=greeting cache=0 bytes=44
+..[speech] stage=tts ms=0 npc=tavi line=clarify cache=0 bytes=44
+...[speech] heard-log transcribe failed: FileNotFoundError
+[speech] heard channel=score_word text='' lexical_id=morning
+.[speech] heard channel=score_word text='morning' lexical_id=morning
+..[speech] stage=tts_first ms=0 provider=xai region=us-east-1 voice=eve
+..[speech] stage=tts_first ms=0 provider=xai region=us-east-1 voice=eve
+.
+----------------------------------------------------------------------
+Ran 126 tests in 1.915s
+
+OK

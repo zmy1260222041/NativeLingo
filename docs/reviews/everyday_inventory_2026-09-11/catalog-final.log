@@ -1,0 +1,10 @@
+[speech] stage=gemini_prewarm ms=1 trigger=test route=direct
+......[speech] heard channel=dialogue text='a burger please' npc=tavi scenario=food_counter
+[speech] heard channel=dialogue text='a burger please' npc=tavi scenario=food_counter
+.[speech] stage=gemini_prewarm ms=0 trigger=test route=direct reason=region_unsupported
+.[speech] stage=tts ms=0 npc=mira line=word_practice_model cache=0 bytes=100
+.
+----------------------------------------------------------------------
+Ran 9 tests in 0.007s
+
+OK

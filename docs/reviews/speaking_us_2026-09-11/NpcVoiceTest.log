@@ -1,0 +1,21 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+  OK  Novel NPC lines use non-positional audio
+  OK  Novel voice retains comfortable playback volume
+  OK  Local mode targets the optional localhost TTS boundary
+  OK  Unavailable adapter never starts an HTTP request
+  OK  Unavailable adapter reports the safe localizable reason
+  OK  Unavailable adapter rejects dynamic replies without an HTTP request
+  OK  Dynamic reply failure uses the same safe voice reason
+  OK  Cloud mode pins the server /game/tts contract
+  OK  Unactivated cloud voice is blocked before any network request
+  OK  Cloud TTS without token falls back without penalty
+  OK  Streamed PCM reply plays without the availability gate
+  OK  Fed reply owns the audio player
+  OK  Fed reply emits the standard line_audio_ready signal
+  OK  Empty PCM is rejected
+  OK  Non-mono PCM is rejected
+  OK  Rejected feeds report the same safe voice reason
+PASS: Stranger NPC voice adapter suite
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2663)

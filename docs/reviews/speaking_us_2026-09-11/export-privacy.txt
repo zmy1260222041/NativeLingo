@@ -1,0 +1,2 @@
+Bundle: com.nativelingo.stranger.novel
+NSMicrophoneUsageDescription: 用于录制你主动说出的英语，与角色交谈并练习口语。

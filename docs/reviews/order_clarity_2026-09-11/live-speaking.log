@@ -1,0 +1,40 @@
+[speech] stage=tts_first ms=913 provider=xai region=us-east-1 voice=eve
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5
+
+OK: US TTS model really plays and finishes in the 2D AudioStreamPlayer
+OK: Listening alone does not become spoken
+OK: Synthetic word WAV available for scoring fixture
+OK: The 2D record button starts an audio capture session
+OK: Actual reference-DTW word scoring
+LIVE_WORD {"band":"generous","pronunciation":79.4,"pronunciation_source":"reference_dtw","score":79.4,"text":"water"}
+OK: Actual scoring advances 2D practice heard to spoken
+OK: Word practice grants no survival supplies
+OK: The 2D record button starts an audio capture session
+OK: Actual WAV transcription reaches the 2D controller
+LIVE_TRANSCRIPT may i have some water please?
+OK: Resources unchanged before reply playback finishes
+OK: Real dialogue provider is Gemini
+OK: Real reply finishes and closes the named water handoff
+OK: Spoken handoff yields real counter supplies
+OK: Practiced word becomes used through a real Gemini-scored request
+OK: Warmed actual playback starts within 3 seconds
+ONLINE_RESPONSE: Sure thing, I'll get that bottle of water for you.; playback_ready_ms=1349
+OK: The spoken reward can be packed
+OK: The spoken reward is usable for survival
+OK: Concrete-order fixture was supplied
+OK: The 2D record button starts an audio capture session
+OK: Resources unchanged before reply playback finishes
+OK: Generic request receives a real audible response
+OK: Generic request keeps a genuine multi-turn conversation open
+OK: Generic food request grants nothing
+GENERIC_RESPONSE: Sure, I can help you with that.
+OK: The 2D record button starts an audio capture session
+OK: Resources unchanged before reply playback finishes
+OK: Concrete second spoken turn completes the conversation
+OK: Second turn's named handoff yields supplies after playback
+OK: Second turn opens within the 3-second target
+CONCRETE_RESPONSE: Sure thing, I'll get that sandwich for you right now.; playback_ready_ms=1383
+OK: The live handoff exposes a visible pickup action
+OK: The actual counter action eats the spoken order and restores hunger
+LIVE_NOVEL: local speech checks=passed; online=full speaking loop passed

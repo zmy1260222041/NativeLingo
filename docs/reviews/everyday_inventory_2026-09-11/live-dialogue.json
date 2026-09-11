@@ -1,0 +1,209 @@
+{
+  "input": "typed fixture transcripts; no microphone or pronunciation assessment",
+  "turns": [
+    {
+      "npc": "tavi",
+      "player": "Long morning. I could use something to eat.",
+      "reply": {
+        "reply_id": "reply-52fe4ba08c51429f8787",
+        "npc_id": "tavi",
+        "text": "I hear you, it's been a long one. Would you like a burger or a sandwich?",
+        "speech_act": "offer_choice",
+        "emotion": "neutral",
+        "next_state": "awaiting_player",
+        "player_turn": {
+          "idiomaticity": 90.0,
+          "errors": [],
+          "progress": "ordering",
+          "transaction_complete": false,
+          "off_inventory": false,
+          "spoken_delivery_confirmed": false,
+          "requested_item": "",
+          "confirmed_item": "",
+          "transaction_evidence_reason": "no_specific_requested_item"
+        },
+        "session": {
+          "turn_count": 1,
+          "running_score": null
+        },
+        "gate": {
+          "accepted": true,
+          "violations": []
+        },
+        "source": "gemini",
+        "model": "gemini-3.1-flash-lite"
+      }
+    },
+    {
+      "npc": "tavi",
+      "player": "Can I get a sandwich to go, please?",
+      "reply": {
+        "reply_id": "reply-56ad44f7093f40a4b69e",
+        "npc_id": "tavi",
+        "text": "Sure thing, I'll get that sandwich for you to go.",
+        "speech_act": "confirm_order",
+        "emotion": "neutral",
+        "next_state": "closed",
+        "player_turn": {
+          "idiomaticity": 100.0,
+          "errors": [],
+          "progress": "complete",
+          "transaction_complete": true,
+          "off_inventory": false,
+          "spoken_delivery_confirmed": true,
+          "requested_item": "sandwich",
+          "confirmed_item": "sandwich",
+          "transaction_evidence_reason": "confirmed"
+        },
+        "session": {
+          "turn_count": 2,
+          "running_score": null
+        },
+        "gate": {
+          "accepted": true,
+          "violations": []
+        },
+        "source": "gemini",
+        "model": "gemini-3.1-flash-lite"
+      }
+    },
+    {
+      "npc": "ori",
+      "player": "Do you carry batteries?",
+      "reply": {
+        "reply_id": "reply-783c8781cf1a4ed39817",
+        "npc_id": "ori",
+        "text": "Yeah.",
+        "speech_act": "answer_service_question",
+        "emotion": "neutral",
+        "next_state": "awaiting_player",
+        "player_turn": {
+          "idiomaticity": 100.0,
+          "errors": [],
+          "progress": "in_progress",
+          "transaction_complete": false,
+          "off_inventory": false,
+          "spoken_delivery_confirmed": false,
+          "requested_item": "batteries",
+          "confirmed_item": "",
+          "transaction_evidence_reason": "spoken_item_missing_or_different"
+        },
+        "session": {
+          "turn_count": 1,
+          "running_score": null
+        },
+        "gate": {
+          "accepted": true,
+          "violations": []
+        },
+        "source": "gemini",
+        "model": "gemini-3.1-flash-lite"
+      }
+    },
+    {
+      "npc": "ori",
+      "player": "Yes, I'll take some batteries, please.",
+      "reply": {
+        "reply_id": "reply-0ea8d00acec0436faafc",
+        "npc_id": "ori",
+        "text": "Sure thing, I'll get those batteries for you.",
+        "speech_act": "confirm_order",
+        "emotion": "neutral",
+        "next_state": "closed",
+        "player_turn": {
+          "idiomaticity": 100.0,
+          "errors": [],
+          "progress": "complete",
+          "transaction_complete": true,
+          "off_inventory": false,
+          "spoken_delivery_confirmed": true,
+          "requested_item": "batteries",
+          "confirmed_item": "batteries",
+          "transaction_evidence_reason": "confirmed"
+        },
+        "session": {
+          "turn_count": 2,
+          "running_score": null
+        },
+        "gate": {
+          "accepted": true,
+          "violations": []
+        },
+        "source": "gemini",
+        "model": "gemini-3.1-flash-lite"
+      }
+    },
+    {
+      "npc": "vesh",
+      "player": "It's been cold at home lately.",
+      "reply": {
+        "reply_id": "reply-fd7679ac13554941ac54",
+        "npc_id": "vesh",
+        "text": "That sounds rough, I'm sorry to hear that. Do you need an extra blanket or a heater part?",
+        "speech_act": "offer_choice",
+        "emotion": "sympathetic",
+        "next_state": "awaiting_player",
+        "player_turn": {
+          "idiomaticity": 90.0,
+          "errors": [],
+          "progress": "in_progress",
+          "transaction_complete": false,
+          "off_inventory": false,
+          "spoken_delivery_confirmed": false,
+          "requested_item": "",
+          "confirmed_item": "",
+          "transaction_evidence_reason": "no_specific_requested_item"
+        },
+        "session": {
+          "turn_count": 1,
+          "running_score": null
+        },
+        "gate": {
+          "accepted": true,
+          "violations": []
+        },
+        "source": "gemini",
+        "model": "gemini-3.1-flash-lite"
+      }
+    },
+    {
+      "npc": "vesh",
+      "player": "Could I get an extra blanket, please?",
+      "reply": {
+        "reply_id": "reply-7799e07aa83343f292a3",
+        "npc_id": "vesh",
+        "text": "Sure thing, I'll get that extra blanket for you right now.",
+        "speech_act": "confirm_order",
+        "emotion": "neutral",
+        "next_state": "closed",
+        "player_turn": {
+          "idiomaticity": 100.0,
+          "errors": [],
+          "progress": "item_requested",
+          "transaction_complete": true,
+          "off_inventory": false,
+          "spoken_delivery_confirmed": true,
+          "requested_item": "extra blanket",
+          "confirmed_item": "extra blanket",
+          "transaction_evidence_reason": "confirmed"
+        },
+        "session": {
+          "turn_count": 2,
+          "running_score": null
+        },
+        "gate": {
+          "accepted": true,
+          "violations": []
+        },
+        "source": "gemini",
+        "model": "gemini-3.1-flash-lite"
+      }
+    }
+  ],
+  "tts": {
+    "provider": "xai",
+    "line": "novel_takeaway_02",
+    "text": "Sure. For here or to go?",
+    "seconds": 2.154333333333333
+  }
+}

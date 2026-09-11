@@ -1,7 +1,11 @@
 # NativeLingo 产品需求文档(PRD)
 
-> 版本:v0.10.9(2026-08-22)
+> 版本:v0.10.11(2026-09-06)
 > 状态:已生效。此后所有技术迭代必须能追溯到本文档的需求条目(见 §6 追踪矩阵);新需求先落本文档,再排技术方案。
+>
+> **v0.10.11 变更(2026-09-06)**:新增 **FR-45** —— 说话人字幕卡与显著性标记。服务点对话中玩家转写就绪即在底部居中显示(中性色);工作平面 `player_turn.errors`(≤2 个转写精确子串、仅 idiomaticity<85)到达后对应片段改**红+下划线**;系统零纠错文本、零解释、零分数(用户拍板:直接指出错误有损学习积极情绪,取 noticing-by-salience 路线;R-31 #4/#6 已追记)。同批:对话请求新增 `game_context.player_level`(NFR-8 白名单 +1 行)按词汇档位约束 NPC 用词(承接 FR-38 休眠条款);服务对话转写回灌 `record_words_used_from_text`(FR-24 断链修复,词汇阶梯不变)。FR-32 v0.10.6 收紧条款的「玩家转写」范围相应修订。符合性见 **R-32**。
+>
+> **v0.10.10 变更(2026-08-23)**:NFR-9 / FR-41 在线柜台实时面默认改为 `gemini-3.1-flash-lite`(`thinking_level=MINIMAL`,`streamGenerateContent`)并在按下 V 时并行预热 Gemini HTTPS session、限频流式模型探针与 TTS websocket。在线验收不得用 stub 充数，必须同时看到 `speaking.source=gemini`、`score.source=gemini` 与实际首音频 ≤3 秒；stub 只保留为断网/上游故障与离线测试回退。GPT-Live 式首句承诺、实时/工作平面拆分、晚到评分不反转已说事务、连接池与内联音频均不变。最终固定 10 轮不重试验收 10/10 走 Gemini，首音频中位数 1.286 秒、最慢 1.589 秒；真 Godot 桌面 SSE 首音频 1.949 秒。见 **R-27 追记 / R-28**。
 >
 > **v0.10.9 变更(2026-08-22)**:NFR-9 / FR-41 柜台开口改为 **实时平面与工作平面拆开**。Gemini 仍是云端 `gemini-3.7-flash`(`thinking_level=LOW`,`streamGenerateContent`),不在玩家机器上跑模型、不把音频发给对话模型。NPC **首句就绪即开口**;地道分 / 成交 JSON 可晚到。无首句则 **T_speak≈1s** 内 stub,禁止再空等满 2 秒。符合性见 **R-27**。
 >
@@ -115,15 +119,15 @@
 | FR-29 | P0 | Stranger 云评分(Web/桌面统一远程) | 借鉴 `feat/android/cloud-speaking` / `ios` 分支的云评分架构,把 FR-28 的评分执行地从用户本机迁到**自托管评分服务器**:Godot 客户端(Web 与桌面)把单条英语录音上传 `POST /game/evaluate`(原始 WAV + `X-Stranger-Target` 意图头 + `Authorization: Bearer <设备 token>`),服务器端执行 Whisper 短句转写、确定性语义槽位 `delivery` 判定、以随包部署的意图参考 WAV 做 ORT SSL+DTW `pronunciation` 评分,并返回与本地服务完全相同的 FR-28 判定 JSON;客户端运行时**不再加载任何评分模型**。鉴权沿用云服务器既有防线:**客户端不内置任何凭据**,测试用户输入运营者签发的一次性激活码,`POST /register` 换每设备 token(哈希存储、可吊销、可审计),token 仅存本机;桌面端用内置私有 CA 做 TLS 固定(与 Android/iOS 同源),Web 端经既有 beta 域名 nginx 反代 + Let's Encrypt,不跨域、不暴露云服务器地址。**任何网络失败/超时/5xx/未激活**都静默降级为 FR-28 的 `gesture_fallback` 保底,三日主线完整可玩。本地 `game/speech_service` 保留为开发模式(项目设置可切回),不作为发布依赖。验收:桌面与 Web 构建在未激活时零出站;激活后仅 `/register` 与 `/game/evaluate` 两个域名出站(抓包验证);激活码/TLS CA 均不在 PCK 内;断网时 `gesture_fallback` 可完整通关;云端与本地判定 JSON 对同一 WAV/意图的 `delivery`/`band` 逐位一致,`pronunciation` 差异在 ORT 校验容差内(R-18 G3) | ✅ **代码侧已实现(2026-08-15),待部署闭环** —— 云端 `game_judge.py` + `/game/evaluate` + 随包参考音 + 13 个 unittest 全绿;Godot 远程模式/激活码/token/私有 CA/手势兜底 + 三个 Cloud Voice 导出预设 + `CloudVoiceTest` 16 断言全绿;`delivery`/`band` 与本地服务 11 条语料逐位一致。剩余外部操作:服务器 rsync/重启、CA 注入导出、上线抓包零出站验证、ORT/torch 同语料分数复测。详见 R-18 |
 | FR-30 | P0 | Stranger 新手引导与生存保护 | 首次进入播放可跳过的情境化引导:移动/镜头/冲刺/跳跃/互动、一次无代价英语求食或手势兜底、回庇护所结束第一天。**引导期间三大需求受保护不会清零**(引导正常完成或跳过即解除保护);任何一步都可跳过,跳过不改变后续任务判定。验收:headless 断言引导各步推进后目标与 `GameState` 状态一致;引导全程逐帧/逐交互断言 food/warmth/energy 不触 0;跳过引导后仍可完成三日主线 | ✅ **Phase 2 代码级已实现(2026-08-16)** —— `GameState` 七步 onboarding 状态机 + 需求/时钟冻结 + 可跳过,HUD 非模态引导带;`test_onboarding` 全绿;三日主线回归通过;**2026-08-17 修复:引导期不再触发引导词练习**(此前走近 NPC 即开启的练习会劫持 V 键,speak 步的语音请求永远发不出、引导无法完成;`begin_onboarding` 强制结束遗留会话,`NpcAttentionTest` 增断言) |
 | FR-31 | P0 | Stranger 探索式目标与 NPC 主动招呼 | 目标卡不再常驻:只在目标变化时展开 3.5 秒,随后收拢为一行或无目标时只显示探索意图;玩家不依赖常驻任务文字,通过 NPC 招呼、世界线索与目标记忆推进。NPC 在玩家首次进入聚落、靠近或当日关键节点主动招呼,措辞像对待孩子一样友好,招呼不阻塞移动、不强制进入对话。验收:headless 断言目标卡在变化事件后自动收拢;NPC 主动招呼触发与场景测试一致;三日主线仍可完成 | ✅ **Phase 2 代码级已实现(2026-08-16)** —— `hud.gd` 目标卡 3.5 秒自动收拢;`interactable.gd` 五名 NPC 在社交半径内一次性友好招呼且只发消息、不变状态;`NpcAttentionTest` 全绿 |
-| FR-32 | P0 | Stranger NPC 语音台词(Qwen 官方 TTS) | 五名 NPC 的台词播放服务器合成的英语语音,模型固定为 Qwen 官方 `qwen-audio-3.0-tts-plus`;**Qwen API key 只存服务器**,Godot 客户端与 PCK 不含任何 TTS 凭据。客户端只请求 `POST /game/tts` 并发送 `npc_id + line_id + voice/format`(不发送自由文本);服务器按自有台词目录解析文本后合成并缓存;本地开发模式保留 `game/speech_service` 同名端点。TTS 失败/离线不阻塞任何互动或主线:未激活/无语音构建降为文字兜底,语音已可用时的中途网络失败保持静默。验收:抓包级断言 TTS 请求只含台词 ID 与语音参数;PCK 无 key;TTS 失败时三日主线完整可玩;**语音播放,不显示字幕——2026-08-17 用户拍板:NPC 对话只有语音,文字仅为无语音构建(未激活云语音的 Web/Desktop Beta)的兜底**。**2026-08-20 收紧**:语音可用时 HUD 只显示正在沟通的 NPC **名字**,不得展示 NPC 台词、玩家转写或分数行;词练习不得在玩家与 NPC 对话阶段触发 | ✅ **2026-08-17 修复并扩全** —— 合成改 DashScope WebSocket SDK(专属部署无 OpenAI 兼容 `/audio/speech`,旧路径 404;音色须用系统音色 `longanlingxin`/`longanlufeng`),本地与云端台词目录同源扩到 42 条,`NpcVoice` 串行播放队列;云端部署实测全通(见 R-18 部署进展);此前 Phase 3 问候线代码级已实现(2026-08-16) |
+| FR-32 | P0 | Stranger NPC 语音台词(Qwen 官方 TTS) | 五名 NPC 的台词播放服务器合成的英语语音,模型固定为 Qwen 官方 `qwen-audio-3.0-tts-plus`;**Qwen API key 只存服务器**,Godot 客户端与 PCK 不含任何 TTS 凭据。客户端只请求 `POST /game/tts` 并发送 `npc_id + line_id + voice/format`(不发送自由文本);服务器按自有台词目录解析文本后合成并缓存;本地开发模式保留 `game/speech_service` 同名端点。TTS 失败/离线不阻塞任何互动或主线:未激活/无语音构建降为文字兜底,语音已可用时的中途网络失败保持静默。验收:抓包级断言 TTS 请求只含台词 ID 与语音参数;PCK 无 key;TTS 失败时三日主线完整可玩;**语音播放,不显示字幕——2026-08-17 用户拍板:NPC 对话只有语音,文字仅为无语音构建(未激活云语音的 Web/Desktop Beta)的兜底**。**2026-08-20 收紧**:语音可用时 HUD 只显示正在沟通的 NPC **名字**,不得展示 NPC 台词、玩家转写或分数行;词练习不得在玩家与 NPC 对话阶段触发。**2026-09-06 修订(FR-45)**:「玩家转写」一项放开为玩家本人转写以说话人字幕卡呈现(红色+下划线标记问题片段);NPC 台词与评分仍不显示 | ✅ **2026-08-17 修复并扩全** —— 合成改 DashScope WebSocket SDK(专属部署无 OpenAI 兼容 `/audio/speech`,旧路径 404;音色须用系统音色 `longanlingxin`/`longanlufeng`),本地与云端台词目录同源扩到 42 条,`NpcVoice` 串行播放队列;云端部署实测全通(见 R-18 部署进展);此前 Phase 3 问候线代码级已实现(2026-08-16) |
 | FR-33 | P0 | Stranger 聚落社会模拟与家庭单元 | 即使玩家不主动交流,NPC 之间也周期发生「表达需求」的社会对话(例如家庭内部要食物/保暖、摊位间借物/还物),至少建立最小家庭/搭档关系;玩家靠近后可观察地道表达。社会对话使用与当前层级匹配的简单慢速英语,并携带可观察新词;不打断主线、不产生任务失败。验收:场景测试断言至少 2 组 NPC-NPC 社会对话循环;玩家观察后相关新词进入词汇候选;主线仍可完成 | ✅ **Phase 5 代码级已实现(2026-08-16)** —— `SocialSimulator` 五组静态社会剧本、三组家庭/搭档关系、16–24 秒循环播放;`SocialDialogueTest` 全绿(新词进入词汇候选随 Phase 6 三态落地);**2026-08-17:对话前 NPC 走到彼此附近(~1.4m)交谈、结束后走回原位**(聚集→交谈→散开状态机 + 程序化身体漫步步态;玩家正在交互的 NPC 跳过;引导期不聚集),社交台词纯语音、文字仅无语音构建兜底 |
 | FR-34 | P0 | Stranger 社会对话覆盖度与需求层级扩张 | NPC 社会对话必须覆盖玩家全部生存必需表达(首三日:问候、要食物、要合金、要水、提供帮助),使玩家只靠观察就能见到所有必要表达;对话内容范围大于玩家当前基础需求范围,并随需求金字塔层级(生理→安全→归属→尊重)扩张,玩家当前层级决定 NPC 对话内容池。验收:自动覆盖度工具断言必需表达 100% 至少出现一次;各层级对话池在词表上可执行且随层级单调扩张 | 🟡 **Phase 5 代码级已实现首三日覆盖(2026-08-16)** —— `required_expressions_covered()` 自动断言五个必需表达 100% 可观察;需求金字塔多层对话池随 Phase 6 与词汇层级联动扩张 |
 | FR-35 | P0 | Stranger 词汇库核心资产与持久化 | 词汇库成为核心玩法资产:CEFR-J Wordlist v1.6 + Octanove C1/C2 + NGSL 1.2 以**原样资产**随 Godot 包分发,许可署名一并随包(CEFR-J 与 CC BY-SA 两套许可不混同);首次进入按 tier 初始化,默认 toddler(A1+A2);索引键为 `(headword, pos)`;每词记录来源(`initial/observed_npc/...`)与三态状态;持久化沿用 `user://stranger_save.json` 并升 `SAVE_VERSION 3` 惰性迁移。验收:词表许可署名文件在包内;默认 toddler 词库可由旧档迁移且不丢资源与关系;词表派生索引只运行时构建、不落盘、不分发 | 🟡 **Phase 4 代码级已实现(2026-08-16)** —— 三份原样资产 + `ATTRIBUTION.md` 随 `game/assets/wordlists/`;`VocabularyState` 运行时解析 CEFR-J XLSX/Octanove/NGSL 构建 `(headword,pos)` 索引,默认 toddler(A1+A2);`GameState` 升 SAVE_VERSION 3 并持久化 vocabulary profile;`VocabularyTest`/`test_save_migration` 全绿(v2→v3 惰性迁移与词汇 round-trip 已在 OS temp 目录实测) |
 | FR-36 | P0 | Stranger 观察式词汇三态习得与词级复读评分 | 不在词汇库的词在 NPC 社会对话/主动对话中被听见后进入三态:**heard(听见)→ spoken(单独复读说出)→ used(完整造句使用)**;逐级解锁奖励递增,解锁 `spoken` 后弹出拼写卡兼顾认读。`spoken` 采用**独立词级发音评分协议**:本地 `POST /score_word`、云端 `POST /game/score_word`,参考为单词/短语语音(本地 Piper 或随包参考,云端同一批参考),只返回 `{pronunciation, score, band, pronunciation_source, text}`,不与整句 `delivery` 混分。**复读沿用 FR-28 单调档:score ≥70 generous / 40–69 sparse / <40 none,低分不消耗机会、不扣需求/关系、免费重试**。`used` 由后续真实 NPC 请求的 delivery 槽位命中证明。**不得在玩家与 NPC 对话阶段自动开启**(走近 NPC、柜台会话、问候会话均不劫持 `V`)。验收:三态只能向前迁移;三态奖励随状态单调递增;词级低分不改变任何资源/关系/任务状态;云词级评分断网/未激活时静默降级为可重试或手势路径;走近服务 NPC 后 `V` 进入柜台对话而非词练习 | ✅ **Phase 6 代码级已实现(2026-08-16)** —— `VocabularyState` 三态状态机(只前进、低分零惩罚)、本地 `POST /score_word` 与云端 `POST /game/score_word`(Piper 同源参考、单调档,支持 `X-Stranger-Lexical: a,b,c` 口语选择匹配)、`SpeechAdapter` 词级录音模式、HUD 拼写卡;NPC 用语音问「Do you want xx, yy, or zz?」,玩家按住 V 直接说出所选词,服务器按转写匹配选项并评分,无按钮选择;`WordAcquisitionTest`/`WordPracticeTest`/`GuidedWordPracticeTest` 全绿 |
 | FR-37 | P1 | Stranger 三大需求 UI 优化 | 按 `design/ux/hud.md` 与 Art Bible §6 优化食物/温暖/精力表现:阈值行动词(找食物/靠近热源/休息)、注意/紧急态形状与一次性音效、面板使用淤泥墨手绘描边与折片切角,不用现代扁平 `StyleBoxFlat` 卡片;1152×720 与 150% HUD scale 下不裁切;颜色不是唯一信号。验收:现有 HUD/分辨率套件全绿;阈值行动词与 Art Bible 面板断言通过 | 🟡 **Phase 2 部分实现(2026-08-16)** —— 阈值行动词、`SiltInkPanel` 淤泥墨折角面板(运行时替换 PanelContainer 样式)、需求图标灰阶区分与 150% 布局已落地并通过 HUD 套件;**注意/紧急态一次性音效待音频资源后补** |
-| FR-38 | P0 | Stranger NPC 多轮对话能力 | NPC 具备地道开场与延伸多轮对话:主动招呼→玩家表达→听懂/没听懂→指物澄清→结束;未命中措辞只能是「没听懂,再说一次」,禁止纠错、扣分或评价能力;对话选词受玩家词汇库 + N 个新词约束,可随关系与层级升级。验收:多轮状态机 headless 覆盖开场/命中/未命中/澄清/离开;除成功路径外任意路径不改变资源/关系/任务状态;对话内容逐句可查词表来源 | ✅ **Phase 5 代码级已实现(2026-08-16)** —— `Dialogue` autoload 五态机(开场/等待/听懂/澄清/关闭);低分只进 clarify、免费重试;`GameState._report_dialogue` 接通真实语音/手势路径;`SocialDialogueTest` 断言状态与资源零惩罚 |
+| FR-38 | P0 | Stranger NPC 多轮对话能力 | NPC 具备地道开场与延伸多轮对话:主动招呼→玩家表达→听懂/没听懂→指物澄清→结束;未命中措辞只能是「没听懂,再说一次」,禁止纠错、扣分或评价能力;对话选词受玩家词汇库 + N 个新词约束,可随关系与层级升级。验收:多轮状态机 headless 覆盖开场/命中/未命中/澄清/离开;除成功路径外任意路径不改变资源/关系/任务状态;对话内容逐句可查词表来源 | ✅ **Phase 5 代码级已实现(2026-08-16)** —— `Dialogue` autoload 五态机(开场/等待/听懂/澄清/关闭);低分只进 clarify、免费重试;`GameState._report_dialogue` 接通真实语音/手势路径;`SocialDialogueTest` 断言状态与资源零惩罚。**2026-09-06**:`player_level` 随 `/game/dialogue` 出站,服务端按词汇档位约束动态对话的 NPC 用词(FR-45/R-32 落回本条验收) |
 | FR-39 | P1 | Godot 对话语料:自动发现 native-English YouTube 候选 | 运营侧能自动筛 YouTube 研究候选,而不是只靠人工布尔开关。输入是本地 `yt-dlp` `info.json` 或可选的 `ytsearch` 结果;输出是按 `reject` / `pending` / `candidate` 排序的短名单。硬拒绝:非英语原声、教学/角色扮演、攻略评测、L2 自述、双语原声。`candidate` 只覆盖主持人/持牌 Inner Circle 新闻机构,回应说话人保持 `not_evidenced`。验收:自动路径**不得**把 `native_speaker_verified` 设为 true;`promote` 仍拒绝未独立核实的来源;无网络时本地筛查可跑;教学片与非英语原声被拒;新闻机构片可进 `candidate` 但仍不能入库 | 🟡 **代码级已实现(2026-08-18)** —— `native_speaker_screener.py` + `youtube_discover.py`;R-20 门控。**v0.10.3:降为可选研究工具,不再挡发动物资对话** |
-| FR-41 | P0 | Stranger 情景角色对话与会话级发物资 | 世界铺少量**服务情景**(本轮 3 个:塔维食物柜台、奥里便利店、维什零件前台)。每条是角色卡(`location`/`role`/`inventory`/`can_do`/`resource`),不是标准答案;同一柜台可要汉堡也可要咖啡。玩家开口后,服务器把转写 + 最近 8 轮 + 角色卡交给 **Gemini 3.7 Flash**(`thinking_level=LOW`);未配置 Gemini key 时才用 Grok。NPC 按角色用美式短句对答(最多 2 句 / 30 词,禁止教学/纠错/念分)。模型给**玩家这句话**打 `idiomaticity` 0–100;会话分 = 各轮 `0.5×pronunciation + 0.5×idiomaticity` 的均值。仅当模型判定交易完成并关闭会话时,`GameState` 按 FR-28 单调档发该点绑定的资源;中途走开不发;<40 不发且可再开一轮。**开口与地道分可分时到达**:实时平面先送 NPC 首句语音,工作平面再补 `player_turn`;成交仍在语音播完且 `transaction_complete` 之后。客户端只发转写与情景 ID,TTS 仍走服务器签发的 `reply_id`,PCK 无云端对话 key。模型失败/未激活不扣状态;`gesture_fallback` 仍给最低生存档。**开口时延见 NFR-9**。**服务点开放日由 FR-42 接管**:不再按第 2/3 天解锁。验收:同柜台两种合法点单都能成单;便利店要水能成单、要修暖炉不能成单;NPC 台词不含分数或纠错;无语音构建可过夜通关 | 🟡 **代码级已实现(2026-08-18)** —— 本地 stub + mock xAI 契约测试全绿;Godot 角色卡/会话分/成交发档套件全绿。真 Grok 与云端 `/game/dialogue` 部署待外部闭环。见 R-22。开口时延见 NFR-9 / R-25。开放日见 FR-42 / R-23 |
+| FR-41 | P0 | Stranger 情景角色对话与会话级发物资 | 世界铺少量**服务情景**(本轮 3 个:塔维食物柜台、奥里便利店、维什零件前台)。每条是角色卡(`location`/`role`/`inventory`/`can_do`/`resource`),不是标准答案;同一柜台可要汉堡也可要咖啡。玩家开口后,服务器把转写 + 最近 8 轮 + 角色卡交给 **Gemini 3.1 Flash-Lite**(`thinking_level=MINIMAL`);未配置 Gemini key 时才用 Grok。NPC 按角色用地道日常美式短句对答(最多 2 句 / 30 词,禁止教学/纠错/念分)。模型给**玩家这句话**打 `idiomaticity` 0–100;会话分 = 各轮 `0.5×pronunciation + 0.5×idiomaticity` 的均值。仅当模型判定交易完成并关闭会话时,`GameState` 按 FR-28 单调档发该点绑定的资源;中途走开不发;<40 不发且可再开一轮。**开口与地道分可分时到达**:实时平面先送 NPC 首句语音,工作平面再补 `player_turn`;成交仍在语音播完且 `transaction_complete` 之后。客户端只发转写与情景 ID,TTS 仍走服务器签发的 `reply_id`,PCK 无云端对话 key。模型失败/未激活不扣状态;`gesture_fallback` 仍给最低生存档。**开口时延见 NFR-9**。**服务点开放日由 FR-42 接管**:不再按第 2/3 天解锁。验收:同柜台两种合法点单都能成单;便利店要水能成单、要修暖炉不能成单;NPC 台词必须像真实美国柜台店员、不得含分数或纠错;在线性能验收的 source 必须是 Gemini 而非 stub;无语音构建仍可过夜通关 | ✅ **本地真实在线闭环(2026-08-24 最终复验)** —— Gemini Flash-Lite 固定 10 轮不重试验收 10/10 真模型，首音频 p50 1.286 秒、max 1.589 秒；真 Godot 桌面 SSE 1.949 秒；Python 60 项与 Godot 动态对话/取消/Main smoke 全绿。见 R-22 / R-27 / R-28。开放日见 FR-42 / R-23 |
 | FR-42 | P0 | Stranger 需求驱动主线(取消指定任务顺序) | 竖切片主线改为 **马斯洛第 1 层 + 现代社会实现 + 无指定任务顺序**。玩家不按「第 N 天找某人」推进;HUD 目标由当前最紧迫的生理需求决定:**饿了**去能给食物的店(本轮塔维食物柜台),**渴了/精力低**去便利店(奥里),**夜晚或精力过低**回庇护所睡。服务点**全天开放**,不因未问候米拉、未到某日、或另一项任务未完成而上锁。三日只作为时间盒:连过 3 晚后竖切结束(`game_finished`)。**退出主线**(可留在世界作可选互动,不挡睡觉、不决定通关):修暖炉、向维什要合金零件、给罗文送水。资源仍只能通过 NPC 交流获得(FR-28 语音门控 + FR-41 成交发档);无语音时 `gesture_fallback` 仍给最低生存档。新手引导仍可教一次开口买食物,但跳过引导后立即按需求自由去店。验收:未问候米拉也可在塔维成交;第 1 天可向奥里买水;目标文案随 `food`/`energy` 变化而非日历任务;先买水再买食物与相反顺序都能连过 3 晚;无语音构建三次过夜可结束竖切;拾取物仍不给资源 | ✅ **代码级已实现(2026-08-18)** —— `GameState` 服务点全天开放、需求目标、夜晚睡觉、3 晚通关;相关 Godot 套件全绿。见 R-23 |
 | FR-43 | P0 | NPC 职业与职场成对锁定 | 五名 NPC 各有唯一职业;能换物资的职业必须与职场设施成对。**塔维**=食物柜台店员,站在 `env_market_stall_a` 服务口内侧,玩家在此点餐。**米拉**=市场引导/邻居,不站柜台、不卖货,站在摊位顾客侧旁侧。**奥里**=便利店收银,卖水与柜台饮品;便利店建筑本轮未交付,暂驻蓄水器旁并在角色卡标明 `workplace_pending`。**维什**=五金零件柜店员,主线外。**罗文**=住户邻居,不是店员,不卖生存物资。角色卡 `occupation` / `workplace` / `mainline` / `sells` 为权威;运行时出生点必须读角色卡锚点。验收:塔维与摊位水平距离 < 2 m;米拉不在柜台内侧;未问候米拉也可向塔维点餐;角色卡五人职业齐全且互不抢岗 | ✅ **代码级已实现(2026-08-20)** —— 角色卡五人职业齐全;塔维出生在摊位服务口;MainEnv/对话资产/社会对话套件全绿。见 R-24 |
 
@@ -138,6 +142,10 @@
 4 个消费品位 + 1 个住所用品位，按住临时物品条并支持切换模式、键鼠/手柄重映射。唯一交易、逐物品库存、分类效果、保存和旧档迁移不得重复发放或丢失物资。
 词汇观察与 `heard → spoken → used` 仍由原系统异步拥有；真实后续交流可独立证明 `used`，物品事件本身不驱动词汇。
 FR-42 三夜需求主线和运行时不可用时的手势保底继续可玩。符合性：R-30，实施证据见 `docs/reviews/2026-09-06-item-usage-fit.md`。
+
+### FR-45 — 说话人字幕卡与显著性标记（2026-09-06）
+
+优先级 P0；用户已拍板（否决回声卡/显式 hint 方案：系统直接指出错误有损学习积极情绪，取 noticing-by-salience 路线）。服务点对话中，玩家转写就绪即在屏幕**底部居中**显示说话人字幕卡（中性色，不等待工作平面）；工作平面 `player_turn.errors` 携带标记时，对应片段改为**红色+下划线**（双重编码，非仅颜色）。标记规则：仅 `idiomaticity < 85` 的轮次产生；每轮 ≤2 个 span、每个 ≤4 词、**必须是玩家转写的精确子串**（服务端校验，模型改写/幻觉 span 一律丢弃，客户端只标首个命中）；标记仅来自真评分轮（`source=gemini/grok`），stub/无 key 轮显示中性转写、不标记。系统对玩家**零纠错文本、零解释、零分数**——noticing 由标记引发，规则由玩家下一轮自我修正领悟（R-31 #4/#6 追记：实现取显著性标记而非显式解释）。字幕卡非模态、不阻塞移动/交互/V 键，下一轮开口即替换，会话结束 3 秒消散；转写按原文显示（恒英文），bbcode 注入转义。NPC 台词仍纯语音；FR-32 v0.10.6 收紧条款的「玩家转写」范围按本条修订。同批落地：`game_context.player_level` 出站（NFR-8 白名单 +1 行），服务端按词汇档位为 infant/toddler/youth 追加 NPC 用词约束条款（professional 与缺省不追加）；服务对话每轮真评分转写回灌 `Vocabulary.record_words_used_from_text`（仅 spoken→used，词汇阶梯不变，不设分数门）。验收：判据 G-A/G-B′/G-C 见 **R-32**；`test_dialogue.py` 契约、`test_npc_dialogue_assets.gd` 服务契约、`test_hud.gd` 字幕卡断言与既有套件回归全绿。
 
 ## 5. 非功能性需求与约束
 
@@ -174,14 +182,14 @@ FR-42 三夜需求主线和运行时不可用时的手势保底继续可玩。�
 - **NFR-8 Stranger 核心玩法的联网例外(NFR-1 的第三条例外,授予服务器代理能力)**:下列每一条都是**约束**而非许可。
   - **范围**:授予 FR-32 的 `POST /game/tts`(NPC 语音合成)、FR-36 的 `POST /game/score_word`(词级发音评分)、以及 FR-41 的 `POST /game/dialogue`(情景角色对答 + 地道度)。仅 Stranger 模块,仅在用户显式完成云评分激活后生效(本地开发模式可打本机 `127.0.0.1:17831`)。未激活/无语音构建必须**零出站**;失败时静默降级为文字气泡、免费重试或 `gesture_fallback`,三日主线完整可玩。
   - **TTS 出站白名单**:客户端只发送 `npc_id + line_id|reply_id + voice/format`;动态回复文本由服务器签发的 `reply_id` 解析,**禁止客户端发送自由文本、玩家音频、照片、设备标识、游戏进度**。模型固定 Qwen 官方 `qwen-audio-3.0-tts-plus`;API key 只存服务器,不入库、不入 PCK、不出服务器。
-  - **对话出站白名单(FR-41)**:服务器可把**转写文本 + 角色卡 + 最近 8 轮对白**发给 Gemini `streamGenerateContent`(或非流式 `generateContent`)或(无 Gemini key 时)xAI Chat Completions。**禁止**把玩家音频、录音、照片、设备标识发给对话模型。Gemini / xAI key 只存服务器环境变量或旁路 `GEMINI.csv` / `XAI.csv`(不入库)。对话模型不评发音。
+  - **对话出站白名单(FR-41/FR-45)**:服务器可把**转写文本 + 角色卡 + 最近 8 轮对白 + 玩家词汇档位**(`player_level`,仅 infant/toddler/youth/professional 四档枚举值,非身份信息)发给 Gemini `streamGenerateContent`(或非流式 `generateContent`)或(无 Gemini key 时)xAI Chat Completions。**禁止**把玩家音频、录音、照片、设备标识发给对话模型。Gemini / xAI key 只存服务器环境变量或旁路 `GEMINI.csv` / `XAI.csv`(不入库)。对话模型不评发音。
   - **词级评分出站白名单**:单条 ≤15 秒词级 WAV + 词条 ID + 设备 token;参考音频不出设备(服务器随包部署);解码后立即评分、不写录音文件、无冷存储。
   - **服务器合成缓存**:只缓存按台词 ID / `reply_id` + 参数生成的 NPC 音频,带容量上限与清理;缓存不包含任何用户数据。
   - **UI 义务**:激活界面与游戏内持续可见「云端语音评分 / NPC 语音合成」状态;TTS、词级评分或柜台对话任一项不可用不得表现为语言错误。
   - **不污染另两模块与既有例外**:Speaking/Memorizing 离线保证表述一字不改;本例外不覆盖 FR-4/FR-5 发音评分;NFR-6/NFR-7 范围不变。
   - 边界可验证性以 R-19 / R-22 门控;不过则对应能力单独降级,其余核心玩法纯离线路径不受影响。
 
-- **NFR-9 Stranger 柜台开口时延**:玩家松开 `V` 之后,**NPC 语音必须在 3 秒内开始**(本地语音服务已预热:Whisper 已加载)。实时平面(转写 → Gemini 流式首句 → 首句 TTS)与工作平面(地道分 / 成交 JSON)拆开,允许 `score` 晚于开口。主模型是 `gemini-3.7-flash` 且必须 `thinking_level=LOW` + `streamGenerateContent`;**T_speak≈1 秒内没有可说首句、或 HTTP 429/503/失败时立刻 stub 开口**,禁止再空等满 2 秒或高峰排队。无 Gemini key 时才用 `grok-4.3`(`reasoning_effort=none`,约 1 秒超时)。已承诺的 stub 台词不替换;地道分可随后补回。验收:服务日志同时有 `fast=1 ms=`、`gemini_first` 或 `gemini_ms=` / `grok_ms=`(或 stub 降级行)、`tts_first` 或 `tts_ms=`、`first_audio_ms`;预热后从松键到 `line_audio_ready` ≤ 3 秒。符合性见 **R-25 / R-26 / R-27**。
+- **NFR-9 Stranger 柜台开口时延**:玩家松开 `V` 之后,**NPC 语音必须在 3 秒内开始**(本地语音服务已预热:Whisper 已加载)。实时平面(转写 → Gemini 流式首句 → 首句 TTS)与工作平面(地道分 / 成交 JSON)拆开,允许 `score` 晚于开口。主模型是 `gemini-3.1-flash-lite` 且必须 `thinking_level=MINIMAL` + `streamGenerateContent`;首句窗口按 P90 在 1.9–2.1 秒内自适应,为转写与 TTS 保留总预算。按 V 时并行预热 Gemini HTTPS、极小的限频流式模型探针与 TTS websocket;实时平面对同一模型作短窗尾延迟竞速,只接受已完整结束、安全且符合当前请求的模型原文。在线性能验收必须同时满足 `speaking.source=gemini`、`score.source=gemini`、`score.model=gemini-3.1-flash-lite` 和 `line_audio_ready` ≤3 秒,不得以 stub 结果宣称通过;stub 只在断网/429/503/失败或无 key 时保活。无 Gemini key 时才用 `grok-4.3`(`reasoning_effort=none`,约 1 秒超时)。日志必须有真实 `gemini_first`、`first_audio`、`tts_stream` 与客户端事件时间。NPC 台词须为短而地道的日常美式柜台口吻,不得编造角色卡没有的价格/品牌/库存数量/等待时间/政策。符合性见 **R-25 / R-26 / R-27 / R-28**。
 
 - **NFR-UX 高级感视觉**:全 App 视觉升级为 Duolingo 风高级感(亮色主调、大圆角、3D 立体按键、友好),并承载 FR-16 的双模块顶层导航。Memorizing 的整件识别、部件识别与情景生成请求均有 **15 秒** 前端 AbortController 与后端 504 deadline:超时立刻清除加载态、显示可读错误并允许重试,不得无限“识别中”;每个 App 实例使用随机本地端口,不得连接到另一实例的旧后端。设计令牌见 `desktop/src/styles.css`。
 - **已知限制**:MMS 模型体积 1.18GB;首次转写慢(有缓存);超长连续选段(>5 分钟)wav2vec2 编码在 MPS 上有内存风险(P2,待分块编码);Memorizing 的 Florence + GGUF 首次下载合计约 0.95GB、首轮推理含加载延迟(分阶段进度 UI 缓冲)。
@@ -226,7 +234,7 @@ FR-42 三夜需求主线和运行时不可用时的手势保底继续可玩。�
 | FR-38 多轮对话 | `game/scripts/dialogue_state.gd`(新,开场→命中/未命中→澄清→结束)+ `game_state.gd` `_report_dialogue` + `interactable.gd` 招呼开场 + `game/tests/SocialDialogueTest.tscn` | ✅ Phase 5 代码级 |
 | FR-39 native-English YouTube 自动发现 | `game/speech_service/native_speaker_screener.py` + `youtube_discover.py` + `corpus_pipeline.py` `screen`/`discover`;测试 `test_native_speaker_screener.py` | 🟡 R-20 代码侧 |
 | FR-40 source-first Native 情景替换 | `game/speech_service/native_scene_discovery.py` + `native_scene_queries.json`;真实视频互动候选先进入 research-only 场景族，经过人工场景/双人/母语/版权门后才映射到 `game/data/dialogue/scenarios/`；测试 `test_native_scene_discovery.py` | 🟡 R-21 研究候选层;不再挡 FR-41 发物资 |
-| FR-41 情景角色对话与会话级发物资 | 角色卡 `game/data/dialogue/scenarios/{food_counter,convenience_store,parts_desk}.json`;本地 `game/speech_service/server.py` `POST /game/dialogue`(Gemini 3.7 Flash `thinking=LOW` 流式首句 + SSE;超时/T_speak stub;无 Gemini key 时 Grok)+ 动态 `reply_id` TTS;Godot `npc_dialogue_service.gd` / `npc_scenario_runner.gd` / `game_state.gd` 成交发档;测试 `test_dialogue.py` + `test_npc_dialogue_assets.gd` | 🟡 R-22 / R-25 / R-26 / R-27 |
+| FR-41 情景角色对话与会话级发物资 | 角色卡 `game/data/dialogue/scenarios/{food_counter,convenience_store,parts_desk}.json`;本地 `game/speech_service/server.py` `POST /game/dialogue`(Gemini 3.1 Flash-Lite `thinking=MINIMAL` 流式安全短句 + SSE;成交轮最多等第二短句补齐具名交付证据;V 键预热 Gemini/TTS;故障时 stub;无 Gemini key 时 Grok)+ 动态 `reply_id` TTS;Godot `npc_dialogue_service.gd` / `npc_scenario_runner.gd` / `game_state.gd` 四层成交门:具体库存项 + NPC 已说出具名交付承诺 + completion act + 同 reply 音频结束后才发档;测试 `test_dialogue.py` + `test_npc_dialogue_assets.gd` + `test_live_npc_dialogue.gd` | ✅ R-22 / R-25 / R-26 / R-27 / R-28 / R-29 |
 | FR-42 需求驱动主线 | `game/scripts/game_state.gd` 服务点全天开放、需求目标、夜晚睡觉、3 晚结束竖切;测试 `test_game_state.gd` / `test_voice_gated_rewards.gd` / 无语音三日套件 | ✅ R-23 |
 | FR-43 NPC 职业与职场 | 角色卡 `game/data/dialogue/npc_profiles/*.json`(`occupation`/`workplace`/`sells`);`main.gd` 按锚点出生;测试 `test_npc_dialogue_assets.gd` + `test_main_env_integration.gd` | ✅ R-24 |
 
@@ -251,6 +259,8 @@ FR-42 三夜需求主线和运行时不可用时的手势保底继续可玩。�
 ## 7. 技术符合性评审记录
 
 - **R-30（2026-09-06）实体物品获得与使用 / FR-44** → `docs/reviews/2026-09-06-item-usage-fit.md`。实施前固定判据：具名成交后柜台实物；精确数量与幂等；主动吃喝才增益；日用品在住所先放后用；库存/携带/迁移；对话与词汇回归；实机交互证据。**首轮结果：核心链路通过**（180 项领域检查、26 项渲染场景检查、13 套相关回归）；最终逐件美术/动作/拟音和独立人工游玩仍待验收，未将 GDD 全部标准标为通过。
+
+- **R-32（2026-09-06）说话人字幕卡 + 词汇档位出站 + 词汇回灌 / FR-45 + FR-41/NFR-8 增补 + FR-38/FR-24 修订** → `docs/reviews/2026-09-06-speaker-subtitle-fit.md`。三组判据（实现前经用户拍板）：**G-A** 档位出站与提示词分档（professional/缺省与现状逐字一致）；**G-B′** 字幕卡两阶段显示、标记校验（精确子串/≤2 个/仅 <85 分轮/红+下划线）、stub 轮零标记、非模态；**G-C** 服务对话转写回灌三态（仅 spoken→used、initial 永不推进）。
 
 - **R-1(2026-07-22)v0.2 校准使用合成声参考 vs FR-M1** → `docs/reviews/2026-07-22-calibration-ref-fit.md`。结论:**符合,无需校正**——三组实测(LibriSpeech 350 对 / CBS 新闻 62 对 / CMU ARCTIC 母语+L2 置换)表明真人参考下校准分数不降反略升(+0.8~1.9),低分尾更窄;fluency 特征为参考相对量,天然免疫。新参考音品类引入时用 `scripts/ref_swap_experiment.py` 抽查。
 - **R-2(2026-07-22)相对 DTW 参考集 vs FR-M1** → 同上文档。结论:经典相对 DTW 与"任意网络视频"需求冲突,降级;以"多 TTS 声平均"作为符合需求的替代方向。
@@ -282,4 +292,62 @@ FR-42 三夜需求主线和运行时不可用时的手势保底继续可玩。�
 - **R-25(2026-08-20)柜台开口 ≤ 3 秒 vs NFR-9 + FR-41** → `docs/reviews/2026-08-20-stranger-spoken-reply-latency-fit.md`。四门:**G1** 实测最慢步是 grok-4.3(默认推理 7–8s,关推理仍 3.6s),不是转写;**G2** 请求必须带 `reasoning_effort=none`;**G3** Grok 约 1s 超时/失败走 stub,不 503 重试;**G4** 服务日志含 `grok_ms` 与 `tts_ms`。
 - **R-26(2026-08-21)柜台对答改 Gemini 3.7 Flash vs FR-41 + NFR-8 + NFR-9** → `docs/reviews/2026-08-21-stranger-gemini-dialogue-fit.md`。五门:**G1** Gemini/xAI key 不出 PCK/Godot;**G2** 只发转写文本,不发音频;**G3** 请求必须 `thinkingLevel=LOW`;**G4** 超时/429/503 立刻 stub,不排队重试;**G5** 有 Gemini key 时不调用 Grok。
 - **R-27(2026-08-22)柜台流式首音 vs FR-41 + NFR-8 + NFR-9** → `docs/reviews/2026-08-22-stranger-streaming-first-audio-fit.md`。六门:**G1** key 不出 PCK;**G2** Gemini 仍只收文本;**G3** `thinkingLevel=LOW` + `streamGenerateContent`;**G4** T_speak 内必有开口(gemini 或 stub);**G5** 未成交/走开/低分不发物资;**G6** 日志含 `first_token`/`tts_first`/`first_audio`。
+- **R-28(2026-08-23)Flash-Lite 真模型低延迟 + 美式口吻 vs FR-41 + NFR-9** → `docs/reviews/2026-08-23-stranger-flash-lite-live-dialogue-fit.md`。七门:**G1** 在线验收 source/model 必须是 Gemini Flash-Lite,stub 不算通过;**G2** 预热后首音频 ≤3 秒;**G3** 台词短、自然、符合美国柜台角色且不教学;**G4** 不编价格等场景外事实;**G5** off-inventory 与缺指代分开;**G6** GPT-Live 式实时/工作面与晚到不反转不变;**G7** Python/Godot/运行 smoke 全绿。
+- **R-29(2026-08-25)NPC 具名口头交付后结算资源 vs FR-41** → `docs/reviews/2026-08-25-stranger-spoken-settlement-gate-fit.md`。六门:**G1** 泛类 food/snack/parts 不得成交;**G2** speaking 必须具名同一具体库存项并包含交付/接单承诺且不是问句;**G3** speech act 必须属于 completion acts 且非 off-inventory;**G4** 同 reply 音频结束前资源不变;**G5** server/Godot service/Runner/GameState 四层独立复核;**G6** 真实 Main+Gemini+TTS 两轮验证 generic 前后不发、taco 播完才发且首音 2659ms。
 - **R-19(2026-08-16,判据已写死,实现前评审)Stranger 核心玩法补完 vs FR-30..FR-38 + NFR-8** → `docs/reviews/2026-08-16-stranger-core-gameplay-fit.md`。九道门:**G1** 引导保护(引导各步逐帧断言 food/warmth/energy 不触 0,跳过引导仍可通关);**G2** 目标不常驻与 NPC 主动招呼(目标变化后自动收拢,NPC 招呼不阻塞移动);**G3** TTS 边界(Qwen key 不在 PCK、客户端只发台词 ID、未激活零出站、TTS 失败文字降级且主线可通关);**G4** 社会对话覆盖度(首三日全部必需表达 100% 至少可观察一次,对话池随需求层级单调扩张);**G5** 词汇库完整性(三份词表原样随包与署名,`(headword,pos)` 索引,默认 toddler,SAVE_VERSION 3 迁移不丢资源/关系);**G6** 三态习得(状态只能向前,奖励随 heard→spoken→used 单调递增,词级复读沿用 ≥70/40–69/<40 单调档且低分零惩罚);**G7** 词级评分协议(本地/云端同构,参考同一批,断网/未激活降级为免费重试或手势,不混入整句 delivery);**G8** 需求 UI(Art Bible §6 面板与阈值行动词,现有 HUD/分辨率套件全绿);**G9** 回归(既有 Godot headless 套件全绿,无语音构建三日主线仍可通关)。**实现后更新(2026-08-17)**:G3 的「TTS 失败文字降级」按用户拍板修订为「NPC 对话只出语音,文字仅无语音构建兜底」,且 TTS 合成路径修复为 DashScope WebSocket(详见 FR-32 行与 v0.10.x 变更);G4 社会对话增加「先走到彼此附近再交谈」的聚集/散开行为;FR-30 的 V 键劫持缺陷修复(引导期禁用引导词练习);云端 `/game/tts` 已部署实测全通。
+
+- **R-34（2026-09-11）2D 对话与养成迁移** → `docs/reviews/2026-09-11-stranger-2d-dialogue-fit.md`。纯 2D 启动、角色卡/物品/词汇迁移、独立旧档导入、三夜主线和轻量导出通过；真实麦克风/云音频与物理手柄未在本次重验。
+
+- **R-35（2026-09-11）美国 TTS 与 2D 口语闭环** → `docs/reviews/2026-09-11-stranger-2d-speaking-fit.md`。xAI us-east-1、Gemini 真模型、游戏录音通道、词汇 heard→spoken→used、两轮具名交付通过；实测开口 1338/1336ms；126 项 Python 与相关 Godot 回归通过，补齐独立 macOS 包麦克风用途说明。输入为合成/参考 WAV，未冒充真人口音评测。
+
+- **R-36（2026-09-11）生活化对话与行囊体验 / FR-47** → `docs/reviews/2026-09-11-everyday-inventory-fit.md`。分类、数量、实际效果、消费确认、收纳、焦点与鼠标遮挡、小尺寸截图通过；九段共享配音日常、三组真实模型两轮对话、美国 TTS 及游戏录音→播完发物资闭环通过。
+- **R-36 字体与交互补充（2026-09-11）/ FR-47** → `docs/reviews/2026-09-11-novel-typography-fit.md`。离线宋体与黑体层级、姓名牌、细线边框、主次操作；真实点击验证补全文字→推进、焦点移交及零物资奖励，大小窗口和长对白实渲染，独立桌面导出验证。
+
+## FR-46：2D 对话与养成分支（2026-09-11）
+
+用户决定在独立分支将 Stranger 改为 2D 对话游戏。此分支默认入口采用背景场景、人物立绘、底部逐字对话、地点菜单与养成面板；不再依赖第三人称移动、碰撞、3D 世界或步行距离。参考 galgame 的呈现与 Duck Life 的训练/状态/商店组织，不复制其素材。
+
+- 保留五位 NPC、原角色卡和全部柜台库存；吃饭、饮水、休息度过三夜仍是主线。广场、餐摊、便利店、零件铺、邻居、住处均可直接到达。
+- 迁移实时语音、NPC 配音、玩家转写与评分、词汇 heard→spoken→used、社会对白、关系与记忆、柜台领取/消耗/打包、住处放置/维修/收回、存读档和云激活。
+- 语音可用时手势只表达善意；不可用时最低物资兜底。文字选项不伪造发音成绩或绕过成交门。
+- 时间改为明确的行动推进；阅读、练习、打开面板时不扣生存值。可在住处等待至夜晚；三夜可完整完成。
+- 旧版存档只在首次进入 2D 时导入；2D 写入独立存档，保留资源、关系、词汇及剧情进度，不覆盖 3D 存档。旧移动教学改为 2D 操作说明。
+- 提供键鼠与按钮焦点操作、减少动态、文字速度和字体设置；重开前确认。保存、取消录音和切换地点不得产生晚到奖励。
+
+适配评审 R-34：`docs/reviews/2026-09-11-stranger-2d-dialogue-fit.md`。本需求在该分支取代 FR-21/FR-30/FR-33 中的 3D 移动与空间呈现规定，以及旧版“NPC 仅语音”的呈现限制；保留领域规则。
+
+### FR-46 口语闭环验收补充
+
+- 交谈入口和每段日常对白具有与屏幕文字一致的配音；词汇练习先提供正确的单词示范，可重听，再录音评分，随后回到实际需求对话使用。播放示范时禁止同时采集录音，避免把 NPC 语音当作玩家表达。
+- 只记录已经展现的对白中的词汇，不提前解锁后续句子；点击练习、听示范和手势都不能伪造 spoken/used 或正常语音奖励。
+- 空录音应解除等待并允许免费重试；异步评分先于音频到达时不得丢弃后续音频。奖励仍严格等待该句真实音频结束。
+- 本地服务存在、模型配置存在与在线对话可用应分别判断；提供重查状态，失败如实提示。真实 ASR/TTS/词级评分与真实模型交谈分别记验收结果，模拟回包不视为在线通过。
+- 2D 正常语音交谈要求真实模型响应；模型失败不能静默换为脚本回复并按模拟地道度结算。失败保留免费重试、单词练习与最低物资手势兜底。
+
+适配评审 R-35：`docs/reviews/2026-09-11-stranger-2d-speaking-fit.md`。
+
+### FR-47：日常生活与行囊体验（2026-09-11）
+
+按用户「完善背包、对话贴近生活程度及高级感反馈」要求，在现有 2D 分支继续完善：
+
+- 行囊、柜台和住处提供食物 / 饮品 / 住所用品分类、同类同状态合并数量、剩余使用次数、来源及容量；选择物品后展示用途、当前实际恢复量与明确行动。使用前确认浪费，满状态不消耗，失败给出可执行原因；保留原有堆叠、远程操作限制与幂等规则。
+- 收取、吃喝、安放、安装和收回给出具名结果与真实状态变化。空行囊和空分类提供前往补给 / 整理住处的入口；已成交待领取的柜台物品在场景中有数量提示。
+- 日常对白覆盖问候、点单与打包、选择饮品、买日用品、取暖和邻里往来，至少八段、每段有场景提示与可迁移表达；只观察已展示句子的词汇。屏幕文字与服务端配音来自同一台词资产，听日常不发物资或伪造评分。
+- 服务角色卡接纳生活语境：针对玩家所说的处境简短回应、一次问一个问题、不凭空补充价格/商品属性/政策。示范表达只辅助开口，不代替玩家录音和原有成交门。
+- 模态面板阻挡背后操作，键盘焦点留在面板内；减少动态生效；验证桌面与 1152×720、大字号、空/满/部分使用/住处状态，以及三夜兜底回归。
+
+适配评审 R-36：`docs/reviews/2026-09-11-everyday-inventory-fit.md`。
+
+**配色补充（2026-09-11）**：用户要求 UI 配色具有高级、柔和、愿意继续停留的感受。2D 界面统一采用暖纸白、燕麦灰、低饱和鼠尾草绿与少量黄铜棕；阅读区保持清晰文字对比，弱化大面积深绿与亮黄，统一悬停、选中、禁用、焦点、图标、提示和按键设置配色。以白天/夜间场景、行囊及小窗口实渲染验证；不将视觉方向宣称为已证明的用户留存提升。补充验收见 `docs/reviews/2026-09-11-soft-palette-fit.md`。
+
+**字体与交互补充（2026-09-11）**：按用户要求借鉴 galgame 的阅读节奏：叙事标题、姓名与对白采用有中文覆盖的衬线字体，操作和状态采用清晰的常规字重无衬线字体；字体随包携带并保留许可。对话区增加留白与独立姓名牌，细线和克制的小圆角表达层次，地点和分类以选中标记代替重复卡片边框。阅读推进、录音主操作与重听等辅助功能在视觉上区分；逐字显示可明确补全，小剧场可继续下一句，真实交谈不通过跳过发物资或代替开口。所有既有功能、键鼠/手柄、减少动态和大字号保持可用，验证长对白、两种窗口尺寸、焦点、昼夜及独立导出。补充验收见 `docs/reviews/2026-09-11-novel-typography-fit.md`。
+
+### FR-48：可理解的点单与领取（2026-09-11）
+
+用户反馈获取食物的判定奇怪、不知道怎样拿到。修复「玩家已明确点单、店员已具名承诺交付，但固定句式分类仍阻止成交」的不一致。接受具体商品名、简短点单和自然请求（如 `Burger.`、`Give me a sandwich.`），不要求背固定句式；堂食/打包留给柜台的实际使用/装包操作，不作为隐藏成交前置。仅询问、否定、取消、多个未决选项和泛称食物不能误发商品，仍要求店员具名承诺并播放完成、沿用评分档位和幂等物品账本。
+
+2D 商店持续显示点单/处理中/待补充/失败/待领取状态，失败说明实际原因；成功让具名物品和柜台领取入口显著可见。菜单同时显示中英文商品名、自然表达例子与「成交→柜台吃或装包」流程。验证自然句式、简短选择、询问和取消、流式文本与结算一致、低分与播放失败、重复事件不重复发物品、实际界面点击和独立导出。验收 R-37：`docs/reviews/2026-09-11-order-clarity-fit.md`。
+
+### FR-46 美国语音 API 补充
+
+按用户要求，2D 分支默认 NPC 配音、日常对白与单词示范统一使用美国区域语音 API（xAI TTS，官方区域 us-east-1），不再自动请求北京 Qwen 端点。复用服务器侧已有 xAI 凭据，客户端仍只提交台词/回复 ID。Gemini 继续生成角色卡约束下的短句对话；识别与发音评分继续走原有本地链路。验收覆盖美国 TTS 的真实声音、两轮真实模型交谈、播放结束才结算，以及听见→说出→实际交谈使用的词汇闭环。

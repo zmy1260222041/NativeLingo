@@ -1,0 +1,92 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+  OK  Objective card exists
+  OK  Needs cluster exists
+  OK  Context interaction card exists
+  OK  Voice states use a semantic drawn icon
+  OK  Accessible full-screen pause overlay exists
+  OK  Full-screen completion modal exists
+  OK  Skippable full-screen day transition exists
+  OK  Food uses a drawn semantic icon
+  OK  Needs use segmented semantic meters
+  OK  Bundled CJK font is assigned at the shared full-screen theme root
+  OK  Keyboard glyph resolves from InputMap
+  OK  Gamepad glyph resolves from InputMap
+  OK  Semantic cancel glyph resolves for keyboard and gamepad
+  OK  Controller glyphs distinguish PlayStation and generic layouts
+  OK  Objective change announces the current action
+  OK  FR-31: objective card folds away after the announcement
+  OK  Onboarding panel is built hidden while the guide is inactive
+  OK  FR-30: active guide shows its first localized step
+  OK  FR-30/G8: onboarding band stays in viewport and clear of the interaction card
+  OK  FR-30: skip folds the guide and releases the guard
+  OK  FR-36: spoken unlock pops the spelling card and pauses the world
+  OK  FR-36: spelling card shows the newly spoken word
+  OK  FR-36: word practice does not open during an NPC counter conversation
+  OK  Voice-available HUD names the NPC being spoken to
+  OK  Voice-available HUD does not show NPC speech text
+  OK  Clock stays up while the counter reply is still being generated
+  OK  Clock drops only after the NPC reply audio starts
+  OK  FR-45: speaker subtitle card is built hidden
+  OK  FR-45: subtitle renders through a bbcode label
+  OK  FR-45: subtitle card never intercepts input
+  OK  FR-45: transcript is mirrored the moment it is locked in
+  OK  FR-45: marks render red plus underline around the exact span
+  OK  FR-45: words outside the span stay unmarked
+  OK  FR-45: spans that do not match the transcript are never marked
+  OK  FR-45: stub or unscored turns keep the neutral subtitle
+  OK  FR-45: session close schedules the three-second dissolve
+  OK  FR-45: dissolve hides the card
+  OK  FR-37: panels use the Art Bible cut-corner silt-ink style instead of a flat modern card
+  OK  FR-37: panel outline is the project silt-ink drawer
+  OK  FR-37: caution needs expose the next survival action
+  OK  Objective stays in viewport at (1152, 720) / 100%
+  OK  Needs stay in viewport at (1152, 720) / 100%
+  OK  Objective and needs do not overlap at (1152, 720) / 100%
+  OK  Pause settings reflow at (1152, 720) / 100%
+  OK  Objective stays in viewport at (1440, 900) / 100%
+  OK  Needs stay in viewport at (1440, 900) / 100%
+  OK  Objective and needs do not overlap at (1440, 900) / 100%
+  OK  Pause settings reflow at (1440, 900) / 100%
+  OK  Objective stays in viewport at (2560, 1080) / 100%
+  OK  Needs stay in viewport at (2560, 1080) / 100%
+  OK  Objective and needs do not overlap at (2560, 1080) / 100%
+  OK  Pause settings reflow at (2560, 1080) / 100%
+  OK  Objective stays in viewport at (1152, 720) / 150%
+  OK  Needs stay in viewport at (1152, 720) / 150%
+  OK  Objective and needs do not overlap at (1152, 720) / 150%
+  OK  Pause settings reflow at (1152, 720) / 150%
+  OK  Objective stays in viewport at (1440, 900) / 150%
+  OK  Needs stay in viewport at (1440, 900) / 150%
+  OK  Objective and needs do not overlap at (1440, 900) / 150%
+  OK  Pause settings reflow at (1440, 900) / 150%
+  OK  Objective stays in viewport at (2560, 1080) / 150%
+  OK  Needs stay in viewport at (2560, 1080) / 150%
+  OK  Objective and needs do not overlap at (2560, 1080) / 150%
+  OK  Pause settings reflow at (2560, 1080) / 150%
+  OK  Shared full-screen theme root receives 150% scale
+  OK  Full-screen modal inherits the bundled font and accessible button size
+  OK  Input remapping panel reflows at 1152x720 / 150%
+  OK  All 15 core and 5 item actions have remapping rows
+  OK  Input remapping hides the pause layer and owns initial focus
+  OK  Tab and Shift-Tab form a complete remapping focus loop
+  OK  D-pad focus neighbors stay inside the remapping modal
+  OK  Remapping list follows keyboard/gamepad focus to the final action
+  OK  Binding conflicts require explicit confirmation
+  OK  Confirmed conflict swaps bindings instead of silently overwriting
+  OK  Restore Defaults recovers project bindings
+  OK  Closing remapping restores the pause layer and Controls focus
+  OK  Long Clarify card reflows at 1152x720 / 150%
+  OK  Completion card reflows at 1152x720 / 150%
+  OK  Day transition content reflows at 1152x720 / 150%
+  OK  Day transition pauses the world
+  OK  Reduced-motion day transition dismisses immediately
+  OK  Restored completion state reopens its modal
+  OK  FR-28: SpeechAdapter forwards pronunciation, delivery, and their source
+  OK  FR-28: a legacy payload yields no fake scores
+  OK  Unavailable microphone enters persistent recovery without time cost
+  OK  FR-28: a failed mic attempt arms the minimum-survival gesture fallback
+  OK  Cancelling speech recovery restores gameplay time
+  OK  FR-28: fallback stays armed until a later voice attempt proves the channel works
+  OK  Closing a modal releases focus and restores gameplay
+PASS: Stranger HUD smoke suite

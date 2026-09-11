@@ -1,0 +1,88 @@
+{
+  "palette": {
+    "SURFACE": "f3efe5",
+    "SURFACE_RAISED": "faf6ee",
+    "SURFACE_INSET": "e9e7dc",
+    "TEXT": "38433c",
+    "MUTED": "626c61",
+    "ACCENT": "80664c",
+    "POSITIVE": "496b59",
+    "BORDER": "d2d4c6",
+    "SELECTED": "dce4d6",
+    "HOVER": "e2e8dc",
+    "PRESSED": "d4dfcd",
+    "PRIMARY": "59705e",
+    "PRIMARY_HOVER": "4e6554",
+    "PRIMARY_PRESSED": "435b49",
+    "ON_PRIMARY": "faf6ee",
+    "FOCUS": "647a60",
+    "DISABLED": "e5e3da",
+    "ON_DISABLED": "85897d",
+    "SHADOW": "394036",
+    "ON_SCENE": "fff7e8",
+    "SALIENCE": "a14e48",
+    "FOOD": "a07c57",
+    "DRINK": "638078",
+    "HOME": "708162",
+    "NEED_FOOD": "b29470",
+    "NEED_WARMTH": "b38f84",
+    "NEED_ENERGY": "889d83"
+  },
+  "checks": [
+    {
+      "foreground": "TEXT",
+      "background": "SURFACE",
+      "contrast": 8.98
+    },
+    {
+      "foreground": "MUTED",
+      "background": "SURFACE",
+      "contrast": 4.77
+    },
+    {
+      "foreground": "ACCENT",
+      "background": "SURFACE",
+      "contrast": 4.66
+    },
+    {
+      "foreground": "POSITIVE",
+      "background": "SURFACE",
+      "contrast": 5.18
+    },
+    {
+      "foreground": "TEXT",
+      "background": "SELECTED",
+      "contrast": 7.91
+    },
+    {
+      "foreground": "TEXT",
+      "background": "HOVER",
+      "contrast": 8.26
+    },
+    {
+      "foreground": "ON_PRIMARY",
+      "background": "PRIMARY",
+      "contrast": 4.99
+    },
+    {
+      "foreground": "ON_PRIMARY",
+      "background": "PRIMARY_HOVER",
+      "contrast": 5.88
+    },
+    {
+      "foreground": "ON_PRIMARY",
+      "background": "PRIMARY_PRESSED",
+      "contrast": 6.88
+    },
+    {
+      "foreground": "SALIENCE",
+      "background": "SURFACE_RAISED",
+      "contrast": 5.27
+    },
+    {
+      "foreground": "FOCUS",
+      "background": "SURFACE",
+      "contrast": 4.07
+    }
+  ]
+}

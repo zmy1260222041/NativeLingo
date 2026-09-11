@@ -1,0 +1,4 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS: 2D migration, inventory, vocabulary, cancellation, save, UI and three-night flow
+PASS: legacy import preserves original save

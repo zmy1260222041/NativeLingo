@@ -1,0 +1,33 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+  OK  Five ambient social scripts cover the survival essentials
+  OK  FR-34: every survival-essential expression is observable in an NPC-NPC scene
+  OK  FR-33: all five named NPCs belong to a minimal family or partner unit
+  OK  Coverage map contains intent greeting
+  OK  Coverage map contains intent food
+  OK  Coverage map contains intent scrap
+  OK  Coverage map contains intent water
+  OK  Coverage map contains intent help
+  OK  Social scene plays one NPC line and one reply
+  OK  Food scene exposes the exact food-request expression
+  OK  Social scenes listen for actual line playback completion
+  OK  A social scene gathers when both family NPCs are free
+  OK  Mira approaches the counter while Tavi stays at the service anchor
+  OK  Gathering completes and the scene starts talking
+  OK  Talkers stand still while the scene plays
+  OK  No-voice dialogue still keeps both NPCs together for a readable speaking pause
+  OK  NPCs stand close together while talking (was 1.92 m)
+  OK  Tavi remains behind the physical counter at the unchanged workplace anchor
+  OK  Customer-side social stand-off clears the counter front
+  OK  The first finished line never makes the NPCs leave early
+  OK  After the talk Mira walks home and Tavi is already at his work anchor
+  OK  Scene ends and the simulator returns to idle
+  OK  NPCs return to their home positions
+  OK  Greeting opens a dialogue session
+  OK  A miss enters clarify, not failure
+  OK  Clarify retries stay free and countable
+  OK  An understood expression closes the session cleanly
+  OK  Low-score voice request keeps the dialogue open and grants nothing
+  OK  Understood retry closes the session without granting before a confirmed order
+  OK  A completed counter order applies the monotonic reward
+PASS: Stranger social dialogue suite

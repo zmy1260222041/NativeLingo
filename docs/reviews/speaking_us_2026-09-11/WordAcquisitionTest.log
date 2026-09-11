@@ -1,0 +1,16 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+  OK  Word acquisition runs against the real toddler profile
+  OK  Observing a new social word adds it as heard
+  OK  Observed word starts at the heard state
+  OK  Below-floor spoken attempt leaves the word heard
+  OK  Failed spoken attempt is free and changes nothing
+  OK  At-floor spoken attempt advances heard -> spoken
+  OK  Successful spoken attempt unlocks the spoken state
+  OK  Using the word in real speech advances spoken -> used
+  OK  Used is the terminal acquisition state
+  OK  Terminal states never regress or double-advance
+  OK  Initial toddler vocabulary is never downgraded by observation
+  OK  Transcript token matching closes the heard/spoken/used loop
+  OK  Observed entries are mirrored into the versioned save
+PASS: Stranger word acquisition suite
