@@ -7,6 +7,14 @@ import server
 
 
 class NovelSpeakingTests(unittest.TestCase):
+    def test_place_openings_match_server_voice_catalog(self):
+        import re
+        source = (server.REPO_ROOT / 'game/scripts/novel/novel_content.gd').read_text()
+        matches = re.findall(r'"npc": "([a-z]+)".*?"opening_id": "([a-z_]+)", "opening": "([^"]+)"', source)
+        self.assertEqual(len(matches), 5)
+        for npc, line, text in matches:
+            self.assertEqual(server.NPC_LINES[npc][line], text)
+
     def test_every_visible_social_line_has_matching_server_audio(self):
         scenes = json.loads((server.DIALOGUE_ROOT / 'novel_daily_life.json').read_text())
         self.assertGreaterEqual(len(scenes), 8)

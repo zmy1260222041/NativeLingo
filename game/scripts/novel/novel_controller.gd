@@ -58,9 +58,15 @@ func _ready() -> void:
 	if boot_from_save:
 		_check_local_service()
 
-func start() -> void:
+func start(play_voice := true) -> void:
 	scene_changed.emit()
-	say(npc_id(), str(Content.place(location).opening))
+	_present_opening(play_voice)
+
+func _present_opening(play_voice := true) -> void:
+	var entry := Content.place(location)
+	say(npc_id(), str(entry.opening))
+	if play_voice and not npc_id().is_empty() and not GameState.game_finished:
+		_listen(npc_id(), str(entry.get("opening_id", "")))
 	if GameState.game_finished:
 		feedback.emit("三夜已度过。你已不再是陌生人。可在设置中开始新旅程。")
 
@@ -78,7 +84,7 @@ func travel(destination: String) -> bool:
 	advance_time(6.0)
 	save()
 	scene_changed.emit()
-	say(npc_id(), str(selected.opening))
+	_present_opening()
 	return true
 
 func cancel_activity() -> void:
@@ -109,6 +115,7 @@ func advance_time(seconds: float) -> void:
 func greet() -> void:
 	if npc_id().is_empty() or GameState.game_finished:
 		return
+	if not _can_start_conversation_action(): return
 	cancel_activity()
 	var channel := "gesture_fallback" if SpeechAdapter.runtime_speech_unavailable() else "gesture"
 	GameState.interact("npc", npc_id(), channel)
@@ -117,6 +124,7 @@ func greet() -> void:
 func talk() -> void:
 	if npc_id().is_empty() or GameState.game_finished:
 		return
+	if not _can_start_conversation_action(): return
 	if social_index >= 0 or not practice_word.is_empty():
 		cancel_activity()
 		scene_changed.emit()
@@ -126,30 +134,51 @@ func talk() -> void:
 		GameState.interact("npc", npc_id(), "action")
 		feedback.emit("当前语音不可用，可点「手势」继续交流。" if SpeechAdapter.runtime_speech_unavailable() else "点「录音」，用英语向 %s 问好；再点一次结束。" % npc_id().capitalize())
 
+func conversation_block_reason() -> String:
+	if SpeechAdapter.is_recording(): return "正在录音"
+	if NpcVoice.audio_player != null and NpcVoice.audio_player.playing:
+		return "对方正在说话"
+	if not NpcVoice.playing_line_id.is_empty(): return "对方正在说话"
+	if _listening or not NpcVoice.pending_line_id.is_empty() or not NpcVoice.pending_reply_id.is_empty() or not NpcVoice.line_queue.is_empty():
+		return "正在准备语音"
+	if Dialogue.state_for(npc_id()) in ["generating", "speaking"]:
+		return "正在等待回应"
+	if SpeechAdapter._request_in_flight(): return "正在处理录音"
+	return ""
+
+func _can_start_conversation_action() -> bool:
+	var reason := conversation_block_reason()
+	if reason.is_empty(): return true
+	feedback.emit(reason + "，结束后再操作。")
+	return false
+
+func recording_block_reason() -> String:
+	# The player's stop button stays usable while other speech actions are locked.
+	return "" if SpeechAdapter.is_recording() else conversation_block_reason()
+
 func record() -> void:
 	if SpeechAdapter.is_recording():
 		SpeechAdapter.finish_recording()
 		return
 	if GameState.game_finished or npc_id().is_empty():
 		return
+	var blocked := recording_block_reason()
+	if not blocked.is_empty():
+		feedback.emit(blocked + "，结束后再录音。")
+		return
 	if social_index >= 0:
 		cancel_activity()
-	if _listening or not NpcVoice.playing_line_id.is_empty() or not NpcVoice.pending_line_id.is_empty():
-		feedback.emit("先听完示范，再开口。")
-		return
 	if not practice_word.is_empty():
 		SpeechAdapter.start_word_recording(practice_word)
-		return
-	if Dialogue.state_for(npc_id()) in ["generating", "speaking"]:
-		feedback.emit("等对方说完，再继续。")
 		return
 	if SpeechAdapter.cloud_mode_enabled() and not SpeechAdapter.cloud_activated():
 		feedback.emit("可在设置中激活语音；现在也可以用手势继续生活。")
 		return
 	if GameState.can_start_service_dialogue(npc_id()) and not NpcDialogueService.is_session_active_for(npc_id()):
-		talk()
-		if _listening:
-			feedback.emit("先听对方招呼，再点录音回答。")
+		# Entry audio was already presented on arrival. Opening the session for
+		# a recording must never start that greeting again.
+		if not NpcDialogueService.begin_scenario(npc_id(), GameState.service_scenario_for(npc_id()), false):
+			feedback.emit("暂时无法开始交谈，请稍后重试。")
 			return
 	if SpeechAdapter.start_recording(npc_id()):
 		order_note.clear()
@@ -392,13 +421,14 @@ func save() -> bool:
 	GameState.presentation_state["history"] = history
 	return GameState.save_game()
 
-func restart() -> void:
+func restart(play_voice := true) -> void:
 	cancel_activity()
 	GameState.reset_run()
 	location = "plaza"
 	history.clear()
+	GameState.presentation_state.clear()
 	save()
-	start()
+	start(play_voice)
 
 func _check_local_service() -> void:
 	if SpeechAdapter.cloud_mode_enabled() or not SpeechAdapter.is_available():
@@ -440,10 +470,12 @@ func _listen(npc: String, line: String, options: Array = []) -> void:
 	_listening = true
 	if not NpcVoice.request_line(npc, line, "", "wav", options):
 		_listening = false
+		feedback.emit("语音暂时无法播放，请检查连接后点「重听」。")
 
 func listen_again() -> void:
 	if _replay.is_empty() or SpeechAdapter.is_interaction_active() or Dialogue.state_for(npc_id()) in ["generating", "speaking"]:
 		return
+	if not _can_start_conversation_action(): return
 	NpcVoice.stop_all()
 	_listening = true
 	if _replay.has("reply"):

@@ -155,7 +155,7 @@ func cloud_token() -> String:
 	return str(config.get_value("stranger_cloud", "token", "")).strip_edges()
 
 
-func begin_scenario(npc_id: String, scenario_id := "") -> bool:
+func begin_scenario(npc_id: String, scenario_id := "", announce_entry := true) -> bool:
 	var npc := npc_id.strip_edges().to_lower()
 	if npc.is_empty():
 		return false
@@ -196,7 +196,7 @@ func begin_scenario(npc_id: String, scenario_id := "") -> bool:
 	var scenario: Dictionary = _registry().get_scenario(selected)
 	var entry_dialogue := str(scenario.get("entry_dialogue", "")).strip_edges()
 	_dialogue().await_player(npc, "entry_dialogue")
-	if not entry_dialogue.is_empty():
+	if announce_entry and not entry_dialogue.is_empty():
 		scenario_opened.emit(npc, selected, entry_dialogue)
 	_restart_session_timeout()
 	return true

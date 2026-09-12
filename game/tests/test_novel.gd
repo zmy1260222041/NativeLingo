@@ -19,6 +19,8 @@ func _ready() -> void:
 	screen.boot_from_save = false
 	add_child(screen)
 	model = screen.model
+	await _test_recording_playback_conflict()
+	await _test_startup_and_opening()
 	await _test_ux_clarity()
 	await get_tree().process_frame
 	screen.place_buttons[1].pressed.emit()
@@ -274,3 +276,89 @@ func _test_ux_clarity() -> void:
 	GameState.reset_run()
 	model.travel("plaza")
 	await get_tree().process_frame
+
+
+func _test_startup_and_opening() -> void:
+	model.travel("food")
+	GameState.presentation_state["guide_seen"] = true
+	screen.startup_pending = true
+	screen._open_panel("startup")
+	screen._close_panel()
+	check(screen.modal.visible and model.location == "food", "Startup choice cannot be dismissed into the saved scene")
+	screen._continue_journey()
+	check(not screen.modal.visible and model.location == "food", "Continue deliberately restores the saved location")
+	check(model._replay.get("npc") == "tavi" and model._replay.get("line") == "service_entry", "Continue queues a replayable, server-known opening voice")
+	var original_path: String = model.novel_save_path
+	model.novel_save_path = "user://startup_no_save_%d.json" % Time.get_ticks_usec()
+	screen._new_journey()
+	check(model.location == "plaza" and GameState.day == 1 and screen.modal_kind == "guide", "A new journey returns to day-one plaza with onboarding")
+	check(not GameState.presentation_state.get("guide_seen", false), "Restart clears the previous onboarding completion flag")
+	screen._close_panel()
+	check(model._replay.get("npc") == "mira" and model._replay.get("line") == "greet_reply", "Leaving onboarding plays the plaza welcome")
+	model.novel_save_path = original_path
+	await get_tree().process_frame
+
+
+func _test_recording_playback_conflict() -> void:
+	model.travel("food")
+	model.cancel_activity()
+	model.start(false)
+	var opened: Array = []
+	var on_open := func(npc, scenario, text): opened.append([npc, scenario, text])
+	NpcDialogueService.scenario_opened.connect(on_open)
+	var pcm := PackedByteArray()
+	pcm.resize(24000) # Half a second of synthetic PCM, no microphone input.
+	NpcVoice.feed_reply_pcm("tavi", "test-opening", pcm)
+	screen._refresh_record_button()
+	check(screen.record_button.disabled, "Record control is unavailable while NPC audio plays")
+	var stream = NpcVoice.audio_player.stream
+	for attempt in range(4):
+		# Exercise the model guard even if a queued signal bypasses disabled UI.
+		screen.record_button.pressed.emit()
+		var key := InputEventAction.new()
+		key.action = "push_to_talk"
+		key.pressed = true
+		screen._unhandled_input(key)
+	check(NpcVoice.audio_player.stream == stream and NpcVoice.playing_line_id == "test-opening", "Repeated mouse/key attempts do not replace or restart NPC audio")
+	check(not SpeechAdapter.is_recording() and opened.is_empty(), "Playback clicks neither capture NPC audio nor reopen the greeting")
+	await get_tree().create_timer(0.7).timeout
+	screen._refresh_record_button()
+	check(not screen.record_button.disabled, "Record becomes available after the real playback-finished signal")
+	NpcVoice.pending_reply_id = "pending-test-reply"
+	screen._refresh_record_button()
+	check(screen.record_button.disabled, "A pending dynamic reply also blocks recording")
+	NpcVoice.pending_reply_id = ""
+	var prior_effect = SpeechAdapter.record_effect
+	var prior_available = SpeechAdapter.availability_override
+	var bus := AudioServer.bus_count
+	AudioServer.add_bus()
+	AudioServer.set_bus_name(bus, "NovelRecordConflict")
+	AudioServer.set_bus_mute(bus, true)
+	SpeechAdapter.record_effect = AudioEffectRecord.new()
+	AudioServer.add_bus_effect(bus, SpeechAdapter.record_effect)
+	var source := AudioStreamPlayer.new()
+	source.bus = "NovelRecordConflict"
+	var silence := AudioStreamWAV.new()
+	silence.format = AudioStreamWAV.FORMAT_16_BITS
+	silence.mix_rate = 24000
+	silence.data = pcm
+	source.stream = silence
+	add_child(source)
+	source.play()
+	await get_tree().create_timer(0.1).timeout
+	SpeechAdapter.availability_override = true
+	model.record()
+	check(SpeechAdapter.is_recording() and NpcDialogueService.is_session_active_for("tavi"), "First click after playback starts recording in a valid session")
+	check(opened.is_empty() and NpcVoice.playing_line_id.is_empty(), "Starting the session for recording never repeats the arrival greeting")
+	screen._refresh_record_button()
+	check(not screen.record_button.disabled and screen.record_button.text.contains("结束录音"), "The player's stop-recording control remains available")
+	SpeechAdapter.cancel_recording()
+	source.stop()
+	source.queue_free()
+	AudioServer.remove_bus(bus)
+	SpeechAdapter.record_effect = prior_effect
+	SpeechAdapter.availability_override = prior_available
+	NpcDialogueService.scenario_opened.disconnect(on_open)
+	model.cancel_activity()
+	GameState.reset_run()
+	model.travel("plaza")

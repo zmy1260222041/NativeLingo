@@ -11,6 +11,7 @@ const MUTED := Palette.MUTED
 const ACCENT := Palette.ACCENT
 const POSITIVE := Palette.POSITIVE
 const SETTINGS := "user://stranger_novel_settings.cfg"
+var startup_pending := false
 var model: Node
 var canvas: Control
 var background: TextureRect
@@ -32,6 +33,8 @@ var clock_label: Label
 var objective_label: Label
 var relationship_label: Label
 var gesture_button: Button
+var talk_button: Button
+var replay_button: Button
 var home_action_button: Button
 var record_button: Button
 var action_row: HBoxContainer
@@ -90,11 +93,15 @@ func _ready() -> void:
 	canvas.add_child(remap)
 	remap.closed.connect(func(): _open_panel("settings"))
 	remap.bindings_changed.connect(_rebuild_actions)
-	model.start()
+	model.start(false)
 	_refresh()
-	if boot_from_save and not bool(GameState.presentation_state.get("guide_seen", false)):
-		_open_panel("guide")
-	if modal.visible: close_button.grab_focus()
+	if boot_from_save:
+		if FileAccess.file_exists(model.novel_save_path) or FileAccess.file_exists(model.old_save_path):
+			startup_pending = true
+			_open_panel("startup")
+		else:
+			_open_panel("guide")
+	if modal.visible: _focus_modal()
 	else: place_buttons[0].grab_focus()
 
 func _build_theme() -> void:
@@ -190,9 +197,16 @@ func _button(parent: Node, text: String, callback: Callable, rect := Rect2()) ->
 	if rect.size != Vector2.ZERO:
 		button.size = rect.size
 	button.custom_minimum_size.y = 44
-	button.pressed.connect(callback)
+	button.pressed.connect(_activate_button.bind(button, callback))
 	parent.add_child(button)
 	return button
+
+func _activate_button(button: Button, callback: Callable) -> void:
+	# Rebuilds and modal transitions can leave a pressed callback queued.
+	if not button.is_inside_tree() or not button.is_visible_in_tree() or button.disabled: return
+	if remap != null and remap.visible: return
+	if modal != null and modal.visible and not modal.is_ancestor_of(button): return
+	callback.call()
 
 func _texture(parent: Node, rect: Rect2) -> TextureRect:
 	var image := TextureRect.new()
@@ -362,6 +376,7 @@ func _process(delta: float) -> void:
 	text_elapsed += delta
 	dialogue_text.visible_characters = -1 if instant_text or reduce_motion else int(text_elapsed * 44.0)
 	_refresh_advance()
+	_refresh_record_button()
 	if toast_remaining > 0.0:
 		toast_remaining -= delta
 		if toast_remaining <= 0.0:
@@ -409,10 +424,12 @@ func _rebuild_actions() -> void:
 	home_action_button = null
 	record_button = null
 	gesture_button = null
+	talk_button = null
+	replay_button = null
 	counter_button = null
 	advance_button = null
 	if model.social_index >= 0:
-		_button(action_row, "重听这一句", func(): model.listen_again())
+		replay_button = _button(action_row, "重听这一句", func(): model.listen_again())
 		_button(action_row, "回到现场", func(): model.cancel_activity(); model.start())
 		_action_space()
 		advance_button = _button(action_row, "下一句  →", _advance)
@@ -421,7 +438,7 @@ func _rebuild_actions() -> void:
 		_action_space()
 		_button(action_row, "开始新旅程", _open_panel.bind("restart"))
 	elif not model.practice_word.is_empty():
-		_button(action_row, "重听示范", func(): model.listen_again())
+		replay_button = _button(action_row, "重听示范", func(): model.listen_again())
 		_button(action_row, "结束练习", _end_practice)
 		_action_space()
 		record_button = _button(action_row, "录制这个词", func(): model.record())
@@ -433,14 +450,14 @@ func _rebuild_actions() -> void:
 			if GameState._wants_sleep(): model.sleep()
 			else: model.wait_until_evening(); _show_scene())
 	else:
-		_button(action_row, ("交谈  " if GameState.can_start_service_dialogue(model.npc_id()) else "打招呼  ") + Glyphs.for_action("interact", false), func(): model.talk())
+		talk_button = _button(action_row, ("交谈  " if GameState.can_start_service_dialogue(model.npc_id()) else "打招呼  ") + Glyphs.for_action("interact", false), func(): model.talk())
 		gesture_button = _button(action_row, "手势  G", func(): model.greet())
 		if GameState.can_start_service_dialogue(model.npc_id()):
 			counter_button = _button(action_row, "查看柜台", _open_panel.bind("counter"))
 		else:
 			_button(action_row, "听日常", _open_panel.bind("theater"))
 		_action_space()
-		_button(action_row, "重听", func(): model.listen_again())
+		replay_button = _button(action_row, "重听", func(): model.listen_again())
 		_button(action_row, "开口灵感", _open_panel.bind("phrases"))
 		record_button = _button(action_row, "录音  V", func(): model.record())
 	for child in action_row.get_children():
@@ -564,14 +581,30 @@ func _refresh() -> void:
 		order_panel.visible = true
 		order_title.text = "可以入睡了" if GameState._wants_sleep() else "先歇一会儿"
 		order_detail.text = "睡眠会进入下一天，恢复精力与温暖。" if GameState._wants_sleep() else "休息会快进到夜晚，并少量消耗饱腹、温暖和精力。"
-	if is_instance_valid(record_button):
-		var label := "录制这个词  " if not model.practice_word.is_empty() else "录音  "
-		record_button.text = ("结束录音  " if SpeechAdapter.is_recording() else label) + Glyphs.for_action("push_to_talk", false)
+	_refresh_record_button()
 	if is_instance_valid(gesture_button):
 		gesture_button.text = ("手势领取  " if SpeechAdapter.runtime_speech_unavailable() and GameState.can_start_service_dialogue(npc) else "手势  ") + Glyphs.for_action("gesture", false)
 	if modal.visible and modal_kind in ["bag", "counter", "home", "growth"] and not panel_refresh_queued:
 		panel_refresh_queued = true
 		call_deferred("_refresh_panel")
+
+func _refresh_record_button() -> void:
+	if model == null: return
+	var busy: String = model.conversation_block_reason()
+	for button in [talk_button, gesture_button, replay_button]:
+		if is_instance_valid(button):
+			button.disabled = not busy.is_empty()
+			button.tooltip_text = busy + "，结束后再操作。" if not busy.is_empty() else ""
+	if not is_instance_valid(record_button): return
+	var reason: String = model.recording_block_reason()
+	record_button.disabled = not reason.is_empty()
+	if not reason.is_empty():
+		record_button.text = reason + "…"
+		record_button.tooltip_text = "语音结束后即可录音；此时点击不会中断或重播。"
+	else:
+		var label := "录制这个词  " if not model.practice_word.is_empty() else "录音  "
+		record_button.text = ("结束录音  " if SpeechAdapter.is_recording() else label) + Glyphs.for_action("push_to_talk", false)
+		record_button.tooltip_text = ""
 
 func _toast(text: String) -> void:
 	feedback_label.text = text
@@ -587,6 +620,8 @@ func _toast(text: String) -> void:
 func _advance() -> void:
 	if dialogue_text.visible_characters >= 0 and dialogue_text.visible_characters < dialogue_text.get_total_character_count():
 		text_elapsed = 9999.0
+		dialogue_text.visible_characters = -1
+		_refresh_advance()
 		return
 	if model.social_index >= 0:
 		model.next_social()
@@ -595,28 +630,43 @@ func _advance() -> void:
 
 func _open_panel(kind: String) -> void:
 	if not modal.visible: previous_focus = get_viewport().gui_get_focus_owner()
-	if kind in ["bag", "counter", "home", "theater", "phrases", "growth", "settings", "restart"]:
-		var was_social: bool = model.social_index >= 0
+	if kind in ["bag", "counter", "home", "theater", "phrases", "growth", "settings", "restart", "history", "help"]:
+		var was_activity: bool = model.social_index >= 0 or not model.practice_word.is_empty()
 		model.cancel_activity()
-		if was_social: _show_scene()
+		if was_activity: model.start(false)
+	close_button.visible = kind != "startup"
 	modal_kind = kind
 	modal.visible = true
 	modal_scrim.visible = true
 	modal_status.text = ""
 	_refresh_panel()
-	close_button.grab_focus()
+	_focus_modal()
+
+func _focus_modal() -> void:
+	if not modal.visible: return
+	if startup_pending:
+		for child in modal_body.get_children():
+			if child is Button:
+				child.grab_focus()
+				return
+	else: close_button.grab_focus()
 
 func _close_panel() -> void:
-	if modal == null: return
+	if modal == null or not modal.visible or startup_pending: return
+	var leaving_guide := modal_kind == "guide"
 	modal.visible = false
 	modal_scrim.visible = false
 	modal_kind = ""
+	if leaving_guide:
+		GameState.presentation_state["guide_seen"] = true
+		model.save()
+		model.start()
 	if is_instance_valid(previous_focus) and previous_focus.is_visible_in_tree():
 		previous_focus.grab_focus()
 
 func _contain_modal_focus(control: Control) -> void:
 	if modal.visible and control != null and control != modal and not modal.is_ancestor_of(control):
-		close_button.grab_focus.call_deferred()
+		_focus_modal.call_deferred()
 
 func _row_label(text: String, font_size := 20, color := TEXT) -> Label:
 	var label := Label.new()
@@ -639,6 +689,13 @@ func _refresh_panel() -> void:
 		modal_body.remove_child(child)
 		child.queue_free()
 	match modal_kind:
+		"startup":
+			modal_title.text = "异乡人 / 开始旅程"
+			_row_label("从这里继续，或重新认识这座聚落。", 28)
+			_row_label("上次进度：第 %d 天 · %s" % [GameState.day, Content.place(model.location).name])
+			_button(modal_body, "继续上次旅程", _continue_journey)
+			_button(modal_body, "从头开始 · 重新体验引导", _new_journey)
+			_row_label("从头开始会先保留旧存档副本，再回到第一天的广场。", 18, MUTED)
 		"guide":
 			modal_title.text = "第一天 / 先吃一顿热饭"
 			_row_label("慢慢来，从一句点餐开始。", 28)
@@ -646,11 +703,7 @@ func _refresh_panel() -> void:
 			_row_label("2  点录音说出想吃什么，再点一次结束。不会说时，看看「开口灵感」。")
 			_row_label("3  对方交付后，点柜台领取：现在吃，或装进行囊。")
 			_row_label("阅读不消耗时间。没有语音连接时，可用手势领取。其他操作随时在设置中查看。", 18, MUTED)
-			_button(modal_body, "去餐摊，开始第一天", func():
-				GameState.presentation_state["guide_seen"] = true
-				_close_panel()
-				model.travel("food")
-				model.save())
+			_button(modal_body, "从广场开始第一天", _close_panel)
 		"help":
 			modal_title.text = "操作说明 / 按自己的节奏"
 			_row_label("交谈：点录音说话，再点一次结束。对方说完交付物品后，到柜台领取。")
@@ -685,7 +738,7 @@ func _refresh_panel() -> void:
 		"restart":
 			modal_title.text = "开始新旅程？"
 			_row_label("这会重置当前 2D 旅程的物品、三夜进度、关系与回忆。已习得的词汇保留，旧版 3D 存档不受影响。")
-			_button(modal_body, "确认开始新旅程", func(): _close_panel(); model.restart())
+			_button(modal_body, "确认开始新旅程", _new_journey)
 
 func _items_panel() -> void:
 	modal_title.text = {"bag": "行囊  /  为下一段日常留点余地", "counter": "柜台  /  收好你的这一份", "home": "小屋  /  把日子安放好"}[modal_kind]
@@ -793,6 +846,25 @@ func _practice(word: String) -> void:
 	_refresh()
 	record_button.grab_focus()
 
+func _continue_journey() -> void:
+	startup_pending = false
+	_close_panel()
+	if not bool(GameState.presentation_state.get("guide_seen", false)):
+		_open_panel("guide")
+	else:
+		model.start()
+
+func _new_journey() -> void:
+	if FileAccess.file_exists(model.novel_save_path):
+		var backup := str(model.novel_save_path) + ".backup-" + str(Time.get_unix_time_from_system())
+		if DirAccess.copy_absolute(model.novel_save_path, backup) != OK:
+			_toast("旧存档副本保存失败，尚未重置。请检查磁盘空间。")
+			return
+	startup_pending = false
+	_close_panel()
+	model.restart(false)
+	_open_panel("guide")
+
 func _end_practice() -> void:
 	model.cancel_activity()
 	model.start()
@@ -854,6 +926,6 @@ func _save_settings() -> void:
 	config.save(SETTINGS)
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_CLOSE_REQUEST and model != null:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST and model != null and not startup_pending:
 		model.cancel_activity()
 		model.save()

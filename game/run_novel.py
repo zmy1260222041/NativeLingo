@@ -43,10 +43,14 @@ def main():
         if not health():
             raise SystemExit(f'语音服务未启动，请查看 {log_path}')
     print('本地语音已连接。游戏设置中会单独检查在线交谈模型。')
-    if app.exists() and sys.platform == 'darwin':
+    # In a development checkout use the installed engine and current sources.
+    # This also avoids silently launching a stale exported bundle.
+    if engine:
+        subprocess.Popen([engine, '--path', str(ROOT / 'game'), 'res://scenes/Novel.tscn'], cwd=ROOT, start_new_session=True)
+    elif app.exists() and sys.platform == 'darwin':
         subprocess.run(['open', str(app)], check=True)
     else:
-        subprocess.Popen([engine, '--path', str(ROOT / 'game'), 'res://scenes/Novel.tscn'], cwd=ROOT, start_new_session=True)
+        raise SystemExit('当前平台没有可用的 Godot 引擎。')
 
 
 if __name__ == '__main__':
