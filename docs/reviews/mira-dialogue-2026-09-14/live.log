@@ -1,0 +1,21 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5
+
+OK: The 2D record button starts an audio capture session
+OK: Mira recording reaches transcription
+OK: Mira dynamic reply audio finishes
+OK: Mira responds instead of repeating the authored greeting
+OK: Mira reply comes from the live model
+OK: Social dialogue does not show an order receipt
+OK: Social dialogue cannot grant supplies
+MIRA_TURN 0 heard=hi mira how are you today? reply=I'm doing great, thanks for asking!
+OK: The 2D record button starts an audio capture session
+OK: Mira recording reaches transcription
+OK: Mira dynamic reply audio finishes
+OK: Mira responds instead of repeating the authored greeting
+OK: Mira reply comes from the live model
+OK: Social dialogue does not show an order receipt
+OK: Social dialogue cannot grant supplies
+OK: Follow-up retains the same conversation session
+MIRA_TURN 1 heard=i have had a tiring day what do you like about working here reply=I'm sorry you're tired, but I love meeting new people here every day.
+MIRA_LIVE failures=0

@@ -1,0 +1,84 @@
+{
+  "mode": "built-in imagegen",
+  "status": "Completed: six backgrounds and eight genuine RGBA portraits integrated after explicit user authorization for local matte extraction.",
+  "assets": [
+    {
+      "id": "class",
+      "prompt": "Use case: stylized-concept. Create one finished standalone 16:9 landscape background for a fictional American undergraduate campus visual novel. Reference image is STYLE ONLY: match its warm detailed hand-painted illustrative finish, fine confident contours, dappled golden light, layered teal-sage foliage, terracotta, warm cream and brass-brown. Subject: red-brick academic building beside a tree-lined walkway, open classroom door, benches, warm stone lintels and sunlit windows. Ordinary contemporary American campus, no alien architecture. Main entrance upper center-right; quiet open foreground; leftmost 20 percent and lower 35 percent covered by game UI. No people, lettering, signs, brands, UI, watermark, panels or borders. One continuous image, not an atlas.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-d3651af8-e09d-455c-be93-1766f05efe46.png"
+    },
+    {
+      "id": "study",
+      "prompt": "Use case: stylized-concept. One finished standalone 16:9 landscape production background for fictional American undergraduate campus visual novel. Reference is STYLE ONLY, match its rich warm hand-painted illustration, fine confident contours, softly painted golden natural light, tactile wood and stone detail, terracotta, cream, layered sage-teal plants. Subject: A quiet campus library study room, wooden shared tables, bookshelves, sage plants, tall windows overlooking the red-brick campus lawn. An inviting unoccupied study place. Contemporary everyday university, no magical objects. Eye-level composition with quiet foreground; essential landmarks in upper middle and upper right, leftmost 20 percent and lower 35 percent are UI safe zones. No people, faces, writing, numbers, logos, UI, watermark, alien content, panels or borders. One continuous scene, not atlas.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-cae708a7-a1f5-4e48-8c33-4e35107b6d54.png"
+    },
+    {
+      "id": "club",
+      "prompt": "Use case: stylized-concept. One finished standalone 16:9 landscape production background for fictional American undergraduate campus visual novel. Reference is STYLE ONLY, match its rich warm hand-painted illustration, fine confident contours, softly painted golden natural light, tactile wood and stone detail, terracotta, cream, layered sage-teal plants. Subject: Campus student activity center shared lounge, warm wooden furniture, sage sofa, cork noticeboard with blank color papers, folded activity tables, a camera and craft materials. Tall windows show a red-brick campus. Lived-in but orderly contemporary common room. Eye-level composition with quiet foreground; essential landmarks in upper middle and upper right, leftmost 20 percent and lower 35 percent are UI safe zones. No people, faces, writing, numbers, logos, UI, watermark, alien content, panels or borders. One continuous scene, not atlas.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-f6b0aa46-de2a-439b-84df-433b5ec12fce.png"
+    },
+    {
+      "id": "dining",
+      "prompt": "Use case: stylized-concept. One finished standalone 16:9 landscape production background for fictional American undergraduate campus visual novel. Reference is STYLE ONLY, match its rich warm hand-painted illustration, fine confident contours, softly painted golden natural light, tactile wood and stone detail, terracotta, cream, layered sage-teal plants. Subject: Warm bright university dining commons, wooden tables and chairs, clear food service counter in upper center-right, simple prepared food in trays, quiet window seats, sage-painted cabinetry and terracotta tiles, campus trees outside. No menu lettering or brands. Eye-level composition with quiet foreground; essential landmarks in upper middle and upper right, leftmost 20 percent and lower 35 percent are UI safe zones. No people, faces, writing, numbers, logos, UI, watermark, alien content, panels or borders. One continuous scene, not atlas.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-270d695d-7b99-4c9e-a119-ab9ce352dd6e.png"
+    },
+    {
+      "id": "sports",
+      "prompt": "Use case: stylized-concept. One finished standalone 16:9 landscape production background for fictional American undergraduate campus visual novel. Reference is STYLE ONLY, match its rich warm hand-painted illustration, fine confident contours, softly painted golden natural light, tactile wood and stone detail, terracotta, cream, layered sage-teal plants. Subject: Tree-ringed university recreation area with an open multi-use sports court and adjacent grass lawn, red-brick recreation pavilion upper right, benches, sage trees and a low fence. Everyday modern campus, no people or specific competition in progress. Eye-level composition with quiet foreground; essential landmarks in upper middle and upper right, leftmost 20 percent and lower 35 percent are UI safe zones. No people, faces, writing, numbers, logos, UI, watermark, alien content, panels or borders. One continuous scene, not atlas.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-4295de89-faa3-4e64-9605-edae3abf02f9.png"
+    },
+    {
+      "id": "home",
+      "prompt": "Use case: stylized-concept. One finished standalone 16:9 landscape production background for fictional American undergraduate campus visual novel. Reference is STYLE ONLY, match its rich warm hand-painted illustration, fine confident contours, softly painted golden natural light, tactile wood and stone detail, terracotta, cream, layered sage-teal plants. Subject: Comfortable modest contemporary student room corner, wooden desk with closed laptop and books, brass reading lamp, made bed, an oatmeal jacket on a hook, potted plant by window overlooking red-brick campus and leafy trees. Warm late afternoon light, tidy but lived-in, no personal photos. Eye-level composition with quiet foreground; essential landmarks in upper middle and upper right, leftmost 20 percent and lower 35 percent are UI safe zones. No people, faces, writing, numbers, logos, UI, watermark, alien content, panels or borders. One continuous scene, not atlas.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-5b7c5dc5-5971-4acd-8105-75359be94dec.png"
+    },
+    {
+      "id": "alex",
+      "prompt": "Use case: precise-object-edit. Change ONLY the checkerboard background of this Alex sprite to a perfectly flat solid #FF00FF pure magenta matte background. Remove checkerboard everywhere including gaps between arm and torso and between legs. Preserve exact character, entire head, face, hair, sage jacket, cream shirt, folded notes, canvas bag, hands, linework, warm colors, framing and dimensions. No shadow, no gradient or texture on background, no text.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-5ad29e55-0ff7-4f5c-9be7-a4e2d8f97005.png",
+      "kind": "character"
+    },
+    {
+      "id": "maya",
+      "prompt": "Use case: illustration-story. ONE original adult HUMAN production sprite for contemporary American campus visual novel. Subject: Maya, adult woman undergraduate age 23, wavy shoulder-length dark-brown hair, terracotta knitted cardigan over cream top, muted blue jeans, holding a closed teal book loosely at her waist, relaxed and thoughtful expression. Reference image is drawing STYLE and framing reference only; create a distinct face and identity, not same person. Match crisp dark hand-inked contours, warm muted colors, softly painted cel shading, believable cloth folds, individual facial features, natural adult proportions. Standing three-quarter pose facing slightly toward viewer left, knees-up, entire head and hands visible, small clear margins, portrait 2:3. SOLID FLAT PURE MAGENTA #FF00FF background for later compositing, absolutely no checkerboard or texture in background, no shadows on background. No magenta in character. No scenery, text, brand, watermark, ground shadow, alien anatomy, armor, photorealism, chibi, exaggerated smile. One character only.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-afda720c-c964-4de9-bc6a-22b66ccfa515.png",
+      "kind": "character"
+    },
+    {
+      "id": "jules",
+      "prompt": "Use case: illustration-story. ONE original adult HUMAN production sprite for contemporary American campus visual novel. Subject: Jules, androgynous adult undergraduate age 23, short straight dark hair, round dark glasses, blue-gray button shirt with rolled sleeves and charcoal trousers, camera hanging from a narrow neck strap, one hand lightly touching the camera, attentive neutral expression. Reference image is drawing STYLE and framing reference only; create a distinct face and identity, not same person. Match crisp dark hand-inked contours, warm muted colors, softly painted cel shading, believable cloth folds, individual facial features, natural adult proportions. Standing three-quarter pose facing slightly toward viewer left, knees-up, entire head and hands visible, small clear margins, portrait 2:3. SOLID FLAT PURE MAGENTA #FF00FF background for later compositing, absolutely no checkerboard or texture in background, no shadows on background. No magenta in character. No scenery, text, brand, watermark, ground shadow, alien anatomy, armor, photorealism, chibi, exaggerated smile. One character only.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-51fd5318-250a-4d55-b40c-ce42bc866dc8.png",
+      "kind": "character"
+    },
+    {
+      "id": "sam",
+      "prompt": "Use case: illustration-story. ONE original adult HUMAN production sprite for contemporary American campus visual novel. Subject: Sam, adult male undergraduate age 24, dark brown skin, short tightly curled black hair, oatmeal overshirt over faded terracotta t-shirt, muted dark jeans, wristwatch and backpack over one shoulder, relaxed natural hands, friendly composed expression. Reference image is drawing STYLE and framing reference only; create a distinct face and identity, not same person. Match crisp dark hand-inked contours, warm muted colors, softly painted cel shading, believable cloth folds, individual facial features, natural adult proportions. Standing three-quarter pose facing slightly toward viewer left, knees-up, entire head and hands visible, small clear margins, portrait 2:3. SOLID FLAT PURE MAGENTA #FF00FF background for later compositing, absolutely no checkerboard or texture in background, no shadows on background. No magenta in character. No scenery, text, brand, watermark, ground shadow, alien anatomy, armor, photorealism, chibi, exaggerated smile. One character only.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-66e408af-3098-4b2e-ad0a-749220774b79.png",
+      "kind": "character"
+    },
+    {
+      "id": "riley",
+      "prompt": "Use case: illustration-story. ONE original adult HUMAN production sprite for contemporary American campus visual novel. Subject: Riley, adult male campus club organizer age 25, medium brown skin, short curly auburn hair, olive-brown casual jacket over slate blue shirt, tan trousers, holding plain rust-brown event folder at his side, confident pragmatic expression. Reference image is drawing STYLE and framing reference only; create a distinct face and identity, not same person. Match crisp dark hand-inked contours, warm muted colors, softly painted cel shading, believable cloth folds, individual facial features, natural adult proportions. Standing three-quarter pose facing slightly toward viewer left, knees-up, entire head and hands visible, small clear margins, portrait 2:3. SOLID FLAT PURE MAGENTA #FF00FF background for later compositing, absolutely no checkerboard or texture in background, no shadows on background. No magenta in character. No scenery, text, brand, watermark, ground shadow, alien anatomy, armor, photorealism, chibi, exaggerated smile. One character only.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-b3ee6a0d-6964-445d-8f9e-5f7eae2c0499.png",
+      "kind": "character"
+    },
+    {
+      "id": "casey",
+      "prompt": "Use case: illustration-story. ONE original adult HUMAN production sprite for contemporary American campus visual novel. Subject: Casey, adult woman undergraduate and recreation partner age 23, dark hair tied into a low ponytail beneath a sage baseball cap, desaturated teal athletic zip jacket over oatmeal shirt, dark navy track pants, holding plain stainless water bottle, focused approachable expression. Reference image is drawing STYLE and framing reference only; create a distinct face and identity, not same person. Match crisp dark hand-inked contours, warm muted colors, softly painted cel shading, believable cloth folds, individual facial features, natural adult proportions. Standing three-quarter pose facing slightly toward viewer left, knees-up, entire head and hands visible, small clear margins, portrait 2:3. SOLID FLAT PURE MAGENTA #FF00FF background for later compositing, absolutely no checkerboard or texture in background, no shadows on background. No magenta in character. No scenery, text, brand, watermark, ground shadow, alien anatomy, armor, photorealism, chibi, exaggerated smile. One character only.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-d68ff3ab-961e-4d52-89a0-038d16138374.png",
+      "kind": "character"
+    },
+    {
+      "id": "prof_chen",
+      "prompt": "Use case: illustration-story. ONE original adult HUMAN production sprite for contemporary American campus visual novel. Subject: Professor Chen, adult male teacher age 52, East Asian human appearance, short salt-and-pepper hair, rectangular glasses, gray-green cardigan over pale cream collared shirt and brown trousers, holding a small notebook at waist, listening attentively rather than lecturing. Reference image is drawing STYLE and framing reference only; create a distinct face and identity, not same person. Match crisp dark hand-inked contours, warm muted colors, softly painted cel shading, believable cloth folds, individual facial features, natural adult proportions. Standing three-quarter pose facing slightly toward viewer left, knees-up, entire head and hands visible, small clear margins, portrait 2:3. SOLID FLAT PURE MAGENTA #FF00FF background for later compositing, absolutely no checkerboard or texture in background, no shadows on background. No magenta in character. No scenery, text, brand, watermark, ground shadow, alien anatomy, armor, photorealism, chibi, exaggerated smile. One character only.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-b34fc75c-93e2-43a4-acd7-5e1f7ccb0b5e.png",
+      "kind": "character"
+    },
+    {
+      "id": "tavi",
+      "prompt": "Use case: illustration-story. ONE original adult HUMAN production sprite for contemporary American campus visual novel. Subject: Tavi, adult human woman dining worker age 35, warm medium-brown skin, dark curly hair tied into a practical bun, oatmeal apron over dark desaturated teal work shirt and brown trousers, natural hands lightly holding a folded linen towel at waist, busy composed professional expression. Reference image is drawing STYLE and framing reference only; create a distinct face and identity, not same person. Match crisp dark hand-inked contours, warm muted colors, softly painted cel shading, believable cloth folds, individual facial features, natural adult proportions. Standing three-quarter pose facing slightly toward viewer left, knees-up, entire head and hands visible, small clear margins, portrait 2:3. SOLID FLAT PURE MAGENTA #FF00FF background for later compositing, absolutely no checkerboard or texture in background, no shadows on background. No magenta in character. No scenery, text, brand, watermark, ground shadow, alien anatomy, armor, photorealism, chibi, exaggerated smile. One character only.",
+      "path": "/Users/a86138/.codex/generated_images/01a098f4-4e05-7791-9605-0d22bb8a0661/exec-16d3cd1f-eb60-4522-858a-3356da2acf34.png",
+      "kind": "character"
+    }
+  ]
+}

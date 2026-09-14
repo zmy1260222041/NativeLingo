@@ -11,6 +11,7 @@ signal word_score_finished(lexical_id: String, accepted: bool, expression: Dicti
 const SERVICE_URL := "http://127.0.0.1:17831/transcribe"
 const RECORDING_PATH := "user://stranger_speech_attempt"
 const MAX_RECORDING_SECONDS := 15.0
+const CAMPUS_RECORDING_SECONDS := 60.0
 ## Web Beta 首轮不包含语音：该自定义 feature 只在 Web Beta 导出预设中开启。
 const WEB_NO_VOICE_FEATURE := "web_beta_no_voice"
 ## Desktop Beta 同样以手势交付；语音增强版单独立项。
@@ -112,8 +113,9 @@ func _process(_delta: float) -> void:
 	if not is_recording():
 		return
 	var elapsed := float(Time.get_ticks_msec() - recording_started_msec) / 1000.0
-	recording_progress.emit(minf(elapsed, MAX_RECORDING_SECONDS), MAX_RECORDING_SECONDS)
-	if elapsed >= MAX_RECORDING_SECONDS:
+	var limit := CAMPUS_RECORDING_SECONDS if active_target_id.begins_with("campus:") else MAX_RECORDING_SECONDS
+	recording_progress.emit(minf(elapsed, limit), limit)
+	if elapsed >= limit:
 		finish_recording()
 
 func _exit_tree() -> void:
@@ -368,6 +370,7 @@ func _cloud_register_url() -> String:
 
 func _wants_fast_transcribe(target_id: String) -> bool:
 	var npc := target_id.strip_edges().to_lower()
+	if npc.begins_with("campus:"): return true
 	if npc.is_empty():
 		return false
 	var dynamic_service := get_tree().root.get_node_or_null(NodePath("NpcDialogueService"))

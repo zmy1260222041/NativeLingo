@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: production background for a fictional American undergraduate campus visual novel.
+Input image: game style reference only, not content to reproduce. Produce ONE new standalone image, not an atlas or contact sheet.
+Primary subject: A leafy campus recreation area with a general multipurpose outdoor activity surface, open lawn, shaded benches and a modest recreation building beyond. No sport-specific goal, hoop, painted court rules or equipment; suitable as a shared setting for different sports selected later.
+Style: Detailed original illustrated visual-novel art: confident fine dark linework, softly painted golden light, tactile restrained material detail, convincing volume, rich but muted sage foliage, warm cream, terracotta and brass-brown colors. Match the supplied game reference in rendering finish, edge definition, painterly depth and warmth. Do not reproduce its science-fiction world.
+Composition: landscape 16:9, eye-level, quiet open foreground. Keep essential scene landmarks in upper middle and upper right; leftmost 20 percent and lower 35 percent will be covered by game UI. Architectural proportions and daylight must feel believable.
+Constraints: no people, no faces, no lettering, no readable numbers, no logos, no signage, no UI, no watermarks, no alien architecture or planets. One continuous scene; no panels or borders.

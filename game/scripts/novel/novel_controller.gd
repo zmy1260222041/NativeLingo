@@ -156,6 +156,9 @@ func recording_block_reason() -> String:
 	# The player's stop button stays usable while other speech actions are locked.
 	return "" if SpeechAdapter.is_recording() else conversation_block_reason()
 
+func _spoken_scenario(target: String) -> String:
+	return "market_conversation" if target == "mira" else GameState.service_scenario_for(target)
+
 func record() -> void:
 	if SpeechAdapter.is_recording():
 		SpeechAdapter.finish_recording()
@@ -174,10 +177,10 @@ func record() -> void:
 	if SpeechAdapter.cloud_mode_enabled() and not SpeechAdapter.cloud_activated():
 		feedback.emit("可在设置中激活语音；现在也可以用手势继续生活。")
 		return
-	if GameState.can_start_service_dialogue(npc_id()) and not NpcDialogueService.is_session_active_for(npc_id()):
+	if not _spoken_scenario(npc_id()).is_empty() and not NpcDialogueService.is_session_active_for(npc_id()):
 		# Entry audio was already presented on arrival. Opening the session for
 		# a recording must never start that greeting again.
-		if not NpcDialogueService.begin_scenario(npc_id(), GameState.service_scenario_for(npc_id()), false):
+		if not NpcDialogueService.begin_scenario(npc_id(), _spoken_scenario(npc_id()), false):
 			feedback.emit("暂时无法开始交谈，请稍后重试。")
 			return
 	if SpeechAdapter.start_recording(npc_id()):
@@ -191,12 +194,13 @@ func _recognition(target: String, accepted: bool, transcript: String, reason: St
 		return
 	if transcript.is_empty():
 		NpcDialogueService.reject_empty_transcript(reason)
-		feedback.emit("没有听清，点录音再试一次。练习不消耗时间。")
+		feedback.emit(tr(reason) + " 点录音可免费重试。")
 		return
-	if GameState.can_start_service_dialogue(target) and NpcDialogueService.enabled():
+	if not _spoken_scenario(target).is_empty() and NpcDialogueService.enabled():
 		if not NpcDialogueService.is_session_active_for(target):
-			NpcDialogueService.begin_scenario(target, GameState.service_scenario_for(target))
-		NpcDialogueService.submit_transcript(transcript, {"pronunciation": float(expression.get("pronunciation", expression.get("score", -1.0)))})
+			NpcDialogueService.begin_scenario(target, _spoken_scenario(target), false)
+		if not NpcDialogueService.submit_transcript(transcript, {"pronunciation": float(expression.get("pronunciation", expression.get("score", -1.0)))}):
+			feedback.emit("这次录音已识别，但对话未能提交。请稍后免费重试。")
 	elif accepted:
 		say("you", transcript)
 		GameState.interact("npc", target, "voice", expression)
@@ -215,6 +219,11 @@ func _reply(npc: String, reply_id: String, text: String) -> void:
 		_replay = {"npc": npc, "reply": reply_id}
 
 func _dialogue_failed(npc: String, reason: String) -> void:
+	if npc == npc_id() and not _changing and not GameState.can_start_service_dialogue(npc):
+		order_note.clear()
+		feedback.emit("这次回应未能完成，可以免费重试。 " + tr(reason))
+		progression_changed.emit()
+		return
 	if npc == npc_id() and not _changing:
 		order_note = {"title": "这次还没有交付物品", "detail": "回应或语音未能完成。可以免费重试；语音不可用时，也能用手势领取。"}
 		if reason == "VOICE_REASON_CLARIFY":
@@ -224,6 +233,7 @@ func _dialogue_failed(npc: String, reason: String) -> void:
 		progression_changed.emit()
 
 func _service_turn_updated(npc: String, detail: Dictionary) -> void:
+	if not GameState.can_start_service_dialogue(npc): return
 	if npc != npc_id() or _changing: return
 	var item := _order_item_name(str(detail.item))
 	if detail.confirmed:
@@ -235,6 +245,7 @@ func _service_turn_updated(npc: String, detail: Dictionary) -> void:
 	progression_changed.emit()
 
 func _service_settled(npc: String, detail: Dictionary) -> void:
+	if not GameState.can_start_service_dialogue(npc): return
 	if npc != npc_id() or _changing: return
 	if detail.outcome == "success":
 		order_note.clear()
@@ -355,6 +366,9 @@ func item_groups(mode: String, category := "all") -> Array:
 		grouped[key].ids.append(record.id)
 	return grouped.values()
 
+func inventory_guidance() -> Dictionary:
+	return {"text": "餐摊的食物恢复饱腹；便利店的饮品补充精力。毯子、零件和电池带回小屋再安放。", "links": [["去餐摊看看", "food"], ["去便利店补给", "store"]]}
+
 func item_description(id: String) -> String:
 	var definition: Dictionary = GameState.items.definitions[id]
 	match id:
@@ -444,7 +458,8 @@ func _check_local_service() -> void:
 	health_request.request("http://127.0.0.1:17831/health?refresh=1")
 
 func _health_result(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
-	var data = JSON.parse_string(body.get_string_from_utf8())
+	var json := JSON.new()
+	var data = json.data if json.parse(body.get_string_from_utf8()) == OK else null
 	if result != HTTPRequest.RESULT_SUCCESS or code != 200 or not data is Dictionary:
 		voice_status = "本地语音服务未连接。启动服务后可重新检查。"
 		SpeechAdapter.mark_runtime_unavailable("VOICE_REASON_SERVICE_UNAVAILABLE")

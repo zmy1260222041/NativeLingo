@@ -1,0 +1,253 @@
+test_bad_model_output_and_failure_never_become_stub (test_campus.CampusTest.test_bad_model_output_and_failure_never_become_stub) ... ok
+test_duplicate_second_speaker_is_repaired_before_publication (test_campus.CampusTest.test_duplicate_second_speaker_is_repaired_before_publication) ... ok
+test_editorial_coverage (test_campus.CampusTest.test_editorial_coverage) ... ok
+test_long_dialogue_continuity (test_campus.CampusTest.test_long_dialogue_continuity) ... ok
+test_multi_speaker_and_receipt_no_grades (test_campus.CampusTest.test_multi_speaker_and_receipt_no_grades) ... ok
+test_npc_proposal_keeps_its_source_and_is_not_player_biography (test_campus.CampusTest.test_npc_proposal_keeps_its_source_and_is_not_player_biography) ... ok
+test_personal_practice_card_is_scoped_to_known_cast (test_campus.CampusTest.test_personal_practice_card_is_scoped_to_known_cast) ... ok
+test_private_chain_milestone_does_not_reach_absent_character (test_campus.CampusTest.test_private_chain_milestone_does_not_reach_absent_character) ... ok
+test_private_memory_not_sent_to_other_character (test_campus.CampusTest.test_private_memory_not_sent_to_other_character) ... ok
+test_profile_whitelist_and_unknowns (test_campus.CampusTest.test_profile_whitelist_and_unknowns) ... ok
+test_rejects_spoofed_participant_and_history (test_campus.CampusTest.test_rejects_spoofed_participant_and_history) ... ok
+test_rotation_and_addressed_speaker (test_campus.CampusTest.test_rotation_and_addressed_speaker) ... ok
+test_unspecified_sport_does_not_acquire_basketball_rules (test_campus.CampusTest.test_unspecified_sport_does_not_acquire_basketball_rules) ... ok
+test_voice_events_and_fixed_identity (test_campus.CampusTest.test_voice_events_and_fixed_identity) ... ok
+test_adaptive_window_tracks_p90_and_clamps (test_dialogue.DialogueAssetTest.test_adaptive_window_tracks_p90_and_clamps) ... [speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_adaptive ms=0 speak=2.1 timeout=5.0 samples=3
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+ok
+test_backchannel_first_turn_does_not_complete (test_dialogue.DialogueAssetTest.test_backchannel_first_turn_does_not_complete) ... [speech] heard channel=dialogue text='yeah' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=clarify_request complete=0 evidence=no_specific_requested_item text='Sorry, could you say that again?'
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-622276bbb61b4c89b680
+ok
+test_borrow_request_completes_but_location_question_does_not (test_dialogue.DialogueAssetTest.test_borrow_request_completes_but_location_question_does_not) ... ok
+test_browsing_refusal_and_unresolved_choices_cannot_order (test_dialogue.DialogueAssetTest.test_browsing_refusal_and_unresolved_choices_cannot_order) ... ok
+test_completion_live_plane_waits_for_named_second_sentence (test_dialogue.DialogueAssetTest.test_completion_live_plane_waits_for_named_second_sentence) ... ok
+test_completion_requires_spoken_item_and_handoff_commitment (test_dialogue.DialogueAssetTest.test_completion_requires_spoken_item_and_handoff_commitment) ... ok
+test_consecutive_misses_reset_adaptive_samples (test_dialogue.DialogueAssetTest.test_consecutive_misses_reset_adaptive_samples) ... [speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_adaptive ms=0 speak=2.1 timeout=5.0 samples=3
+ok
+test_convenience_store_sells_water_but_not_heater_repair (test_dialogue.DialogueAssetTest.test_convenience_store_sells_water_but_not_heater_repair) ... [speech] heard channel=dialogue text='Can I get a bottle of water?' npc=ori scenario=convenience_store
+[speech] stage=dialogue ms=0 source=stub npc=ori speech_act=confirm_order complete=1 requested=bottle of water confirmed=bottle of water evidence=confirmed text="You got it. I'll get you the bottle of water now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=ori reply=reply-dea9b172b5124a988c8a
+[speech] heard channel=dialogue text='Can I get you to repair the heater?' npc=ori scenario=convenience_store
+[speech] stage=dialogue ms=0 source=stub npc=ori speech_act=clarify_request complete=0 evidence=no_specific_requested_item text="I don't have that here."
+[speech] stage=dialogue_ready ms=0 source=stub npc=ori reply=reply-ac3a0c0e767140089b9d
+ok
+test_dialogue_logs_what_was_heard (test_dialogue.DialogueAssetTest.test_dialogue_logs_what_was_heard) ... ok
+test_dynamic_tts_never_accepts_an_unknown_reply_id (test_dialogue.DialogueAssetTest.test_dynamic_tts_never_accepts_an_unknown_reply_id) ... ok
+test_env_pins_speak_window_and_timeout (test_dialogue.DialogueAssetTest.test_env_pins_speak_window_and_timeout) ... [speech] stage=gemini_adaptive ms=0 speak=2.5 timeout=4.5 samples=1
+ok
+test_error_spans_capped_and_gated_by_idiomaticity (test_dialogue.DialogueAssetTest.test_error_spans_capped_and_gated_by_idiomaticity) ... ok
+test_error_spans_must_be_exact_substrings_of_the_transcript (test_dialogue.DialogueAssetTest.test_error_spans_must_be_exact_substrings_of_the_transcript) ... ok
+test_follow_up_to_go_can_close_an_in_progress_order (test_dialogue.DialogueAssetTest.test_follow_up_to_go_can_close_an_in_progress_order) ... ok
+test_gemini_is_preferred_over_grok_when_both_keys_exist (test_dialogue.DialogueAssetTest.test_gemini_is_preferred_over_grok_when_both_keys_exist) ... [speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='You got it.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='You got it.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=acknowledge_need complete=0 requested=burger evidence=spoken_item_missing_or_different text='You got it.'
+[speech] stage=dialogue_ready ms=0 source=gemini npc=tavi reply=reply-82814e70ce314628ab39
+ok
+test_gemini_payload_is_text_only_and_pins_minimal_thinking (test_dialogue.DialogueAssetTest.test_gemini_payload_is_text_only_and_pins_minimal_thinking) ... [speech] heard channel=dialogue text='Can I get a burger to go?' npc=tavi scenario=food_counter
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=close_transaction complete=1 requested=burger confirmed=burger evidence=confirmed text='Sure thing, one burger to go.'
+[speech] stage=dialogue_ready ms=0 source=gemini npc=tavi reply=reply-92a751bef79149c0b12b
+ok
+test_gemini_plain_first_line_then_json_is_parsed (test_dialogue.DialogueAssetTest.test_gemini_plain_first_line_then_json_is_parsed) ... [speech] heard channel=dialogue text='Can I get a burger to go?' npc=tavi scenario=food_counter
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=close_transaction complete=1 requested=burger confirmed=burger evidence=confirmed text='Sure thing, one burger to go.'
+[speech] stage=dialogue_ready ms=0 source=gemini npc=tavi reply=reply-577ffbe8a914498d97e0
+ok
+test_gemini_stream_can_speak_before_full_json (test_dialogue.DialogueAssetTest.test_gemini_stream_can_speak_before_full_json) ... [speech] heard channel=dialogue text='Could I have a coffee to go?' npc=tavi scenario=food_counter
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one coffee to go.'
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one coffee to go.'
+[speech] stage=gemini_hedge ms=0 candidates=2 winner=0
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one coffee to go.Sure thing, one coffee to go.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one coffee to go.Sure thing, one coffee to go.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=confirm_order complete=1 requested=coffee confirmed=coffee evidence=confirmed text='Sure thing, one coffee to go.Sure thing, one coffee to go.'
+ok
+test_gemini_tail_latency_hedge_uses_the_first_model_sentence (test_dialogue.DialogueAssetTest.test_gemini_tail_latency_hedge_uses_the_first_model_sentence) ... [speech] stage=gemini_hedge ms=0 candidates=2 winner=1
+ok
+test_gemini_thinking_level_follows_env_override (test_dialogue.DialogueAssetTest.test_gemini_thinking_level_follows_env_override) ... [speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=minimal text='You got it.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=minimal text='You got it.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=acknowledge_need complete=0 requested=burger evidence=spoken_item_missing_or_different text='You got it.'
+[speech] stage=dialogue_ready ms=0 source=gemini npc=tavi reply=reply-04c0ff82651e4945bc0a
+ok
+test_gemini_timeout_falls_back_to_stub_instead_of_failing (test_dialogue.DialogueAssetTest.test_gemini_timeout_falls_back_to_stub_instead_of_failing) ... ok
+test_generic_category_requires_a_specific_item_before_completion (test_dialogue.DialogueAssetTest.test_generic_category_requires_a_specific_item_before_completion) ... ok
+test_godot_runtime_assets_contain_no_xai_secret (test_dialogue.DialogueAssetTest.test_godot_runtime_assets_contain_no_xai_secret) ... ok
+test_grok_payload_is_text_only_and_never_sends_audio (test_dialogue.DialogueAssetTest.test_grok_payload_is_text_only_and_never_sends_audio) ... [speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=grok ms=0 source=grok reason=ok model=grok-4.3 reasoning=none text="You got it. I'll get you the burger now."
+[speech] stage=dialogue ms=0 source=grok model=grok-4.3 npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=grok npc=tavi reply=reply-c7d320c4d43f429687ad
+ok
+test_grok_timeout_falls_back_to_stub_instead_of_failing (test_dialogue.DialogueAssetTest.test_grok_timeout_falls_back_to_stub_instead_of_failing) ... [speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=grok ms=0 source=none reason=timeout model=grok-4.3 reasoning=none timeout_s=1.0
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-9029ea5dd7d3478d81b2
+ok
+test_idiomaticity_accepts_numeric_strings_and_null (test_dialogue.DialogueAssetTest.test_idiomaticity_accepts_numeric_strings_and_null) ... ok
+test_inventory_matching_does_not_accept_substrings (test_dialogue.DialogueAssetTest.test_inventory_matching_does_not_accept_substrings) ... [speech] heard channel=dialogue text='Can I get seafood, please?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=clarify_request complete=0 evidence=no_specific_requested_item text="I don't have that here."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-29c286a2ef114a28aff1
+ok
+test_irrelevant_transcript_is_rejected_before_generation (test_dialogue.DialogueAssetTest.test_irrelevant_transcript_is_rejected_before_generation) ... [speech] heard channel=dialogue text='Tell me how to repair a spaceship.' npc=tavi scenario=food_counter
+ok
+test_iter_events_speak_before_score (test_dialogue.DialogueAssetTest.test_iter_events_speak_before_score) ... [speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+ok
+test_late_work_plane_cannot_reverse_the_spoken_commitment (test_dialogue.DialogueAssetTest.test_late_work_plane_cannot_reverse_the_spoken_commitment) ... [speech] heard channel=dialogue text='Do you have a burger?' npc=tavi scenario=food_counter
+[speech] stage=gemini_hedge ms=60 candidates=2 winner=none
+[speech] stage=gemini_adaptive ms=0 speak=0.05 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Here you go.'
+[speech] stage=gemini ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Here you go.'
+[speech] stage=gemini_first ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Here you go.'
+[speech] stage=gemini ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Here you go.'
+[speech] stage=dialogue ms=130 source=stub model=gemini-3.1-flash-lite npc=tavi speech_act=offer_choice complete=0 requested=burger evidence=spoken_item_missing_or_different text='Sure. For here or to go?'
+ok
+test_live_plane_does_not_speak_incomplete_partial (test_dialogue.DialogueAssetTest.test_live_plane_does_not_speak_incomplete_partial) ... ok
+test_live_plane_uses_later_safe_model_sentence (test_dialogue.DialogueAssetTest.test_live_plane_uses_later_safe_model_sentence) ... ok
+test_log_heard_truncates_and_skips_empty_fields (test_dialogue.DialogueAssetTest.test_log_heard_truncates_and_skips_empty_fields) ... ok
+test_model_complete_flag_is_downgraded_when_spoken_line_is_generic (test_dialogue.DialogueAssetTest.test_model_complete_flag_is_downgraded_when_spoken_line_is_generic) ... [speech] heard channel=dialogue text='Can I get a bottle of water?' npc=ori scenario=convenience_store
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing.'
+[speech] stage=gemini ms=0 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing.'
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=ori speech_act=acknowledge_need complete=0 requested=bottle of water evidence=spoken_item_missing_or_different text='Sure thing.'
+[speech] stage=dialogue_ready ms=0 source=gemini npc=ori reply=reply-5bbf1173b41f4a06b1dc
+ok
+test_model_data_plane_prewarm_is_tiny_and_throttled (test_dialogue.DialogueAssetTest.test_model_data_plane_prewarm_is_tiny_and_throttled) ... [speech] stage=gemini_model_prewarm ms=0 trigger=test model=gemini-3.1-flash-lite
+[speech] stage=gemini_model_prewarm ms=0 trigger=test model=gemini-3.1-flash-lite cached=1
+ok
+test_natural_requests_distinguish_named_off_inventory_from_missing_reference (test_dialogue.DialogueAssetTest.test_natural_requests_distinguish_named_off_inventory_from_missing_reference) ... ok
+test_normalised_player_turn_carries_validated_errors (test_dialogue.DialogueAssetTest.test_normalised_player_turn_carries_validated_errors) ... ok
+test_occupations_pair_clerks_with_workplaces (test_dialogue.DialogueAssetTest.test_occupations_pair_clerks_with_workplaces) ... ok
+test_player_level_is_read_from_game_context_only (test_dialogue.DialogueAssetTest.test_player_level_is_read_from_game_context_only) ... ok
+test_player_level_travels_to_scene_card_and_prompt (test_dialogue.DialogueAssetTest.test_player_level_travels_to_scene_card_and_prompt) ... ok
+test_quality_gate_rejects_teacher_talk_and_long_replies (test_dialogue.DialogueAssetTest.test_quality_gate_rejects_teacher_talk_and_long_replies) ... ok
+test_question_cannot_complete_even_when_it_mentions_the_item (test_dialogue.DialogueAssetTest.test_question_cannot_complete_even_when_it_mentions_the_item) ... ok
+test_retry_selects_a_different_stub_closing_line (test_dialogue.DialogueAssetTest.test_retry_selects_a_different_stub_closing_line) ... [speech] heard channel=dialogue text='Can I get a burger?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-d8d0890c311e4fb79c16
+[speech] heard channel=dialogue text='Can I get a burger?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text='Sure thing. The burger is coming right up.'
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-38536f8fadef42a68497
+ok
+test_same_counter_accepts_two_legal_orders (test_dialogue.DialogueAssetTest.test_same_counter_accepts_two_legal_orders) ... [speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-c5d37cc7246c4bcb88bb
+[speech] heard channel=dialogue text='Could I have a coffee to go?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=coffee confirmed=coffee evidence=confirmed text="You got it. I'll get you the coffee now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-030104489b2d4a50b4b6
+ok
+test_short_orders_and_spoken_promises_agree_in_the_stream (test_dialogue.DialogueAssetTest.test_short_orders_and_spoken_promises_agree_in_the_stream) ... [speech] heard channel=dialogue text='Give me a sandwich okay' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=confirm_order complete=1 requested=sandwich confirmed=sandwich evidence=confirmed text="Sure thing, I'll get that sandwich for you."
+[speech] heard channel=dialogue text='Sandwich.' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=confirm_order complete=1 requested=sandwich confirmed=sandwich evidence=confirmed text="Sure thing, I'll get that sandwich for you."
+[speech] heard channel=dialogue text='A sandwich, please.' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=confirm_order complete=1 requested=sandwich confirmed=sandwich evidence=confirmed text="Sure thing, I'll get that sandwich for you."
+[speech] heard channel=dialogue text="I'd like a sandwich" npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=confirm_order complete=1 requested=sandwich confirmed=sandwich evidence=confirmed text="Sure thing, I'll get that sandwich for you."
+[speech] heard channel=dialogue text='I need a sandwich' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=gemini model=gemini-3.1-flash-lite npc=tavi speech_act=confirm_order complete=1 requested=sandwich confirmed=sandwich evidence=confirmed text="Sure thing, I'll get that sandwich for you."
+ok
+test_speak_deadline_stubs_text_but_keeps_late_player_turn (test_dialogue.DialogueAssetTest.test_speak_deadline_stubs_text_but_keeps_late_player_turn) ... [speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=gemini_hedge ms=60 candidates=2 winner=none
+[speech] stage=gemini_adaptive ms=0 speak=0.05 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=gemini ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=gemini_first ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=gemini ms=130 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Sure thing, one burger to go.'
+[speech] stage=dialogue ms=130 source=stub model=gemini-3.1-flash-lite npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+ok
+test_sse_audio_failure_emits_audio_failed_and_keeps_score (test_dialogue.DialogueAssetTest.test_sse_audio_failure_emits_audio_failed_and_keeps_score) ... [speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=first_audio ms=0 source=stub npc=tavi reply=reply-38004b0022b04b6394cc
+[speech] stage=tts_stream ms=0 npc=tavi reply=reply-38004b0022b04b6394cc reason=RuntimeError
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+ok
+test_sse_streams_audio_between_speaking_and_score (test_dialogue.DialogueAssetTest.test_sse_streams_audio_between_speaking_and_score) ... [speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=first_audio ms=0 source=stub npc=tavi reply=reply-3f772b06cc0647909979
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+ok
+test_stub_keeps_service_context_across_turns (test_dialogue.DialogueAssetTest.test_stub_keeps_service_context_across_turns) ... [speech] heard channel=dialogue text='Burger.' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-7897de89e39d4b028750
+[speech] heard channel=dialogue text='To go, please.' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-722e9cb284bf4458b8ab
+ok
+test_stub_player_turn_carries_no_error_marks (test_dialogue.DialogueAssetTest.test_stub_player_turn_carries_no_error_marks) ... [speech] heard channel=dialogue text='Burger.' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-d5df526432bf4cfebebf
+ok
+test_stub_sse_keeps_the_complete_service_question (test_dialogue.DialogueAssetTest.test_stub_sse_keeps_the_complete_service_question) ... [speech] heard channel=dialogue text='Do you have a burger?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=offer_choice complete=0 requested=burger evidence=spoken_item_missing_or_different text='Sure. For here or to go?'
+ok
+test_three_service_points_are_role_cards (test_dialogue.DialogueAssetTest.test_three_service_points_are_role_cards) ... ok
+test_unknown_scenario_is_rejected (test_dialogue.DialogueAssetTest.test_unknown_scenario_is_rejected) ... ok
+test_v_prewarm_uses_the_shared_session_without_model_tokens (test_dialogue.DialogueAssetTest.test_v_prewarm_uses_the_shared_session_without_model_tokens) ... [speech] stage=gemini_prewarm ms=0 trigger=test route=direct
+ok
+test_dialogue_http_rejects_invalid_json_and_low_relevance (test_dialogue.DialogueHttpTest.test_dialogue_http_rejects_invalid_json_and_low_relevance) ... [speech] 127.0.0.1 "POST /game/dialogue HTTP/1.1" 400 -
+[speech] heard channel=dialogue text='Explain orbital mechanics.' npc=tavi scenario=food_counter
+[speech] 127.0.0.1 "POST /game/dialogue HTTP/1.1" 422 -
+ok
+test_dialogue_http_returns_player_turn (test_dialogue.DialogueHttpTest.test_dialogue_http_returns_player_turn) ... [speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+[speech] stage=dialogue_ready ms=0 source=stub npc=tavi reply=reply-9c923b989a1742c99f57
+[speech] 127.0.0.1 "POST /game/dialogue HTTP/1.1" 200 -
+ok
+test_dialogue_sse_emits_speaking_then_score (test_dialogue.DialogueHttpTest.test_dialogue_sse_emits_speaking_then_score) ... [speech] heard channel=dialogue text='Can I get a burger, please?' npc=tavi scenario=food_counter
+[speech] 127.0.0.1 "POST /game/dialogue HTTP/1.1" 200 -
+[speech] stage=dialogue ms=0 source=stub npc=tavi speech_act=confirm_order complete=1 requested=burger confirmed=burger evidence=confirmed text="You got it. I'll get you the burger now."
+ok
+test_prewarm_endpoint_is_always_ok (test_dialogue.DialogueHttpTest.test_prewarm_endpoint_is_always_ok) ... [speech] 127.0.0.1 "POST /game/prewarm HTTP/1.1" 200 -
+[speech] 127.0.0.1 "POST /game/prewarm HTTP/1.1" 200 -
+ok
+test_tts_http_rejects_forged_reply_id (test_dialogue.DialogueHttpTest.test_tts_http_rejects_forged_reply_id) ... [speech] tts unknown reply tavi/reply-forged
+[speech] 127.0.0.1 "POST /game/tts HTTP/1.1" 404 -
+ok
+test_auto_falls_back_to_proxy_when_direct_fails (test_dialogue.GeminiRouteTest.test_auto_falls_back_to_proxy_when_direct_fails) ... [speech] stage=gemini_prewarm ms=0 trigger=test route=proxy
+ok
+test_auto_prefers_direct_when_native_get_works (test_dialogue.GeminiRouteTest.test_auto_prefers_direct_when_native_get_works) ... [speech] stage=gemini_prewarm ms=0 trigger=test route=direct
+ok
+test_both_routes_down_reports_region_reason (test_dialogue.GeminiRouteTest.test_both_routes_down_reports_region_reason) ... [speech] stage=gemini_prewarm ms=0 trigger=test route=undecided reason=region_unsupported
+ok
+test_direct_session_ignores_env_proxy (test_dialogue.GeminiRouteTest.test_direct_session_ignores_env_proxy) ... ok
+test_failed_cached_route_is_rediscovered (test_dialogue.GeminiRouteTest.test_failed_cached_route_is_rediscovered) ... [speech] stage=gemini_prewarm ms=0 trigger=test route=direct
+ok
+test_off_policy_never_uses_the_proxy_route (test_dialogue.GeminiRouteTest.test_off_policy_never_uses_the_proxy_route) ... [speech] stage=gemini_prewarm ms=0 trigger=test route=direct reason=OSError
+ok
+test_on_policy_pins_the_proxy_route (test_dialogue.GeminiRouteTest.test_on_policy_pins_the_proxy_route) ... [speech] stage=gemini_prewarm ms=0 trigger=test route=proxy
+ok
+test_connection_prewarm_preserves_verified_generation (test_novel_speaking.NovelSpeakingTests.test_connection_prewarm_preserves_verified_generation) ... [speech] stage=gemini_prewarm ms=1 trigger=test route=proxy
+ok
+test_entry_audio_matches_role_card (test_novel_speaking.NovelSpeakingTests.test_entry_audio_matches_role_card) ... ok
+test_every_visible_social_line_has_matching_server_audio (test_novel_speaking.NovelSpeakingTests.test_every_visible_social_line_has_matching_server_audio) ... ok
+test_fulfillment_uses_player_answers_and_latest_correction (test_novel_speaking.NovelSpeakingTests.test_fulfillment_uses_player_answers_and_latest_correction) ... ok
+test_handoff_hint_does_not_turn_browsing_into_an_order (test_novel_speaking.NovelSpeakingTests.test_handoff_hint_does_not_turn_browsing_into_an_order) ... ok
+test_life_situation_reaches_the_model (test_novel_speaking.NovelSpeakingTests.test_life_situation_reaches_the_model) ... ok
+test_live_required_never_registers_stub_reply (test_novel_speaking.NovelSpeakingTests.test_live_required_never_registers_stub_reply) ... [speech] heard channel=dialogue text='a burger please' npc=tavi scenario=food_counter
+[speech] heard channel=dialogue text='a burger please' npc=tavi scenario=food_counter
+ok
+test_place_openings_match_server_voice_catalog (test_novel_speaking.NovelSpeakingTests.test_place_openings_match_server_voice_catalog) ... ok
+test_region_rejection_exposes_only_safe_code (test_novel_speaking.NovelSpeakingTests.test_region_rejection_exposes_only_safe_code) ... [speech] stage=gemini_prewarm ms=0 trigger=test route=proxy reason=region_unsupported
+ok
+test_word_model_is_exact_and_whitelisted (test_novel_speaking.NovelSpeakingTests.test_word_model_is_exact_and_whitelisted) ... [speech] stage=tts ms=0 npc=mira line=word_practice_model cache=0 bytes=100
+ok
+test_failure_never_falls_back_to_beijing (test_us_tts.USTtsTest.test_failure_never_falls_back_to_beijing) ... ok
+test_incomplete_pcm_is_rejected (test_us_tts.USTtsTest.test_incomplete_pcm_is_rejected) ... [speech] stage=tts_first ms=0 provider=xai region=us-east-1 voice=eve
+ok
+test_stream_cache_written_only_after_complete_audio (test_us_tts.USTtsTest.test_stream_cache_written_only_after_complete_audio) ... ok
+test_us_pcm_is_aligned_bounded_and_wrapped_as_valid_wav (test_us_tts.USTtsTest.test_us_pcm_is_aligned_bounded_and_wrapped_as_valid_wav) ... [speech] stage=tts_first ms=0 provider=xai region=us-east-1 voice=eve
+ok
+
+----------------------------------------------------------------------
+Ran 94 tests in 0.848s
+
+OK

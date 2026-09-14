@@ -95,7 +95,9 @@ func _ready() -> void:
 	remap.bindings_changed.connect(_rebuild_actions)
 	model.start(false)
 	_refresh()
-	if boot_from_save:
+	var chapter_return := bool(get_tree().get_meta("campus_return_to_town", false))
+	if get_tree().has_meta("campus_return_to_town"): get_tree().remove_meta("campus_return_to_town")
+	if boot_from_save and not chapter_return:
 		if FileAccess.file_exists(model.novel_save_path) or FileAccess.file_exists(model.old_save_path):
 			startup_pending = true
 			_open_panel("startup")
@@ -250,6 +252,11 @@ func _build_screen() -> void:
 	_label(canvas, "STRANGER", Rect2(30, 9, 265, 42), 29, ACCENT)
 	_label(canvas, "异乡人  /  一点点，成为这里的人", Rect2(32, 48, 350, 25), 13, MUTED)
 	clock_label = _label(canvas, "", Rect2(363, 22, 340, 45), 18, MUTED)
+	var campus_button := _button(canvas, "校园篇章", func():
+		model.cancel_activity()
+		model.save()
+		get_tree().change_scene_to_file("res://scenes/Campus.tscn"), Rect2(750, 22, 112, 44))
+	Palette.quiet(campus_button)
 	for entry in [["成长", "growth"], ["行囊", "bag"], ["小剧场", "theater"], ["回看", "history"], ["设置", "settings"]]:
 		var index: int = ["growth", "bag", "theater", "history", "settings"].find(entry[1])
 		var button := _button(canvas, entry[0], _open_panel.bind(entry[1]), Rect2(880 + index * 106, 22, 96, 44))

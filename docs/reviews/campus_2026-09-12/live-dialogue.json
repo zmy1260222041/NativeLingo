@@ -1,0 +1,784 @@
+{
+  "source": "live endpoint, synthetic authored player text",
+  "cases": [
+    {
+      "scenario": "class_project_roles",
+      "turns": [
+        {
+          "player": "I can work on the outline, but I am not sure how much detail we need.",
+          "replies": [
+            {
+              "npc_id": "alex",
+              "speaker_id": "alex",
+              "reply_to": "player",
+              "reply_id": "reply-6a1dd9a783814de7a7ca",
+              "text": "The outline should probably just be a bulleted list of our main arguments so we don't get bogged down. Since I commute, I prefer having a clear structure early on. If you handle the outline, maybe Sam can find the examples and I'll do the final check?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-1cda77ad8d834911a47d",
+              "text": "That sounds like a solid plan. I've found that keeping the outline focused on data points really helps the paper flow later on. Since Sam's short on time, maybe they could just pull three strong examples instead of a long list?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            }
+          ],
+          "receipt": {
+            "turn_id": "1",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "试着更具体地表达你的工作负担。",
+              "尝试解释为什么你认为简洁的提纲对项目有帮助。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {}
+          },
+          "seconds": 3.189,
+          "tts": [
+            {
+              "speaker": "alex",
+              "voice": "leo",
+              "bytes": 744532,
+              "file": "class_project_roles-alex.wav"
+            },
+            {
+              "speaker": "jules",
+              "voice": "ara",
+              "bytes": 621612,
+              "file": "class_project_roles-jules.wav"
+            }
+          ]
+        },
+        {
+          "player": "I usually write too much because I worry that I have not explained my reasoning.",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-f03ef04a8d2f4c87ae95",
+              "text": "I totally get that. I used to over-explain everything until a professor showed me how data visualization can actually do the heavy lifting for you. Maybe we can stick to just three key charts and keep your writing concise?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "2"
+            },
+            {
+              "npc_id": "sam",
+              "speaker_id": "sam",
+              "reply_to": "player",
+              "reply_id": "reply-fe8b34b48ac34e478b1e",
+              "text": "I get that, but three solid examples should keep things tight. My schedule is pretty packed with work, so focusing on just those three pieces of data is definitely doable for me.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "2"
+            }
+          ],
+          "receipt": {
+            "turn_id": "2",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "表达观点时可以多用连接词。",
+              "分享你的学习困扰很好，可以试着问问他们觉得哪些数据最关键。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I usually write too much because I worry that I have not explained my reasoning.",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            }
+          },
+          "seconds": 2.182
+        },
+        {
+          "player": "Last time I spent the whole evening on an introduction and had to rush the examples.",
+          "replies": [
+            {
+              "npc_id": "sam",
+              "speaker_id": "sam",
+              "reply_to": "player",
+              "reply_id": "reply-2bfa8131253f4c229130",
+              "text": "I’ve been there, it’s easy to get stuck on the intro when you want it perfect. If you focus on the outline first, maybe we can just agree to keep the writing brief so you don't burn out. Three solid examples are definitely manageable for me to find by the deadline.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "3"
+            },
+            {
+              "npc_id": "alex",
+              "speaker_id": "alex",
+              "reply_to": "player",
+              "reply_id": "reply-57436cd4011f413db017",
+              "text": "I feel that. I used to spend hours perfecting my intros too, but I've realized that finishing the examples early actually makes writing the intro way easier later. If we stick to the outline, we can just treat the intro as the last piece to polish.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "3"
+            }
+          ],
+          "receipt": {
+            "turn_id": "3",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "尝试回应对方关于“过度解释”的焦虑，建立共鸣。",
+              "分享具体的学习经验能拉近距离。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "Last time I spent the whole evening on an introduction and had to rush the examples.",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            }
+          },
+          "seconds": 2.498
+        },
+        {
+          "player": "I see your point, but I worry that splitting everything up means our argument will not fit together.",
+          "replies": [
+            {
+              "npc_id": "alex",
+              "speaker_id": "alex",
+              "reply_to": "player",
+              "reply_id": "reply-4b99bda15afc4fa98646",
+              "text": "That's a fair concern. Maybe we can set up a shared document where we drop our sections in as we go, so we can see how they connect in real-time. It helps me stay on track since I’m commuting and can't always meet in person.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "4"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-5623bbfb14db407894ef",
+              "text": "That's why I like using a shared doc; it lets us see the flow before we commit to the final draft. It helped me a lot in my last group project to just leave comments on each other's sections as we went. Does that feel like it would keep our arguments consistent enough for you?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "4"
+            }
+          ],
+          "receipt": {
+            "turn_id": "4",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "建议表达对协作工具的信任，以缓解对方对内容割裂的担忧。",
+              "建议尝试表达对协作工具的信任，以缓解对逻辑连贯性的担忧。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I see your point, but I worry that splitting everything up means our argument will not fit together.",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            }
+          },
+          "seconds": 2.443
+        },
+        {
+          "player": "Could you explain what you mean by checking the structure first? I follow the idea, but not the process.",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-bef769407e284e41b872",
+              "text": "Sure, it just means we outline the main points and drop in the charts before writing full paragraphs. Seeing the visual structure helps us spot gaps in the argument early. If we agree on the skeleton now, we won't waste time writing stuff that doesn't actually fit the flow.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "5"
+            },
+            {
+              "npc_id": "sam",
+              "speaker_id": "sam",
+              "reply_to": "player",
+              "reply_id": "reply-4a2c5ae0b47e4fd18801",
+              "text": "Think of it like building a frame before putting up the walls. We just list our three main points and where the examples go first; it keeps us from writing a bunch of text that might not even fit the final argument. Does that make the process feel a bit more manageable?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "5"
+            }
+          ],
+          "receipt": {
+            "turn_id": "5",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "尝试用更具体的例子解释流程。",
+              "尝试用更具体的例子来解释你的观点。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {}
+          },
+          "seconds": 2.226
+        },
+        {
+          "player": "What if we each bring one example and spend the first ten minutes deciding what they support?",
+          "replies": [
+            {
+              "npc_id": "sam",
+              "speaker_id": "sam",
+              "reply_to": "player",
+              "reply_id": "reply-0b909bf9e73d44afbf92",
+              "text": "That sounds like a solid way to start. It keeps the workload balanced and makes sure we're all on the same page before we dive into the actual writing. I'm down to commit to that.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "6"
+            },
+            {
+              "npc_id": "alex",
+              "speaker_id": "alex",
+              "reply_to": "player",
+              "reply_id": "reply-22132453003545808679",
+              "text": "That works for me. It’s a great way to make sure our arguments actually connect without anyone over-committing early on. I'm happy to help organize those in the doc once we decide which ones fit best.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "6"
+            }
+          ],
+          "receipt": {
+            "turn_id": "6",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "\nplayer: I can work on the outline, but I am not sure how much detail we need.\nalex: The outline should probably just be a bulleted list of our main arguments so we don't get bogged down. Since I commute, I prefer having a clear structure early on. If you handle the outline, maybe Sam can find the examples and I'll do the final check?",
+            "coaching": [
+              "尝试用更自信的语气肯定对方的提议。",
+              "可以肯定对方的提议，并表示这有助于团队协作。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "What if we each bring one example and spend the first ten minutes deciding what they support?",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            }
+          },
+          "seconds": 2.127
+        },
+        {
+          "player": "I cannot stay late on Thursday. Would a shorter session after class work for you?",
+          "replies": [
+            {
+              "npc_id": "sam",
+              "speaker_id": "sam",
+              "reply_to": "player",
+              "reply_id": "reply-5b8a1d5cb22f47efb654",
+              "text": "That works for me. A quick check-in right after class is way better for my schedule anyway. Let's just spend that time locking down the main points so we don't have to stress later.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "7"
+            },
+            {
+              "npc_id": "alex",
+              "speaker_id": "alex",
+              "reply_to": "player",
+              "reply_id": "reply-8bc59aaa72ee415a92bc",
+              "text": "That works for me. A quick check-in right after class is way better for my schedule anyway. Let's just spend that time locking down the main points so we don't have to stress later.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "7"
+            }
+          ],
+          "receipt": {
+            "turn_id": "7",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "player: I can work on the outline, but I am not sure how much detail we need.\nalex: The outline should probably just be a bulleted list of our main arguments so we don't get bogged down. Since I commute, I prefer having a clear structure early on. If you handle the outline, maybe Sam can find the examples and I'll do the final check?\njules: That sounds like a solid plan. I've found that keeping the outline focused on data points really helps the paper flow later on. Since Sam's short on time, maybe they could just pull three strong examples instead of a long list?\nplayer: I usually write too much because I worry that I have not explained my reasoning.\njules: I totally get that. I used to over-explain everything until a professor showed me how data visualization can actually do the heavy lifting for you. Maybe we can stick to just three key charts and keep your writing concise?",
+            "coaching": [
+              "尝试直接确认时间安排。",
+              "肯定对方的提议，并重申合作意向。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I cannot stay late on Thursday. Would a shorter session after class work for you?",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            }
+          },
+          "seconds": 2.271
+        },
+        {
+          "player": "That gives me a clearer starting point. I need to head out now, but I would like to continue this next time.",
+          "replies": [
+            {
+              "npc_id": "sam",
+              "speaker_id": "sam",
+              "reply_to": "player",
+              "reply_id": "reply-1d59e4a0ea1a434a8977",
+              "text": "No problem at all, I totally get it. Let's touch base right after class on Thursday to get those points sorted. Have a good one!",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "8"
+            }
+          ],
+          "receipt": {
+            "turn_id": "8",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": true,
+            "topic_summary": "player: I can work on the outline, but I am not sure how much detail we need.\nalex: The outline should probably just be a bulleted list of our main arguments so we don't get bogged down. Since I commute, I prefer having a clear structure early on. If you handle the outline, maybe Sam can find the examples and I'll do the final check?\njules: That sounds like a solid plan. I've found that keeping the outline focused on data points really helps the paper flow later on. Since Sam's short on time, maybe they could just pull three strong examples instead of a long list?\nplayer: I usually write too much because I worry that I have not explained my reasoning.\njules: I totally get that. I used to over-explain everything until a professor showed me how data visualization can actually do the heavy lifting for you. Maybe we can stick to just three key charts and keep your writing concise?\nsam: I get that, but three solid examples should keep things tight. My schedule is pretty packed with work, so focusing on just those three pieces of data is definitely doable for me.\nplayer: Last time I spent the whole evening on an introduction and had to rush the examples.",
+            "coaching": [
+              "肯定对方的时间限制，并确认下次见面的意向。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {}
+          },
+          "seconds": 1.113
+        }
+      ]
+    },
+    {
+      "scenario": "club_join_group",
+      "turns": [
+        {
+          "player": "Mind if I jump in? I heard you talking about the next event, but I missed the beginning.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-4c16871cdd4144f1ba29",
+              "text": "Sure, come on in. Jules wants a quiet workshop, but I'm pushing for something more social. Honestly, I think we need a mix; maybe a casual demo where people can just chat while they learn.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-73fdf9b18b234da2b3a8",
+              "text": "Hey, I'm Jules. I’m just worried a pure social hour won’t help people actually improve their shots. A guided demo works better because beginners get specific tips while regulars can just hang out and talk shop while they work.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            }
+          ],
+          "receipt": {
+            "turn_id": "1",
+            "session_id": "probe-club_join_group",
+            "scenario_id": "club_join_group",
+            "participants": [
+              "maya",
+              "jules",
+              "riley"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "尝试用具体例子支持你的观点。",
+              "尝试用具体的例子来支持你的观点。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {}
+          },
+          "seconds": 2.305,
+          "tts": [
+            {
+              "speaker": "maya",
+              "voice": "eve",
+              "bytes": 567900,
+              "file": "club_join_group-maya.wav"
+            },
+            {
+              "speaker": "jules",
+              "voice": "ara",
+              "bytes": 610124,
+              "file": "club_join_group-jules.wav"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "dining_story",
+      "turns": [
+        {
+          "player": "It took me a while to feel comfortable eating with people here. I used to worry about interrupting.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-9d8977745f944284b34d",
+              "text": "I totally get that. I felt like an outsider until I started volunteering at the campus radio station; just having a shared task made the silence feel less awkward. Do you think you feel more settled now, or is it still a work in progress?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            }
+          ],
+          "receipt": {
+            "turn_id": "1",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "分享具体的改变时刻能让对话更深入。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "It took me a while to feel comfortable eating with people here. I used to worry about interrupting.",
+              "known_to": [
+                "maya"
+              ]
+            }
+          },
+          "seconds": 1.276,
+          "tts": [
+            {
+              "speaker": "maya",
+              "voice": "eve",
+              "bytes": 690740,
+              "file": "dining_story-maya.wav"
+            }
+          ]
+        },
+        {
+          "player": "One day someone asked about a book I was carrying, and that gave me something real to talk about.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-83722bc081a04f628a42",
+              "text": "That’s such a simple way to break the ice, but it’s honestly the best. It’s funny how a shared interest can just dissolve that feeling of being an outsider. Was that the moment you finally felt like you actually belonged here?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "2"
+            }
+          ],
+          "receipt": {
+            "turn_id": "2",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "分享具体的细节让对话更生动。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "One day someone asked about a book I was carrying, and that gave me something real to talk about.",
+              "known_to": [
+                "maya"
+              ]
+            }
+          },
+          "seconds": 1.108
+        },
+        {
+          "player": "I am more comfortable talking about an experience than answering a list of questions about myself.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-0bfc0e342afa4b1cb3f8",
+              "text": "I hear you; answering a questionnaire feels like a job interview. I’d much rather hear about that book moment—what were you reading, and how did that conversation change things for you?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "3"
+            }
+          ],
+          "receipt": {
+            "turn_id": "3",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "分享具体的经历比回答问题更容易建立连接。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I am more comfortable talking about an experience than answering a list of questions about myself.",
+              "known_to": [
+                "maya"
+              ]
+            }
+          },
+          "seconds": 1.035
+        },
+        {
+          "player": "I am not sure joining more activities always helps. Sometimes I just want to know one person better.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-6de7d2738eb5466ca8c7",
+              "text": "That makes total sense. Sometimes a crowded room just makes the isolation feel louder, and having one person who really gets you is way more grounding than a full calendar.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "4"
+            }
+          ],
+          "receipt": {
+            "turn_id": "4",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "尝试分享一个具体的例子来支持你的观点。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I am not sure joining more activities always helps. Sometimes I just want to know one person better.",
+              "known_to": [
+                "maya"
+              ]
+            }
+          },
+          "seconds": 1.335
+        },
+        {
+          "player": "What makes a conversation feel comfortable for you? Could you give me an example?",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-9c80b4fb73cc41dab542",
+              "text": "For me, it's comfortable when there's no pressure to perform. Like when a friend and I were just walking back from the library and started debating a random movie plot; we weren't trying to impress anyone, just genuinely curious about what the other thought. That lack of an agenda makes all the difference.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "5"
+            }
+          ],
+          "receipt": {
+            "turn_id": "5",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "分享具体的例子能让对话更自然。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {}
+          },
+          "seconds": 1.167
+        },
+        {
+          "player": "That reminds me of a friend who could disagree with me without making it feel awkward.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-1dc2041db7014cd482cf",
+              "text": "That's a rare quality. It's so much easier to talk when you know someone values the conversation more than winning an argument. Does having that kind of space make it easier for you to open up about other things?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "6"
+            }
+          ],
+          "receipt": {
+            "turn_id": "6",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "分享一个具体的例子来延续这个话题。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "That reminds me of a friend who could disagree with me without making it feel awkward.",
+              "known_to": [
+                "maya"
+              ]
+            }
+          },
+          "seconds": 1.125
+        }
+      ]
+    },
+    {
+      "scenario": "sports_mistake",
+      "turns": []
+    }
+  ],
+  "failures": [
+    {
+      "scenario": "club_join_group",
+      "turn": 2,
+      "error": "HTTPError"
+    },
+    {
+      "scenario": "dining_story",
+      "turn": 7,
+      "error": "HTTPError"
+    },
+    {
+      "scenario": "sports_mistake",
+      "turn": 1,
+      "error": "HTTPError"
+    }
+  ],
+  "passed": false
+}

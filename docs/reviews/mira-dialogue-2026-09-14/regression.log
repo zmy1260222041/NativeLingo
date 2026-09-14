@@ -1,0 +1,9 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ERROR: Record becomes available after the real playback-finished signal
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] check (res://tests/test_novel.gd:10)
+       [1] _test_recording_playback_conflict (res://tests/test_novel.gd:326)
+FAIL: 1 novel assertions
+FAIL: migration

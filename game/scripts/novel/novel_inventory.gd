@@ -22,6 +22,7 @@ var details: VBoxContainer
 var summary: Label
 var tabs: HBoxContainer
 var confirmation: Dictionary = {}
+var notice_label: Label
 var row_buttons: Array[Button] = []
 var action_buttons: Array[Button] = []
 
@@ -31,6 +32,8 @@ func setup(controller: Node, kind: String) -> void:
 	add_theme_constant_override("separation", 12)
 	custom_minimum_size = Vector2(1056, 548)
 	summary = _text(self, "", 17, MUTED)
+	notice_label = _text(self, "", 17, ACCENT)
+	notice_label.visible = false
 	tabs = HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 8)
 	add_child(tabs)
@@ -174,9 +177,9 @@ func _build_details() -> void:
 			_menu()
 			return
 		_text(details, "下一份日常，从这里开始。", 28)
-		_text(details, "餐摊的食物恢复饱腹；便利店的饮品补充精力。毯子、零件和电池带回小屋再安放。", 20, MUTED)
-		_link("去餐摊看看", "food")
-		_link("去便利店补给", "store")
+		var guidance: Dictionary = model.inventory_guidance()
+		_text(details, str(guidance.text), 20, MUTED)
+		for link in guidance.links: _link(str(link[0]), str(link[1]))
 		if mode == "counter": _menu()
 		return
 	var record: Dictionary = group.record
@@ -184,6 +187,13 @@ func _build_details() -> void:
 	var title: String = GameState.items.Catalog.label(definition.name)
 	_text(details, str(definition.name[1]).to_upper() + "  /  " + str(STATES.get(record.state, "")), 15, ACCENT)
 	_text(details, title, 32)
+	if not confirmation.is_empty() and confirmation.id == record.id:
+		_text(details, "现在使用会损失一部分效果。仍然使用？", 19, ACCENT)
+		var confirm := _button(details, "确认使用这 1 件", _confirm)
+		confirm.set_meta("inventory_focus", "confirm")
+		action_buttons.append(confirm)
+		var cancel := _button(details, "先留着", func(): confirmation.clear(); refresh())
+		action_buttons.append(cancel)
 	var sources: Array[String] = []
 	for id in group.ids:
 		var source: String = str(GameState.items.instances[id].source_service).capitalize()
@@ -219,13 +229,6 @@ func _build_details() -> void:
 		if record.state in ["placed", "active"]: _action("收回行囊", "reclaim", record.id, not GameState.items.can_pack([record.id]))
 	elif definition.carry_category == "residence" and record.state == "carried":
 		_link("回小屋安放", "home")
-	if not confirmation.is_empty() and confirmation.id == record.id:
-		_text(details, "现在使用会损失一部分效果。仍然使用？", 19, ACCENT)
-		var confirm := _button(details, "确认使用这 1 件", _confirm)
-		confirm.set_meta("inventory_focus", "confirm")
-		action_buttons.append(confirm)
-		var cancel := _button(details, "先留着", func(): confirmation.clear(); refresh())
-		action_buttons.append(cancel)
 
 func _action(title: String, action: String, id: String, disabled := false) -> void:
 	var button := _button(details, title, func(): action_requested.emit(action, id, false))
@@ -260,7 +263,15 @@ func request_confirmation(action: String, id: String) -> void:
 	confirmation = {"action": action, "id": id, "revision": GameState.items.revision}
 	refresh()
 	for button in action_buttons:
-		if button.get_meta("inventory_focus", "") == "confirm": button.grab_focus()
+		if button.get_meta("inventory_focus", "") == "confirm": _focus_confirmation.call_deferred(weakref(button))
+
+func _focus_confirmation(reference: WeakRef) -> void:
+	var button = reference.get_ref()
+	if button != null and button.is_inside_tree(): button.grab_focus()
+
+func show_notice(text: String) -> void:
+	notice_label.text = text
+	notice_label.visible = not text.is_empty()
 
 func _confirm() -> void:
 	if confirmation.is_empty(): return

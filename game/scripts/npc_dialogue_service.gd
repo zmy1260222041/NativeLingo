@@ -264,6 +264,7 @@ func reject_empty_transcript(reason := "VOICE_REASON_CLARIFY") -> void:
 func _send_request(game_context: Dictionary = {}) -> bool:
 	dialogue_pending.emit(current_npc_id, current_scenario_id)
 	var context := game_context.duplicate(true)
+	if GameState.presentation_state.get("chapter") == "campus": context["chapter"] = "campus"
 	if pending_pronunciation >= 0.0:
 		context["pronunciation"] = pending_pronunciation
 	var runner := _runner()

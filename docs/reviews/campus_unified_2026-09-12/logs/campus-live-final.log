@@ -1,0 +1,90 @@
+CASE class_project_roles
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+[speech] stage=tts_first ms=1237 provider=xai region=us-east-1 voice=leo
+[speech] stage=tts ms=3305 npc=alex reply=reply-e188781949384973ba80 cache=0 bytes=779084
+[speech] 127.0.0.1 "POST /game/tts HTTP/1.1" 200 -
+[speech] stage=tts_first ms=605 provider=xai region=us-east-1 voice=ara
+[speech] stage=tts ms=1967 npc=jules reply=reply-a3fef3828aab4fe89555 cache=0 bytes=471860
+[speech] 127.0.0.1 "POST /game/tts HTTP/1.1" 200 -
+class_project_roles 1 2 3.24 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_project_roles 2 2 2.526 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_project_roles 3 2 2.399 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_project_roles 4 2 2.676 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_project_roles 5 2 2.465 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_project_roles 6 2 2.342 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_project_roles 7 2 2.516 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_project_roles 8 1 1.279 seconds
+CASE club_join_group
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+[speech] stage=tts_first ms=611 provider=xai region=us-east-1 voice=eve
+[speech] stage=tts ms=2035 npc=maya reply=reply-1baa1853f9574ff7a0fe cache=0 bytes=529492
+[speech] 127.0.0.1 "POST /game/tts HTTP/1.1" 200 -
+[speech] stage=tts_first ms=637 provider=xai region=us-east-1 voice=ara
+[speech] stage=tts ms=1920 npc=jules reply=reply-beb0ef724c534568a2e1 cache=0 bytes=487220
+[speech] 127.0.0.1 "POST /game/tts HTTP/1.1" 200 -
+club_join_group 1 2 2.341 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_join_group 2 2 2.573 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_join_group 3 2 2.321 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_join_group 4 2 2.175 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_join_group 5 2 2.615 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_join_group 6 2 2.566 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_join_group 7 2 3.866 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_join_group 8 1 1.084 seconds
+CASE dining_story
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+[speech] stage=tts_first ms=635 provider=xai region=us-east-1 voice=eve
+[speech] stage=tts ms=3098 npc=maya reply=reply-7745db16650048288593 cache=0 bytes=767564
+[speech] 127.0.0.1 "POST /game/tts HTTP/1.1" 200 -
+dining_story 1 1 1.297 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_story 2 1 1.266 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_story 3 1 1.263 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_story 4 1 1.18 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_story 5 1 1.22 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_story 6 1 1.22 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_story 7 1 1.293 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_story 8 1 1.185 seconds
+CASE sports_mistake
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+[speech] stage=tts_first ms=598 provider=xai region=us-east-1 voice=eve
+[speech] stage=tts ms=1635 npc=casey reply=reply-a3e55c82efa2410783e1 cache=0 bytes=376172
+[speech] 127.0.0.1 "POST /game/tts HTTP/1.1" 200 -
+[speech] stage=tts_first ms=584 provider=xai region=us-east-1 voice=ara
+[speech] stage=tts ms=2083 npc=jules reply=reply-91b729458a8e4bfdb426 cache=0 bytes=533596
+[speech] 127.0.0.1 "POST /game/tts HTTP/1.1" 200 -
+sports_mistake 1 2 2.258 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_mistake 2 2 2.231 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_mistake 3 2 2.282 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_mistake 4 2 2.318 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_mistake 5 2 2.223 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_mistake 6 2 2.224 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_mistake 7 2 2.224 seconds
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_mistake 8 1 1.142 seconds
+PASS

@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: production character for a fictional American undergraduate campus visual novel.
+Input image: game style reference only, not content to reproduce. Produce ONE new standalone image, not an atlas or contact sheet.
+Primary subject: Sam, a 23-year-old male undergraduate balancing a job and classes. Dark brown skin, short tightly curled black hair, oatmeal overshirt, dark trousers, simple wristwatch and practical backpack worn over one shoulder. Friendly but preoccupied expression, slight weight shift.
+Style: Detailed original illustrated visual-novel art: confident fine dark linework, softly painted golden light, tactile restrained material detail, convincing volume, rich but muted sage foliage, warm cream, terracotta and brass-brown colors. Match the supplied game reference in rendering finish, edge definition, painterly depth and warmth. Do not reproduce its science-fiction world.
+Composition: ONE adult human, knees-up three-quarter standing view facing gently toward the viewer. Complete head, hair, hands and elbows fully inside frame, generous clear outer margin, natural adult proportions. Clear face and clothing silhouette with warm front-side lighting.
+Backdrop: perfectly uniform vivid magenta #FF00FF, without texture, shadows, reflections, gradient or checkerboard, for subsequent local alpha matting. No magenta in the person, clothing or held items.
+Constraints: no additional people, no alien features, no extra hands, no text, logos, watermark, decorative border or scene furniture. Restrained everyday emotion, not a promotional smile.

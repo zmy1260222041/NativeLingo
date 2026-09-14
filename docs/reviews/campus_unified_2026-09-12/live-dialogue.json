@@ -1,0 +1,2512 @@
+{
+  "source": "live endpoint, synthetic authored player text",
+  "cases": [
+    {
+      "scenario": "class_project_roles",
+      "turns": [
+        {
+          "player": "I can work on the outline, but I am not sure how much detail we need.",
+          "replies": [
+            {
+              "npc_id": "alex",
+              "speaker_id": "alex",
+              "reply_to": "player",
+              "reply_id": "reply-e188781949384973ba80",
+              "text": "If we keep the outline focused on our core data points, it shouldn't be too overwhelming. I'm happy to help you flesh out the structure if we can agree on the main argument first. Sam, since your time is tight, does a final review of the connections work for you?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "alex",
+              "reply_id": "reply-a3fef3828aab4fe89555",
+              "text": "That makes sense, Alex. I think focusing on the core data points keeps it manageable. If I compare the examples, could you check how they connect to the outline you're drafting?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            }
+          ],
+          "receipt": {
+            "turn_id": "1",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "尝试提出具体的任务分配。",
+              "建议在对话中明确回应Alex关于数据点的提议。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I can work on the outline, but I am not sure how much detail we need.",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I can work on the outline, but I am not sure how much detail we need.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "alex",
+                "text": "If we keep the outline focused on our core data points, it shouldn't be too overwhelming. I'm happy to help you flesh out the structure if we can agree on the main argument first. Sam, since your time is tight, does a final review of the connections work for you?",
+                "kind": "proposal",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "That makes sense, Alex. I think focusing on the core data points keeps it manageable. If I compare the examples, could you check how they connect to the outline you're drafting?",
+                "kind": "proposal",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 3.24,
+          "tts": [
+            {
+              "speaker": "alex",
+              "voice": "leo",
+              "bytes": 779084,
+              "file": "class_project_roles-alex.wav"
+            },
+            {
+              "speaker": "jules",
+              "voice": "ara",
+              "bytes": 471860,
+              "file": "class_project_roles-jules.wav"
+            }
+          ]
+        },
+        {
+          "player": "I usually write too much because I worry that I have not explained my reasoning.",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-27a05824d558461288df",
+              "text": "I get that, but maybe we can use the data points as anchors to keep it tight. If you focus on the outline, I'll handle the evidence comparison so we don't get lost in the weeds. Does that balance things out for you?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "2"
+            },
+            {
+              "npc_id": "sam",
+              "speaker_id": "sam",
+              "reply_to": "player",
+              "reply_id": "reply-f8ccaabcfc414190957b",
+              "text": "I can definitely handle the final check once the outline and evidence are set. That keeps my workload bounded while ensuring I'm still contributing to the final product. Does that sound like a fair split for everyone?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "2"
+            }
+          ],
+          "receipt": {
+            "turn_id": "2",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "承认对方的写作习惯，并提出用数据锚点来简化任务。",
+              "尝试用更简洁的语言表达观点。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I usually write too much because I worry that I have not explained my reasoning.",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I usually write too much because I worry that I have not explained my reasoning.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "I get that, but maybe we can use the data points as anchors to keep it tight. If you focus on the outline, I'll handle the evidence comparison so we don't get lost in the weeds. Does that balance things out for you?",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "sam",
+                "text": "I can definitely handle the final check once the outline and evidence are set. That keeps my workload bounded while ensuring I'm still contributing to the final product. Does that sound like a fair split for everyone?",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.526
+        },
+        {
+          "player": "Last time I spent the whole evening on an introduction and had to rush the examples.",
+          "replies": [
+            {
+              "npc_id": "sam",
+              "speaker_id": "sam",
+              "reply_to": "player",
+              "reply_id": "reply-d7bb852162eb4eb09e3a",
+              "text": "I've been there too, where the intro eats up all your time. If you stick to the outline structure, we can keep the flow consistent without you getting stuck. Let's aim to lock in those core arguments now so you don't feel pressured to over-explain later.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "3"
+            },
+            {
+              "npc_id": "alex",
+              "speaker_id": "alex",
+              "reply_to": "player",
+              "reply_id": "reply-6fe13f1f3d214a878619",
+              "text": "I've definitely fallen into that trap before too, where the intro just takes over. If we commit to the structure now, you won't have to worry about over-explaining everything. Can we agree that the outline is our roadmap so we don't end up rushing the rest?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "3"
+            }
+          ],
+          "receipt": {
+            "turn_id": "3",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "注意回应对方的担忧，并提出具体的协作建议。",
+              "尝试用更简洁的语言表达你的担忧。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "Last time I spent the whole evening on an introduction and had to rush the examples.",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "Last time I spent the whole evening on an introduction and had to rush the examples.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "sam",
+                "text": "I've been there too, where the intro eats up all your time. If you stick to the outline structure, we can keep the flow consistent without you getting stuck. Let's aim to lock in those core arguments now so you don't feel pressured to over-explain later.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "alex",
+                "text": "I've definitely fallen into that trap before too, where the intro just takes over. If we commit to the structure now, you won't have to worry about over-explaining everything. Can we agree that the outline is our roadmap so we don't end up rushing the rest?",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.399
+        },
+        {
+          "player": "I see your point, but I worry that splitting everything up means our argument will not fit together.",
+          "replies": [
+            {
+              "npc_id": "alex",
+              "speaker_id": "alex",
+              "reply_to": "player",
+              "reply_id": "reply-0968c0c4a3144cc9abca",
+              "text": "That's a fair concern. Maybe we can have a quick sync after the draft is done to ensure the logic flows across our sections. If we stick to the outline as our shared roadmap, it should help keep our arguments aligned.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "4"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-17607f0bc1b5495bbdfc",
+              "text": "I agree, a quick sync is essential. If we meet once the draft is done, we can make sure the evidence I've compared actually supports your outline. Does that help ease your worry about the pieces fitting together?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "4"
+            }
+          ],
+          "receipt": {
+            "turn_id": "4",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "承认对方的担忧并提出一个具体同步方案。",
+              "尝试提出一个具体的同步时间，例如完成草稿后的周三下午。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I see your point, but I worry that splitting everything up means our argument will not fit together.",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I see your point, but I worry that splitting everything up means our argument will not fit together.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "alex",
+                "text": "That's a fair concern. Maybe we can have a quick sync after the draft is done to ensure the logic flows across our sections. If we stick to the outline as our shared roadmap, it should help keep our arguments aligned.",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "I agree, a quick sync is essential. If we meet once the draft is done, we can make sure the evidence I've compared actually supports your outline. Does that help ease your worry about the pieces fitting together?",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.676
+        },
+        {
+          "player": "Could you explain what you mean by checking the structure first? I follow the idea, but not the process.",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-686154b6eac849aa9d31",
+              "text": "It just means we sketch the main argument points before writing any prose. Once you have that skeleton, I can see where my evidence fits to ensure it actually supports your claims. Does that roadmap approach help you feel more confident about the flow?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "5"
+            },
+            {
+              "npc_id": "sam",
+              "speaker_id": "sam",
+              "reply_to": "player",
+              "reply_id": "reply-8aa692039fb340fa958b",
+              "text": "Think of it like building a software architecture before writing code. We define the input, the logic, and the expected output first. If we agree on those three anchor points now, we won't have to rewrite everything later when the pieces don't align.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "5"
+            }
+          ],
+          "receipt": {
+            "turn_id": "5",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "尝试用简单的逻辑图表来解释你的流程。",
+              "尝试用更具体的例子来解释你的想法。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "Could you explain what you mean by checking the structure first? I follow the idea, but not the process.",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "Could you explain what you mean by checking the structure first? I follow the idea, but not the process.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "It just means we sketch the main argument points before writing any prose. Once you have that skeleton, I can see where my evidence fits to ensure it actually supports your claims. Does that roadmap approach help you feel more confident about the flow?",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "sam",
+                "text": "Think of it like building a software architecture before writing code. We define the input, the logic, and the expected output first. If we agree on those three anchor points now, we won't have to rewrite everything later when the pieces don't align.",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.465
+        },
+        {
+          "player": "What if we each bring one example and spend the first ten minutes deciding what they support?",
+          "replies": [
+            {
+              "npc_id": "sam",
+              "speaker_id": "sam",
+              "reply_to": "player",
+              "reply_id": "reply-00769b304f854c418200",
+              "text": "That sounds like a solid plan. It keeps our scope bounded and ensures we're all aligned on the argument before we dive into the actual writing. I'm in.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "6"
+            },
+            {
+              "npc_id": "alex",
+              "speaker_id": "alex",
+              "reply_to": "player",
+              "reply_id": "reply-6b1f321dd7d943a09bd7",
+              "text": "That's a great way to start. It keeps us from wandering and ensures our evidence actually maps to the outline. Let's do that to make sure we're all on the same page before diving in.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "6"
+            }
+          ],
+          "receipt": {
+            "turn_id": "6",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "\nplayer: I can work on the outline, but I am not sure how much detail we need.\nalex: If we keep the outline focused on our core data points, it shouldn't be too overwhelming. I'm happy to help you flesh out the structure if we can agree on the main argument first. Sam, since your time is tight, does a final review of the connections work for you?",
+            "coaching": [
+              "你可以先肯定他们的提议，再简要说明这如何帮助大家节省时间。",
+              "确认分工并聚焦核心论点。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "What if we each bring one example and spend the first ten minutes deciding what they support?",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "What if we each bring one example and spend the first ten minutes deciding what they support?",
+                "kind": "shared_fact",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "sam",
+                "text": "That sounds like a solid plan. It keeps our scope bounded and ensures we're all aligned on the argument before we dive into the actual writing. I'm in.",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "alex",
+                "text": "That's a great way to start. It keeps us from wandering and ensures our evidence actually maps to the outline. Let's do that to make sure we're all on the same page before diving in.",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.342
+        },
+        {
+          "player": "I cannot stay late on Thursday. Would a shorter session after class work for you?",
+          "replies": [
+            {
+              "npc_id": "alex",
+              "speaker_id": "alex",
+              "reply_to": "player",
+              "reply_id": "reply-42389196946049a885ed",
+              "text": "A shorter session right after class works perfectly for me. If we focus on those three examples then, we'll have a clear direction without needing a late night. Does that time work for everyone?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "7"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-07c57fa5de244adf9250",
+              "text": "That works for me. If we meet right after class, we can knock out the example selection quickly and avoid the late-night stress. I'm glad we're prioritizing a tight structure over just grinding out pages.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "7"
+            }
+          ],
+          "receipt": {
+            "turn_id": "7",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "player: I can work on the outline, but I am not sure how much detail we need.\nalex: If we keep the outline focused on our core data points, it shouldn't be too overwhelming. I'm happy to help you flesh out the structure if we can agree on the main argument first. Sam, since your time is tight, does a final review of the connections work for you?\njules: That makes sense, Alex. I think focusing on the core data points keeps it manageable. If I compare the examples, could you check how they connect to the outline you're drafting?\nplayer: I usually write too much because I worry that I have not explained my reasoning.\njules: I get that, but maybe we can use the data points as anchors to keep it tight. If you focus on the outline, I'll handle the evidence comparison so we don't get lost in the weeds. Does that balance things out for you?",
+            "coaching": [
+              "确认时间安排，并重申任务目标以增强共识。",
+              "确认时间安排并表达对结构化方法的认可。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I cannot stay late on Thursday. Would a shorter session after class work for you?",
+              "known_to": [
+                "alex",
+                "jules",
+                "sam"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I cannot stay late on Thursday. Would a shorter session after class work for you?",
+                "kind": "shared_fact",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "alex",
+                "text": "A shorter session right after class works perfectly for me. If we focus on those three examples then, we'll have a clear direction without needing a late night. Does that time work for everyone?",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "That works for me. If we meet right after class, we can knock out the example selection quickly and avoid the late-night stress. I'm glad we're prioritizing a tight structure over just grinding out pages.",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.516
+        },
+        {
+          "player": "That gives me a clearer starting point. I need to head out now, but I would like to continue this next time.",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-e846650e12e2409aac5a",
+              "text": "Sounds good. We'll finalize the example selection right after class, then. See you then!",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "8"
+            }
+          ],
+          "receipt": {
+            "turn_id": "8",
+            "session_id": "probe-class_project_roles",
+            "scenario_id": "class_project_roles",
+            "participants": [
+              "alex",
+              "jules",
+              "sam"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": true,
+            "topic_summary": "player: I can work on the outline, but I am not sure how much detail we need.\nalex: If we keep the outline focused on our core data points, it shouldn't be too overwhelming. I'm happy to help you flesh out the structure if we can agree on the main argument first. Sam, since your time is tight, does a final review of the connections work for you?\njules: That makes sense, Alex. I think focusing on the core data points keeps it manageable. If I compare the examples, could you check how they connect to the outline you're drafting?\nplayer: I usually write too much because I worry that I have not explained my reasoning.\njules: I get that, but maybe we can use the data points as anchors to keep it tight. If you focus on the outline, I'll handle the evidence comparison so we don't get lost in the weeds. Does that balance things out for you?\nsam: I can definitely handle the final check once the outline and evidence are set. That keeps my workload bounded while ensuring I'm still contributing to the final product. Does that sound like a fair split for everyone?\nplayer: Last time I spent the whole evening on an introduction and had to rush the examples.",
+            "coaching": [
+              "在结束时确认下一次见面的时间和任务，体现负责任的态度。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": false
+            },
+            "memory_candidate": {},
+            "memory_candidates": [
+              {
+                "speaker_id": "jules",
+                "text": "Sounds good. We'll finalize the example selection right after class, then. See you then!",
+                "kind": "agreement",
+                "known_to": [
+                  "alex",
+                  "jules",
+                  "sam"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 1.279
+        }
+      ]
+    },
+    {
+      "scenario": "club_join_group",
+      "turns": [
+        {
+          "player": "Mind if I jump in? I heard you talking about the next event, but I missed the beginning.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-1baa1853f9574ff7a0fe",
+              "text": "Hey, no problem! We're just debating if we should host a structured photography workshop or just grab coffee and chat. I'm leaning toward a casual hangout, but Jules wants something more hands-on.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-beb0ef724c534568a2e1",
+              "text": "It’s just about finding a balance. If we do a quick gear-swapping demo, beginners can learn a trick or two without it feeling like a formal class, then we can just hang out after.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            }
+          ],
+          "receipt": {
+            "turn_id": "1",
+            "session_id": "probe-club_join_group",
+            "scenario_id": "club_join_group",
+            "participants": [
+              "maya",
+              "jules",
+              "riley"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "你可以先简要介绍一下你对摄影的看法，增加互动。",
+              "尝试用更具体的例子来支持你的观点。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {},
+            "memory_candidates": [
+              {
+                "speaker_id": "maya",
+                "text": "Hey, no problem! We're just debating if we should host a structured photography workshop or just grab coffee and chat. I'm leaning toward a casual hangout, but Jules wants something more hands-on.",
+                "kind": "open_topic",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "It’s just about finding a balance. If we do a quick gear-swapping demo, beginners can learn a trick or two without it feeling like a formal class, then we can just hang out after.",
+                "kind": "proposal",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.341,
+          "tts": [
+            {
+              "speaker": "maya",
+              "voice": "eve",
+              "bytes": 529492,
+              "file": "club_join_group-maya.wav"
+            },
+            {
+              "speaker": "jules",
+              "voice": "ara",
+              "bytes": 487220,
+              "file": "club_join_group-jules.wav"
+            }
+          ]
+        },
+        {
+          "player": "I like photography, but I have never been part of a club before, so I am not sure what I could contribute.",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-4e7cfdcf09e24142b55a",
+              "text": "Don't worry about that; honestly, just bringing a fresh perspective is enough. We could even do a 'show and tell' where everyone shares one photo they took this week, so it's low pressure for newcomers.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "2"
+            },
+            {
+              "npc_id": "riley",
+              "speaker_id": "riley",
+              "reply_to": "player",
+              "reply_id": "reply-a6183a2b78a8406d87ba",
+              "text": "That's exactly why we need new people, honestly. A 'show and tell' is great because you don't need fancy gear or experience to talk about a shot you liked taking. Why don't we try that as a low-stakes way to break the ice?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "2"
+            }
+          ],
+          "receipt": {
+            "turn_id": "2",
+            "session_id": "probe-club_join_group",
+            "scenario_id": "club_join_group",
+            "participants": [
+              "maya",
+              "jules",
+              "riley"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "建议多鼓励对方分享摄影作品。",
+              "建议多鼓励对方分享摄影经验，减少他的心理负担。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I like photography, but I have never been part of a club before, so I am not sure what I could contribute.",
+              "known_to": [
+                "maya",
+                "jules",
+                "riley"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I like photography, but I have never been part of a club before, so I am not sure what I could contribute.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "Don't worry about that; honestly, just bringing a fresh perspective is enough. We could even do a 'show and tell' where everyone shares one photo they took this week, so it's low pressure for newcomers.",
+                "kind": "proposal",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "riley",
+                "text": "That's exactly why we need new people, honestly. A 'show and tell' is great because you don't need fancy gear or experience to talk about a shot you liked taking. Why don't we try that as a low-stakes way to break the ice?",
+                "kind": "proposal",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.573
+        },
+        {
+          "player": "When I tried taking photos with a friend, talking about why we chose each shot was the most interesting part.",
+          "replies": [
+            {
+              "npc_id": "riley",
+              "speaker_id": "riley",
+              "reply_to": "player",
+              "reply_id": "reply-76b00086c4d840fc8b71",
+              "text": "That's exactly what I mean; the intent behind the frame is way more important than the gear. If we focus on the stories behind our pictures, it levels the playing field for everyone. Does that sound like a good starting point for our next meeting?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "3"
+            },
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-bd82254b55ff4ccf997c",
+              "text": "That sounds perfect. It takes the pressure off having the best camera and focuses on the creative side. I'd love to hear the stories behind your favorite shots at the next meeting.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "3"
+            }
+          ],
+          "receipt": {
+            "turn_id": "3",
+            "session_id": "probe-club_join_group",
+            "scenario_id": "club_join_group",
+            "participants": [
+              "maya",
+              "jules",
+              "riley"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "可以分享具体拍摄背后的故事，这能拉近距离。",
+              "肯定对方的观点以建立共鸣。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "When I tried taking photos with a friend, talking about why we chose each shot was the most interesting part.",
+              "known_to": [
+                "maya",
+                "jules",
+                "riley"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "When I tried taking photos with a friend, talking about why we chose each shot was the most interesting part.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "riley",
+                "text": "That's exactly what I mean; the intent behind the frame is way more important than the gear. If we focus on the stories behind our pictures, it levels the playing field for everyone. Does that sound like a good starting point for our next meeting?",
+                "kind": "agreement",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "maya",
+                "text": "That sounds perfect. It takes the pressure off having the best camera and focuses on the creative side. I'd love to hear the stories behind your favorite shots at the next meeting.",
+                "kind": "agreement",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.321
+        },
+        {
+          "player": "I get why a casual gathering would be welcoming. I would still like one small thing we can actually work on.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-61d25cc9982243b9bcb2",
+              "text": "How about we try a quick 'lighting challenge' with our phones? We could spend ten minutes playing with shadows in this room, then share what we found. It’s practical but low-pressure.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "4"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-d0607c65832a4e1183f1",
+              "text": "A ten-minute lighting challenge sounds like a perfect middle ground. It gives us a concrete task to focus on, which helps break the ice, while keeping it casual enough that no one feels overwhelmed.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "4"
+            }
+          ],
+          "receipt": {
+            "turn_id": "4",
+            "session_id": "probe-club_join_group",
+            "scenario_id": "club_join_group",
+            "participants": [
+              "maya",
+              "jules",
+              "riley"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "尝试提出一个具体但简单的操作。",
+              "肯定对方的提议并补充可行性。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I get why a casual gathering would be welcoming. I would still like one small thing we can actually work on.",
+              "known_to": [
+                "maya",
+                "jules",
+                "riley"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I get why a casual gathering would be welcoming. I would still like one small thing we can actually work on.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "maya",
+                "text": "How about we try a quick 'lighting challenge' with our phones? We could spend ten minutes playing with shadows in this room, then share what we found. It’s practical but low-pressure.",
+                "kind": "proposal",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "A ten-minute lighting challenge sounds like a perfect middle ground. It gives us a concrete task to focus on, which helps break the ice, while keeping it casual enough that no one feels overwhelmed.",
+                "kind": "agreement",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.175
+        },
+        {
+          "player": "When you say beginner friendly, do you mean no equipment or no experience?",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-b7c110129e8e4cdcaf65",
+              "text": "Honestly, it means neither. You don't need a professional camera or any specific experience to experiment with shadows in a room. We're just looking to see how different light hits things, so your phone is totally fine.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "5"
+            },
+            {
+              "npc_id": "riley",
+              "speaker_id": "riley",
+              "reply_to": "player",
+              "reply_id": "reply-84f6366144d548b58748",
+              "text": "Exactly, it's about the eye, not the gear. Whether you're shooting with a DSLR or just your phone, the principles of light stay the same. We want everyone to feel like they have something to contribute regardless of their background.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "5"
+            }
+          ],
+          "receipt": {
+            "turn_id": "5",
+            "session_id": "probe-club_join_group",
+            "scenario_id": "club_join_group",
+            "participants": [
+              "maya",
+              "jules",
+              "riley"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "回答要点：明确说明两者皆可，强调参与门槛低。",
+              "尝试鼓励对方分享他们目前最喜欢的拍摄主题。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "When you say beginner friendly, do you mean no equipment or no experience?",
+              "known_to": [
+                "maya",
+                "jules",
+                "riley"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "When you say beginner friendly, do you mean no equipment or no experience?",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "Honestly, it means neither. You don't need a professional camera or any specific experience to experiment with shadows in a room. We're just looking to see how different light hits things, so your phone is totally fine.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "riley",
+                "text": "Exactly, it's about the eye, not the gear. Whether you're shooting with a DSLR or just your phone, the principles of light stay the same. We want everyone to feel like they have something to contribute regardless of their background.",
+                "kind": "agreement",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.615
+        },
+        {
+          "player": "Could we pair people up and let each pair choose something to photograph nearby?",
+          "replies": [
+            {
+              "npc_id": "riley",
+              "speaker_id": "riley",
+              "reply_to": "player",
+              "reply_id": "reply-ae9781138c6846408a55",
+              "text": "That's a solid idea. Pairing up takes the pressure off individual performance and makes it way easier for newcomers to chat while they scout for shots. I'm down for that if you two are?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "6"
+            },
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-920d3638208e425485dd",
+              "text": "I'm totally down for that. Pairing up makes it feel way less like a critique and more like a collaboration, which is exactly the vibe I wanted. Let's do it.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "6"
+            }
+          ],
+          "receipt": {
+            "turn_id": "6",
+            "session_id": "probe-club_join_group",
+            "scenario_id": "club_join_group",
+            "participants": [
+              "maya",
+              "jules",
+              "riley"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "\nplayer: Mind if I jump in? I heard you talking about the next event, but I missed the beginning.\nmaya: Hey, no problem! We're just debating if we should host a structured photography workshop or just grab coffee and chat. I'm leaning toward a casual hangout, but Jules wants something more hands-on.",
+            "coaching": [
+              "可以顺势肯定对方的提议，并表示这有助于打破隔阂。",
+              "可以先肯定这个想法，再补充一个配对的小建议。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "Could we pair people up and let each pair choose something to photograph nearby?",
+              "known_to": [
+                "maya",
+                "jules",
+                "riley"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "Could we pair people up and let each pair choose something to photograph nearby?",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "riley",
+                "text": "That's a solid idea. Pairing up takes the pressure off individual performance and makes it way easier for newcomers to chat while they scout for shots. I'm down for that if you two are?",
+                "kind": "proposal",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "maya",
+                "text": "I'm totally down for that. Pairing up makes it feel way less like a critique and more like a collaboration, which is exactly the vibe I wanted. Let's do it.",
+                "kind": "agreement",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.566
+        },
+        {
+          "player": "I could help with planning, but I cannot commit to running the whole event. Would that still be useful?",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-9c93dfeb103e401a922b",
+              "text": "That is honestly super helpful! We all have busy schedules, so having an extra hand for planning is a win. Even just helping to scout a few good spots nearby would take a lot of pressure off the rest of us.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "7"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-cbcd7c7b9510402f8ec7",
+              "text": "That's totally fine, we definitely don't expect you to lead everything. Even just helping us pick a few interesting spots on campus to practice that lighting would be a huge help to the group.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "7"
+            }
+          ],
+          "receipt": {
+            "turn_id": "7",
+            "session_id": "probe-club_join_group",
+            "scenario_id": "club_join_group",
+            "participants": [
+              "maya",
+              "jules",
+              "riley"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "player: Mind if I jump in? I heard you talking about the next event, but I missed the beginning.\nmaya: Hey, no problem! We're just debating if we should host a structured photography workshop or just grab coffee and chat. I'm leaning toward a casual hangout, but Jules wants something more hands-on.\njules: It’s just about finding a balance. If we do a quick gear-swapping demo, beginners can learn a trick or two without it feeling like a formal class, then we can just hang out after.\nplayer: I like photography, but I have never been part of a club before, so I am not sure what I could contribute.\njules: Don't worry about that; honestly, just bringing a fresh perspective is enough. We could even do a 'show and tell' where everyone shares one photo they took this week, so it's low pressure for newcomers.",
+            "coaching": [
+              "可以多分享具体想帮忙的规划环节，比如选址或时间安排。",
+              "建议：表示理解并肯定对方的贡献意愿。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I could help with planning, but I cannot commit to running the whole event. Would that still be useful?",
+              "known_to": [
+                "maya",
+                "jules",
+                "riley"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I could help with planning, but I cannot commit to running the whole event. Would that still be useful?",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "maya",
+                "text": "That is honestly super helpful! We all have busy schedules, so having an extra hand for planning is a win. Even just helping to scout a few good spots nearby would take a lot of pressure off the rest of us.",
+                "kind": "agreement",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "That's totally fine, we definitely don't expect you to lead everything. Even just helping us pick a few interesting spots on campus to practice that lighting would be a huge help to the group.",
+                "kind": "agreement",
+                "known_to": [
+                  "maya",
+                  "jules",
+                  "riley"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 3.866
+        },
+        {
+          "player": "Thanks for letting me join the conversation. I have to leave now, but I would like to hear how the plan develops.",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-f0252945ae614044b1e5",
+              "text": "No worries at all, thanks for jumping in with those ideas! We'll make sure to keep you posted on the final plan.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "8"
+            }
+          ],
+          "receipt": {
+            "turn_id": "8",
+            "session_id": "probe-club_join_group",
+            "scenario_id": "club_join_group",
+            "participants": [
+              "maya",
+              "jules",
+              "riley"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": true,
+            "topic_summary": "player: Mind if I jump in? I heard you talking about the next event, but I missed the beginning.\nmaya: Hey, no problem! We're just debating if we should host a structured photography workshop or just grab coffee and chat. I'm leaning toward a casual hangout, but Jules wants something more hands-on.\njules: It’s just about finding a balance. If we do a quick gear-swapping demo, beginners can learn a trick or two without it feeling like a formal class, then we can just hang out after.\nplayer: I like photography, but I have never been part of a club before, so I am not sure what I could contribute.\njules: Don't worry about that; honestly, just bringing a fresh perspective is enough. We could even do a 'show and tell' where everyone shares one photo they took this week, so it's low pressure for newcomers.\nriley: That's exactly why we need new people, honestly. A 'show and tell' is great because you don't need fancy gear or experience to talk about a shot you liked taking. Why don't we try that as a low-stakes way to break the ice?\nplayer: When I tried taking photos with a friend, talking about why we chose each shot was the most interesting part.",
+            "coaching": [
+              "礼貌地回应对方的离开，并确认后续会保持联系。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {},
+            "memory_candidates": []
+          },
+          "seconds": 1.084
+        }
+      ]
+    },
+    {
+      "scenario": "dining_story",
+      "turns": [
+        {
+          "player": "It took me a while to feel comfortable eating with people here. I used to worry about interrupting.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-7745db16650048288593",
+              "text": "I get that, I still feel like an intruder sometimes when the dining hall is packed. Honestly, I think I only started feeling settled once I found a regular table where nobody expects you to be 'on' all the time. Do you have a spot like that now, or are you still scouting?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            }
+          ],
+          "receipt": {
+            "turn_id": "1",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "分享你的舒适区。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "It took me a while to feel comfortable eating with people here. I used to worry about interrupting.",
+              "known_to": [
+                "maya"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "It took me a while to feel comfortable eating with people here. I used to worry about interrupting.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "maya",
+                "text": "I get that, I still feel like an intruder sometimes when the dining hall is packed. Honestly, I think I only started feeling settled once I found a regular table where nobody expects you to be 'on' all the time. Do you have a spot like that now, or are you still scouting?",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 1.297,
+          "tts": [
+            {
+              "speaker": "maya",
+              "voice": "eve",
+              "bytes": 767564,
+              "file": "dining_story-maya.wav"
+            }
+          ]
+        },
+        {
+          "player": "One day someone asked about a book I was carrying, and that gave me something real to talk about.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-141cc5dc7749446e9b3e",
+              "text": "That’s such a relief when a prop does the heavy lifting for you. I usually carry a journal, but I’m always wary if people think I’m trying to look busy. I'd love to hear what book it was—did the conversation actually turn into a friendship?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "2"
+            }
+          ],
+          "receipt": {
+            "turn_id": "2",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "可以分享一下那本书的名字，这会让对话更具体。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "One day someone asked about a book I was carrying, and that gave me something real to talk about.",
+              "known_to": [
+                "maya"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "One day someone asked about a book I was carrying, and that gave me something real to talk about.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "maya",
+                "text": "That’s such a relief when a prop does the heavy lifting for you. I usually carry a journal, but I’m always wary if people think I’m trying to look busy. I'd love to hear what book it was—did the conversation actually turn into a friendship?",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 1.266
+        },
+        {
+          "player": "I am more comfortable talking about an experience than answering a list of questions about myself.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-0525117d80bb4191b8aa",
+              "text": "I completely hear you; questions can feel like an interview when you just want to hang out. I remember when I first joined the radio station, I just sat in the corner for weeks until someone finally asked for help with a broken cable. That moment made me feel like I actually belonged there.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "3"
+            }
+          ],
+          "receipt": {
+            "turn_id": "3",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "分享具体的经历比回答问题更能建立联系。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {},
+            "memory_candidates": [
+              {
+                "speaker_id": "maya",
+                "text": "I completely hear you; questions can feel like an interview when you just want to hang out. I remember when I first joined the radio station, I just sat in the corner for weeks until someone finally asked for help with a broken cable. That moment made me feel like I actually belonged there.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 1.263
+        },
+        {
+          "player": "I am not sure joining more activities always helps. Sometimes I just want to know one person better.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-85c4c24ce066438183b0",
+              "text": "I totally agree. It's easy to get lost in a crowd, but a deeper connection with one person makes the whole campus feel smaller and less overwhelming. I'd much rather have one real conversation than be involved in ten things where I'm just a face in the room.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "4"
+            }
+          ],
+          "receipt": {
+            "turn_id": "4",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "分享一个具体的例子来支持你的观点。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I am not sure joining more activities always helps. Sometimes I just want to know one person better.",
+              "known_to": [
+                "maya"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I am not sure joining more activities always helps. Sometimes I just want to know one person better.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "maya",
+                "text": "I totally agree. It's easy to get lost in a crowd, but a deeper connection with one person makes the whole campus feel smaller and less overwhelming. I'd much rather have one real conversation than be involved in ten things where I'm just a face in the room.",
+                "kind": "agreement",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 1.18
+        },
+        {
+          "player": "What makes a conversation feel comfortable for you? Could you give me an example?",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-3f3caef2cf454284b41b",
+              "text": "It’s comfortable when there’s no pressure to perform. Once, a friend and I spent an hour just complaining about the weird library lighting; it wasn't deep, but it felt honest. That shared observation made me feel like we were finally on the same wavelength.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "5"
+            }
+          ],
+          "receipt": {
+            "turn_id": "5",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "分享具体的细节让对话更真实。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {},
+            "memory_candidates": [
+              {
+                "speaker_id": "maya",
+                "text": "It’s comfortable when there’s no pressure to perform. Once, a friend and I spent an hour just complaining about the weird library lighting; it wasn't deep, but it felt honest. That shared observation made me feel like we were finally on the same wavelength.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 1.22
+        },
+        {
+          "player": "That reminds me of a friend who could disagree with me without making it feel awkward.",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-c8957d8827a849bd9fd7",
+              "text": "That's a rare gift. It shows they value the relationship more than winning an argument, which makes it so much safer to be yourself. I've had a few friends like that, and it's always the ones who don't take disagreement personally that I end up trusting the most.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "6"
+            }
+          ],
+          "receipt": {
+            "turn_id": "6",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "尝试分享一个具体例子，说明那位朋友是如何处理分歧的。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "That reminds me of a friend who could disagree with me without making it feel awkward.",
+              "known_to": [
+                "maya"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "That reminds me of a friend who could disagree with me without making it feel awkward.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 1.22
+        },
+        {
+          "player": "I would like to get better at that. If you disagreed with what I just said, how would you put it?",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-c28b6f68b8724b3c8e05",
+              "text": "Honestly, I think you might be overthinking it. Instead of worrying about the mechanics of disagreeing, I'd just say 'I see it differently' and share why. It’s less about a specific technique and more about knowing the other person cares enough to keep listening despite the friction.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "7"
+            }
+          ],
+          "receipt": {
+            "turn_id": "7",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "在表达不同意见时，可以尝试先肯定对方的观点，再用“我个人的看法稍有不同”来引入，这样听起来会更自然。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I would like to get better at that. If you disagreed with what I just said, how would you put it?",
+              "known_to": [
+                "maya"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I would like to get better at that. If you disagreed with what I just said, how would you put it?",
+                "kind": "shared_fact",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "maya",
+                "text": "Honestly, I think you might be overthinking it. Instead of worrying about the mechanics of disagreeing, I'd just say 'I see it differently' and share why. It’s less about a specific technique and more about knowing the other person cares enough to keep listening despite the friction.",
+                "kind": "agreement",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 1.293
+        },
+        {
+          "player": "I have enjoyed talking about this. I should get going, but would you be up for lunch again sometime?",
+          "replies": [
+            {
+              "npc_id": "maya",
+              "speaker_id": "maya",
+              "reply_to": "player",
+              "reply_id": "reply-a5ecbb00a4f643059f5d",
+              "text": "I'd really like that. It was great talking, and I'm glad we didn't just stick to small talk. See you around campus later this week?",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "8"
+            }
+          ],
+          "receipt": {
+            "turn_id": "8",
+            "session_id": "probe-dining_story",
+            "scenario_id": "dining_story",
+            "participants": [
+              "maya"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": true,
+            "topic_summary": "",
+            "coaching": [
+              "既然对方也想保持联系，可以自然地结束对话，不需要再多问问题。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {},
+            "memory_candidates": [
+              {
+                "speaker_id": "maya",
+                "text": "I'd really like that. It was great talking, and I'm glad we didn't just stick to small talk. See you around campus later this week?",
+                "kind": "agreement",
+                "known_to": [
+                  "maya"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 1.185
+        }
+      ]
+    },
+    {
+      "scenario": "sports_mistake",
+      "turns": [
+        {
+          "player": "I saw that differently, but I might have missed the first part. Can we talk through what happened?",
+          "replies": [
+            {
+              "npc_id": "casey",
+              "speaker_id": "casey",
+              "reply_to": "player",
+              "reply_id": "reply-a3e55c82efa2410783e1",
+              "text": "I honestly thought the play was dead, but I might have been wrong. Let's just reset from the last spot we both agreed on to keep things fair.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-91b729458a8e4bfdb426",
+              "text": "I honestly didn't see the whistle either, so resetting from that last spot sounds like a solid way to move forward. Let's just keep an eye out for a clearer signal next time so we stay on the same page.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "1"
+            }
+          ],
+          "receipt": {
+            "turn_id": "1",
+            "session_id": "probe-sports_mistake",
+            "scenario_id": "sports_mistake",
+            "participants": [
+              "casey",
+              "jules"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "承认双方视角不同是修复冲突的良好开端。",
+              "承认双方视角不同，并提出具体的后续方案。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {},
+            "memory_candidates": [
+              {
+                "speaker_id": "casey",
+                "text": "I honestly thought the play was dead, but I might have been wrong. Let's just reset from the last spot we both agreed on to keep things fair.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "I honestly didn't see the whistle either, so resetting from that last spot sounds like a solid way to move forward. Let's just keep an eye out for a clearer signal next time so we stay on the same page.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.258,
+          "tts": [
+            {
+              "speaker": "casey",
+              "voice": "eve",
+              "bytes": 376172,
+              "file": "sports_mistake-casey.wav"
+            },
+            {
+              "speaker": "jules",
+              "voice": "ara",
+              "bytes": 533596,
+              "file": "sports_mistake-jules.wav"
+            }
+          ]
+        },
+        {
+          "player": "I thought we were pausing, so I stopped moving. I should have checked instead of assuming.",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-18abfe45b0ec4aa48e4d",
+              "text": "That makes sense, and honestly, I probably should've checked too instead of just playing through. Let's just reset and keep going from here.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "2"
+            },
+            {
+              "npc_id": "casey",
+              "speaker_id": "casey",
+              "reply_to": "player",
+              "reply_id": "reply-aff3ddad7e3843359f8c",
+              "text": "No worries, it's easy to get mixed up when everyone is moving fast. Let's just reset from the baseline and keep it moving.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "2"
+            }
+          ],
+          "receipt": {
+            "turn_id": "2",
+            "session_id": "probe-sports_mistake",
+            "scenario_id": "sports_mistake",
+            "participants": [
+              "casey",
+              "jules"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "承认对方的沟通意愿，建立共识。",
+              "承认双方都有误解，可以缓解紧张气氛。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I thought we were pausing, so I stopped moving. I should have checked instead of assuming.",
+              "known_to": [
+                "casey",
+                "jules"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I thought we were pausing, so I stopped moving. I should have checked instead of assuming.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "That makes sense, and honestly, I probably should've checked too instead of just playing through. Let's just reset and keep going from here.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "casey",
+                "text": "No worries, it's easy to get mixed up when everyone is moving fast. Let's just reset from the baseline and keep it moving.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.231
+        },
+        {
+          "player": "I get frustrated when I make that kind of mistake because I do not want to let the group down.",
+          "replies": [
+            {
+              "npc_id": "casey",
+              "speaker_id": "casey",
+              "reply_to": "player",
+              "reply_id": "reply-b0c075289f444717b41e",
+              "text": "Don't sweat it, we're all just here to have a good time anyway. Let's just reset and keep the energy up, no harm done.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "3"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-6029b0b499fc4e928a8c",
+              "text": "I totally get that feeling, but honestly, it’s just a casual game. Let's just reset from the baseline and keep the energy high.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "3"
+            }
+          ],
+          "receipt": {
+            "turn_id": "3",
+            "session_id": "probe-sports_mistake",
+            "scenario_id": "sports_mistake",
+            "participants": [
+              "casey",
+              "jules"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "承认错误并继续前进是建立团队信任的好方法。",
+              "承认对方的感受，减轻其心理负担。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I get frustrated when I make that kind of mistake because I do not want to let the group down.",
+              "known_to": [
+                "casey",
+                "jules"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I get frustrated when I make that kind of mistake because I do not want to let the group down.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "casey",
+                "text": "Don't sweat it, we're all just here to have a good time anyway. Let's just reset and keep the energy up, no harm done.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "I totally get that feeling, but honestly, it’s just a casual game. Let's just reset from the baseline and keep the energy high.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.282
+        },
+        {
+          "player": "I agree that keeping things friendly matters, but I still want us to be consistent about what we decide.",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-77edb1d9bef64c61b23e",
+              "text": "Consistency is definitely key for keeping the flow. If we just call out a quick 'stop' whenever someone's unsure, we can avoid these gaps in the future.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "4"
+            },
+            {
+              "npc_id": "casey",
+              "speaker_id": "casey",
+              "reply_to": "player",
+              "reply_id": "reply-f2a7af94b1264c67a63e",
+              "text": "That's a fair point. Maybe we can agree that if one person calls a stop, we all pause until we're on the same page. Let's start the next round with that rule in mind.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "4"
+            }
+          ],
+          "receipt": {
+            "turn_id": "4",
+            "session_id": "probe-sports_mistake",
+            "scenario_id": "sports_mistake",
+            "participants": [
+              "casey",
+              "jules"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "承认对方对一致性的要求，并提出具体的操作建议。",
+              "承认对方对一致性的追求，并提出具体的沟通规则。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I agree that keeping things friendly matters, but I still want us to be consistent about what we decide.",
+              "known_to": [
+                "casey",
+                "jules"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I agree that keeping things friendly matters, but I still want us to be consistent about what we decide.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "Consistency is definitely key for keeping the flow. If we just call out a quick 'stop' whenever someone's unsure, we can avoid these gaps in the future.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "casey",
+                "text": "That's a fair point. Maybe we can agree that if one person calls a stop, we all pause until we're on the same page. Let's start the next round with that rule in mind.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.318
+        },
+        {
+          "player": "When you say we should restart, do you mean repeat that part or start the whole activity again?",
+          "replies": [
+            {
+              "npc_id": "casey",
+              "speaker_id": "casey",
+              "reply_to": "player",
+              "reply_id": "reply-90d8e40c0d4444ebb429",
+              "text": "Let's just repeat that specific play rather than restarting the whole session. It keeps the momentum going without us having to redo everything we've already finished.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "5"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-7afb499156e34d81b7c6",
+              "text": "Repeating the specific play makes way more sense than starting over. It keeps the momentum going without us losing the progress we’ve already made today.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "5"
+            }
+          ],
+          "receipt": {
+            "turn_id": "5",
+            "session_id": "probe-sports_mistake",
+            "scenario_id": "sports_mistake",
+            "participants": [
+              "casey",
+              "jules"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "",
+            "coaching": [
+              "建议简要确认规则即可，不必过度解释。",
+              "承认对方的担忧，并用简洁的语言确认方案。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "When you say we should restart, do you mean repeat that part or start the whole activity again?",
+              "known_to": [
+                "casey",
+                "jules"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "When you say we should restart, do you mean repeat that part or start the whole activity again?",
+                "kind": "shared_fact",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "casey",
+                "text": "Let's just repeat that specific play rather than restarting the whole session. It keeps the momentum going without us having to redo everything we've already finished.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "Repeating the specific play makes way more sense than starting over. It keeps the momentum going without us losing the progress we’ve already made today.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.223
+        },
+        {
+          "player": "Could we agree on a clear signal before we continue? That would help me avoid the same misunderstanding.",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-ff928b65e4dd47ebb890",
+              "text": "That's a smart move. How about we just raise a hand or shout 'hold' whenever there's any confusion? It’s simple and should keep us from getting mixed up again.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "6"
+            },
+            {
+              "npc_id": "casey",
+              "speaker_id": "casey",
+              "reply_to": "player",
+              "reply_id": "reply-6b77ec382f0942ceaf24",
+              "text": "Raising a hand works for me, especially since it's easy to see even when things get loud. Let's use 'hold' as the signal and reset from that baseline now.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "6"
+            }
+          ],
+          "receipt": {
+            "turn_id": "6",
+            "session_id": "probe-sports_mistake",
+            "scenario_id": "sports_mistake",
+            "participants": [
+              "casey",
+              "jules"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "\nplayer: I saw that differently, but I might have missed the first part. Can we talk through what happened?\ncasey: I honestly thought the play was dead, but I might have been wrong. Let's just reset from the last spot we both agreed on to keep things fair.",
+            "coaching": [
+              "建议对方确认手势是否清晰。",
+              "承认对方的建议并确认执行细节。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "Could we agree on a clear signal before we continue? That would help me avoid the same misunderstanding.",
+              "known_to": [
+                "casey",
+                "jules"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "Could we agree on a clear signal before we continue? That would help me avoid the same misunderstanding.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "That's a smart move. How about we just raise a hand or shout 'hold' whenever there's any confusion? It’s simple and should keep us from getting mixed up again.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "casey",
+                "text": "Raising a hand works for me, especially since it's easy to see even when things get loud. Let's use 'hold' as the signal and reset from that baseline now.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.224
+        },
+        {
+          "player": "I am okay with that compromise. Next time I will ask if I am unsure instead of guessing.",
+          "replies": [
+            {
+              "npc_id": "casey",
+              "speaker_id": "casey",
+              "reply_to": "player",
+              "reply_id": "reply-b9a29f5487824cddb337",
+              "text": "Sounds like a plan. I appreciate you saying that, it’ll definitely make things smoother for all of us. Ready to go when you are.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "7"
+            },
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-da038058327f4f8eb65a",
+              "text": "Glad we're on the same page. Let's get back to it and just keep that 'hold' signal in mind if things get hectic again.",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "7"
+            }
+          ],
+          "receipt": {
+            "turn_id": "7",
+            "session_id": "probe-sports_mistake",
+            "scenario_id": "sports_mistake",
+            "participants": [
+              "casey",
+              "jules"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": false,
+            "topic_summary": "player: I saw that differently, but I might have missed the first part. Can we talk through what happened?\ncasey: I honestly thought the play was dead, but I might have been wrong. Let's just reset from the last spot we both agreed on to keep things fair.\njules: I honestly didn't see the whistle either, so resetting from that last spot sounds like a solid way to move forward. Let's just keep an eye out for a clearer signal next time so we stay on the same page.\nplayer: I thought we were pausing, so I stopped moving. I should have checked instead of assuming.\njules: That makes sense, and honestly, I probably should've checked too instead of just playing through. Let's just reset and keep going from here.",
+            "coaching": [
+              "承认对方的积极态度，可以建立更好的团队信任。",
+              "承认对方的妥协并表现出合作意愿。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "I am okay with that compromise. Next time I will ask if I am unsure instead of guessing.",
+              "known_to": [
+                "casey",
+                "jules"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "I am okay with that compromise. Next time I will ask if I am unsure instead of guessing.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "casey",
+                "text": "Sounds like a plan. I appreciate you saying that, it’ll definitely make things smoother for all of us. Ready to go when you are.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "Glad we're on the same page. Let's get back to it and just keep that 'hold' signal in mind if things get hectic again.",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 2.224
+        },
+        {
+          "player": "Thanks for talking it through. I need to leave soon, but I would like to join you again.",
+          "replies": [
+            {
+              "npc_id": "jules",
+              "speaker_id": "jules",
+              "reply_to": "player",
+              "reply_id": "reply-c0eb768bb5254ee2bba6",
+              "text": "No problem at all, I'm glad we cleared that up. Definitely let me know next time you're around—it'd be great to play again. Catch you later!",
+              "source": "gemini",
+              "model": "gemini-3.1-flash-lite",
+              "turn_id": "8"
+            }
+          ],
+          "receipt": {
+            "turn_id": "8",
+            "session_id": "probe-sports_mistake",
+            "scenario_id": "sports_mistake",
+            "participants": [
+              "casey",
+              "jules"
+            ],
+            "source": "gemini",
+            "model": "gemini-3.1-flash-lite",
+            "closed": true,
+            "topic_summary": "player: I saw that differently, but I might have missed the first part. Can we talk through what happened?\ncasey: I honestly thought the play was dead, but I might have been wrong. Let's just reset from the last spot we both agreed on to keep things fair.\njules: I honestly didn't see the whistle either, so resetting from that last spot sounds like a solid way to move forward. Let's just keep an eye out for a clearer signal next time so we stay on the same page.\nplayer: I thought we were pausing, so I stopped moving. I should have checked instead of assuming.\njules: That makes sense, and honestly, I probably should've checked too instead of just playing through. Let's just reset and keep going from here.\ncasey: No worries, it's easy to get mixed up when everyone is moving fast. Let's just reset from the baseline and keep it moving.\nplayer: I get frustrated when I make that kind of mistake because I do not want to let the group down.",
+            "coaching": [
+              "感谢对方的沟通，并礼貌地表达期待下一次的参与。"
+            ],
+            "activity_candidate": {
+              "kind": "conversation",
+              "meaningful": true
+            },
+            "memory_candidate": {
+              "text": "Thanks for talking it through. I need to leave soon, but I would like to join you again.",
+              "known_to": [
+                "casey",
+                "jules"
+              ]
+            },
+            "memory_candidates": [
+              {
+                "speaker_id": "player",
+                "text": "Thanks for talking it through. I need to leave soon, but I would like to join you again.",
+                "kind": "shared_fact",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              },
+              {
+                "speaker_id": "jules",
+                "text": "No problem at all, I'm glad we cleared that up. Definitely let me know next time you're around—it'd be great to play again. Catch you later!",
+                "kind": "agreement",
+                "known_to": [
+                  "casey",
+                  "jules"
+                ],
+                "derived_from": []
+              }
+            ]
+          },
+          "seconds": 1.142
+        }
+      ]
+    }
+  ],
+  "failures": [],
+  "started_at": "2026-09-12T17:29:55",
+  "passed": true
+}

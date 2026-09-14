@@ -407,6 +407,16 @@ if TTS_PROVIDER == "xai":
     NPC_TTS_VOICES = {"mira": "eve", "tavi": "ara", "ori": "eve", "rowan": "rex", "vesh": "leo"}
     QWEN_TTS_VOICE = ""  # A legacy override must never select an invalid US voice.
 _XAI_TTS_SESSION = None
+import campus as campus_dialogue
+for _campus_id, _campus_profile in campus_dialogue.PROFILES.items():
+    NPC_TTS_VOICES[_campus_id] = _campus_profile['voice'] if TTS_PROVIDER == 'xai' else 'longanlufeng'
+    NPC_LINES.setdefault(_campus_id, {})
+    NPC_LINES[_campus_id].setdefault('word_practice_model', '')
+    NPC_LINES[_campus_id].setdefault('word_practice_ask', '')
+for _campus_scene in campus_dialogue.SCENARIOS.values():
+    for _campus_index, _campus_line in enumerate(_campus_scene['example']):
+        if _campus_line['speaker_id'] != 'player':
+            NPC_LINES[_campus_line['speaker_id']][_campus_scene['id'] + '_example_' + str(_campus_index)] = _campus_line['text']
 _XAI_TTS_LOCK = threading.Lock()
 
 
@@ -2034,6 +2044,9 @@ def _dialogue_user_payload(body: dict, scenario: dict, profile: dict) -> dict:
         "transcript": transcript,
         "history": history,
     }
+    if isinstance(body.get("game_context"), dict) and body['game_context'].get('chapter') == 'campus' and scenario.get('npc_id') == 'tavi':
+        user['scene']['location'] = 'food counter at fictional Alder Commons College'
+        user['scene']['situation'] = user['scene']['situation'].replace('a neighborhood counter', 'a campus dining counter')
     # A convenience hint derived only from the already-authorized conversation.
     # It never commits items or replaces the spoken-handoff evidence gate.
     if scenario.get("godot_scenario_id") == "food_counter" and _requested_inventory_term(scenario, transcript, history):
@@ -3521,6 +3534,10 @@ class Handler(BaseHTTPRequestHandler):
         })
 
     def do_POST(self):
+        if self.path == "/game/campus/dialogue":
+            import sys
+            campus_dialogue.handle(self, sys.modules[__name__])
+            return
         if self.path == "/game/dialogue":
             self._handle_dialogue()
             return

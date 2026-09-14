@@ -1,0 +1,161 @@
+{
+  "status": "authorized_waiting_for_local_api_key",
+  "mode": "approved fallback CLI edit with style reference",
+  "character_alpha": "Local matte removal from preserved opaque original, followed by visual edge review; no API transparency claim.",
+  "assets": [
+    {
+      "id": "class",
+      "kind": "background",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/background-class.txt",
+      "reference": "game/assets/novel/settlement_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "2048x1152",
+      "original": "output/imagegen/campus/background-class.png",
+      "runtime": "game/assets/novel/campus/backgrounds/class.png"
+    },
+    {
+      "id": "study",
+      "kind": "background",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/background-study.txt",
+      "reference": "game/assets/novel/settlement_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "2048x1152",
+      "original": "output/imagegen/campus/background-study.png",
+      "runtime": "game/assets/novel/campus/backgrounds/study.png"
+    },
+    {
+      "id": "club",
+      "kind": "background",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/background-club.txt",
+      "reference": "game/assets/novel/settlement_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "2048x1152",
+      "original": "output/imagegen/campus/background-club.png",
+      "runtime": "game/assets/novel/campus/backgrounds/club.png"
+    },
+    {
+      "id": "dining",
+      "kind": "background",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/background-dining.txt",
+      "reference": "game/assets/novel/settlement_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "2048x1152",
+      "original": "output/imagegen/campus/background-dining.png",
+      "runtime": "game/assets/novel/campus/backgrounds/dining.png"
+    },
+    {
+      "id": "sports",
+      "kind": "background",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/background-sports.txt",
+      "reference": "game/assets/novel/settlement_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "2048x1152",
+      "original": "output/imagegen/campus/background-sports.png",
+      "runtime": "game/assets/novel/campus/backgrounds/sports.png"
+    },
+    {
+      "id": "home",
+      "kind": "background",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/background-home.txt",
+      "reference": "game/assets/novel/settlement_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "2048x1152",
+      "original": "output/imagegen/campus/background-home.png",
+      "runtime": "game/assets/novel/campus/backgrounds/home.png"
+    },
+    {
+      "id": "alex",
+      "kind": "character",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/character-alex.txt",
+      "reference": "game/assets/novel/cast_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "1024x1536",
+      "original": "output/imagegen/campus/character-alex.png",
+      "runtime": "game/assets/novel/campus/characters/alex.png"
+    },
+    {
+      "id": "maya",
+      "kind": "character",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/character-maya.txt",
+      "reference": "game/assets/novel/cast_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "1024x1536",
+      "original": "output/imagegen/campus/character-maya.png",
+      "runtime": "game/assets/novel/campus/characters/maya.png"
+    },
+    {
+      "id": "jules",
+      "kind": "character",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/character-jules.txt",
+      "reference": "game/assets/novel/cast_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "1024x1536",
+      "original": "output/imagegen/campus/character-jules.png",
+      "runtime": "game/assets/novel/campus/characters/jules.png"
+    },
+    {
+      "id": "sam",
+      "kind": "character",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/character-sam.txt",
+      "reference": "game/assets/novel/cast_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "1024x1536",
+      "original": "output/imagegen/campus/character-sam.png",
+      "runtime": "game/assets/novel/campus/characters/sam.png"
+    },
+    {
+      "id": "riley",
+      "kind": "character",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/character-riley.txt",
+      "reference": "game/assets/novel/cast_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "1024x1536",
+      "original": "output/imagegen/campus/character-riley.png",
+      "runtime": "game/assets/novel/campus/characters/riley.png"
+    },
+    {
+      "id": "casey",
+      "kind": "character",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/character-casey.txt",
+      "reference": "game/assets/novel/cast_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "1024x1536",
+      "original": "output/imagegen/campus/character-casey.png",
+      "runtime": "game/assets/novel/campus/characters/casey.png"
+    },
+    {
+      "id": "prof_chen",
+      "kind": "character",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/character-prof_chen.txt",
+      "reference": "game/assets/novel/cast_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "1024x1536",
+      "original": "output/imagegen/campus/character-prof_chen.png",
+      "runtime": "game/assets/novel/campus/characters/prof_chen.png"
+    },
+    {
+      "id": "tavi",
+      "kind": "character",
+      "prompt_file": "docs/reviews/campus_unified_2026-09-12/image-prompts/character-tavi.txt",
+      "reference": "game/assets/novel/cast_atlas.png",
+      "model": "gpt-image-2",
+      "quality": "high",
+      "size": "1024x1536",
+      "original": "output/imagegen/campus/character-tavi.png",
+      "runtime": "game/assets/novel/campus/characters/tavi.png"
+    }
+  ]
+}

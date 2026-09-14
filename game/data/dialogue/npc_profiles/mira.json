@@ -9,7 +9,11 @@
     "asset": "env_plaza_market_a",
     "role_at_facility": "greeter",
     "status": "placed",
-    "anchor": [0.1, 1.0, -0.4]
+    "anchor": [
+      0.1,
+      1.0,
+      -0.4
+    ]
   },
   "mainline": "none",
   "sells": [],
@@ -17,7 +21,13 @@
     "max_sentences": 2,
     "max_words": 30,
     "register": "natural everyday American English",
-    "avoid": ["teacher talk", "grammar correction", "score talk"]
+    "avoid": [
+      "teacher talk",
+      "grammar correction",
+      "score talk"
+    ]
   },
-  "scenario_ids": []
+  "scenario_ids": [
+    "market_conversation"
+  ]
 }

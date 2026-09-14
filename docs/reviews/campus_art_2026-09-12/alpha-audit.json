@@ -1,0 +1,106 @@
+[
+  {
+    "source": "art/source/campus/illustrated_v01/alex-matte.png",
+    "output": "game/assets/novel/campus/alex.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "transparent_pixels": 772404,
+    "opaque_pixels": 794239,
+    "edge_pixels": 6221,
+    "visible_magenta_pixels": 0
+  },
+  {
+    "source": "art/source/campus/illustrated_v01/casey-matte.png",
+    "output": "game/assets/novel/campus/casey.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "transparent_pixels": 857746,
+    "opaque_pixels": 707636,
+    "edge_pixels": 7482,
+    "visible_magenta_pixels": 0
+  },
+  {
+    "source": "art/source/campus/illustrated_v01/jules-matte.png",
+    "output": "game/assets/novel/campus/jules.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "transparent_pixels": 844649,
+    "opaque_pixels": 720125,
+    "edge_pixels": 8090,
+    "visible_magenta_pixels": 0
+  },
+  {
+    "source": "art/source/campus/illustrated_v01/maya-matte.png",
+    "output": "game/assets/novel/campus/maya.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "transparent_pixels": 861517,
+    "opaque_pixels": 704735,
+    "edge_pixels": 6612,
+    "visible_magenta_pixels": 0
+  },
+  {
+    "source": "art/source/campus/illustrated_v01/prof_chen-matte.png",
+    "output": "game/assets/novel/campus/prof_chen.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "transparent_pixels": 836792,
+    "opaque_pixels": 730104,
+    "edge_pixels": 5968,
+    "visible_magenta_pixels": 0
+  },
+  {
+    "source": "art/source/campus/illustrated_v01/riley-matte.png",
+    "output": "game/assets/novel/campus/riley.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "transparent_pixels": 841408,
+    "opaque_pixels": 725504,
+    "edge_pixels": 5952,
+    "visible_magenta_pixels": 0
+  },
+  {
+    "source": "art/source/campus/illustrated_v01/sam-matte.png",
+    "output": "game/assets/novel/campus/sam.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "transparent_pixels": 774576,
+    "opaque_pixels": 791673,
+    "edge_pixels": 6615,
+    "visible_magenta_pixels": 0
+  },
+  {
+    "source": "art/source/campus/illustrated_v01/tavi-matte.png",
+    "output": "game/assets/novel/campus/tavi.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "transparent_pixels": 882407,
+    "opaque_pixels": 681114,
+    "edge_pixels": 9343,
+    "visible_magenta_pixels": 0
+  }
+]

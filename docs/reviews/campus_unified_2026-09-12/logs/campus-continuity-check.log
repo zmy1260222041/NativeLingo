@@ -1,0 +1,65 @@
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_study 1 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_study 2 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_study 3 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_study 4 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_help 1 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_help 2 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_help 3 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+class_help 4 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_belong 1 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_belong 2 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_belong 3 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_belong 4 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_plan 1 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_plan 2 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_plan 3 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+club_plan 4 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_friends 1 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_friends 2 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_friends 3 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_friends 4 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_routine 1 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_routine 2 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_routine 3 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+dining_routine 4 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_regular 1 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_regular 2 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_regular 3 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_regular 4 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_repair 1 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_repair 2 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_repair 3 PASS
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -
+sports_repair 4 PASS
+PASS

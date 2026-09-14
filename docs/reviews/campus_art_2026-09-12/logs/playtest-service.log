@@ -1,0 +1,39 @@
+Stranger speech service listening on http://127.0.0.1:17831
+[speech] stage=gemini_prewarm ms=282 trigger=startup route=direct
+[speech] stage=gemini_model_prewarm ms=460 trigger=startup model=gemini-3.1-flash-lite
+[speech] whisper ready
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+Loading weights:   0%|          | 0/210 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 210/210 [00:00<00:00, 10315.79it/s]
+[transformers] [1mWav2Vec2Model LOAD REPORT[0m from: facebook/wav2vec2-base-960h
+Key               | Status     |
+------------------+------------+-
+lm_head.bias      | UNEXPECTED |
+lm_head.weight    | UNEXPECTED |
+masked_spec_embed | MISSING    |
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+[speech] reference scorer ready
+[speech] tts pool ready
+[speech] 127.0.0.1 "GET /health HTTP/1.1" 200 -
+[speech] 127.0.0.1 "GET /health HTTP/1.1" 200 -
+[speech] stage=gemini_prewarm ms=122 trigger=voice route=direct
+[speech] stage=gemini_model_prewarm ms=660 trigger=voice model=gemini-3.1-flash-lite
+[speech] 127.0.0.1 "POST /game/prewarm HTTP/1.1" 200 -
+[speech] 127.0.0.1 "GET /health HTTP/1.1" 200 -
+[speech] stage=gemini_prewarm ms=129 trigger=health route=direct
+[speech] stage=gemini_model_prewarm ms=625 trigger=health model=gemini-3.1-flash-lite
+[speech] 127.0.0.1 "GET /health?refresh=1 HTTP/1.1" 200 -
+[speech] stage=gemini_prewarm ms=141 trigger=health route=direct
+[speech] stage=gemini_model_prewarm ms=419 trigger=health model=gemini-3.1-flash-lite
+[speech] 127.0.0.1 "GET /health?refresh=1 HTTP/1.1" 200 -
+[speech] stage=gemini_prewarm ms=199 trigger=health route=direct
+[speech] stage=gemini_model_prewarm ms=0 trigger=health model=gemini-3.1-flash-lite cached=1
+[speech] 127.0.0.1 "GET /health?refresh=1 HTTP/1.1" 200 -
+[speech] stage=gemini_prewarm ms=105 trigger=health route=direct
+[speech] stage=gemini_model_prewarm ms=510 trigger=health model=gemini-3.1-flash-lite
+[speech] 127.0.0.1 "GET /health?refresh=1 HTTP/1.1" 200 -
+[speech] 127.0.0.1 "POST /game/campus/dialogue HTTP/1.1" 200 -

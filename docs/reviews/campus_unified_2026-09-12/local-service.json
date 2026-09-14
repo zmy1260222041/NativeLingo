@@ -1,0 +1,8 @@
+{
+  "protocol": 2,
+  "dialogue_ready": true,
+  "dialogue_reason": "",
+  "dialogue_provider": "gemini",
+  "tts_provider": "xai",
+  "tts_region": "us-east-1"
+}
