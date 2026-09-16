@@ -1,0 +1,72 @@
+[
+  {
+    "npc": "mira",
+    "player": "I'm new here. I don't know anyone or how things work.",
+    "reply": "It takes a little time to settle in, but you don't need to know everyone at once. Tavi is usually at the food counter and is easy to talk to if you want a quiet place to sit for a while. Do you prefer to find a seat right away, or would you rather walk around first?",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "tavi",
+    "player": "I'm new here. I don't know anyone or how things work.",
+    "reply": "Welcome to the neighborhood. Just tell me what you're hungry for and I'll get it for you.",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "ori",
+    "player": "I'm new here. I don't know anyone or how things work.",
+    "reply": "Welcome to the neighborhood.",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "vesh",
+    "player": "I'm new here. I don't know anyone or how things work.",
+    "reply": "Most folks just focus on keeping their pipes from freezing around here. What specific part or item do you need to get your place sorted?",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "rowan",
+    "player": "I'm new here. I don't know anyone or how things work.",
+    "reply": "It takes time to settle in. Most people here keep to themselves, but you can usually find Ori at the corner store if you need to stock up on water.",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "mira",
+    "player": "[NPC opens conversation]",
+    "reply": "I'm Mira, and I spend my days here in the plaza helping folks get settled. It's a lot to take in at once, but you might find it easier to just stop by Tavi's food counter for a quick bite and a chat. He's usually the first person to know what's happening around here.",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "mira",
+    "player": "[NPC opens conversation]",
+    "reply": "It is good to see you back in the plaza again. Vesh is just focused on his work, but Rowan is usually sitting nearby if you prefer a quieter neighbor to talk with.",
+    "contact": {
+      "completed_exchanges": 5,
+      "days_met": 2
+    },
+    "complete": false
+  },
+  {
+    "npc": "rowan",
+    "player": "Do you remember me?",
+    "reply": "I recognize you, especially since you brought that water by the other day. It's quiet here, but people notice when someone helps out without being asked.",
+    "contact": {
+      "completed_exchanges": 4,
+      "days_met": 2,
+      "helped_rowan": true
+    },
+    "complete": false
+  },
+  {
+    "npc": "vesh",
+    "player": "I'd like to buy alloy, please.",
+    "reply": "I'll get that alloy for you.",
+    "contact": {},
+    "complete": true
+  }
+]

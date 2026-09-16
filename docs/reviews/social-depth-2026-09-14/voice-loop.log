@@ -1,0 +1,27 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5
+
+OK: Mira can initiate without a player recording
+OK: Proactive opening plays to completion
+OK: Opening does not forge player speech in history
+OK: Opening is not scored as player practice
+OK: Opening grants no supplies
+MIRA_OPENING The morning light hits the fruit stands just right today. It makes the red apples look like they are glowing, which is my favorite thing to see before the crowds arrive. Do you like the quiet time here too?
+OK: The 2D record button starts an audio capture session
+OK: Mira recording reaches transcription
+OK: Mira dynamic reply audio finishes
+OK: Mira responds instead of repeating the authored greeting
+OK: Mira reply comes from the live model
+OK: Social dialogue does not show an order receipt
+OK: Social dialogue cannot grant supplies
+MIRA_TURN 0 heard=hi mira how are you today? reply=I am doing well, thank you for asking. I really enjoy this calm moment before the plaza gets too busy. It is much easier to hear the birds sing when there are fewer people walking around.
+OK: The 2D record button starts an audio capture session
+OK: Mira recording reaches transcription
+OK: Mira dynamic reply audio finishes
+OK: Mira responds instead of repeating the authored greeting
+OK: Mira reply comes from the live model
+OK: Social dialogue does not show an order receipt
+OK: Social dialogue cannot grant supplies
+OK: Follow-up retains the same conversation session
+MIRA_TURN 1 heard=i have had a tiring day what do you like about working here reply=I love meeting new people from all over. It makes me feel connected to the world, even though I stay in this one spot all day.
+MIRA_LIVE failures=0

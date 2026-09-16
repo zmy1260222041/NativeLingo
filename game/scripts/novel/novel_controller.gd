@@ -20,7 +20,10 @@ var health_request: HTTPRequest
 var voice_status := "尚未检查语音连接"
 var _listening := false
 var _replay: Dictionary = {}
+var _pending_spoken_reply: Dictionary = {}
+var _preparing_opening := false
 var order_note: Dictionary = {}
+var social_openings: Dictionary = {}
 
 func _ready() -> void:
 	Content.load_daily_life()
@@ -35,6 +38,7 @@ func _ready() -> void:
 		var state: Dictionary = GameState.presentation_state
 		location = str(Content.place(str(state.get("location", "plaza"))).id)
 		history = state.get("history", []).duplicate(true)
+		social_openings = state.get("social_openings", {}).duplicate(true)
 	GameState.onboarding_active = false
 	GameState.set_interaction_time_frozen(false)
 	Vocabulary.sync_from_game_state()
@@ -46,6 +50,7 @@ func _ready() -> void:
 	GameState.day_started.connect(_day_started)
 	NpcDialogueService.scenario_opened.connect(_scenario_opened)
 	NpcDialogueService.dialogue_ready.connect(_reply)
+	NpcDialogueService.town_exchange_finished.connect(_remember_town_exchange)
 	NpcDialogueService.dialogue_failed.connect(_dialogue_failed)
 	NpcDialogueService.service_turn_updated.connect(_service_turn_updated)
 	NpcScenarioRunner.service_settled.connect(_service_settled)
@@ -53,6 +58,7 @@ func _ready() -> void:
 	NpcDialogueService.player_turn_displayed.connect(func(_npc, text): say("you", text))
 	SpeechAdapter.recognition_finished.connect(_recognition)
 	SpeechAdapter.word_score_finished.connect(_word_score)
+	NpcVoice.line_audio_ready.connect(_reply_audio_started)
 	NpcVoice.line_audio_finished.connect(_listening_finished)
 	NpcVoice.line_audio_failed.connect(_listening_failed)
 	if boot_from_save:
@@ -64,6 +70,13 @@ func start(play_voice := true) -> void:
 
 func _present_opening(play_voice := true) -> void:
 	var entry := Content.place(location)
+	var opening_key := "%s:%d" % [npc_id(), GameState.day]
+	if play_voice and boot_from_save and npc_id() in ["mira", "rowan"] and not GameState.game_finished and not social_openings.has(opening_key) and conversation_block_reason().is_empty():
+		if NpcDialogueService.start_social_opening(npc_id(), _spoken_scenario(npc_id()), GameState.day):
+			_preparing_opening = true
+			line_changed.emit("", "正在准备开场语音…")
+			feedback.emit("%s 向你搭了句话。可以接话，也可以随时离开。" % npc_id().capitalize())
+			return
 	say(npc_id(), str(entry.opening))
 	if play_voice and not npc_id().is_empty() and not GameState.game_finished:
 		_listen(npc_id(), str(entry.get("opening_id", "")))
@@ -89,6 +102,8 @@ func travel(destination: String) -> bool:
 
 func cancel_activity() -> void:
 	_changing = true
+	_pending_spoken_reply.clear()
+	_preparing_opening = false
 	SpeechAdapter.cancel_recording()
 	SpeechAdapter.clear_recovery()
 	NpcDialogueService.cancel()
@@ -128,7 +143,12 @@ func talk() -> void:
 	if social_index >= 0 or not practice_word.is_empty():
 		cancel_activity()
 		scene_changed.emit()
-	if GameState.can_start_service_dialogue(npc_id()):
+	if npc_id() in ["mira", "rowan"]:
+		if not NpcDialogueService.is_session_active_for(npc_id()):
+			NpcDialogueService.start_social_opening(npc_id(), _spoken_scenario(npc_id()), GameState.day)
+		else:
+			feedback.emit("点录音接着聊，不必重新打招呼。")
+	elif GameState.can_start_service_dialogue(npc_id()):
 		NpcDialogueService.begin_scenario(npc_id(), GameState.service_scenario_for(npc_id()))
 	else:
 		GameState.interact("npc", npc_id(), "action")
@@ -157,7 +177,7 @@ func recording_block_reason() -> String:
 	return "" if SpeechAdapter.is_recording() else conversation_block_reason()
 
 func _spoken_scenario(target: String) -> String:
-	return "market_conversation" if target == "mira" else GameState.service_scenario_for(target)
+	return {"mira": "market_conversation", "rowan": "neighbor_conversation"}.get(target, GameState.service_scenario_for(target))
 
 func record() -> void:
 	if SpeechAdapter.is_recording():
@@ -215,13 +235,38 @@ func _scenario_opened(npc: String, _scenario: String, text: String) -> void:
 
 func _reply(npc: String, reply_id: String, text: String) -> void:
 	if npc == npc_id() and not _changing:
-		say(npc, text)
+		# Text can arrive seconds before cold TTS. Start the typewriter with
+		# playback, also handling audio that started before this signal.
+		_pending_spoken_reply = {"npc": npc, "reply": reply_id, "text": text}
 		_replay = {"npc": npc, "reply": reply_id}
+		if NpcVoice.playing_npc_id == npc and NpcVoice.playing_line_id == reply_id and NpcVoice.audio_player.playing:
+			_reply_audio_started(npc, reply_id)
+		else:
+			feedback.emit("正在准备语音…")
+
+func _reply_audio_started(npc: String, reply_id: String) -> void:
+	if _changing or npc != npc_id() or _pending_spoken_reply.get("npc") != npc or _pending_spoken_reply.get("reply") != reply_id:
+		return
+	var text := str(_pending_spoken_reply.text)
+	_pending_spoken_reply.clear()
+	_preparing_opening = false
+	feedback.emit("")
+	say(npc, text)
 
 func _dialogue_failed(npc: String, reason: String) -> void:
+	var text_only := false
+	if npc == npc_id() and not _changing and _preparing_opening:
+		_preparing_opening = false
+		if _pending_spoken_reply.is_empty():
+			line_changed.emit("", "开场语音暂时未能完成，可以稍后再试。")
+	if npc == npc_id() and not _changing and _pending_spoken_reply.get("npc") == npc:
+		var text := str(_pending_spoken_reply.text)
+		_pending_spoken_reply.clear()
+		say(npc, text)
+		text_only = true
 	if npc == npc_id() and not _changing and not GameState.can_start_service_dialogue(npc):
 		order_note.clear()
-		feedback.emit("这次回应未能完成，可以免费重试。 " + tr(reason))
+		feedback.emit("语音未能播放，已保留文字。可以点「重听」重试。" if text_only else "这次回应未能完成，可以免费重试。 " + tr(reason))
 		progression_changed.emit()
 		return
 	if npc == npc_id() and not _changing:
@@ -433,6 +478,7 @@ func _day_started(day: int) -> void:
 func save() -> bool:
 	GameState.presentation_state["location"] = location
 	GameState.presentation_state["history"] = history
+	GameState.presentation_state["social_openings"] = social_openings
 	return GameState.save_game()
 
 func restart(play_voice := true) -> void:
@@ -440,6 +486,7 @@ func restart(play_voice := true) -> void:
 	GameState.reset_run()
 	location = "plaza"
 	history.clear()
+	social_openings.clear()
 	GameState.presentation_state.clear()
 	save()
 	start(play_voice)
@@ -511,7 +558,7 @@ func _listening_failed(npc: String, line: String, _reason: String) -> void:
 		return
 	_listening = false
 	progression_changed.emit()
-	feedback.emit("示范语音暂时无法播放，可以点重听再试。")
+	feedback.emit("语音暂时无法播放，可以点「重听」再试。")
 
 func _exit_tree() -> void:
 	cancel_activity()
@@ -526,3 +573,22 @@ func pack_counter() -> Dictionary:
 	var result: Dictionary = GameState.item_command("pack", ids, context)
 	if result.get("ok", false): save()
 	return result
+
+func _remember_town_exchange(npc: String, player_text: String, reply_text: String, opening: bool) -> void:
+	if _changing or npc != npc_id() or GameState.presentation_state.get("chapter") == "campus": return
+	var contacts: Dictionary = GameState.presentation_state.get("town_contacts", {})
+	var contact: Dictionary = contacts.get(npc, {"completed_exchanges": 0, "days": [], "history": []})
+	var transcript: Array = contact.get("history", [])
+	if not opening:
+		contact["completed_exchanges"] = mini(1000, int(contact.get("completed_exchanges", 0)) + 1)
+		var days: Array = contact.get("days", [])
+		if GameState.day not in days: days.append(GameState.day)
+		contact["days"] = days.slice(maxi(0, days.size() - 30))
+		transcript.append({"role": "player", "text": player_text.left(1000)})
+	else:
+		social_openings["%s:%d" % [npc, GameState.day]] = true
+	transcript.append({"role": "npc", "text": reply_text.left(1000)})
+	contact["history"] = transcript.slice(maxi(0, transcript.size() - 8))
+	contacts[npc] = contact
+	GameState.presentation_state["town_contacts"] = contacts
+	save()

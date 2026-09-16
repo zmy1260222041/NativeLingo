@@ -9,15 +9,39 @@
     "asset": "pending_convenience_store",
     "role_at_facility": "clerk",
     "status": "workplace_pending",
-    "anchor": [10.0, 1.0, 8.0]
+    "anchor": [
+      10.0,
+      1.0,
+      8.0
+    ]
   },
   "mainline": "water",
-  "sells": ["water"],
+  "sells": [
+    "water"
+  ],
   "style": {
     "max_sentences": 2,
     "max_words": 30,
     "register": "natural everyday American English",
-    "avoid": ["teacher talk", "grammar correction", "score talk", "invented stock"]
+    "avoid": [
+      "teacher talk",
+      "grammar correction",
+      "score talk",
+      "invented stock"
+    ]
   },
-  "scenario_ids": ["convenience_store"]
+  "scenario_ids": [
+    "convenience_store"
+  ],
+  "town_role": {
+    "first_contact": "Polite, reserved and patient. Offer practical clarity rather than instant friendship.",
+    "familiar_contact": "Become a little less formal after repeated encounters, without claiming personal trust or an unprovided purchase.",
+    "contribution": "Make everyday supplies and their intended use understandable; admit when a question belongs to another resident.",
+    "knowledge": [
+      "Ori sells only the listed store inventory.",
+      "Tavi runs the food counter.",
+      "Vesh handles parts for repairs."
+    ],
+    "perspective": "A newcomer should know what they are getting and who to ask, without being pushed into a purchase."
+  }
 }

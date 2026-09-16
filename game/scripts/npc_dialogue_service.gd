@@ -8,6 +8,7 @@ signal scenario_opened(npc_id: String, scenario_id: String, text: String)
 signal dialogue_ready(npc_id: String, reply_id: String, text: String)
 signal dialogue_failed(npc_id: String, reason: String)
 signal dialogue_closed(npc_id: String, reason: String)
+signal town_exchange_finished(npc_id: String, player_text: String, reply_text: String, opening: bool)
 ## FR-45 speaker subtitle: the player's own words are mirrored the moment the
 ## transcript is locked in; marks arrive later with the scored player_turn.
 signal player_turn_displayed(npc_id: String, transcript: String)
@@ -193,6 +194,13 @@ func begin_scenario(npc_id: String, scenario_id := "", announce_entry := true) -
 		current_scenario_id = ""
 		session_id = ""
 		return false
+	if GameState.presentation_state.get("chapter") != "campus":
+		var known: Dictionary = GameState.presentation_state.get("town_contacts", {}).get(npc, {})
+		var previous: Array = []
+		for turn in known.get("history", []):
+			if turn is Dictionary and turn.get("role") in ["player", "npc"] and turn.get("text") is String:
+				previous.append({"role": turn.role, "text": str(turn.text).left(1000)})
+		_dialogue().sessions[npc]["history"] = previous.slice(maxi(0, previous.size() - MAX_HISTORY))
 	var scenario: Dictionary = _registry().get_scenario(selected)
 	var entry_dialogue := str(scenario.get("entry_dialogue", "")).strip_edges()
 	_dialogue().await_player(npc, "entry_dialogue")
@@ -219,6 +227,17 @@ func scenario_id() -> String:
 	return current_scenario_id
 
 
+var current_turn_is_opening := false
+
+func start_social_opening(npc: String, scenario: String, day: int) -> bool:
+	if _registry().get_scenario(scenario).get("conversation_mode") != "social": return false
+	if not begin_scenario(npc, scenario, false): return false
+	return submit_transcript("[NPC opens conversation]", {"turn_kind": "opening", "day": day})
+
+func _reply_within_limits(text: String) -> bool:
+	var social: bool = _registry().get_scenario(current_scenario_id).get("conversation_mode") == "social"
+	return text.split(" ", false).size() <= (60 if social else MAX_TEXT_WORDS) and _sentence_count(text) <= (3 if social else MAX_TEXT_SENTENCES)
+
 func submit_transcript(transcript: String, game_context: Dictionary = {}) -> bool:
 	var text := transcript.strip_edges()
 	if text.is_empty() or not is_session_active_for(current_npc_id):
@@ -230,12 +249,13 @@ func submit_transcript(transcript: String, game_context: Dictionary = {}) -> boo
 	if not is_available():
 		_fail("VOICE_REASON_SERVICE_UNAVAILABLE")
 		return false
-	if not _dialogue().begin_generation(current_npc_id, text):
+	current_turn_is_opening = game_context.get("turn_kind") == "opening" and _registry().get_scenario(current_scenario_id).get("conversation_mode") == "social"
+	if not _dialogue().begin_generation(current_npc_id, text, not current_turn_is_opening):
 		return false
 	pending_transcript = text
 	pending_pronunciation = float(game_context.get("pronunciation", -1.0))
 	current_turn_transcript = text
-	player_turn_displayed.emit(current_npc_id, text)
+	if not current_turn_is_opening: player_turn_displayed.emit(current_npc_id, text)
 	retry_count = 0
 	_score_received = false
 	last_reply_source = ""
@@ -265,6 +285,10 @@ func _send_request(game_context: Dictionary = {}) -> bool:
 	dialogue_pending.emit(current_npc_id, current_scenario_id)
 	var context := game_context.duplicate(true)
 	if GameState.presentation_state.get("chapter") == "campus": context["chapter"] = "campus"
+	else:
+		var contact: Dictionary = GameState.presentation_state.get("town_contacts", {}).get(current_npc_id, {})
+		context["town_contact"] = {"completed_exchanges": int(contact.get("completed_exchanges", 0)), "days_met": contact.get("days", []).size()}
+		if current_npc_id == "rowan": context["town_contact"]["helped_rowan"] = GameState.completed_steps.has("help_rowan")
 	if pending_pronunciation >= 0.0:
 		context["pronunciation"] = pending_pronunciation
 	var runner := _runner()
@@ -765,12 +789,13 @@ func _apply_score(parsed: Dictionary) -> void:
 	_score_received = true
 	# Score and audio race independently. The audio timeout/end event owns fallback.
 	var runner := _runner()
-	if runner != null:
+	if runner != null and not current_turn_is_opening:
 		var idiomaticity := float(player_turn.get("idiomaticity", 0.0))
 		var pronunciation := pending_pronunciation if pending_pronunciation >= 0.0 else idiomaticity
 		runner.record_player_turn(current_npc_id, pronunciation, idiomaticity)
-	_emit_player_turn_scored(player_turn, score_source)
-	_record_vocabulary_use(current_turn_transcript)
+	if not current_turn_is_opening:
+		_emit_player_turn_scored(player_turn, score_source)
+		_record_vocabulary_use(current_turn_transcript)
 	service_turn_updated.emit(current_npc_id, {
 		"confirmed": confirmation_valid,
 		"item": current_confirmed_item if confirmation_valid else str(player_turn.get("requested_item", "")),
@@ -787,7 +812,7 @@ func _validate_speaking(reply: Dictionary) -> Dictionary:
 	if not reply_id.begins_with("reply-") or reply_id.length() > 64 or npc != current_npc_id or text.is_empty():
 		return {"ok": false, "reason": "VOICE_REASON_RESULT_INVALID"}
 	var words := text.split(" ", false)
-	if words.size() > MAX_TEXT_WORDS or _sentence_count(text) > MAX_TEXT_SENTENCES:
+	if not _reply_within_limits(text):
 		return {"ok": false, "reason": "VOICE_REASON_RESULT_INVALID"}
 	var lowered := text.to_lower()
 	for marker in ["learn english", "your score", "pronunciation", "repeat after", "you should say"]:
@@ -885,7 +910,7 @@ func _validate_reply(reply: Dictionary) -> Dictionary:
 	if not reply_id.begins_with("reply-") or reply_id.length() > 64 or npc != current_npc_id or text.is_empty():
 		return {"ok": false, "reason": "VOICE_REASON_RESULT_INVALID"}
 	var words := text.split(" ", false)
-	if words.size() > MAX_TEXT_WORDS or _sentence_count(text) > MAX_TEXT_SENTENCES:
+	if not _reply_within_limits(text):
 		return {"ok": false, "reason": "VOICE_REASON_RESULT_INVALID"}
 	var lowered := text.to_lower()
 	for marker in ["learn english", "your score", "pronunciation", "repeat after", "you should say"]:
@@ -984,6 +1009,9 @@ func _settle_finished_audio() -> void:
 	if not _pending_next_state.is_empty():
 		next_state = _pending_next_state
 	var scenario_id_value := current_scenario_id
+	var spoken_text := current_reply_text
+	var player_text := current_turn_transcript
+	var opening := current_turn_is_opening
 	current_reply_id = ""
 	current_reply_text = ""
 	current_reply_speech_act = ""
@@ -1000,6 +1028,8 @@ func _settle_finished_audio() -> void:
 			transaction_complete,
 			confirmed_item,
 		)
+	if GameState.presentation_state.get("chapter") != "campus":
+		town_exchange_finished.emit(npc, player_text, spoken_text, opening)
 	if next_state == "closed":
 		_close_session("completed", false, false)
 	else:

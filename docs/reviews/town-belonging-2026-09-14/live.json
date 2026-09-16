@@ -1,0 +1,72 @@
+[
+  {
+    "npc": "mira",
+    "player": "I'm new here. I don't know anyone or how things work.",
+    "reply": "It takes time to settle in, but you don't need to meet everyone at once. If you need supplies, Ori runs the corner store and is quite polite, though he prefers to keep things brief. I find it easier to just start with one person you recognize when you walk by.",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "tavi",
+    "player": "I'm new here. I don't know anyone or how things work.",
+    "reply": "Welcome to the neighborhood. Just tell me what you need to eat, and if you need supplies, look for Ori.",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "ori",
+    "player": "I'm new here. I don't know anyone or how things work.",
+    "reply": "Welcome to town. If you need food, Tavi runs the counter, but I can help you with a drink or snack here.",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "vesh",
+    "player": "I'm new here. I don't know anyone or how things work.",
+    "reply": "This place stays cold unless you keep your heater running. What part or supply do you need for your home?",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "rowan",
+    "player": "I'm new here. I don't know anyone or how things work.",
+    "reply": "Most people here keep to themselves until they need a hand with something. If you run low on water, Ori at the corner store usually has some.",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "mira",
+    "player": "[NPC opens conversation]",
+    "reply": "I'm Mira, and I help folks find their way around this plaza. It can feel like a lot to take in, but you might start by visiting Ori at the corner store for your basic supplies.",
+    "contact": {},
+    "complete": false
+  },
+  {
+    "npc": "mira",
+    "player": "[NPC opens conversation]",
+    "reply": "It is good to see you back in the plaza again. Since you are getting used to how things work here, you might find Rowan a bit easier to approach than Vesh. Rowan is quiet, but they always appreciate it when someone offers a hand with a simple task.",
+    "contact": {
+      "completed_exchanges": 5,
+      "days_met": 2
+    },
+    "complete": false
+  },
+  {
+    "npc": "rowan",
+    "player": "Do you remember me?",
+    "reply": "I recognize you, yes. You're the one who brought me water when the heat was bad, and I haven't forgotten that. It's the small things like that which make this place feel a bit more like home.",
+    "contact": {
+      "completed_exchanges": 4,
+      "days_met": 2,
+      "helped_rowan": true
+    },
+    "complete": false
+  },
+  {
+    "npc": "vesh",
+    "player": "I'd like to buy alloy, please.",
+    "reply": "I'll get that alloy for you.",
+    "contact": {},
+    "complete": true
+  }
+]

@@ -298,6 +298,7 @@ func _process(delta: float) -> void:
 
 func _close_modal() -> void:
 	modal.hide()
+	model._offer_opening.call_deferred()
 	if is_instance_valid(previous_focus) and previous_focus.is_visible_in_tree(): previous_focus.grab_focus()
 	else: record_button.grab_focus()
 

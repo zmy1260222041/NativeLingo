@@ -1,0 +1,24 @@
+[speech] heard channel=dialogue text="I'm new here. I don't know anyone or how things work." npc=mira scenario=market_conversation
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=1800 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text="It takes time to settle in, but you don't need to know"
+[speech] stage=gemini ms=2203 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text="It takes time to settle in, but you don't need to know everyone at once. If you need supplies, Ori runs the corner store and is very reliable, though he prefers to keep things brief. It's easier to start with just one person you recognize. Have you had a chance to look around the plaza yet?"
+[speech] stage=gemini_first ms=842 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text="It takes time to settle in, but you don't need to know"
+[speech] stage=gemini ms=1122 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text="It takes time to settle in, but you don't need to know everyone at once. If you need supplies, Ori runs the corner store and is very reliable, though he prefers to keep things brief."
+[speech] stage=dialogue ms=1122 source=gemini model=gemini-3.1-flash-lite npc=mira speech_act=acknowledge_need complete=0 evidence=no_specific_requested_item text="It takes time to settle in, but you don't need to know everyone at once. If you need supplies, Ori runs the corner store and is very reliable, though he prefers to keep things brief."
+{"npc": "mira", "player": "I'm new here. I don't know anyone or how things work.", "reply": "It takes time to settle in, but you don't need to know everyone at once. If you need supplies, Ori runs the corner store and is very reliable, though he prefers to keep things brief.", "contact": {}, "complete": false}
+[speech] heard channel=dialogue text="I'm new here. I don't know anyone or how things work." npc=tavi scenario=food_counter
+[speech] stage=gemini_adaptive ms=0 speak=2.1 timeout=3.8 samples=3
+[speech] stage=gemini_first ms=1117 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Welcome to the neighborhood.'
+[speech] stage=gemini ms=1373 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text="Welcome to the neighborhood. You can just order what you need here, or try a burger or a taco if you're hungry."
+[speech] stage=gemini_first ms=983 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Welcome to the neighborhood.'
+[speech] stage=gemini ms=1229 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text="Welcome to the neighborhood. You can just order what you need here, or try a burger or a taco if you're hungry."
+[speech] stage=gemini_first ms=941 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='Welcome to the neighborhood.'
+[speech] stage=gemini ms=1198 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text="Welcome to the neighborhood. You can just order what you need here, or try a burger or a taco if you're hungry."
+Traceback (most recent call last):
+  File "/Users/a86138/Developer/NativeLingo/game/speech_service/probe_town_belonging.py", line 21, in <module>
+    row=run(npc,scene,"I'm new here. I don't know anyone or how things work.")
+  File "/Users/a86138/Developer/NativeLingo/game/speech_service/probe_town_belonging.py", line 9, in run
+    events=list(server.iter_dialogue_events(body))
+  File "/Users/a86138/Developer/NativeLingo/game/speech_service/server.py", line 2742, in iter_dialogue_events
+    raise RuntimeError("live dialogue provider unavailable")
+RuntimeError: live dialogue provider unavailable

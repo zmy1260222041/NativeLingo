@@ -18,6 +18,7 @@ var turn_serial := 0
 var practice_context := ""
 var last_coaching: Array = []
 var muted := false
+var pending_opening := false
 var service_mode := false
 var save_valid := true
 var retry_text := ""
@@ -69,6 +70,7 @@ func start(_play_voice := true) -> void:
 		practice_context = str(saved.get("practice_context", ""))
 	else: new_session()
 	scene_changed.emit()
+	_offer_opening.call_deferred()
 	if not save_valid: feedback.emit("校园存档无法读取，已停止自动保存以保护原文件。请先备份并检查存档。")
 
 func npc_id() -> String:
@@ -97,6 +99,7 @@ func select_scene(id: String) -> void:
 	new_session()
 	save()
 	scene_changed.emit()
+	_offer_opening.call_deferred()
 
 func travel(destination: String) -> bool:
 	if not PLACES.has(destination) or destination == location: return false
@@ -110,6 +113,7 @@ func travel(destination: String) -> bool:
 	new_session()
 	save()
 	scene_changed.emit()
+	_offer_opening.call_deferred()
 	return true
 
 func cancel_activity() -> void:
@@ -139,7 +143,7 @@ func _recognition(target: String, accepted: bool, transcript: String, reason: St
 	if transcript.strip_edges().is_empty(): feedback.emit("没有听清，可以免费重试。"); return
 	submit_text(transcript, true, float(expression.get("pronunciation", -1)))
 
-func submit_text(text: String, voice := false, pronunciation := -1.0) -> void:
+func submit_text(text: String, voice := false, pronunciation := -1.0, opening := false) -> void:
 	if location == "home":
 		feedback.emit("住处没有交流对象。去校园选择一个情景，再开始交流。")
 		return
@@ -149,12 +153,13 @@ func submit_text(text: String, voice := false, pronunciation := -1.0) -> void:
 			feedback.emit("柜台购买仍使用录音成交；语音不可用时可领取最低份量。文字练习可在其它校园情景进行。")
 		return
 	if text.length() > 1000: feedback.emit("这次输入请控制在 1000 字符以内。"); return
+	pending_opening = opening
 	turn_serial += 1
 	pending_turn = "%s:%d" % [session, turn_serial]
 	pending_text = text.strip_edges()
 	pending_pronunciation = pronunciation if voice else -1.0
 	pending_voice = voice
-	retry_text = pending_text
+	retry_text = "" if opening else pending_text
 	retry_voice = voice
 	retry_pronunciation = pending_pronunciation
 	var card := scene()
@@ -168,7 +173,8 @@ func submit_text(text: String, voice := false, pronunciation := -1.0) -> void:
 	if card.has("base_scenario_id"):
 		body["base_scenario_id"] = card.base_scenario_id
 		body["practice_card"] = {"title": card.title, "trigger": card.trigger, "player_goal": card.player_goal}
-	say("you", pending_text)
+	body["turn_kind"] = "opening" if opening else "reply"
+	if not opening: say("you", pending_text)
 	conversation.submit(body, muted or not NpcVoice.is_available())
 
 func _campus_line(line: Dictionary) -> void:
@@ -184,6 +190,17 @@ func _campus_complete(receipt: Dictionary, lines: Array) -> void:
 		if line.get("speaker_id") not in scene().participants or line.get("speaker_id") in speakers: return
 		if line.get("reply_to") not in scene().participants + ["player", "group"]: return
 		speakers.append(line.speaker_id)
+	if pending_opening:
+		for line in lines:
+			exchange.append({"speaker_id": line.speaker_id, "reply_to": line.reply_to, "text": line.text})
+		topic_summary = str(receipt.get("topic_summary", ""))
+		pending_opening = false
+		pending_text = ""
+		pending_turn = ""
+		retry_text = ""
+		save()
+		progression_changed.emit()
+		return
 	var text := pending_text
 	exchange.append({"speaker_id": "player", "reply_to": "group", "text": text})
 	var records: Array = [{"speaker_id": "player", "reply_to": "group", "text": text}]
@@ -277,6 +294,7 @@ func sleep() -> bool:
 	save()
 	progression_changed.emit()
 	scene_changed.emit()
+	_offer_opening.call_deferred()
 	feedback.emit("第 %d 天，休息好了。可以安排今天的学习和生活。" % GameState.day)
 	return true
 
@@ -298,6 +316,7 @@ func open_counter() -> void:
 	service_mode = true
 	new_session()
 	scene_changed.emit()
+	_offer_opening.call_deferred()
 	say("tavi", "Hey. What can I get you?")
 
 func inventory_guidance() -> Dictionary:
@@ -328,6 +347,7 @@ func update_profile(values: Dictionary) -> void:
 	new_session()
 	save()
 	scene_changed.emit()
+	_offer_opening.call_deferred()
 
 func create_practice(brief: String, domain: String, title := "", goal := "") -> bool:
 	var id: String = campus.create_practice(brief, domain, title, goal)
@@ -346,3 +366,10 @@ func change_memory(id: String, text: String, erase := false) -> void:
 
 func _day_started(_day: int) -> void:
 	pass
+
+func _offer_opening() -> void:
+	var overlay = get_parent().get("modal")
+	if overlay is Window and overlay.visible: return
+	if not boot_from_save or location == "home" or service_mode or not exchange.is_empty(): return
+	if not conversation_block_reason().is_empty() or not practice_word.is_empty(): return
+	submit_text("[NPC opens conversation]", false, -1.0, true)

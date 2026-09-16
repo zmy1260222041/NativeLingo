@@ -73,7 +73,7 @@ func history_for(npc_id: String) -> Array:
 	return history.duplicate(true)
 
 
-func begin_generation(npc_id: String, transcript: String) -> bool:
+func begin_generation(npc_id: String, transcript: String, player_authored := true) -> bool:
 	var key := npc_id.strip_edges().to_lower()
 	if not has_dynamic_session(key):
 		return false
@@ -81,7 +81,7 @@ func begin_generation(npc_id: String, transcript: String) -> bool:
 	if str(session.get("state", "")) not in ["awaiting_player", "awaiting_follow_up", "clarify"]:
 		return false
 	var history: Array = session.get("history", [])
-	history.append({"role": "player", "text": transcript.strip_edges()})
+	if player_authored: history.append({"role": "player", "text": transcript.strip_edges()})
 	if history.size() > 8:
 		history = history.slice(history.size() - 8)
 	session["history"] = history

@@ -1,0 +1,38 @@
+[
+  {
+    "player": null,
+    "npc": "The way the light hits the cobblestones here in the late afternoon always makes the plaza feel much quieter than it is. I find it's the best time to actually hear what people are saying instead of just rushing past them. Do you usually prefer a busy crowd or a bit of space to look around?",
+    "seconds": 2.22,
+    "state": "awaiting_follow_up"
+  },
+  {
+    "player": "I guess I find it hard to talk to new people.",
+    "npc": "It takes a lot of courage to be honest about that, and I think many folks here feel the same way. I usually just focus on the rhythm of the market instead of trying to make big conversation, which helps me feel less pressure. Do you find it easier to talk when you have a specific task to focus on?",
+    "seconds": 1.53,
+    "state": "awaiting_follow_up"
+  },
+  {
+    "player": "I never know what to say after hello.",
+    "npc": "Sometimes I just comment on something we both see, like the way the wind is picking up or how busy the stalls look. It takes the pressure off me to be clever, and usually, the other person has something to add. Do you find it easier to talk when you have a specific task to focus on?",
+    "seconds": 1.56,
+    "state": "awaiting_follow_up"
+  },
+  {
+    "player": "Maybe.",
+    "npc": "Having a job to do definitely gives my hands something to fidget with while I wait for a reply. It keeps me from worrying about whether I sound awkward or not. Do you think having a goal makes it easier for you to start a conversation?",
+    "seconds": 1.4,
+    "state": "awaiting_follow_up"
+  },
+  {
+    "player": "I do not want to talk about that. I prefer music.",
+    "npc": "Music is a much better way to connect, honestly, since it sets a mood without needing any words at all. I often hum along to the street performers here because it makes the plaza feel less intimidating. Do you play an instrument, or do you just enjoy listening?",
+    "seconds": 1.46,
+    "state": "awaiting_follow_up"
+  },
+  {
+    "player": "I need to go now. See you later.",
+    "npc": "I understand, have a good rest of your day.",
+    "seconds": 1.09,
+    "state": "closed"
+  }
+]

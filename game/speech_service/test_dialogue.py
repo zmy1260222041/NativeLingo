@@ -69,11 +69,12 @@ class DialogueAssetTest(unittest.TestCase):
 
     def test_three_service_points_are_role_cards(self):
         expected = {"food_counter", "convenience_store", "parts_desk"}
-        self.assertEqual(set(server._DIALOGUE_SCENARIOS), expected)
+        self.assertEqual({key for key, value in server._DIALOGUE_SCENARIOS.items() if not server._social_scenario(value)}, expected)
         self.assertEqual(server._DIALOGUE_SCENARIOS["food_counter"]["npc_id"], "tavi")
         self.assertEqual(server._DIALOGUE_SCENARIOS["convenience_store"]["npc_id"], "ori")
         self.assertEqual(server._DIALOGUE_SCENARIOS["parts_desk"]["npc_id"], "vesh")
-        for scenario in server._DIALOGUE_SCENARIOS.values():
+        for key in expected:
+            scenario = server._DIALOGUE_SCENARIOS[key]
             self.assertTrue(scenario.get("inventory"))
             self.assertTrue(scenario.get("role"))
             self.assertTrue(scenario.get("location"))

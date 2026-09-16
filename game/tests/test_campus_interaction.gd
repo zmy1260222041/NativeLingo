@@ -87,6 +87,22 @@ func _ready() -> void:
 	screen._line("you", "What is next?")
 	screen._line("alex", "Let us compare our notes.")
 	check(not screen.transcript.text.contains("I can prepare") and screen.transcript.text.contains("compare our notes"), "A new player turn starts a fresh reply group")
+	# A completed proactive opening is NPC history, not player practice.
+	model.new_session()
+	var practice_before: int = model.campus.practice_log.size()
+	var social_before: float = model.campus.social
+	model.pending_turn = "opening-regression"
+	model.pending_text = "[NPC opens conversation]"
+	model.pending_opening = true
+	model._campus_complete({"turn_id": "opening-regression", "session_id": model.session, "scenario_id": model.scene_id, "source": "gemini"}, [{"speaker_id": "alex", "reply_to": "player", "text": "I like starting with an outline because it gives us something to question."}])
+	check(model.exchange.size() == 1 and model.exchange[0].speaker_id == "alex", "Proactive opening persists only NPC speech")
+	check(model.campus.practice_log.size() == practice_before and model.campus.social == social_before, "Listening to an opening cannot forge practice or social rewards")
+	model.new_session()
+	model.boot_from_save = true
+	screen._open("Test panel")
+	model._offer_opening()
+	check(model.pending_turn.is_empty(), "An open modal suppresses proactive speech")
+	model.boot_from_save = false
 	screen.queue_free()
 	await get_tree().process_frame
 	print("CampusInteractionTest: %d assertions, %d failures" % [assertions, failures])

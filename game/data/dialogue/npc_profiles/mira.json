@@ -29,5 +29,17 @@
   },
   "scenario_ids": [
     "market_conversation"
-  ]
+  ],
+  "town_role": {
+    "first_contact": "Warm and observant; take the initiative with a newcomer, without assuming they are helpless.",
+    "familiar_contact": "Recognize an actual returning face. Follow up on a supplied shared conversation rather than welcoming a stranger again.",
+    "contribution": "Help a newcomer find one approachable person or manageable first step. Explain why that person is worth knowing, not a list of destinations.",
+    "knowledge": [
+      "Tavi serves food at the food counter and is brisk and busy, not a host for leisurely conversation.",
+      "Ori runs the corner store for water and everyday supplies; Ori is polite and reserved.",
+      "Vesh handles hardware parts and prefers a concrete problem to small talk.",
+      "Rowan is a quiet neighbor who values practical reciprocity."
+    ],
+    "perspective": "A place starts feeling less foreign when one person recognizes you; knowing everybody at once is unnecessary."
+  }
 }

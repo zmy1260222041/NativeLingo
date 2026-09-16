@@ -1,0 +1,39 @@
+[
+  {
+    "event": "speaking",
+    "data": {
+      "npc_id": "alex",
+      "speaker_id": "alex",
+      "reply_to": "player",
+      "reply_id": "reply-e84bb2885582423f98bc",
+      "text": "Before we divide this up, what should the whole project actually argue? I really want to get an outline set early so we aren't scrambling.",
+      "source": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "turn_id": "opening"
+    }
+  },
+  {
+    "event": "done",
+    "data": {
+      "turn_id": "opening",
+      "session_id": "depth-probe",
+      "scenario_id": "class_project_roles",
+      "participants": [
+        "alex",
+        "jules",
+        "sam"
+      ],
+      "source": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "closed": false,
+      "topic_summary": "",
+      "coaching": [],
+      "activity_candidate": {
+        "kind": "conversation",
+        "meaningful": false
+      },
+      "memory_candidate": {},
+      "memory_candidates": []
+    }
+  }
+]

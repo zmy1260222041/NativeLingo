@@ -1,0 +1,12 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS: Opening is NPC history, never familiarity credit
+PASS: Completed exchange records only actual local encounter
+PASS: Unplayed or cancelled reply does not increase familiarity
+PASS: Another NPC cannot inherit this encounter
+PASS: Mira session can restore local continuity
+PASS: Return session contains only completed prior speech
+PASS: Rowan has a real social scenario
+PASS: Rowan cannot read Mira's conversation
+PASS: Campus callbacks do not mutate town familiarity
+TownBelongingTest failures=0

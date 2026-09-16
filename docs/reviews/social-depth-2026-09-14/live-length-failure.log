@@ -1,0 +1,22 @@
+[speech] heard channel=dialogue text='[NPC opens conversation]' npc=mira scenario=market_conversation
+[speech] stage=gemini_adaptive ms=0 speak=1.9 timeout=3.0 samples=1
+[speech] stage=gemini_first ms=1961 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='I always notice how the light hits the cobblestones here when the'
+[speech] stage=gemini ms=2357 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='I always notice how the light hits the cobblestones here when the plaza is quiet. People usually rush through, but I think the slow pace makes the whole place feel much more welcoming. Do you usually prefer to take your time when you visit a new spot?'
+[speech] stage=dialogue ms=2357 source=gemini model=gemini-3.1-flash-lite npc=mira speech_act=acknowledge_need complete=0 evidence=no_specific_requested_item text='I always notice how the light hits the cobblestones here when the plaza is quiet. People usually rush through, but I think the slow pace makes the whole place feel much more welcoming. Do you usually prefer to take your time when you visit a new spot?'
+{"player": null, "npc": "I always notice how the light hits the cobblestones here when the plaza is quiet. People usually rush through, but I think the slow pace makes the whole place feel much more welcoming. Do you usually prefer to take your time when you visit a new spot?", "seconds": 2.37, "state": "awaiting_follow_up"}
+[speech] heard channel=dialogue text='I guess I find it hard to talk to new people.' npc=mira scenario=market_conversation
+[speech] stage=gemini_first ms=1462 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='It takes a lot of courage to step out of your comfort'
+[speech] stage=gemini ms=1870 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='It takes a lot of courage to step out of your comfort zone, especially when everything feels unfamiliar. I honestly prefer keeping to myself most days, but I find that just saying a quick hello to someone makes the plaza feel a little less intimidating. Do you find that having a specific reason to talk makes it easier for you?'
+[speech] stage=dialogue ms=1870 source=gemini model=gemini-3.1-flash-lite npc=mira speech_act=acknowledge_need complete=0 evidence=no_specific_requested_item text='It takes a lot of courage to step out of your comfort zone, especially when everything feels unfamiliar. I honestly prefer keeping to myself most days, but I find that just saying a quick hello to someone makes the plaza feel a little less intimidating. Do you find that having a specific reason to talk makes it easier for you?'
+{"player": "I guess I find it hard to talk to new people.", "npc": "It takes a lot of courage to step out of your comfort zone, especially when everything feels unfamiliar. I honestly prefer keeping to myself most days, but I find that just saying a quick hello to someone makes the plaza feel a little less intimidating. Do you find that having a specific reason to talk makes it easier for you?", "seconds": 1.87, "state": "awaiting_follow_up"}
+[speech] heard channel=dialogue text='I never know what to say after hello.' npc=mira scenario=market_conversation
+[speech] stage=gemini_adaptive ms=0 speak=2.1 timeout=3.96 samples=3
+[speech] stage=gemini_first ms=886 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text='It really does.'
+[speech] stage=gemini ms=1241 source=gemini reason=ok model=gemini-3.1-flash-lite thinking=MINIMAL text="It really does. When I have a reason, like asking someone for directions or commenting on the music, I don't have to worry about what to say next. It takes the pressure off. Do you usually look for a topic before you start a conversation?"
+Traceback (most recent call last):
+  File "/tmp/probe_social_depth.py", line 10, in <module>
+    start=time.monotonic(); events=list(server.iter_dialogue_events(body)); spoken=next(e['data'] for e in events if e['event']=='speaking');score=next(e['data'] for e in events if e['event']=='score')
+                                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/a86138/Developer/NativeLingo/game/speech_service/server.py", line 2687, in iter_dialogue_events
+    raise RuntimeError("live dialogue provider unavailable")
+RuntimeError: live dialogue provider unavailable

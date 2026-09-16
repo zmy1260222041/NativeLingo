@@ -458,7 +458,8 @@ func _rebuild_actions() -> void:
 			else: model.wait_until_evening(); _show_scene())
 	else:
 		talk_button = _button(action_row, ("交谈  " if GameState.can_start_service_dialogue(model.npc_id()) else "打招呼  ") + Glyphs.for_action("interact", false), func(): model.talk())
-		gesture_button = _button(action_row, "手势  G", func(): model.greet())
+		var gesture_title := "送一份水  G" if model.npc_id() == "rowan" and GameState.water > 0 and not GameState.completed_steps.has("help_rowan") else "手势  G"
+		gesture_button = _button(action_row, gesture_title, func(): model.greet())
 		if GameState.can_start_service_dialogue(model.npc_id()):
 			counter_button = _button(action_row, "查看柜台", _open_panel.bind("counter"))
 		else:

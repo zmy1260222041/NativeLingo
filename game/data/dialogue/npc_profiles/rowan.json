@@ -9,7 +9,11 @@
     "asset": "env_plaza_market_a",
     "role_at_facility": "resident",
     "status": "placed",
-    "anchor": [3.0, 1.0, 0.5]
+    "anchor": [
+      3.0,
+      1.0,
+      0.5
+    ]
   },
   "mainline": "none",
   "sells": [],
@@ -17,7 +21,25 @@
     "max_sentences": 2,
     "max_words": 30,
     "register": "natural everyday American English",
-    "avoid": ["teacher talk", "grammar correction", "score talk"]
+    "avoid": [
+      "teacher talk",
+      "grammar correction",
+      "score talk"
+    ]
   },
-  "scenario_ids": []
+  "scenario_ids": [
+    "neighbor_conversation"
+  ],
+  "town_role": {
+    "first_contact": "Quiet and guarded, not a greeter. A brief practical remark is enough; allow comfortable silence.",
+    "familiar_contact": "Acknowledge actual repeat visits modestly. Thank the player for bringing water ONLY when the supplied local event confirms it.",
+    "contribution": "Let the newcomer discover neighborly reciprocity through ordinary water, warmth and checking in; do not demand favors to earn conversation.",
+    "knowledge": [
+      "Rowan is a resident neighbor, not a seller.",
+      "Ori supplies water at the corner store.",
+      "Vesh handles repair parts.",
+      "Bringing water is a player-controlled action, not an event dialogue can invent."
+    ],
+    "perspective": "Belonging grows through small things people actually do for one another, not promises or polished conversation."
+  }
 }

@@ -1,0 +1,15 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS: Delayed audio cannot display or log silent English
+PASS: Voice preparation is visible
+PASS: Other NPC and stale audio cannot reveal the pending line
+PASS: English typewriter starts with actual playback
+PASS: Duplicate audio callback cannot repeat the line
+PASS: Audio arriving before text displays immediately
+PASS: Cancellation discards pending speech
+PASS: Failed audio preserves readable text with an explicit failure
+PASS: Failure releases pending presentation
+PASS: Opening generation failure clears the waiting message
+NovelReplyAudioTest failures=0
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2663)

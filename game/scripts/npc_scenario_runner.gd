@@ -90,6 +90,13 @@ func apply_validated_reply(
 	var scenario: Dictionary = registry.get_scenario(scenario_key) if registry != null else {}
 	if scenario.is_empty() or not speech_act in scenario.get("allowed_speech_acts", []):
 		return false
+	if scenario.get("conversation_mode") == "social":
+		session["scenario_state"] = next_state
+		scenario_state_changed.emit(npc, scenario_key, next_state)
+		if next_state == "closed":
+			sessions.erase(npc)
+			scenario_finished.emit(npc, scenario_key, "conversation_complete")
+		return true
 	var clean_item := confirmed_item.strip_edges().to_lower()
 	var completion_valid: bool = transaction_complete \
 		and speech_act in scenario.get("completion_speech_acts", []) \
