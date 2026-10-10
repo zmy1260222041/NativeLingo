@@ -874,7 +874,7 @@ func _spoken_reply_confirms_item(text: String, confirmed_item: String, speech_ac
 	if not confirmed_item in inventory or confirmed_item in generic_terms:
 		return false
 	var clean := _dialogue_words(text)
-	if clean.contains("?") or not _contains_dialogue_phrase(clean, confirmed_item):
+	if clean.contains("?") or not _item_forms(confirmed_item).any(func(form: String) -> bool: return _contains_dialogue_phrase(clean, form)):
 		return false
 	for marker in [
 		"sure thing", "you got it", "got it", "here you go", "here's your", "here is your",
@@ -903,6 +903,33 @@ func _dialogue_words(text: String) -> String:
 	var regex := RegEx.new()
 	regex.compile("[^a-z0-9'?]+")
 	return regex.sub(text.to_lower(), " ", true).strip_edges()
+
+
+func _item_forms(item: String) -> Array[String]:
+	## C2-04: role cards list base forms ('taco') or fixed plurals ('batteries'),
+	## while a committed line names the other number ('two tacos', 'a battery').
+	## Same simple inflection on the last word as the service's
+	## _inventory_pattern; each form still has to be a whole phrase.
+	var words := _dialogue_words(item).split(" ", false)
+	if words.is_empty():
+		return []
+	var head := " ".join(words.slice(0, words.size() - 1))
+	var last := words[words.size() - 1]
+	var lasts: Array[String] = [last, last + "s", last + "es"]
+	if RegEx.create_from_string("[^aeiou]ies$").search(last) != null:
+		lasts = [last.left(-3) + "y", last]
+	elif RegEx.create_from_string("[^aeiou]y$").search(last) != null:
+		lasts = [last, last.left(-1) + "ies"]
+	elif RegEx.create_from_string("(s|x|z|ch|sh)es$").search(last) != null:
+		lasts = [last.left(-2), last]
+	elif last.ends_with("s") and not last.ends_with("ss"):
+		lasts = [last.left(-1), last]
+	elif RegEx.create_from_string("(s|x|z|ch|sh)$").search(last) != null:
+		lasts = [last, last + "es"]
+	var forms: Array[String] = []
+	for form in lasts:
+		forms.append(form if head.is_empty() else head + " " + form)
+	return forms
 
 
 func _contains_dialogue_phrase(clean_text: String, phrase: String) -> bool:
@@ -942,6 +969,9 @@ func _validate_reply(reply: Dictionary) -> Dictionary:
 	var player_turn = reply.get("player_turn", {})
 	if not player_turn is Dictionary:
 		return {"ok": false, "reason": "VOICE_REASON_RESULT_INVALID"}
+	# C2-03: JSON null means the model's scoring JSON was missing ("unavailable").
+	if player_turn.has("idiomaticity") and player_turn.idiomaticity == null:
+		return {"ok": true}
 	var idiomaticity := float(player_turn.get("idiomaticity", -1.0))
 	if not is_finite(idiomaticity) or idiomaticity < 0.0 or idiomaticity > 100.0:
 		return {"ok": false, "reason": "VOICE_REASON_RESULT_INVALID"}

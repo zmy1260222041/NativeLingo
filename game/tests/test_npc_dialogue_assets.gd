@@ -80,6 +80,12 @@ func _run() -> void:
 	var invalid_score: Dictionary = valid_reply.duplicate(true)
 	invalid_score["player_turn"]["idiomaticity"] = NAN
 	_expect(not bool(service._validate_reply(invalid_score).get("ok", false)), "Godot rejects non-finite idiomaticity")
+	# C2-03: the service sends JSON null (idiomaticity_source=unavailable) when the
+	# model gave no score; that is a valid reply, not a crash or a rejection.
+	var unavailable_score: Dictionary = valid_reply.duplicate(true)
+	unavailable_score["player_turn"]["idiomaticity"] = null
+	unavailable_score["player_turn"]["idiomaticity_source"] = "unavailable"
+	_expect(bool(service._validate_reply(unavailable_score).get("ok", false)), "Godot accepts an unavailable (null) idiomaticity")
 	_expect(dialogue.accept_dynamic_reply("tavi", "reply-test", "I'll get you the burger now.", "closed"), "Validated reply can close after a completed order")
 	_expect(dialogue.finish_speaking("tavi", "reply-test") == "closed", "Completed transaction closes the conversation")
 	service.cancel()
@@ -102,6 +108,7 @@ func _run() -> void:
 	_test_stream_audio_failure_falls_back(service, dialogue)
 	_test_stream_score_without_audio_falls_back(service, dialogue)
 	_test_spoken_settlement_gate(service, dialogue)
+	_test_plural_spoken_settlement(service, dialogue)
 	_test_dialogue_failure_marks_gesture_fallback(service)
 	_test_prewarm(service)
 	_test_speaker_subtitle_contract(service, dialogue)
@@ -314,6 +321,71 @@ func _test_spoken_settlement_gate(service: Node, dialogue: Node) -> void:
 	service._on_reply_audio_finished("tavi", "reply-explicit-confirmation")
 	_expect(state.berries == before_explicit + 2, "Explicit named handoff grants food only after audio finishes")
 	_expect(not service.has_active_session(), "Proven handoff closes the completed conversation")
+
+
+func _test_plural_spoken_settlement(service: Node, dialogue: Node) -> void:
+	# C2-04: the service settles natural plural orders on the role card's form
+	# ("two tacos" -> taco, "a battery" -> batteries). The client must accept the
+	# same committed line, with word boundaries as strict as before.
+	for case in [
+		["tavi", "food_counter", "Sure thing, I'll get you two tacos.", "taco"],
+		["tavi", "food_counter", "You got it. I'll get you two burgers.", "burger"],
+		["tavi", "food_counter", "Sure thing, two sandwiches coming right up.", "sandwich"],
+		["ori", "convenience_store", "Sure thing, I'll grab you two waters.", "water"],
+		["ori", "convenience_store", "Sure thing, I'll grab you a battery.", "batteries"],
+		["vesh", "parts_desk", "Sure thing, I'll get you two blankets.", "blanket"],
+	]:
+		if service.has_active_session():
+			service.cancel()
+		service.begin_scenario(case[0], case[1])
+		_expect(service._spoken_reply_confirms_item(case[2], case[3], "confirm_order"), "Client accepts the inflected named handoff: " + case[2])
+	for case in [
+		["tavi", "food_counter", "Sure thing, I'll get you a tacoshell.", "taco"],
+		["tavi", "food_counter", "Sure thing, I'll get you something burgerish.", "burger"],
+		["ori", "convenience_store", "Sure thing, I'll grab you something watery.", "water"],
+	]:
+		if service.has_active_session():
+			service.cancel()
+		service.begin_scenario(case[0], case[1])
+		_expect(not service._spoken_reply_confirms_item(case[2], case[3], "confirm_order"), "Inflection never loosens the word boundary: " + case[2])
+	if service.has_active_session():
+		service.cancel()
+	var state := root.get_node("GameState")
+	var records_before: int = state.items.records().size()
+	_expect(service.begin_scenario("tavi", "food_counter"), "Plural-order regression session starts")
+	dialogue.begin_generation("tavi", "Can I get two tacos, please?")
+	service.pending_pronunciation = 80.0
+	service._streaming_response = true
+	var plural_text := "Sure thing, I'll get you two tacos."
+	_expect(service._apply_speaking({
+		"reply_id": "reply-plural-confirmation",
+		"npc_id": "tavi",
+		"text": plural_text,
+		"speech_act": "confirm_order",
+		"gate": {"accepted": true, "violations": []},
+	}), "Plural handoff reaches the client speaking state")
+	service._awaiting_stream_audio = false
+	# The exact player_turn the service now returns for this order.
+	service._apply_score({
+		"reply_id": "reply-plural-confirmation",
+		"npc_id": "tavi",
+		"speech_act": "confirm_order",
+		"next_state": "closed",
+		"player_turn": {
+			"idiomaticity": 80.0,
+			"idiomaticity_source": "gemini",
+			"progress": "done",
+			"transaction_complete": true,
+			"off_inventory": false,
+			"spoken_delivery_confirmed": true,
+			"requested_item": "taco",
+			"confirmed_item": "taco",
+		},
+	})
+	_expect(service.current_transaction_complete and service.current_confirmed_item == "taco", "A service-confirmed plural order keeps its settlement evidence")
+	service._on_reply_audio_finished("tavi", "reply-plural-confirmation")
+	_expect(state.items.records().size() > records_before, "The plural order delivers tacos once the NPC audio finishes")
+	_expect(not service.has_active_session(), "The settled plural order closes the conversation")
 
 
 func _test_single_active_session(service: Node, dialogue: Node) -> void:
