@@ -34,6 +34,7 @@ import tempfile
 import threading
 import uuid
 import urllib.error
+import urllib.parse
 import urllib.request
 import wave
 from collections import deque
@@ -401,19 +402,66 @@ NPC_TTS_VOICES = {
 }
 # FR-46: the default voice backend is the US-East xAI TTS API.
 TTS_PROVIDER = os.environ.get("STRANGER_TTS_PROVIDER", "xai").strip().lower()
-if TTS_PROVIDER not in {"xai", "qwen"}:
-    raise ValueError("STRANGER_TTS_PROVIDER must be xai or qwen")
-if TTS_PROVIDER == "xai":
+if TTS_PROVIDER not in {"xai", "qwen", "cloud"}:
+    raise ValueError("STRANGER_TTS_PROVIDER must be xai, qwen or cloud")
+## Google Cloud TTS speaks only Chirp 3: HD voices through this endpoint and is
+## the only backend with a real numeric pace control. Its REST API rejects API
+## keys outright ("API keys are not supported by this API"), so authentication
+## is a service account JSON — see docs/cloud-tts-setup.md.
+CLOUD_TTS_CREDENTIALS = (
+    os.environ.get("GOOGLE_TTS_CREDENTIALS", "").strip()
+    or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
+)
+CLOUD_TTS_PROJECT = os.environ.get("GOOGLE_TTS_PROJECT", "").strip()
+CLOUD_TTS_LOCALE = os.environ.get("GOOGLE_TTS_LOCALE", "en-US").strip() or "en-US"
+CLOUD_TTS_ENDPOINT = os.environ.get(
+    "GOOGLE_TTS_ENDPOINT", "https://texttospeech.googleapis.com/v1/text:synthesize"
+).strip()
+## Chirp 3: HD caps pace control at [0.25, 2.0]; the game only ever needs a
+## narrow band around 1.0, so an out-of-range override is clamped, not fatal.
+CLOUD_TTS_MIN_RATE = 0.25
+CLOUD_TTS_MAX_RATE = 2.0
+## Maps the short US voice ids that town and campus already use onto Chirp 3:
+## HD voice names, so one cast list serves every backend. Values may also be a
+## full voice name (already containing "-Chirp3-HD-") and pass through untouched.
+CLOUD_TTS_VOICES = {
+    "eve": "Kore",
+    "ara": "Aoede",
+    "rex": "Charon",
+    "leo": "Fenrir",
+    "longanlingxin": "Kore",
+    "longanlufeng": "Charon",
+}
+
+
+def _env_float(name: str, default: float) -> float:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        return default
+
+CLOUD_TTS_SPEAKING_RATE = min(
+    CLOUD_TTS_MAX_RATE, max(CLOUD_TTS_MIN_RATE, _env_float("GOOGLE_TTS_SPEAKING_RATE", 1.0))
+)
+_CLOUD_TTS_TIMEOUT_SECONDS = max(5.0, _env_float("GOOGLE_TTS_TIMEOUT_SECONDS", 30.0))
+if TTS_PROVIDER in {"xai", "cloud"}:
     NPC_TTS_VOICES = {"mira": "eve", "tavi": "ara", "ori": "eve", "rowan": "rex", "vesh": "leo"}
     QWEN_TTS_VOICE = ""  # A legacy override must never select an invalid US voice.
 _XAI_TTS_SESSION = None
 import town_context
 import campus as campus_dialogue
 for _campus_id, _campus_profile in campus_dialogue.PROFILES.items():
-    NPC_TTS_VOICES[_campus_id] = _campus_profile['voice'] if TTS_PROVIDER == 'xai' else 'longanlufeng'
+    NPC_TTS_VOICES[_campus_id] = (
+        _campus_profile['voice'] if TTS_PROVIDER in {'xai', 'cloud'} else 'longanlufeng'
+    )
     NPC_LINES.setdefault(_campus_id, {})
     NPC_LINES[_campus_id].setdefault('word_practice_model', '')
     NPC_LINES[_campus_id].setdefault('word_practice_ask', '')
+if TTS_PROVIDER == "cloud":
+    NPC_TTS_VOICES = {key: CLOUD_TTS_VOICES.get(value, value) for key, value in NPC_TTS_VOICES.items()}
 for _campus_scene in campus_dialogue.SCENARIOS.values():
     for _campus_index, _campus_line in enumerate(_campus_scene['example']):
         if _campus_line['speaker_id'] != 'player':
@@ -422,6 +470,8 @@ _XAI_TTS_LOCK = threading.Lock()
 
 
 def _tts_configured() -> bool:
+    if TTS_PROVIDER == "cloud":
+        return bool(_cloud_tts_credentials_path())
     return bool(_xai_api_key()) if TTS_PROVIDER == "xai" else bool(QWEN_TTS_API_KEY)
 
 
@@ -477,7 +527,182 @@ def _pcm_to_wav(pcm: bytes) -> bytes:
     return buffer.getvalue()
 
 
-def _synthesize_speech(text: str, voice: str) -> bytes:
+## ── Google Cloud TTS ──────────────────────────────────────────────────────
+## Cloud TTS has no API-key path at all, so the service mints an OAuth access
+## token from a service account locally. The RS256 assertion is signed in
+## process, so no google-auth dependency is added. Note `cryptography` reaches
+## this venv only through `dashscope`; dropping the qwen backend means also
+## installing `cryptography` directly (see README).
+_CLOUD_TTS_TOKEN: dict[str, object] = {"value": "", "expires_at": 0.0}
+_CLOUD_TTS_TOKEN_LOCK = threading.Lock()
+_CLOUD_TTS_SERVICE_ACCOUNT: dict = {}
+
+
+def _cloud_tts_credentials_path() -> str:
+    if CLOUD_TTS_CREDENTIALS:
+        return CLOUD_TTS_CREDENTIALS
+    candidates = (
+        Path(__file__).resolve().parent / "CloudTTS.json",
+        Path(__file__).resolve().parent / "cloud-tts.json",
+        REPO_ROOT / "CloudTTS.json",
+    )
+    hit = next((path for path in candidates if path.is_file()), None)
+    return str(hit) if hit is not None else ""
+
+
+def _cloud_tts_service_account() -> dict:
+    """Read the service account JSON once. Raises RuntimeError when unusable."""
+    global _CLOUD_TTS_SERVICE_ACCOUNT
+    if _CLOUD_TTS_SERVICE_ACCOUNT:
+        return _CLOUD_TTS_SERVICE_ACCOUNT
+    path = _cloud_tts_credentials_path()
+    if not path:
+        raise RuntimeError("cloud tts has no service account credentials")
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(f"cloud tts credentials are unreadable: {type(exc).__name__}") from exc
+    if not isinstance(data, dict) or not data.get("client_email") or not data.get("private_key"):
+        raise RuntimeError("cloud tts credentials are not a service account key")
+    _CLOUD_TTS_SERVICE_ACCOUNT = data
+    return data
+
+
+def _cloud_tts_project() -> str:
+    if CLOUD_TTS_PROJECT:
+        return CLOUD_TTS_PROJECT
+    return str(_cloud_tts_service_account().get("project_id", "")).strip()
+
+
+def _base64url(raw: bytes) -> str:
+    return base64.urlsafe_b64encode(raw).rstrip(b"=").decode("ascii")
+
+
+def _cloud_tts_access_token() -> str:
+    """Mint (and cache) an OAuth access token for the Cloud TTS scope."""
+    with _CLOUD_TTS_TOKEN_LOCK:
+        now = time.time()
+        cached = str(_CLOUD_TTS_TOKEN.get("value", ""))
+        if cached and float(_CLOUD_TTS_TOKEN.get("expires_at", 0.0)) > now + 60.0:
+            return cached
+        account = _cloud_tts_service_account()
+        try:
+            from cryptography.hazmat.primitives import hashes, serialization
+            from cryptography.hazmat.primitives.asymmetric import padding
+        except ImportError as exc:  # pragma: no cover - operator env
+            raise RuntimeError("cryptography is required for cloud tts") from exc
+        issued = int(now)
+        header = {"alg": "RS256", "typ": "JWT"}
+        claims = {
+            "iss": account["client_email"],
+            "scope": "https://www.googleapis.com/auth/cloud-platform",
+            "aud": str(account.get("token_uri") or "https://oauth2.googleapis.com/token"),
+            "iat": issued,
+            "exp": issued + 3600,
+        }
+        try:
+            key = serialization.load_pem_private_key(
+                str(account["private_key"]).encode("utf-8"), password=None
+            )
+        except (ValueError, TypeError) as exc:
+            raise RuntimeError("cloud tts private key is unusable") from exc
+        signing_input = (
+            _base64url(json.dumps(header, separators=(",", ":")).encode())
+            + "."
+            + _base64url(json.dumps(claims, separators=(",", ":")).encode())
+        ).encode("ascii")
+        assertion = (
+            signing_input
+            + b"."
+            + _base64url(key.sign(signing_input, padding.PKCS1v15(), hashes.SHA256())).encode("ascii")
+        )
+        token_uri = str(account.get("token_uri") or "https://oauth2.googleapis.com/token")
+        body = urllib.parse.urlencode(
+            {
+                "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                "assertion": assertion.decode("ascii"),
+            }
+        ).encode("ascii")
+        request = urllib.request.Request(
+            token_uri,
+            data=body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=10.0) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", "replace")[:200]
+            raise RuntimeError(f"cloud tts token rejected: HTTP {exc.code} {detail}") from exc
+        except (urllib.error.URLError, ValueError, TimeoutError) as exc:
+            raise RuntimeError(f"cloud tts token unavailable: {type(exc).__name__}") from exc
+        token = str(payload.get("access_token", "")).strip()
+        if not token:
+            raise RuntimeError("cloud tts token response carried no access token")
+        _CLOUD_TTS_TOKEN["value"] = token
+        _CLOUD_TTS_TOKEN["expires_at"] = now + float(payload.get("expires_in", 3600))
+        return token
+
+
+def _cloud_tts_voice_name(voice: str) -> str:
+    """Resolve a cast voice id to a full Chirp 3: HD voice name."""
+    name = CLOUD_TTS_VOICES.get(voice, voice)
+    if "chirp3-hd" in name.lower():
+        return name
+    return f"{CLOUD_TTS_LOCALE}-Chirp3-HD-{name}"
+
+
+def _cloud_tts_wav(text: str, voice: str, speaking_rate: float) -> bytes:
+    """One synchronous Cloud TTS call; LINEAR16 already returns a WAV header."""
+    token = _cloud_tts_access_token()
+    project = _cloud_tts_project()
+    payload = {
+        "input": {"text": text},
+        "voice": {"languageCode": CLOUD_TTS_LOCALE, "name": _cloud_tts_voice_name(voice)},
+        "audioConfig": {
+            "audioEncoding": "LINEAR16",
+            "sampleRateHertz": 24000,
+            "speakingRate": speaking_rate,
+        },
+    }
+    headers = {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json; charset=utf-8",
+    }
+    if project:
+        headers["x-goog-user-project"] = project
+    request = urllib.request.Request(
+        CLOUD_TTS_ENDPOINT,
+        data=json.dumps(payload).encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=_CLOUD_TTS_TIMEOUT_SECONDS) as response:
+            body = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace")[:200]
+        raise RuntimeError(f"cloud tts rejected request: HTTP {exc.code} {detail}") from exc
+    except (urllib.error.URLError, ValueError, TimeoutError) as exc:
+        raise RuntimeError(f"cloud tts unavailable: {type(exc).__name__}") from exc
+    encoded = str(body.get("audioContent", "")).strip()
+    if not encoded:
+        raise RuntimeError("cloud tts returned empty audio")
+    try:
+        return base64.b64decode(encoded)
+    except (ValueError, TypeError) as exc:
+        raise RuntimeError("cloud tts returned undecodable audio") from exc
+
+
+def _effective_speaking_rate(override: float | None) -> float:
+    value = CLOUD_TTS_SPEAKING_RATE if override is None else float(override)
+    return min(CLOUD_TTS_MAX_RATE, max(CLOUD_TTS_MIN_RATE, value))
+
+
+def _synthesize_speech(text: str, voice: str, speaking_rate: float | None = None) -> bytes:
+    if TTS_PROVIDER == "cloud":
+        return _cloud_tts_wav(text, voice, _effective_speaking_rate(speaking_rate))
     if TTS_PROVIDER == "xai":
         return _pcm_to_wav(b"".join(_xai_tts_pcm(text, voice)))
     return _dashscope_speech(text, voice)
@@ -487,6 +712,9 @@ _TTS_CACHE: dict[str, bytes] = {}
 _TTS_CACHE_LOCK = threading.Lock()
 _TTS_FETCH_LOCKS: dict[str, threading.Lock] = {}
 _TTS_MAX_BYTES = 2 * 1024 * 1024
+## The 2 MB stream cap above is a live-stream guard; a synthesised WAV is held
+## whole, and a 100-word campus line at a slow pace passes 43 s of 24 kHz PCM.
+_TTS_MAX_WAV_BYTES = 8 * 1024 * 1024
 _TTS_PREFETCH_ENABLED = True
 
 
@@ -531,13 +759,25 @@ def _load_tts_credentials() -> None:
 _load_tts_credentials()
 
 
-def _tts_key(npc_id: str, line_id: str, voice: str) -> str:
-    return f"{npc_id}/{line_id}/{voice}"
+def _tts_rate_suffix(speaking_rate: float | None = None) -> str:
+    """Keep paced variants apart in the cache.
+
+    Only Cloud TTS has a real pace control, so every other backend keeps the
+    exact keys it had before (and a 1.0 cloud request stays unsuffixed too).
+    """
+    if TTS_PROVIDER != "cloud":
+        return ""
+    rate = _effective_speaking_rate(speaking_rate)
+    return "" if abs(rate - 1.0) < 1e-9 else f"@r{rate:.2f}"
 
 
-def _tts_text_key(npc_id: str, voice: str, text: str) -> str:
+def _tts_key(npc_id: str, line_id: str, voice: str, speaking_rate: float | None = None) -> str:
+    return f"{npc_id}/{line_id}/{voice}{_tts_rate_suffix(speaking_rate)}"
+
+
+def _tts_text_key(npc_id: str, voice: str, text: str, speaking_rate: float | None = None) -> str:
     digest = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
-    return f"text/{npc_id}/{voice}/{digest}"
+    return f"text/{npc_id}/{voice}/{digest}{_tts_rate_suffix(speaking_rate)}"
 
 
 def _tts_fetch_lock(key: str) -> threading.Lock:
@@ -2955,8 +3195,8 @@ def synthesize_dynamic_reply(npc_id: str, reply_id: str, voice: str = "") -> byt
             _log_stage("tts", int((time.perf_counter() - started) * 1000), npc=npc_id, reply=reply_id, cache=1, bytes=len(cached))
             return cached
         body = _synthesize_speech(text, selected_voice)
-        if len(body) < 44 or len(body) > _TTS_MAX_BYTES:
-            raise RuntimeError("qwen tts returned invalid audio size")
+        if len(body) < 44 or len(body) > _TTS_MAX_WAV_BYTES:
+            raise RuntimeError("tts returned invalid audio size")
         stored = _store_wav(keys, body)
         _log_stage("tts", int((time.perf_counter() - started) * 1000), npc=npc_id, reply=reply_id, cache=0, bytes=len(stored))
         return stored
@@ -2979,6 +3219,27 @@ def _stream_dynamic_reply_audio(npc_id: str, reply_id: str):
             full.extend(chunk)
             yield chunk
         _store_wav([_tts_key(npc_id, reply_id, voice), _tts_text_key(npc_id, voice, str(record["text"]))], _pcm_to_wav(bytes(full)))
+        return
+    if TTS_PROVIDER == "cloud":
+        ## Cloud TTS streams only over the Chirp 3: HD gRPC route, so the reply
+        ## is synthesised whole and then replayed as header-stripped PCM. The
+        ## client still receives the same chunk shape it gets from xAI.
+        record = _DYNAMIC_REPLIES.get(reply_id)
+        if not record or str(record.get("npc_id", "")) != npc_id:
+            raise KeyError("unknown npc reply")
+        voice = str(record.get("voice", "")).strip() or NPC_TTS_VOICES.get(npc_id, "")
+        if not voice:
+            raise RuntimeError("cloud tts has no voice configured")
+        text = str(record["text"])
+        body = _synthesize_speech(text, voice)
+        marker = body.find(b"data")
+        pcm_offset = marker + 8 if 4 <= marker <= 512 else 44
+        pcm = body[pcm_offset:]
+        if len(pcm) < 32:
+            raise RuntimeError("cloud tts stream returned empty audio")
+        for start in range(0, len(pcm), _TTS_STREAM_CHUNK_BYTES):
+            yield pcm[start : start + _TTS_STREAM_CHUNK_BYTES]
+        _store_wav([_tts_key(npc_id, reply_id, voice), _tts_text_key(npc_id, voice, text)], body)
         return
     from dashscope.audio.tts_v2 import AudioFormat, ResultCallback
 
@@ -3102,8 +3363,8 @@ def synthesize_npc_line(npc_id: str, line_id: str, voice: str = "", options: lis
     except Exception as exc:  # noqa: BLE001 - provider detail stays server-side
         print(f"[speech] qwen tts rejected line={npc_id}/{line_id} voice={selected_voice}: {type(exc).__name__}: {str(exc)[:120]}")
         raise RuntimeError("qwen tts request failed") from exc
-    if len(body) < 44 or len(body) > _TTS_MAX_BYTES:
-        raise RuntimeError("qwen tts returned invalid audio size")
+    if len(body) < 44 or len(body) > _TTS_MAX_WAV_BYTES:
+        raise RuntimeError("tts returned invalid audio size")
     _log_stage("tts", int((time.perf_counter() - started) * 1000), npc=npc_id, line=line_id, cache=0, bytes=len(body))
     with _TTS_CACHE_LOCK:
         if len(_TTS_CACHE) >= 64:

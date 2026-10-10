@@ -83,6 +83,29 @@ Without a key the endpoint returns 503 and the game falls back to the no-voice
 text path. The cloud deployment uses the same endpoint contract and its own
 catalog/cache (`server/backend/core/{npc_lines,qwen_tts}.py`).
 
+## Google Cloud TTS (`STRANGER_TTS_PROVIDER=cloud`)
+
+The only backend with a numeric speaking rate, and therefore the only one that
+can implement the graded speech-rate design. **It cannot use an API key** — the
+REST endpoint answers `401 UNAUTHENTICATED: API keys are not supported by this
+API` — so it authenticates with a service account JSON, whose RS256 assertion
+this service signs in process:
+
+```sh
+export STRANGER_TTS_PROVIDER=cloud
+export GOOGLE_TTS_CREDENTIALS=/path/to/service-account.json  # or CloudTTS.json beside this file
+export GOOGLE_TTS_SPEAKING_RATE=0.9   # optional; clamped to 0.25–2.0
+.venv/bin/python game/speech_service/server.py
+```
+
+Full project setup, including the recorded IAM findings and the acceptance
+check that measures whether slowing down preserves pitch, is in
+`docs/cloud-tts-setup.md`; run
+`.venv/bin/python game/speech_service/verify_cloud_tts.py` before trusting a
+new voice. Signing needs `cryptography`, which the venv currently receives only
+as a transitive dependency of `dashscope` — install it directly if the qwen
+backend is ever removed.
+
 ## Service-point dialogue (FR-41)
 
 `POST /game/dialogue` takes a transcript, role card id, and short history.
