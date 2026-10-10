@@ -23,6 +23,7 @@ func _ready() -> void:
 	await _test_startup_and_opening()
 	await _test_ux_clarity()
 	await _test_default_profile_practice()
+	await _test_rowan_water_action()
 	await get_tree().process_frame
 	screen.place_buttons[1].pressed.emit()
 	check(model.location == "food", "Location button navigates through the screen")
@@ -57,7 +58,8 @@ func _ready() -> void:
 	check(model.use_item("pack", str(counter[0].id)).ok, "Water can be carried")
 	model.travel("neighbor")
 	model.greet()
-	check(GameState.completed_steps.has("help_rowan"), "Neighbor gift and relationship transfer survive migration")
+	check(not GameState.completed_steps.has("help_rowan") and model.visible_items("bag").size() == 1, "A plain gesture never gives the carried water away")
+	check(model.give_water().get("ok", false) and GameState.completed_steps.has("help_rowan"), "Neighbor gift and relationship transfer survive migration")
 	check(GameState.relationships.rowan > 0, "Gift increases relationship")
 	model.travel("parts")
 	model.greet()
@@ -318,6 +320,53 @@ func _test_default_profile_practice() -> void:
 	check(str(toasts.back()).contains("你说出了「heater」") and Vocabulary.word_state("heater") == "spoken", "A new word still advances heard -> spoken")
 	model.feedback.disconnect(on_feedback)
 	model.cancel_activity()
+
+
+## C1-02 / C1-03 / P1-08 / P2-03 / G1-10: water reaches Rowan only through the
+## explicit, named item action, whether or not voice works.
+func _test_rowan_water_action() -> void:
+	for voice in [false, true]:
+		var mode := "voice available" if voice else "voice unavailable"
+		GameState.reset_run()
+		SpeechAdapter.availability_override = false
+		model.travel("store")
+		model.greet()
+		var counter: Array = model.visible_items("counter")
+		check(counter.size() == 1 and model.use_item("pack", str(counter[0].id)).ok, "Carry one bottle of water to Rowan: " + mode)
+		SpeechAdapter.availability_override = voice
+		SpeechAdapter.last_unavailable_reason = ""
+		model.travel("neighbor")
+		await get_tree().process_frame
+		check(is_instance_valid(screen.give_button) and screen.give_button.visible and screen.give_button.text.contains("送一份水给罗文"), "The water action is named at Rowan's porch: " + mode)
+		check(screen.gesture_button.text.begins_with("手势  "), "The gesture keeps its own label: " + mode)
+		screen.gesture_button.pressed.emit()
+		check(model.visible_items("bag").size() == 1 and not GameState.completed_steps.has("help_rowan") and GameState.relationships.rowan == 0, "A gesture never gives the water away: " + mode)
+		check(screen.dialogue_text.text.contains("Could you bring me water?"), "With water at hand, Rowan asks for it instead of 'Do not come empty-handed': " + mode)
+		screen.give_button.pressed.emit()
+		check(GameState.completed_steps.has("help_rowan") and GameState.relationships.rowan == 3 and model.visible_items("bag").is_empty(), "The water action completes the help event: " + mode)
+		check(GameState.items.records("transferred", "rowan").size() == 1, "The bottle moves through the item ledger: " + mode)
+		check(screen.feedback_label.text.contains("瓶装水已送给罗文"), "The result names the item and Rowan: " + mode)
+		model.npc_voice_ready = false
+		NpcVoice.line_audio_failed.emit("rowan", "remembers", "VOICE_REASON_SERVICE_UNAVAILABLE")
+		check(screen.feedback_label.text.contains("瓶装水已送给罗文"), "Rowan's line failing to voice later never replaces the named result: " + mode)
+		model.npc_voice_ready = true
+		check(screen.speaker_label.text == "Rowan" and not screen.dialogue_text.text.contains("came back"), "Rowan thanks the actual gift, never 'You came back' at a first meeting: " + mode)
+		check(not screen.give_button.visible, "The water action leaves once Rowan has the water: " + mode)
+		check(not model.give_water().get("ok", false) and GameState.relationships.rowan == 3, "A second gift cannot repeat the reward: " + mode)
+		model.cancel_activity()
+	check(not model.item_description("drink_bottled_water").contains("交流时") and model.item_description("drink_bottled_water").contains("送一份水给罗文"), "The water description points to the real action")
+	# P1-03 / P2-08: the growth page shows localized memories, never raw keys.
+	GameState.remember("mira", "MEMORY_GREET_MIRA", 0)
+	screen._open_panel("growth")
+	await get_tree().process_frame
+	var page := ""
+	for child in screen.modal_body.get_children():
+		if child is Label: page += str(child.text) + "\n"
+	check(not page.contains("MEMORY_") and page.contains(tr("MEMORY_HELP_ROWAN")) and page.contains(tr("NPC_ROWAN")) and page.contains(tr("MEMORY_GREET_MIRA")), "Growth memories are translated with localized names")
+	screen._close_panel()
+	SpeechAdapter.availability_override = false
+	GameState.reset_run()
+	model.travel("plaza")
 
 
 func _test_startup_and_opening() -> void:

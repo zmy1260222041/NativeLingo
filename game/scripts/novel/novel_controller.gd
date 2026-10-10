@@ -33,7 +33,16 @@ var online_dialogue := true
 var npc_voice_ready := true
 var _status_pending := false
 var _failed_openings: Dictionary = {}
+## C1-01: the player's recognition score for the social turn now in flight.
+var _spoken_scores: Dictionary = {}
+## X1-01: the last faint, kept on the home panel until the next explicit action.
+var faint_note: Dictionary = {}
 const PLAYER_UNCLEAR_REASONS := ["VOICE_REASON_CLARIFY", "VOICE_REASON_TOO_SHORT", "VOICE_REASON_LENGTH", "VOICE_REASON_SCORE_LOW"]
+## P1-01 / G1-01: resting at home until evening still costs REST_HUNGER_COST of
+## the hunger drain; indoors, warmth and energy keep REST_SHELTER_COST. Without
+## a meal a day, food runs out before the third night ends.
+const REST_HUNGER_COST := 0.4
+const REST_SHELTER_COST := 0.2
 
 func _ready() -> void:
 	Content.load_daily_life()
@@ -99,7 +108,7 @@ func _present_opening(play_voice := true) -> void:
 	if play_voice and not npc_id().is_empty() and not GameState.game_finished:
 		_listen(npc_id(), str(entry.get("opening_id", "")), [], true)
 	if GameState.game_finished:
-		feedback.emit("三夜已度过。你已不再是陌生人。可在设置中开始新旅程。")
+		feedback.emit("三夜已度过。%s可在设置中开始新旅程。" % ("你已不再是陌生人。" if not GameState.journey_summary().spoken_with.is_empty() else ""))
 	elif play_voice and _status_pending:
 		# G1-09 / P1-14: the first scene after a degraded check states it once.
 		_status_pending = false
@@ -116,8 +125,13 @@ func travel(destination: String) -> bool:
 		return false
 	cancel_activity()
 	order_note.clear()
+	faint_note.clear()
 	location = destination
+	var faints: int = GameState.faints
 	advance_time(6.0)
+	if GameState.faints != faints:
+		_wake_after_faint()
+		return true
 	save()
 	scene_changed.emit()
 	_present_opening()
@@ -140,6 +154,7 @@ func cancel_activity() -> void:
 	_listening = false
 	_replay.clear()
 	order_note.clear()
+	_spoken_scores.clear()
 	Dialogue.finish_word_practice()
 	practice_word = ""
 	social_index = -1
@@ -152,12 +167,14 @@ func cancel_activity() -> void:
 		call_deferred("emit_signal", "feedback", "和 %s 的交谈被打断，这次没有交付物品。再说一次商品名就好，不消耗任何东西。" % npc_id().capitalize())
 	progression_changed.emit()
 
-func advance_time(seconds: float) -> void:
+func advance_time(seconds: float, hunger_cost := 1.0, shelter_cost := 1.0) -> void:
 	# All reading is free. Only explicit travel/wait commands advance survival.
 	var remaining := seconds
-	while remaining > 0.0 and not GameState.game_finished:
+	var faints: int = GameState.faints
+	# X1-01: a faint ends the walk or rest; the player wakes instead of fainting again.
+	while remaining > 0.0 and not GameState.game_finished and GameState.faints == faints:
 		var step := minf(remaining, 1.0)
-		GameState._process(step)
+		GameState.pass_time(step, hunger_cost, shelter_cost)
 		remaining -= step
 	progression_changed.emit()
 
@@ -261,7 +278,10 @@ func _recognition(target: String, accepted: bool, transcript: String, reason: St
 	if not _spoken_scenario(target).is_empty() and NpcDialogueService.enabled():
 		if not NpcDialogueService.is_session_active_for(target):
 			NpcDialogueService.begin_scenario(target, _spoken_scenario(target), false)
-		if not NpcDialogueService.submit_transcript(transcript, {"pronunciation": float(expression.get("pronunciation", expression.get("score", -1.0)))}):
+		if NpcDialogueService.submit_transcript(transcript, {"pronunciation": float(expression.get("pronunciation", expression.get("score", -1.0)))}):
+			# C1-01: the same recognition score the legacy voice greeting is gated on.
+			_spoken_scores[target] = float(expression.get("score", expression.get("pronunciation", -1.0)))
+		else:
 			feedback.emit("这次录音已识别，但对话未能提交。请稍后免费重试。")
 	elif accepted:
 		say("you", transcript)
@@ -298,6 +318,7 @@ func _reply_audio_started(npc: String, reply_id: String) -> void:
 func _dialogue_failed(npc: String, reason: String) -> void:
 	if npc != npc_id() or _changing:
 		return
+	_spoken_scores.erase(npc)
 	var text_only := false
 	var opening := _preparing_opening and _pending_spoken_reply.is_empty()
 	_preparing_opening = false
@@ -500,7 +521,7 @@ func item_description(id: String) -> String:
 	var definition: Dictionary = GameState.items.definitions[id]
 	match id:
 		"drink_canteen": return "路上慢慢喝。水壶可以喝两次，用过一次后仍能留在行囊里。"
-		"drink_bottled_water": return "给自己补充一点精力。也可以带去罗文的门廊，在交流时送给他。"
+		"drink_bottled_water": return "给自己补充一点精力。也可以带去罗文的门廊，点「送一份水给罗文」送给他。"
 		"home_blanket": return "铺在小屋床上，每次入睡时额外恢复 20 点温暖。收起后不再生效。"
 		"component_alloy_part": return "带回小屋，先放到维修位再安装。两件零件修好加热器，往后的日子会暖一些。"
 		"home_batteries": return "带回小屋，放到电力位再使用，恢复精力。每件电池使用一次。"
@@ -524,6 +545,8 @@ func use_item(action: String, id: String, allow_waste := false) -> Dictionary:
 		target = "home_storage"
 		action = "place"
 	var context := {"safe": true, "location": target, "at_home": location == "home", "revision": GameState.items.revision}
+	if action == "give":
+		context["recipient"] = npc_id()
 	if not validate_item_context(context):
 		return {"ok": false, "reason": "location"}
 	var result: Dictionary = GameState.item_command(action, [id], context, allow_waste)
@@ -531,23 +554,51 @@ func use_item(action: String, id: String, allow_waste := false) -> Dictionary:
 		save()
 	return result
 
+## Town rule 5 / C1-02: carried water Rowan can still receive here and now.
+func water_gifts() -> Array:
+	if npc_id() != "rowan" or GameState.game_finished or GameState.completed_steps.has("help_rowan"):
+		return []
+	return visible_items("bag").filter(func(record): return npc_id() in GameState.items.definitions[record.item_id].transfer_to)
+
+## C1-02 / C1-03: the explicit local item action, the same with or without voice.
+## Rowan thanks the gift with his authored, server-known line.
+func give_water() -> Dictionary:
+	var gifts := water_gifts()
+	if gifts.is_empty():
+		return {"ok": false, "reason": "given" if GameState.completed_steps.has("help_rowan") else "missing"}
+	if not _can_start_conversation_action():
+		return {"ok": false, "reason": "busy"}
+	cancel_activity()
+	var result := use_item("give", str(gifts[0].id))
+	if result.get("ok", false):
+		say(npc_id(), "You brought water. I will not forget.")
+		# Quiet like an arrival line while NPC voice is off, so the named result stays.
+		_listen(npc_id(), "remembers", [], true)
+	return result
+
 func wait_until_evening() -> void:
 	if location != "home" or GameState.game_finished:
 		return
 	cancel_activity()
-	# Resting at home progresses the clock, with a reduced but real need cost.
+	faint_note.clear()
+	# Resting at home runs the clock to evening. Hunger keeps most of its pace;
+	# indoors, warmth and energy drain slowly.
 	var seconds := maxf(0.0, (GameState.SLEEP_HOUR - GameState.DAY_START_HOUR) / (GameState.DAY_END_HOUR - GameState.DAY_START_HOUR) * GameState.DAY_DURATION - GameState.day_time + 0.1)
-	advance_time(seconds * 0.2)
-	GameState.day_time += seconds * 0.8
-	GameState.clock_changed.emit(GameState.day, int(GameState.day_time))
-	feedback.emit("灯亮起来了。天色已晚，可以睡觉了。")
+	var faints: int = GameState.faints
+	advance_time(seconds, REST_HUNGER_COST, REST_SHELTER_COST)
+	if GameState.faints != faints:
+		_wake_after_faint()
+		return
 	save()
+	scene_changed.emit()
+	feedback.emit("灯亮起来了。天色已晚，可以睡觉了。")
 	progression_changed.emit()
 
 func sleep() -> bool:
 	if location != "home" or GameState.game_finished:
 		return false
 	cancel_activity()
+	faint_note.clear()
 	var previous: int = GameState.day
 	GameState.interact("shelter", "shelter")
 	save()
@@ -555,7 +606,42 @@ func sleep() -> bool:
 
 func _day_started(day: int) -> void:
 	scene_changed.emit()
-	say("", "三夜过去，你开始记得每一个名字。欢迎回家。" if GameState.game_finished else "第 %d 天。新的一天，从一句问候开始。" % day)
+	say("", ending_text() if GameState.game_finished else "第 %d 天。新的一天，从一句问候开始。" % day)
+
+## X1-01: a faint ends the action at home ("回到安全点并推进时间"). It is told in
+## the dialogue box and the review log, and stays on the home panel, so the
+## scene change cannot wipe it.
+func _wake_after_faint() -> void:
+	location = "home"
+	order_note.clear()
+	var faint: Dictionary = GameState.last_faint
+	var time: Vector2i = GameState.clock_hms()
+	var lost := str(faint.get("lost", ""))
+	var lost_text := "昏倒时丢了随身的%s。" % GameState.items.Catalog.label(GameState.items.definitions[lost].name) if not lost.is_empty() else "随身物品都还在。"
+	var cause := str(faint.get("cause", ""))
+	var text := "你%s，昏倒了。醒来时已经回到小屋，时间到了 %02d:%02d。%s" % [{"food": "饿得撑不住", "warmth": "冻得撑不住"}.get(cause, "累得撑不住"), time.x, time.y, lost_text]
+	var advice: String = {"food": "饱腹只剩 %d。去餐摊吃点东西，或吃掉行囊里的食物。" % int(GameState.food), "warmth": "温暖只剩 %d。吃顿热饭、喝杯热咖啡，或铺好毯子再睡。" % int(GameState.warmth)}.get(cause, "精力只剩 %d。早点休息。" % int(GameState.energy))
+	faint_note = {"title": "你刚才昏倒了 · 第 %d 次" % GameState.faints, "detail": lost_text + advice}
+	save()
+	scene_changed.emit()
+	say("", text + advice)
+	feedback.emit(text)
+	progression_changed.emit()
+
+## P1-01 / P2-07 / G1-01: the ending names only what this run actually did.
+func ending_text() -> String:
+	var summary: Dictionary = GameState.journey_summary()
+	var text := "三夜过去了。"
+	if summary.spoken_supplies: text += "你靠开口换来了补给。"
+	elif summary.gesture_supplies: text += "你靠手势领到了最低份量的补给。"
+	else: text += "你没有从店里领到吃的喝的。"
+	if int(summary.faints) > 0: text += "途中你昏倒过 %d 次。" % int(summary.faints)
+	var names := func(ids: Array) -> String: return "、".join(ids.map(func(id): return str(id).capitalize()))
+	if not summary.spoken_with.is_empty():
+		return text + "你用英语和 %s 说上了话，开始记得这些名字。欢迎回家。" % names.call(summary.spoken_with)
+	if not summary.known.is_empty():
+		return text + "%s 记得你，但你们还没有用英语说上话。下一次，试着开口吧。" % names.call(summary.known)
+	return text + "这里还没有人认识你。下一次，试着开口打个招呼吧。"
 
 ## FR-35: vocabulary is one learner asset across both chapters. Loading a chapter
 ## keeps the furthest state of every word from memory, this chapter's save and the
@@ -574,6 +660,7 @@ func restart(play_voice := true) -> void:
 	cancel_activity()
 	GameState.reset_run()
 	location = "plaza"
+	faint_note.clear()
 	history.clear()
 	social_openings.clear()
 	GameState.presentation_state.clear()
@@ -698,6 +785,9 @@ func _remember_town_exchange(npc: String, player_text: String, reply_text: Strin
 	var contact: Dictionary = contacts.get(npc, {"completed_exchanges": 0, "days": [], "history": []})
 	var transcript: Array = contact.get("history", [])
 	if not opening:
+		# C1-01 / X1-06: the first clear spoken exchange with Mira is her greeting.
+		GameState.record_spoken_exchange(npc, float(_spoken_scores.get(npc, -1.0)))
+		_spoken_scores.erase(npc)
 		contact["completed_exchanges"] = mini(1000, int(contact.get("completed_exchanges", 0)) + 1)
 		var days: Array = contact.get("days", [])
 		if GameState.day not in days: days.append(GameState.day)

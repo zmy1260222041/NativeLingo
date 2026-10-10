@@ -38,6 +38,17 @@ const FOOD_COMFORT := 80.0
 const ENERGY_COMFORT := 80.0
 const ENERGY_TIRED := 40.0
 const SLEEP_HOUR := 20.0
+## Need drain per second of world time. A 2D rest at home scales these.
+const FOOD_DECAY := 0.42
+const WARMTH_DECAY := 0.36
+const WARMTH_DECAY_HEATED := 0.24
+const ENERGY_DECAY := 0.2
+## X1-01: a faint costs time and leaves needs low. It lifts only what reached
+## zero to a floor, so the player can still walk to food; never a free refill.
+const FAINT_SECONDS := 45.0
+const FAINT_FOOD_FLOOR := 15.0
+const FAINT_WARMTH_FLOOR := 20.0
+const FAINT_ENERGY_FLOOR := 20.0
 const SERVICE_SCENARIOS := {
 	"tavi": "food_counter",
 	"vesh": "parts_desk",
@@ -68,6 +79,9 @@ var relationships := {
 var memories: Array[String] = []
 var completed_steps: Dictionary = {}
 var game_finished := false
+## X1-01: how often this run fainted (saved), and what the last faint cost.
+var faints := 0
+var last_faint: Dictionary = {}
 var persistence_enabled := true
 var save_path := "user://stranger_save.json"
 var interaction_time_frozen := false
@@ -87,6 +101,11 @@ var dialogue_scenario_progress: Dictionary = {}
 var presentation_state: Dictionary = {}
 
 func _process(delta: float) -> void:
+	pass_time(delta)
+
+## Advances the clock and drains needs. A 2D rest at home keeps `hunger_cost` of
+## the hunger drain and `shelter_cost` of the warmth and energy drain.
+func pass_time(delta: float, hunger_cost := 1.0, shelter_cost := 1.0) -> void:
 	if game_finished or interaction_time_frozen:
 		return
 	# FR-30 G1: the guide must never let the three needs reach zero. Freezing all
@@ -97,9 +116,9 @@ func _process(delta: float) -> void:
 	var previous_needs := Vector3(floorf(food), floorf(warmth), floorf(energy))
 	var previous_second := int(day_time)
 	day_time += delta
-	food = maxf(0.0, food - delta * 0.42)
-	warmth = maxf(0.0, warmth - delta * (0.24 if heater_repaired else 0.36))
-	energy = maxf(0.0, energy - delta * 0.2)
+	food = maxf(0.0, food - delta * FOOD_DECAY * hunger_cost)
+	warmth = maxf(0.0, warmth - delta * (WARMTH_DECAY_HEATED if heater_repaired else WARMTH_DECAY) * shelter_cost)
+	energy = maxf(0.0, energy - delta * ENERGY_DECAY * shelter_cost)
 	if food <= 0.0 or warmth <= 0.0 or energy <= 0.0:
 		faint()
 	var current_needs := Vector3(floorf(food), floorf(warmth), floorf(energy))
@@ -267,6 +286,11 @@ func item_command(action: String, ids: Array, context: Dictionary, allow_waste :
 				result = items.deactivate(id, location)
 			else:
 				result = items.reclaim(id, location)
+		"give":
+			var recipient := str(context.get("recipient", ""))
+			if novel != null and recipient != novel.npc_id():
+				return {"ok": false, "reason": "location"}
+			result = _give_item(id, recipient)
 		_:
 			return {"ok": false, "reason": "invalid_action"}
 	if result.get("ok", false):
@@ -278,6 +302,22 @@ func item_command(action: String, ids: Array, context: Dictionary, allow_waste :
 			onboarding_action("use_item")
 		_items_did_change()
 		item_feedback.emit(str(result.get("action", action)), str(items.instances[id].item_id))
+	return result
+
+
+## Town rule 5 (2026-09-14): water reaches Rowan only through this explicit item
+## action, with or without voice. Talking or gesturing never consumes the bag,
+## and the help event happens once.
+func _give_item(id: String, recipient: String) -> Dictionary:
+	if recipient != "rowan":
+		return {"ok": false, "reason": "transfer"}
+	if completed_steps.has("help_rowan"):
+		return {"ok": false, "reason": "given"}
+	var result: Dictionary = items.transfer(id, recipient)
+	if not result.ok:
+		return result
+	completed_steps["help_rowan"] = true
+	remember("rowan", "MEMORY_HELP_ROWAN", 3)
 	return result
 
 
@@ -367,7 +407,11 @@ func clock_hms() -> Vector2i:
 
 func objective_text() -> String:
 	if game_finished:
-		return tr("OBJECTIVE_COMPLETE")
+		# P1-01 / G1-01: credit speech only when a spoken order really supplied the run.
+		var summary := journey_summary()
+		if summary.spoken_supplies:
+			return tr("OBJECTIVE_COMPLETE")
+		return tr("OBJECTIVE_COMPLETE_GESTURE" if summary.gesture_supplies else "OBJECTIVE_COMPLETE_EMPTY")
 	if food < FOOD_COMFORT:
 		return tr("OBJECTIVE_NEED_FOOD")
 	if energy < ENERGY_COMFORT:
@@ -432,32 +476,36 @@ func _interact_npc(npc_id: String, communication: String, expression: Dictionary
 			_emit_npc_followup(npc_id, communication)
 
 func _interact_mira(communication: String, expression: Dictionary) -> void:
-	if day == 1 and not completed_steps.has("greet_mira"):
+	if _can_greet_mira():
 		if not _critical_communication_understood("mira", communication, expression):
 			return
-		completed_steps["greet_mira"] = true
-		remember("mira", "MEMORY_GREET_MIRA", 2)
+		_greet_mira()
 		_emit_npc_line("mira", communication, "greet_reply", "Welcome, stranger.")
 		return
 	_emit_npc_followup("mira", communication)
 
-func _interact_rowan(communication: String, expression: Dictionary) -> void:
-	if water > 0 and not completed_steps.has("help_rowan"):
-		if not _critical_communication_understood("rowan", communication, expression):
-			return
-		var transferred := false
-		for record in items.records("carried"):
-			if items.transfer(str(record.id), "rowan").ok:
-				transferred = true
-				break
-		if not transferred:
-			return
-		_items_did_change()
-		completed_steps["help_rowan"] = true
-		remember("rowan", "MEMORY_HELP_ROWAN", 3)
-		_emit_npc_line("rowan", communication, "thanks", "You came back. Thank you.")
-		save_game()
+func _can_greet_mira() -> bool:
+	return day == 1 and not completed_steps.has("greet_mira")
+
+func _greet_mira() -> void:
+	completed_steps["greet_mira"] = true
+	remember("mira", "MEMORY_GREET_MIRA", 2)
+
+## C1-01 / X1-06: in 2D the voice greeting is a spoken social exchange whose NPC
+## reply finished playing. The client's playback edge reports it with the
+## player's own recognition score, so the floor matches the legacy voice
+## greeting and the model's words never change relationships.
+func record_spoken_exchange(npc_id: String, score: float) -> void:
+	if npc_id != "mira" or not _can_greet_mira() or not is_finite(score) or score < SCORE_SPARSE_MIN:
 		return
+	_greet_mira()
+	onboarding_action("greet")
+	state_changed.emit()
+	save_game()
+
+func _interact_rowan(communication: String, _expression: Dictionary) -> void:
+	# Town rule 5: water reaches Rowan only through the explicit give action
+	# (_give_item). Talking or gesturing never consumes the bag.
 	_emit_npc_followup("rowan", communication)
 
 func _interact_food_supplier(communication: String, expression: Dictionary) -> void:
@@ -614,6 +662,9 @@ func _npc_followup_line(npc_id: String) -> Dictionary:
 		"rowan":
 			if water <= 0 and not completed_steps.has("help_rowan"):
 				return {"line_key": "needs_water", "text": tr("NPC_ROWAN_NEEDS_WATER")}
+			if not completed_steps.has("help_rowan"):
+				# Water is at hand but not given yet: Rowan asks; the give action hands it over.
+				return {"line_key": "social_ask_help", "text": "I cannot walk far. Could you bring me water?"}
 			if int(relationships.get("rowan", 0)) > 0:
 				return {"line_key": "remembers", "text": tr("NPC_ROWAN_REMEMBERS")}
 			return {"line_key": "", "text": tr("NPC_ROWAN_WARY")}
@@ -639,6 +690,34 @@ func _communication_reply(speaker: String, communication: String, line: String) 
 func remember(npc_id: String, memory: String, relationship_gain: int) -> void:
 	relationships[npc_id] = int(relationships.get(npc_id, 0)) + relationship_gain
 	memories.append("%s：%s" % [npc_id, memory])
+
+## P1-01 / G1-01: what this run actually did, for an ending that claims nothing
+## more. Spoken orders come from the item ledger's voice bands; spoken social
+## exchanges from the town contacts whose replies finished playing.
+func journey_summary() -> Dictionary:
+	var spoken_supplies := false
+	var gesture_supplies := false
+	var spoken: Dictionary = {}
+	for transaction in items.transactions.values():
+		var band := str(transaction.get("band", ""))
+		if band in ["sparse", "generous"]:
+			spoken_supplies = true
+			spoken[str(transaction.get("service", ""))] = true
+		elif band == "fallback":
+			gesture_supplies = true
+	var contacts = presentation_state.get("town_contacts", {})
+	if contacts is Dictionary:
+		for npc in contacts:
+			if contacts[npc] is Dictionary and int(contacts[npc].get("completed_exchanges", 0)) > 0:
+				spoken[str(npc)] = true
+	var spoken_with: Array[String] = []
+	var known: Array[String] = []
+	for npc in relationships:
+		if spoken.has(npc):
+			spoken_with.append(npc)
+		if spoken.has(npc) or int(relationships[npc]) > 0:
+			known.append(npc)
+	return {"spoken_supplies": spoken_supplies, "gesture_supplies": gesture_supplies, "spoken_with": spoken_with, "known": known, "faints": faints}
 
 func _wants_sleep() -> bool:
 	if game_finished:
@@ -669,11 +748,15 @@ func _try_sleep() -> void:
 
 func faint() -> void:
 	item_interaction_interrupted.emit()
-	food = 35.0
-	warmth = 40.0
-	energy = 55.0
-	day_time = minf(DAY_DURATION - 30.0, day_time + 45.0)
-	items.faint_loss()
+	var cause := "food" if food <= 0.0 else ("warmth" if warmth <= 0.0 else "energy")
+	food = maxf(food, FAINT_FOOD_FLOOR)
+	warmth = maxf(warmth, FAINT_WARMTH_FLOOR)
+	energy = maxf(energy, FAINT_ENERGY_FLOOR)
+	day_time = maxf(day_time, minf(DAY_DURATION - 30.0, day_time + FAINT_SECONDS))
+	faints += 1
+	# X1-01: a hunger faint never takes the meal that would have helped.
+	var lost: String = items.faint_loss(cause == "food")
+	last_faint = {"cause": cause, "lost": str(items.instances[lost].item_id) if not lost.is_empty() else "", "day": day}
 	_items_did_change()
 	message_requested.emit(tr("MSG_FAINTED"), "warning")
 	state_changed.emit()
@@ -703,6 +786,8 @@ func reset_run() -> void:
 	dialogue_scenario_progress.clear()
 	memories.clear()
 	game_finished = false
+	faints = 0
+	last_faint = {}
 	onboarding_active = false
 	onboarding_step = ONBOARDING_STEPS[0]
 	for key in relationships:
@@ -736,6 +821,7 @@ func save_game() -> bool:
 		"memories": memories,
 		"completed_steps": completed_steps,
 		"game_finished": game_finished,
+		"faints": faints,
 		"onboarding_completed": onboarding_completed,
 		"onboarding_active": onboarding_active,
 		"onboarding_step": onboarding_step,
@@ -805,6 +891,8 @@ func load_game() -> bool:
 	memories.assign(parsed.get("memories", []))
 	completed_steps.assign(parsed.get("completed_steps", {}))
 	game_finished = bool(parsed.get("game_finished", false))
+	faints = maxi(0, int(parsed.get("faints", 0)))
+	last_faint = {}
 	onboarding_completed = bool(parsed.get("onboarding_completed", false))
 	onboarding_active = bool(parsed.get("onboarding_active", false)) and not onboarding_completed
 	var saved_step := str(parsed.get("onboarding_step", ONBOARDING_STEPS[0]))

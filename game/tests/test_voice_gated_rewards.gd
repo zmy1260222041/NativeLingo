@@ -78,7 +78,9 @@ func _test_rowan_voice_gate() -> void:
 	state.interact("npc", "rowan", "voice", _expr(20.0))
 	_expect(not state.completed_steps.has("help_rowan") and state.water == 1, "G3: unclear optional help costs nothing and keeps the water")
 	state.interact("npc", "rowan", "voice", _expr(45.0))
-	_expect(state.completed_steps.has("help_rowan") and state.water == 0 and not state.game_finished, "G3: helping Rowan is optional and does not end the slice")
+	_expect(not state.completed_steps.has("help_rowan") and state.water == 1, "Town rule 5: talking to Rowan never consumes the bag")
+	var gift: Dictionary = state.item_command("give", [state.items.records("carried")[0].id], {"safe": true, "location": "player", "recipient": "rowan"})
+	_expect(gift.ok and state.completed_steps.has("help_rowan") and state.water == 0 and not state.game_finished, "G3: helping Rowan is an optional explicit item action and does not end the slice")
 
 
 func _test_mira_voice_gate() -> void:

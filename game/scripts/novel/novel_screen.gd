@@ -33,6 +33,7 @@ var clock_label: Label
 var objective_label: Label
 var relationship_label: Label
 var gesture_button: Button
+var give_button: Button
 var talk_button: Button
 var replay_button: Button
 var home_action_button: Button
@@ -432,6 +433,7 @@ func _rebuild_actions() -> void:
 	home_action_button = null
 	record_button = null
 	gesture_button = null
+	give_button = null
 	talk_button = null
 	replay_button = null
 	counter_button = null
@@ -456,11 +458,13 @@ func _rebuild_actions() -> void:
 		_action_space()
 		home_action_button = _button(action_row, "", func():
 			if GameState._wants_sleep(): model.sleep()
-			else: model.wait_until_evening(); _show_scene())
+			else: model.wait_until_evening())
 	else:
 		talk_button = _button(action_row, ("交谈  " if GameState.can_start_service_dialogue(model.npc_id()) else "打招呼  ") + Glyphs.for_action("interact", false), func(): model.talk())
-		var gesture_title := "送一份水  G" if model.npc_id() == "rowan" and GameState.water > 0 and not GameState.completed_steps.has("help_rowan") else "手势  G"
-		gesture_button = _button(action_row, gesture_title, func(): model.greet())
+		gesture_button = _button(action_row, "手势  G", func(): model.greet())
+		if model.npc_id() == "rowan":
+			# Town rule 5: giving water is its own named item action, never the gesture.
+			give_button = _button(action_row, "送一份水给罗文", _give_water)
 		if GameState.can_start_service_dialogue(model.npc_id()):
 			counter_button = _button(action_row, "查看柜台", _open_panel.bind("counter"))
 		else:
@@ -591,8 +595,13 @@ func _refresh() -> void:
 		home_action_button.text = "入睡 · 下一天" if GameState._wants_sleep() else "休息到夜晚"
 		order_panel.visible = true
 		order_title.text = "可以入睡了" if GameState._wants_sleep() else "先歇一会儿"
-		order_detail.text = "睡眠会进入下一天，恢复精力与温暖。" if GameState._wants_sleep() else "休息会快进到夜晚，并少量消耗饱腹、温暖和精力。"
+		order_detail.text = "睡眠会进入下一天，恢复精力与温暖。" if GameState._wants_sleep() else "休息会快进到夜晚。屋里不太冷，也能歇一歇，但肚子照样会饿。"
+		if not model.faint_note.is_empty():
+			order_title.text = str(model.faint_note.title)
+			order_detail.text = str(model.faint_note.detail)
 	_refresh_record_button()
+	if is_instance_valid(give_button):
+		give_button.visible = not model.water_gifts().is_empty()
 	if is_instance_valid(gesture_button):
 		gesture_button.text = ("手势领取  " if SpeechAdapter.runtime_speech_unavailable() and GameState.can_start_service_dialogue(npc) else "手势  ") + Glyphs.for_action("gesture", false)
 	if modal.visible and modal_kind == "settings" and is_instance_valid(voice_status_label):
@@ -604,7 +613,7 @@ func _refresh() -> void:
 func _refresh_record_button() -> void:
 	if model == null: return
 	var busy: String = model.conversation_block_reason()
-	for button in [talk_button, gesture_button, replay_button]:
+	for button in [talk_button, gesture_button, give_button, replay_button]:
 		if is_instance_valid(button):
 			button.disabled = not busy.is_empty()
 			button.tooltip_text = busy + "，结束后再操作。" if not busy.is_empty() else ""
@@ -800,6 +809,17 @@ func _item_action(action: String, id: String, allow_waste: bool) -> void:
 		_toast({"capacity": "这一类行囊已满，先使用补给或回小屋存放。", "full": "现在状态已满，留到需要时再用。", "waste": "可以先留着；现在使用会损失一部分效果。", "stale": "物品状态已变化，请重新选择。", "home_only": "回到小屋再使用。", "location": "物品已不在这里，或对话尚未结束。请重新选择。", "occupied": "这个位置已有物品，先使用或收回原来的物品。", "complete": "加热器已经修好了，不需要再安装零件。", "missing": "这件物品已经用完或转移，请选择另一件。", "unsafe": "当前不能使用物品，请先结束交流。"}.get(reason, "暂时无法使用。返回后重新选择物品试试。"))
 		if reason == "waste" and is_instance_valid(inventory_view): inventory_view.request_confirmation(action, id)
 
+## C1-02 / FR-47: the gift names what was given and the real relationship change.
+func _give_water() -> void:
+	var gifts: Array = model.water_gifts()
+	var title: String = GameState.items.Catalog.label(GameState.items.definitions[gifts[0].item_id].name) if not gifts.is_empty() else "水"
+	var before: int = GameState.relationships.get("rowan", 0)
+	var result: Dictionary = model.give_water()
+	if result.get("ok", false):
+		_toast("%s已送给罗文。罗文的信任 +%d。" % [title, int(GameState.relationships.get("rowan", 0)) - before])
+	elif result.get("reason") != "busy":
+		_toast({"given": "罗文已经收下你送的水了。", "missing": "行囊里没有可以送给罗文的瓶装水。"}.get(str(result.get("reason", "")), "现在还送不出去。结束交谈后再试一次。"))
+
 func _growth_panel() -> void:
 	modal_title.text = "成长手记  /  每一句，都算数"
 	_row_label("旅程   %d / 3 夜     ·     词汇阶段   %s" % [mini(GameState.day - 1, 3), {"infant": "初识", "toddler": "起步", "youth": "日常交流", "professional": "熟练表达"}.get(Vocabulary.tier, "起步")], 25)
@@ -807,7 +827,7 @@ func _growth_panel() -> void:
 	for npc in Content.CAST:
 		_row_label("%s    信任 %d" % [npc.capitalize(), GameState.relationships.get(npc, 0)], 19, ACCENT)
 	for memory in GameState.memories:
-		_row_label(tr(memory), 18, MUTED)
+		_row_label(_memory_text(memory), 18, MUTED)
 	_row_label("练习角  /  听见 → 说出 → 使用", 23)
 	_row_label("练习不会扣状态。只有真实语音评分和真实对话会推进习得。", 17, MUTED)
 	# Words the player can still acquire come first; known starting-profile words only consolidate.
@@ -818,6 +838,12 @@ func _growth_panel() -> void:
 	for word in fresh + known:
 		var button := _button(modal_body, "%s     ·     %s     →  练习" % [word, model.word_progress(word)], _practice.bind(word))
 		button.disabled = GameState.game_finished
+
+## P1-03 / P2-08: memories are stored as "npc：KEY"; show the localized name and text.
+func _memory_text(memory: String) -> String:
+	var parts := memory.split("：", true, 1)
+	if parts.size() < 2: return tr(memory)
+	return "%s：%s" % [tr("NPC_" + parts[0].to_upper()), tr(parts[1])]
 
 func _settings_panel() -> void:
 	modal_title.text = "设置  /  按自己的节奏"
@@ -896,6 +922,7 @@ func _load_game() -> void:
 	if GameState.load_game():
 		model.location = str(Content.place(str(GameState.presentation_state.get("location", "plaza"))).id)
 		model.history = GameState.presentation_state.get("history", []).duplicate(true)
+		model.faint_note.clear()
 		GameState.onboarding_active = false
 		Vocabulary.sync_from_game_state()
 		_close_panel()

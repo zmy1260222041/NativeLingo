@@ -269,12 +269,19 @@ func transfer(id: String, target: String) -> Dictionary:
 	revision += 1
 	return {"ok": true, "action": "transfer"}
 
-func faint_loss() -> String:
+## X1-01: food is the last carried unit a faint takes, and `spare_food` (a hunger
+## faint) never takes the meal that would have helped.
+func faint_loss(spare_food := false) -> String:
 	var eligible: Array[Dictionary] = []
 	for record in instances.values():
-		if record.state == "carried" and bool(definitions[record.item_id].loss_allowed):
+		var food: bool = definitions[record.item_id].category == "food"
+		if record.state == "carried" and bool(definitions[record.item_id].loss_allowed) and not (spare_food and food):
 			eligible.append(record)
 	eligible.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var af: bool = definitions[a.item_id].category == "food"
+		var bf: bool = definitions[b.item_id].category == "food"
+		if af != bf:
+			return bf
 		var ap: int = definitions[a.item_id].loss_priority
 		var bp: int = definitions[b.item_id].loss_priority
 		return ap < bp if ap != bp else (int(a.acquired_order) < int(b.acquired_order) if a.acquired_order != b.acquired_order else str(a.id) < str(b.id)))

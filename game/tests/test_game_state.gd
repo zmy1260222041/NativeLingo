@@ -103,8 +103,13 @@ func _test_language_fallback(state: Node) -> void:
 	var pending: Array = state.items.records("counter", "ori")
 	state.item_command("pack", [pending[0].id], {"safe": true, "location": "ori"})
 	state.interact("npc", "rowan", "gesture_fallback")
+	var carried: Array = state.items.records("carried")
+	_expect(carried.size() == 1 and not state.completed_steps.has("help_rowan"), "Town rule 5: a gesture never gives Rowan the carried water")
+	_expect(not state.item_command("give", [carried[0].id], {"safe": true, "location": "player", "recipient": "mira"}).ok, "Water can only be given to a whitelisted recipient")
+	_expect(state.item_command("give", [carried[0].id], {"safe": true, "location": "player", "recipient": "rowan"}).ok, "The explicit give action hands Rowan the water")
 	_expect(not state.game_finished, "Helping Rowan is optional and does not end the slice")
-	_expect(int(state.relationships["rowan"]) == 3, "Helping Rowan still creates relationship memory")
+	_expect(int(state.relationships["rowan"]) == 3 and state.memories.has("rowan：MEMORY_HELP_ROWAN"), "Helping Rowan still creates relationship memory")
+	_expect(state.items.records("transferred", "rowan").size() == 1, "The gift is recorded in the item ledger")
 	_sleep_three_nights(state)
 	_expect(state.game_finished, "Three nights complete the slice")
 
@@ -132,7 +137,51 @@ func _test_faint_preserves_relationships(state: Node) -> void:
 	state._items_did_change()
 	state.faint()
 	_expect(state.relationships["rowan"] == before, "Fainting never damages relationships")
-	_expect(state.berries == 1 and state.scrap == 2, "Fainting loses only one eligible carried unit")
+	_expect(state.berries == 2 and state.scrap == 1, "X1-01: fainting loses one eligible carried unit, and food last")
+	_test_faint_costs_time_and_keeps_needs_low()
+	_test_ending_reflects_the_run()
+
+
+func _test_faint_costs_time_and_keeps_needs_low() -> void:
+	var state = GameStateScript.new()
+	state.persistence_enabled = false
+	root.add_child(state)
+	state.items.migrate(1, 0, 0, false)
+	state._items_did_change()
+	state.food = 0.3
+	state.warmth = 60.0
+	state.energy = 70.0
+	state.day_time = 50.0
+	state._process(1.0)
+	_expect(state.faints == 1 and state.last_faint.cause == "food", "Starving faints once and records why")
+	_expect(is_equal_approx(state.food, GameStateScript.FAINT_FOOD_FLOOR) and state.food < GameStateScript.FOOD_COMFORT, "X1-01: a faint leaves hunger low instead of refilling it")
+	_expect(is_equal_approx(state.warmth, 60.0 - 0.36) and is_equal_approx(state.energy, 70.0 - 0.2), "A faint never lowers or refills needs that were fine")
+	_expect(is_equal_approx(state.day_time, 51.0 + GameStateScript.FAINT_SECONDS), "A faint costs time")
+	_expect(state.berries == 1 and state.last_faint.lost.is_empty(), "With only food carried, a hunger faint keeps the meal")
+	state.day_time = GameStateScript.DAY_DURATION - 5.0
+	state.faint()
+	_expect(state.day_time == GameStateScript.DAY_DURATION - 5.0, "A late faint never turns the clock back")
+	state.persistence_enabled = true
+	state.save_path = "user://stranger_faint_count_test.json"
+	state.save_game()
+	var restored = GameStateScript.new()
+	restored.persistence_enabled = false
+	restored.save_path = state.save_path
+	root.add_child(restored)
+	_expect(restored.load_game() and restored.faints == 2, "The faint count survives a save")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(state.save_path))
+
+
+func _test_ending_reflects_the_run() -> void:
+	var state = GameStateScript.new()
+	state.persistence_enabled = false
+	root.add_child(state)
+	state.game_finished = true
+	_expect(state.objective_text() == tr("OBJECTIVE_COMPLETE_EMPTY") and state.journey_summary().known.is_empty(), "P1-01: a run without supplies never claims the player talked for food")
+	state.interact("npc", "tavi", "gesture_fallback")
+	_expect(state.objective_text() == tr("OBJECTIVE_COMPLETE_GESTURE"), "Gestured minimum supplies are named as such")
+	state.settle_service_transaction("ori", 80.0, "water")
+	_expect(state.objective_text() == tr("OBJECTIVE_COMPLETE") and state.journey_summary().spoken_with == ["ori"], "Only a spoken order earns the spoken ending, naming who served it")
 
 func _test_voice_wait_has_no_survival_cost() -> void:
 	var state = GameStateScript.new()
