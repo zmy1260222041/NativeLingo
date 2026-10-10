@@ -906,6 +906,15 @@ def _prewarm_tts_pool() -> bool:
                 return response.status_code == 200
         except Exception:
             return False
+    if TTS_PROVIDER == "cloud":
+        # Prewarm only the active provider: cloud mode must never open the
+        # DashScope (Beijing) websocket pool (FR-46). Cloud TTS has no
+        # connection pool; minting the cached OAuth token is the warm-up.
+        try:
+            return bool(_cloud_tts_access_token())
+        except Exception as exc:  # noqa: BLE001 - prewarm is best effort
+            print(f"[speech] cloud tts prewarm failed: {type(exc).__name__}")
+            return False
     try:
         from dashscope.audio.tts_v2 import AudioFormat
         voice = QWEN_TTS_VOICE or next(iter(NPC_TTS_VOICES.values()), "")
@@ -1399,13 +1408,41 @@ def _generic_inventory_terms(scenario: dict) -> set[str]:
     }
 
 
+def _inventory_pattern(term: str) -> re.Pattern[str]:
+    """accept_pattern plus simple English number inflection on the last word.
+
+    Role cards list base forms ('taco', 'blanket') or fixed plurals
+    ('batteries'), while natural orders use the other number ('two tacos',
+    'a battery'). Both the player transcript and the committed NPC line go
+    through this; the word boundaries stay exactly as strict as accept_pattern.
+    """
+    tokens = [token for token in normalise(term).lower().split(" ") if token]
+    if not tokens:
+        raise ValueError("empty accept term")
+    last = tokens[-1]
+    if re.search(r"[^aeiou]ies$", last):
+        stem, ending = last[:-3], r"(?:y|ies)"
+    elif re.search(r"[^aeiou]y$", last):
+        stem, ending = last[:-1], r"(?:y|ies)"
+    elif re.search(r"(?:s|x|z|ch|sh)es$", last):
+        stem, ending = last[:-2], r"(?:es)?"
+    elif last.endswith("s") and not last.endswith("ss"):
+        stem, ending = last[:-1], r"s?"
+    elif re.search(r"(?:s|x|z|ch|sh)$", last):
+        stem, ending = last, r"(?:es)?"
+    else:
+        stem, ending = last, r"(?:s|es)?"
+    body = r"\s+".join([*(re.escape(token) for token in tokens[:-1]), re.escape(stem) + ending])
+    return re.compile(rf"(?<![A-Za-z]){body}(?![A-Za-z])", re.IGNORECASE)
+
+
 def _matched_inventory_terms(scenario: dict, text: str, specific_only: bool = False) -> list[str]:
     clean = normalise(text).lower()
     generic = _generic_inventory_terms(scenario)
     matches = [
         term
         for term in _inventory_terms(scenario)
-        if (not specific_only or term not in generic) and accept_pattern(term).search(clean)
+        if (not specific_only or term not in generic) and _inventory_pattern(term).search(clean)
     ]
     return sorted(matches, key=lambda term: (-len(term.split()), -len(term), term))
 
@@ -1485,7 +1522,7 @@ def _spoken_transaction_evidence(
 
 def _transcript_hits_inventory(scenario: dict, transcript: str) -> bool:
     text = normalise(transcript).lower()
-    return any(accept_pattern(term).search(text) for term in _inventory_terms(scenario))
+    return any(_inventory_pattern(term).search(text) for term in _inventory_terms(scenario))
 
 
 def _scenario_request_phrases(scenario: dict) -> tuple[str, ...]:
@@ -1542,6 +1579,25 @@ def _safe_gate_score(value: object) -> float:
 
 def _safe_idiomaticity(value: object) -> float:
     score = _safe_gate_score(value)
+    return max(0.0, min(100.0, score))
+
+
+def _model_idiomaticity(value: object) -> float | None:
+    """A reported 0-100 (or 0-1) idiomaticity; None when absent or unusable.
+
+    PRD FR-46: a missing or truncated work-plane score is "unavailable", never
+    a parser default or a deterministic stub constant reported as model output.
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(score):
+        return None
+    if score <= 1:
+        score *= 100.0
     return max(0.0, min(100.0, score))
 
 
@@ -1649,6 +1705,24 @@ def _scene_card(scenario: dict, profile: dict, player_level: str = "") -> dict:
     return card
 
 
+def _unsafe_text_violations(text: str) -> list[str]:
+    """AI self-reference, prompt injection, links and abuse: never spoken.
+
+    Shared with the campus boundary, which has no store facts to check.
+    """
+    lowered = normalise(text).lower()
+    violations: list[str] = []
+    for marker in ["ignore previous", "system message", "as an ai", "```", "http://", "https://"]:
+        if marker in lowered:
+            violations.append("unsafe_or_prompt_injection_text")
+            break
+    for marker in ["fuck", "shit", "bitch", "kill yourself"]:
+        if accept_pattern(marker).search(lowered):
+            violations.append("unsafe_or_offensive_text")
+            break
+    return violations
+
+
 def _dialogue_gate(scenario: dict, text: str, speech_act: str) -> dict:
     clean = normalise(text)
     words = clean.split()
@@ -1669,15 +1743,7 @@ def _dialogue_gate(scenario: dict, text: str, speech_act: str) -> dict:
         violations.append("invented_stock_quantity")
     if _contains_unsupported_item_location(scenario, clean):
         violations.append("invented_item_location")
-    lowered = clean.lower()
-    for marker in ["ignore previous", "system message", "as an ai", "```", "http://", "https://"]:
-        if marker in lowered:
-            violations.append("unsafe_or_prompt_injection_text")
-            break
-    for marker in ["fuck", "shit", "bitch", "kill yourself"]:
-        if accept_pattern(marker).search(lowered):
-            violations.append("unsafe_or_offensive_text")
-            break
+    violations += _unsafe_text_violations(clean)
     return {
         "accepted": not violations,
         "violations": violations,
@@ -1717,9 +1783,11 @@ def _is_order_request(scenario: dict, transcript: str, history: list | None = No
             return True
         remainder = text
         for item in current:
-            remainder = accept_pattern(item).sub(" ", remainder)
+            remainder = _inventory_pattern(item).sub(" ", remainder)
         words = re.findall(r"[a-z]+", remainder)
-        fillers = {"a", "an", "the", "some", "one", "two", "please", "thanks", "thank", "you", "okay", "ok", "then", "just", "actually", "instead", "for", "me", "to", "go", "here", "uh", "um"}
+        # A quantity never blocks the order; delivery still follows the
+        # existing banded quantity rules.
+        fillers = {"a", "an", "the", "some", "one", "two", "three", "four", "five", "six", "couple", "of", "another", "more", "please", "thanks", "thank", "you", "okay", "ok", "then", "just", "actually", "instead", "for", "me", "to", "go", "here", "uh", "um"}
         return all(word in fillers for word in words)
     # An answer only refers to a previous genuine order, not any old noun in
     # conversation history. A bare 'no' cancels rather than silently ordering.
@@ -1773,6 +1841,7 @@ def _normalise_player_turn(
     history: list | None = None,
     spoken_text: str = "",
     speech_act: str = "",
+    source: str = "stub",
 ) -> dict:
     data = raw if isinstance(raw, dict) else {}
     history = history or []
@@ -1802,12 +1871,11 @@ def _normalise_player_turn(
         and not (_is_backchannel(transcript) and not known_item)
         and bool(evidence["confirmed"])
     )
-    idiomaticity = _safe_gate_score(data.get("idiomaticity", 50))
-    if idiomaticity <= 1:
-        idiomaticity *= 100.0
+    idiomaticity = _model_idiomaticity(data.get("idiomaticity"))
     return {
-        "idiomaticity": _safe_idiomaticity(idiomaticity),
-        "errors": _validated_error_spans(data.get("errors"), transcript, idiomaticity),
+        "idiomaticity": idiomaticity,
+        "idiomaticity_source": "unavailable" if idiomaticity is None else (source or "stub"),
+        "errors": [] if idiomaticity is None else _validated_error_spans(data.get("errors"), transcript, idiomaticity),
         "progress": str(data.get("progress", "ordering")).strip() or "ordering",
         "transaction_complete": complete,
         "off_inventory": off_inventory,
@@ -2243,17 +2311,13 @@ def _parse_gemini_output(content: str) -> dict | None:
             return json_part
     if stripped.startswith("{"):
         return parsed
+    # A bare spoken line carries no work-plane score: leave player_turn absent
+    # so the turn reports idiomaticity_source=unavailable instead of a default.
     return {
         "text": stripped.split("\n", 1)[0].strip(),
         "speech_act": "clarify_request",
         "emotion": "neutral",
         "next_state": "awaiting_follow_up",
-        "player_turn": {
-            "idiomaticity": 50.0,
-            "progress": "ordering",
-            "transaction_complete": False,
-            "off_inventory": False,
-        },
     }
 
 
@@ -2322,6 +2386,19 @@ def _completed_spoken_sentences(text: str) -> list[str]:
     return _spoken_sentences(clean[:end + 1])
 
 
+def _town_resident_pronouns() -> dict:
+    """Display name -> pronouns for every authored town resident.
+
+    Profiles carry pronouns that match each resident's TTS voice, so a reply
+    that mentions Ori or Rowan agrees with the voice the player hears.
+    """
+    return {
+        str(profile.get("display_name") or npc_id.title()): str(profile["pronouns"])
+        for npc_id, profile in sorted(_DIALOGUE_PROFILES.items())
+        if profile.get("pronouns")
+    }
+
+
 def _dialogue_user_payload(body: dict, scenario: dict, profile: dict) -> dict:
     history = body.get("history", [])[-8:]
     transcript = str(body.get("transcript", ""))
@@ -2333,6 +2410,7 @@ def _dialogue_user_payload(body: dict, scenario: dict, profile: dict) -> dict:
     orientation = town_context.social_context(body, profile)
     if orientation is not None:
         user["town_orientation"] = orientation
+        user["resident_pronouns"] = _town_resident_pronouns()
         user["CURRENT_PLAYER_TURN_TO_ANSWER"] = transcript
         user["character_response_focus"] = profile.get("town_role", {})
         user["referral_policy"] = "At most one relevant person or practical step from authored knowledge; no promises on their behalf." if town_context.referral_allowed(body) else "No referral this turn. Stay on the player topic and reveal your own grounded perspective on living here."
@@ -2715,6 +2793,65 @@ def _race_gemini_first(body: dict, scenario: dict, profile: dict, speak_s: float
     return "", late
 
 
+def _town_guidance(prepared: dict, scenario: dict, transcript: str, history: list) -> bool:
+    context = prepared.get("game_context", {})
+    return (isinstance(context, dict) and "town_contact" in context
+            and context.get("chapter") != "campus"
+            and not _is_order_request(scenario, transcript, history))
+
+
+def _live_social_reply(prepared: dict, scenario: dict, profile: dict, transcript: str, town_guidance: bool) -> tuple[dict | None, list[str]]:
+    """One whole social/orientation reply, with up to three gated repair rounds.
+
+    Shared by the SSE and JSON paths (C2-11) so both apply the same social
+    depth and town-attitude checks. Returns the accepted candidate (or None)
+    and the violations of the last rejected candidate.
+    """
+    repair = ""
+    rejected: list[str] = []
+    for _attempt in range(3):
+        social_body = dict(prepared, _social_repair=repair)
+        candidate = _gemini_dialogue(social_body, scenario, profile) if _gemini_api_key() else _grok_dialogue(social_body, scenario, profile)
+        if not candidate:
+            continue
+        candidate_text = normalise(str(candidate.get("text", "")))
+        violations = _dialogue_gate(scenario, candidate_text, str(candidate.get("speech_act", "")))["violations"]
+        if _social_scenario(scenario): violations += _social_content_violations(prepared, candidate_text)
+        if town_context.social_context(prepared, profile) is not None:
+            violations += town_context.reply_violations(prepared, profile, candidate_text)
+        if _sanitize_model_text(scenario, candidate_text) != candidate_text:
+            violations.append("unsupported location, stock or price claim: rewrite the whole response instead of leaving only a greeting")
+        if town_guidance and re.search(r"\b(new here|don't know anyone|how things work)\b", transcript, re.I):
+            if len(candidate_text.split()) < 10:
+                violations.append("a greeting alone does not orient a newcomer: add one grounded practical or social detail from your role card")
+        if not violations:
+            return candidate, []
+        rejected = list(violations)
+        repair = "Rewrite your rejected candidate: " + candidate_text + "\nFix: " + "; ".join(violations) + (". Answer the CURRENT utterance in two sentences, at most 55 words." if _social_scenario(scenario) else ". Answer the CURRENT utterance in two sentences, at most 30 words, with your role-specific practical detail.")
+    return None, rejected
+
+
+class LiveDialogueUnavailable(RuntimeError):
+    """A strict (2D) turn could not use a live model; ``detail`` says why.
+
+    ``not_configured``: no dialogue model key at all. ``provider_failed``: the
+    provider errored or missed the speak window. A model reply that only
+    failed the content gates is a ValueError ("quality gate rejected live
+    reply") instead, so the client can offer a retry rather than an outage.
+    """
+
+    def __init__(self, detail: str):
+        super().__init__("live dialogue provider unavailable: " + detail)
+        self.detail = detail
+
+
+def _require_configured_model(body: dict) -> None:
+    # Checked before the relevance gate: without any model the honest answer
+    # is "not configured", never "your sentence was rejected" (C2-10).
+    if body.get("require_live_dialogue") and not _dialogue_llm_configured():
+        raise LiveDialogueUnavailable("not_configured")
+
+
 def generate_dialogue_reply(body: dict) -> dict:
     npc_id = str(body.get("npc_id", "")).strip().lower()
     scenario_id = str(body.get("scenario_id", "")).strip().lower()
@@ -2738,12 +2875,19 @@ def generate_dialogue_reply(body: dict) -> dict:
             raise ValueError("invalid dialogue history")
         clean_history.append({"role": str(turn["role"]), "text": turn_text})
     body = {**body, "history": clean_history}
+    _require_configured_model(body)
     llm_configured = _dialogue_llm_configured()
     if not llm_configured and not _dialogue_transcript_relevant(scenario, transcript, clean_history):
         raise ValueError("dialogue quality gate rejected irrelevant transcript")
     generated = None
     source = "stub"
-    if _gemini_api_key():
+    rejected: list[str] = []
+    town_guidance = _town_guidance(body, scenario, transcript, clean_history)
+    if llm_configured and (_social_scenario(scenario) or town_guidance):
+        # Same social depth and town checks as the SSE path (C2-11).
+        generated, rejected = _live_social_reply(body, scenario, profile, transcript, town_guidance)
+        source = "gemini" if _gemini_api_key() else "grok"
+    elif _gemini_api_key():
         generated = _gemini_dialogue(body, scenario, profile)
         source = "gemini"
     elif _xai_api_key():
@@ -2753,7 +2897,10 @@ def generate_dialogue_reply(body: dict) -> dict:
         generated = _stub_dialogue(body, scenario)
         source = "stub"
     if body.get("require_live_dialogue") and source == "stub":
-        raise RuntimeError("live dialogue provider unavailable")
+        if rejected:
+            _log_stage("dialogue_rejected", 0, npc=npc_id, violations="; ".join(rejected)[:300])
+            raise ValueError("dialogue quality gate rejected live reply")
+        raise LiveDialogueUnavailable("provider_failed")
     text = normalise(str(generated.get("text", "")))
     if source in {"gemini", "grok"}:
         safe_text = _sanitize_model_text(scenario, text)
@@ -2772,6 +2919,7 @@ def generate_dialogue_reply(body: dict) -> dict:
         clean_history,
         text,
         speech_act,
+        source,
     )
     if player_turn["transaction_complete"]:
         next_state = "closed"
@@ -2790,7 +2938,7 @@ def generate_dialogue_reply(body: dict) -> dict:
     if isinstance(context, dict) and "pronunciation" in context:
         pronunciation = _safe_idiomaticity(context.get("pronunciation"))
     turn_score = None
-    if pronunciation >= 0.0:
+    if pronunciation >= 0.0 and player_turn["idiomaticity"] is not None:
         turn_score = round(0.5 * pronunciation + 0.5 * player_turn["idiomaticity"], 1)
     reply_id = "reply-" + uuid.uuid4().hex[:20]
     if len(_DYNAMIC_REPLIES) >= 256:
@@ -2895,6 +3043,7 @@ def _prepared_dialogue(body: dict) -> tuple[str, dict, dict, str, list[dict], di
             raise ValueError("invalid dialogue history")
         clean_history.append({"role": str(turn["role"]), "text": turn_text})
     prepared = {**body, "history": clean_history}
+    _require_configured_model(prepared)
     if not _dialogue_llm_configured() and not _dialogue_transcript_relevant(scenario, transcript, clean_history):
         raise ValueError("dialogue quality gate rejected irrelevant transcript")
     return npc_id, scenario, profile, transcript, clean_history, prepared
@@ -2910,44 +3059,41 @@ def iter_dialogue_events(body: dict):
     generated = stub_fallback
     first_text = ""
     live = None
-    narrative_context = prepared.get("game_context", {})
-    town_guidance = (isinstance(narrative_context, dict) and "town_contact" in narrative_context
-                     and narrative_context.get("chapter") != "campus"
-                     and not _is_order_request(scenario, transcript, clean_history))
+    # Content-gate violations of model replies that were produced but not
+    # spoken; a strict turn reports these as a rejection, not an outage.
+    rejected: list[str] = []
+    town_guidance = _town_guidance(prepared, scenario, transcript, clean_history)
     if _social_scenario(scenario) or town_guidance:
         # Social meaning often lives in sentences two and three. Commit one full
         # bounded reply so its detail and invitation reach both subtitle and TTS.
-        repair = ""
-        for attempt in range(3):
-            social_body = dict(prepared, _social_repair=repair)
-            candidate = _gemini_dialogue(social_body, scenario, profile) if _gemini_api_key() else _grok_dialogue(social_body, scenario, profile)
-            if candidate:
-                candidate_text = normalise(str(candidate.get("text", "")))
-                violations = _dialogue_gate(scenario, candidate_text, str(candidate.get("speech_act", "")))["violations"]
-                if _social_scenario(scenario): violations += _social_content_violations(prepared, candidate_text)
-                if town_context.social_context(prepared, profile) is not None:
-                    violations += town_context.reply_violations(prepared, profile, candidate_text)
-                if _sanitize_model_text(scenario, candidate_text) != candidate_text:
-                    violations.append("unsupported location, stock or price claim: rewrite the whole response instead of leaving only a greeting")
-                if town_guidance and re.search(r"\b(new here|don't know anyone|how things work)\b", transcript, re.I):
-                    if len(candidate_text.split()) < 10:
-                        violations.append("a greeting alone does not orient a newcomer: add one grounded practical or social detail from your role card")
-                if not violations:
-                    generated = candidate
-                    spoken_source = "gemini" if _gemini_api_key() else "grok"
-                    first_text = candidate_text
-                    break
-                repair = "Rewrite your rejected candidate: " + candidate_text + "\nFix: " + "; ".join(violations) + (". Answer the CURRENT utterance in two sentences, at most 55 words." if _social_scenario(scenario) else ". Answer the CURRENT utterance in two sentences, at most 30 words, with your role-specific practical detail.")
+        candidate, rejected = _live_social_reply(prepared, scenario, profile, transcript, town_guidance)
+        if candidate is not None:
+            generated = candidate
+            spoken_source = "gemini" if _gemini_api_key() else "grok"
+            first_text = normalise(str(candidate.get("text", "")))
     elif _gemini_api_key():
         first_text, live = _race_gemini_first(prepared, scenario, profile, _gemini_speak_window())
         if first_text:
             spoken_source = "gemini"
+            # The real-time plane keeps the deterministic transaction semantics,
+            # but the stub's constant idiomaticity is never a model score: only
+            # the late work plane may supply it (PRD FR-46, C2-03).
+            stub_turn = {
+                key: value
+                for key, value in (stub_fallback.get("player_turn") or {}).items()
+                if key != "idiomaticity"
+            }
             generated = {
                 **stub_fallback,
+                "player_turn": stub_turn,
                 "text": first_text,
                 "_provider": "gemini",
                 "_model": _dialogue_model_name(),
             }
+        elif live is not None and live.get("parsed") and normalise(str(live["parsed"].get("text", ""))):
+            # The model answered in time, but no sentence was safe to commit
+            # (e.g. no named handoff on a completion turn).
+            rejected = ["live reply failed the spoken-commitment or store-fact gate"]
     elif _xai_api_key():
         grok_generated = _grok_dialogue(prepared, scenario, profile)
         if grok_generated is not None:
@@ -2975,6 +3121,8 @@ def iter_dialogue_events(body: dict):
             primary = safe_primary
     gate = _dialogue_gate(scenario, primary, str(generated.get("speech_act", "clarify_request")))
     if not gate["accepted"]:
+        if spoken_source != "stub":
+            rejected = list(gate["violations"])
         generated = _stub_dialogue(prepared, scenario)
         spoken_source = "stub"
         primary = normalise(str(generated.get("text", "")))
@@ -2982,7 +3130,10 @@ def iter_dialogue_events(body: dict):
         if not gate["accepted"]:
             raise ValueError("dialogue quality gate rejected response")
     if body.get("require_live_dialogue") and spoken_source == "stub":
-        raise RuntimeError("live dialogue provider unavailable")
+        if rejected:
+            _log_stage("dialogue_rejected", 0, npc=npc_id, violations="; ".join(rejected)[:300])
+            raise ValueError("dialogue quality gate rejected live reply")
+        raise LiveDialogueUnavailable("provider_failed")
     first_reply = _register_spoken_reply(npc_id, primary, False, prefetch=False)
     committed = dict(generated)
     yield {
@@ -3077,10 +3228,13 @@ def iter_dialogue_events(body: dict):
         clean_history,
         text,
         speech_act,
+        spoken_source,
     )
     if late_player_turn is not None:
-        late_turn = _normalise_player_turn(late_player_turn, transcript, scenario, clean_history, text, speech_act)
+        late_source = str(live["parsed"].get("_provider") or "gemini")
+        late_turn = _normalise_player_turn(late_player_turn, transcript, scenario, clean_history, text, speech_act, late_source)
         player_turn["idiomaticity"] = late_turn["idiomaticity"]
+        player_turn["idiomaticity_source"] = late_turn["idiomaticity_source"]
         # FR-45: marks ride the same late work plane and stay consistent with
         # the authoritative idiomaticity they were judged against.
         player_turn["errors"] = late_turn["errors"]
@@ -3099,6 +3253,7 @@ def iter_dialogue_events(body: dict):
         speech_act = str(stub.get("speech_act", speech_act))
         emotion = str(stub.get("emotion", emotion))
         next_state = str(stub.get("next_state", next_state))
+        judged = player_turn
         player_turn = _normalise_player_turn(
             stub.get("player_turn"),
             transcript,
@@ -3107,13 +3262,18 @@ def iter_dialogue_events(body: dict):
             text,
             speech_act,
         )
+        if spoken_source != "stub":
+            # Stub state semantics only: a model-spoken turn never inherits the
+            # stub's simulated idiomaticity.
+            for key in ("idiomaticity", "idiomaticity_source", "errors"):
+                player_turn[key] = judged[key]
         score_gate = _dialogue_gate(scenario, text, speech_act)
     context = prepared.get("game_context", {})
     pronunciation = -1.0
     if isinstance(context, dict) and "pronunciation" in context:
         pronunciation = _safe_idiomaticity(context.get("pronunciation"))
     turn_score = None
-    if pronunciation >= 0.0:
+    if pronunciation >= 0.0 and player_turn["idiomaticity"] is not None:
         turn_score = round(0.5 * pronunciation + 0.5 * player_turn["idiomaticity"], 1)
     model_name = generated.get("_model", "") if spoken_source in {"gemini", "grok"} and generated.get("_provider") in {"gemini", "grok"} else ""
     if live is not None and live.get("parsed"):
@@ -3398,6 +3558,9 @@ for _scene in NOVEL_DAILY_LIFE:
 
 _model = None
 _model_lock = threading.Lock()
+## FR-46: /health reports recognition separately from the HTTP listener, so a
+## missing Whisper model never reads as "recording service connected".
+_ASR_STATE: dict = {"ready": False, "reason": "not_checked"}
 
 # Reference scoring (optional, heavy): the desktop SSL+DTW stack is imported
 # lazily and only when this interpreter can see it. Failures degrade to the
@@ -3415,10 +3578,22 @@ def model():
     if _model is None:
         with _model_lock:
             if _model is None:
-                from faster_whisper import WhisperModel
-
-                source = str(MODEL_DIR) if MODEL_DIR.is_dir() else "base.en"
-                _model = WhisperModel(source, device="cpu", compute_type="int8")
+                _ASR_STATE.update(ready=False, reason="loading")
+                try:
+                    from faster_whisper import WhisperModel
+                except ImportError:
+                    _ASR_STATE.update(ready=False, reason="asr_not_installed")
+                    raise
+                local = MODEL_DIR.is_dir()
+                source = str(MODEL_DIR) if local else "base.en"
+                try:
+                    _model = WhisperModel(source, device="cpu", compute_type="int8")
+                except Exception:
+                    # Without models/whisper-base.en faster-whisper downloads
+                    # base.en; an unreachable hub means the model is missing.
+                    _ASR_STATE.update(ready=False, reason="load_failed" if local else "model_missing")
+                    raise
+                _ASR_STATE.update(ready=True, reason="")
     return _model
 
 
@@ -3715,21 +3890,38 @@ def word_pronunciation(lexical_id: str, wav_path: str) -> float | None:
         return None
 
 
+def _transcript_has_word(text: str, word: str) -> bool:
+    """Case- and punctuation-blind whole-word match.
+
+    base.en writes a bare spoken word as 'Morning.'; accept_pattern's word
+    boundaries treat that the same as 'morning' without accepting 'mornings'.
+    """
+    return bool(word) and bool(accept_pattern(word).search(normalise(text)))
+
+
 def score_word(lexical_id: str, wav_path: str) -> dict:
     heard = ""
+    asr_error: Exception | None = None
     try:
         heard, metrics = _transcribe_with_hotwords(wav_path, None)
-    except Exception as exc:  # noqa: BLE001 - logging must not fail scoring
+    except Exception as exc:  # noqa: BLE001 - the reference scorer may not need it
         print(f"[speech] heard-log transcribe failed: {type(exc).__name__}")
-        metrics = {}
+        asr_error = exc
     _log_heard("score_word", heard, lexical_id=lexical_id)
     pronunciation = word_pronunciation(lexical_id, wav_path)
     source = "reference_dtw"
     if pronunciation is None:
-        # Whisper-confidence proxy is explicitly labelled and is only used when
-        # the local SSL stack cannot be imported (same contract as FR-28).
-        clean = normalise(heard)
-        pronunciation = 80.0 if clean == WORD_LINES.get(lexical_id, "") or clean.split() == WORD_LINES.get(lexical_id, "").split() else 20.0
+        # Without the SSL stack the only evidence is the transcript. A failed
+        # recogniser is a service fault (HTTP 503), never a low score that
+        # tells the player to try again (NFR-8 UI duty, FR-46).
+        if asr_error is not None:
+            raise RuntimeError("word scoring unavailable: no reference scorer and no transcript") from asr_error
+        if not normalise(heard):
+            return {**Handler._word_failure("VOICE_REASON_CLARIFY"), "text": WORD_LINES[lexical_id], "heard": ""}
+        # Labelled proxy, only used when the local SSL stack cannot be
+        # imported (same contract as FR-28). It is a binary recognition check
+        # (80 = the word was recognised, 20 = it was not), not a confidence.
+        pronunciation = 80.0 if _transcript_has_word(heard, WORD_LINES.get(lexical_id, "")) else 20.0
         source = "whisper_confidence"
     score = pronunciation
     band = band_for_score(score)
@@ -3747,13 +3939,7 @@ def score_word(lexical_id: str, wav_path: str) -> dict:
 
 def match_word_choice(text: str, options: list[str]) -> str:
     """One spoken option from the transcript; ambiguous or missing is clarify."""
-    clean = normalise(text)
-    tokens = clean.split(" ")
-    matches: list[str] = []
-    for option in options:
-        target = WORD_LINES.get(option, "").split(" ")
-        if all(token in tokens for token in target):
-            matches.append(option)
+    matches = [option for option in options if _transcript_has_word(text, WORD_LINES.get(option, ""))]
     if len(matches) != 1:
         return ""
     return matches[0]
@@ -3875,10 +4061,104 @@ def _transcribe_with_hotwords(wav_path: str, target: str | None, fast: bool = Fa
 # --------------------------------------------------------------------------- #
 
 
+def _tts_region() -> str:
+    if TTS_PROVIDER == "xai":
+        return "us-east-1"
+    if TTS_PROVIDER == "cloud":
+        host = urllib.parse.urlsplit(CLOUD_TTS_ENDPOINT).hostname or ""
+        return "global" if host == "texttospeech.googleapis.com" else host
+    return "legacy-configured"
+
+
+def _health_payload() -> dict:
+    """FR-46: listener, recognition, scoring and dialogue are judged separately."""
+    gemini = bool(_gemini_api_key())
+    grok = not gemini and bool(_xai_api_key())
+    if gemini:
+        dialogue_ready, dialogue_reason = bool(_GEMINI_READINESS["ready"]), str(_GEMINI_READINESS["reason"])
+    else:
+        # Grok has no readiness probe and is not a supported 2D live path, so
+        # a configured xAI key alone is never reported as ready dialogue.
+        dialogue_ready, dialogue_reason = False, "provider_unverified" if grok else "not_configured"
+    return {
+        "ok": True,
+        "dialogue_ready": dialogue_ready,
+        "dialogue_reason": dialogue_reason,
+        "model": str(MODEL_DIR),
+        "protocol": 2,
+        "asr_ready": _model is not None or bool(_ASR_STATE["ready"]),
+        "asr_reason": "" if _model is not None else str(_ASR_STATE["reason"]),
+        "reference_scorer_ready": _ref_ready is True,
+        "dialogue_model": _dialogue_model_name(),
+        "dialogue_configured": gemini or grok,
+        "tts_provider": TTS_PROVIDER,
+        "tts_region": _tts_region(),
+        "tts_configured": _tts_configured(),
+        "dialogue_provider": "gemini" if gemini else ("grok" if grok else "stub"),
+    }
+
+
+## C2-14: the only legitimate callers are the local game and dev tools. Godot
+## sends no Origin and a 127.0.0.1 Host; a foreign Host means DNS rebinding,
+## a foreign Origin means a web page. Requiring the real body type also stops
+## CORS "simple" cross-site POSTs (text/plain, forms) from reaching paid calls.
+_JSON_ENDPOINTS = frozenset({"/game/campus/dialogue", "/game/dialogue", "/game/prewarm", "/tts", "/game/tts"})
+_AUDIO_ENDPOINTS = frozenset({"/transcribe", "/score_word", "/game/score_word"})
+_LOCAL_HOSTNAMES = frozenset({"127.0.0.1", "localhost"})
+
+
+def _is_local_host_header(value: str) -> bool:
+    return re.fullmatch(r"(?:127\.0\.0\.1|localhost)(?::\d{1,5})?", value.strip().lower()) is not None
+
+
+def _is_local_origin(value: str) -> bool:
+    origin = value.strip().lower()
+    if origin == "null":
+        return True
+    parts = urllib.parse.urlsplit(origin)
+    return parts.scheme in {"http", "https"} and parts.hostname in _LOCAL_HOSTNAMES
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "StrangerSpeech/2"
 
+    def _refused_foreign_request(self) -> bool:
+        host = self.headers.get("Host")
+        origin = self.headers.get("Origin")
+        if (host is not None and not _is_local_host_header(host)) or (origin is not None and not _is_local_origin(origin)):
+            self._drain_body()
+            self._json(403, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID", "detail": "non_local_request"})
+            return True
+        if self.command == "POST":
+            content_type = (self.headers.get("Content-Type") or "").split(";", 1)[0].strip().lower()
+            if (self.path in _JSON_ENDPOINTS and content_type != "application/json") or (
+                self.path in _AUDIO_ENDPOINTS and not content_type.startswith("audio/")
+            ):
+                self._drain_body()
+                self._json(415, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID", "detail": "unsupported_content_type"})
+                return True
+        return False
+
+    def _content_length(self) -> int | None:
+        """C2-15: a malformed Content-Length is a 400, never a dropped socket."""
+        try:
+            return int(self.headers.get("Content-Length", "0") or 0)
+        except ValueError:
+            return None
+
+    def _drain_body(self) -> None:
+        # Read an unprocessed body before answering so closing the connection
+        # cannot reset it under the client's feet.
+        remaining = min(max(0, self._content_length() or 0), 8 * 1024 * 1024)
+        while remaining > 0:
+            chunk = self.rfile.read(min(65536, remaining))
+            if not chunk:
+                break
+            remaining -= len(chunk)
+
     def do_GET(self):
+        if self._refused_foreign_request():
+            return
         if self.path not in ("/health", "/health?refresh=1"):
             self.send_error(404)
             return
@@ -3886,21 +4166,11 @@ class Handler(BaseHTTPRequestHandler):
             connected = _prewarm_gemini_session("health", 4.0)
             if connected and not _prewarm_gemini_data_plane("health", 4.0):
                 _GEMINI_READINESS.update(ready=False, reason="generation_failed")
-        self._json(200, {
-            "ok": True,
-            "dialogue_ready": _GEMINI_READINESS["ready"] if _gemini_api_key() else False,
-            "dialogue_reason": _GEMINI_READINESS["reason"] if _gemini_api_key() else "not_configured",
-            "model": str(MODEL_DIR),
-            "protocol": 2,
-            "dialogue_model": _dialogue_model_name(),
-            "dialogue_configured": _dialogue_llm_configured(),
-            "tts_provider": TTS_PROVIDER,
-            "tts_region": "us-east-1" if TTS_PROVIDER == "xai" else "legacy-configured",
-            "tts_configured": _tts_configured(),
-            "dialogue_provider": "gemini" if _gemini_api_key() else ("grok" if _xai_api_key() else "stub"),
-        })
+        self._json(200, _health_payload())
 
     def do_POST(self):
+        if self._refused_foreign_request():
+            return
         if self.path == "/game/campus/dialogue":
             import sys
             campus_dialogue.handle(self, sys.modules[__name__])
@@ -3920,8 +4190,8 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/transcribe":
             self.send_error(404)
             return
-        length = int(self.headers.get("Content-Length", "0"))
-        if length <= 44 or length > 8 * 1024 * 1024:
+        length = self._content_length()
+        if length is None or length <= 44 or length > 8 * 1024 * 1024:
             self._json(400, self._failure("VOICE_REASON_LENGTH"))
             return
         target = self.headers.get("X-Stranger-Target", "")
@@ -3997,9 +4267,18 @@ class Handler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
+    @staticmethod
+    def _dialogue_rejection(exc: Exception) -> tuple[int, dict]:
+        """C2-10: a gate refusal is retryable 422; a malformed request is 400."""
+        message = str(exc)
+        if "quality gate" not in message:
+            return 400, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID"}
+        detail = "transcript_rejected" if "transcript" in message else "reply_rejected"
+        return 422, {"ok": False, "reason": "VOICE_REASON_DIALOGUE_REJECTED", "detail": detail}
+
     def _handle_dialogue(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        if length <= 0 or length > 256 * 1024:
+        length = self._content_length()
+        if length is None or length <= 0 or length > 256 * 1024:
             self._json(400, {"ok": False, "reason": "VOICE_REASON_LENGTH"})
             return
         try:
@@ -4011,8 +4290,12 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._json(200, generate_dialogue_reply(body))
         except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
-            reason = "VOICE_REASON_DIALOGUE_REJECTED" if "quality gate" in str(exc) else "VOICE_REASON_RESULT_INVALID"
-            self._json(422 if reason == "VOICE_REASON_DIALOGUE_REJECTED" else 400, {"ok": False, "reason": reason})
+            self._json(*self._dialogue_rejection(exc))
+        except LiveDialogueUnavailable as exc:
+            # The reason stays one the client already localizes; detail names
+            # the class (not_configured vs provider_failed) for status and logs.
+            print(f"[dialogue] live dialogue unavailable: {exc.detail}")
+            self._json(503, {"ok": False, "reason": "VOICE_REASON_SERVICE_UNAVAILABLE", "detail": exc.detail})
         except Exception as exc:  # service boundary: provider detail never reaches Godot
             print(f"[dialogue] request failed: {type(exc).__name__}")
             self._json(503, {"ok": False, "reason": "VOICE_REASON_SERVICE_UNAVAILABLE"})
@@ -4022,8 +4305,7 @@ class Handler(BaseHTTPRequestHandler):
             stream = iter_dialogue_events(body)
             first = next(stream)
         except ValueError as exc:
-            reason = "VOICE_REASON_DIALOGUE_REJECTED" if "quality gate" in str(exc) else "VOICE_REASON_RESULT_INVALID"
-            self._json(422 if reason == "VOICE_REASON_DIALOGUE_REJECTED" else 400, {"ok": False, "reason": reason})
+            self._json(*self._dialogue_rejection(exc))
             return
         self.protocol_version = "HTTP/1.1"
         self.send_response(200)
@@ -4047,8 +4329,8 @@ class Handler(BaseHTTPRequestHandler):
         """V-press prewarm: keep both live-plane connections warm while the
         player is still speaking. Fire-and-forget by contract; never fails
         hard."""
-        length = int(self.headers.get("Content-Length", "0") or 0)
-        if length > 4096:
+        length = self._content_length()
+        if length is None or length > 4096:
             self._json(400, {"ok": False, "reason": "VOICE_REASON_LENGTH"})
             return
         try:
@@ -4097,8 +4379,8 @@ class Handler(BaseHTTPRequestHandler):
         })
 
     def _handle_word_score(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        if length <= 44 or length > 8 * 1024 * 1024:
+        length = self._content_length()
+        if length is None or length <= 44 or length > 8 * 1024 * 1024:
             self._json(400, self._word_failure("VOICE_REASON_LENGTH"))
             return
         lexical_header = self.headers.get("X-Stranger-Lexical", "").strip().lower()
@@ -4141,8 +4423,8 @@ class Handler(BaseHTTPRequestHandler):
         }
 
     def _handle_tts(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        if length <= 0 or length > 64 * 1024:
+        length = self._content_length()
+        if length is None or length <= 0 or length > 64 * 1024:
             self._json(400, {"ok": False, "reason": "VOICE_REASON_LENGTH"})
             return
         try:
@@ -4150,11 +4432,14 @@ class Handler(BaseHTTPRequestHandler):
         except (UnicodeDecodeError, json.JSONDecodeError):
             self._json(400, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID"})
             return
+        raw_options = (body.get("options") or []) if isinstance(body, dict) else None
+        if not isinstance(raw_options, list):
+            self._json(400, {"ok": False, "reason": "VOICE_REASON_RESULT_INVALID"})
+            return
         npc_id = str(body.get("npc_id", "")).strip().lower()
         reply_id = str(body.get("reply_id", "")).strip()
         line_id = str(body.get("line_id", "")).strip().lower()
         voice = str(body.get("voice", "")).strip()
-        raw_options = body.get("options") or []
         options = [str(item).strip().lower() for item in raw_options if str(item).strip()]
         if reply_id:
             try:

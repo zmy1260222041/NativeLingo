@@ -13,6 +13,11 @@ CATALOG = json.loads((Path(__file__).resolve().parents[1] / 'data/campus/catalog
 SCENARIOS = {s['id']: s for s in CATALOG['scenarios']}
 PROFILES = CATALOG['profiles']
 LEVELS = {'infant', 'toddler', 'youth', 'professional'}
+# FR-48 "Never teach or grade aloud": phrases that judge or drill the player's
+# English. Narrower than the town list on purpose: students may well discuss a
+# grammar section or a pronunciation class without grading anyone.
+GRADING_MARKERS = ('repeat after', 'your grammar', 'your pronunciation', 'your accent', 'your english',
+                   'pronunciation score', 'learn english', 'english lesson', 'this is a lesson')
 
 
 def clean_text(value, limit=1000):
@@ -87,8 +92,11 @@ def prepare(body):
     raw_chains = body.get('chain_context', [])
     if not isinstance(raw_chains, list) or len(raw_chains) > 8: raise ValueError('invalid chain context')
     for chain in raw_chains:
+        # Shape errors are client errors (400), not campus outages (C2-15).
+        if not isinstance(chain, dict) or not isinstance(chain.get('milestones', []), list): raise ValueError('invalid chain context')
         milestones = []
         for milestone in chain.get('milestones', [])[-4:]:
+            if not isinstance(milestone, dict) or not isinstance(milestone.get('known_to', []), list): raise ValueError('invalid chain milestone')
             audience = [p for p in milestone.get('known_to', []) if p in participants]
             if audience and milestone.get('scenario_id') in SCENARIOS:
                 milestones.append({'scenario_id': milestone['scenario_id'], 'day': int(milestone.get('day', 1)), 'known_to': audience})
@@ -215,7 +223,10 @@ def iter_events(body, runtime, generate=None):
         payload = speaker_payload(context, speaker, spoken)
         for attempt in range(3):
             result, source, model = generate(system_prompt(limit), payload)
-            line = clean_text(result.get('text'))
+            # Malformed model fields are repaired like any other bad output;
+            # they are never a client error or a failure after speaking (C2-13).
+            raw_text = result.get('text')
+            line = raw_text.strip() if isinstance(raw_text, str) and len(raw_text) <= 1000 else ''
             sentences = re.split(r'(?<=[!?])\s+|(?<=[.])\s+(?=[A-Z])', line.replace('Dr. ', 'Dr '))
             duplicate = any(SequenceMatcher(None, line.lower(), prior['text'].lower()).ratio() > 0.88 for prior in spoken)
             invented_sport = False
@@ -223,13 +234,17 @@ def iter_events(body, runtime, generate=None):
                 supplied = json.dumps([context['profile'],context['history'],context['transcript'],context['memories']],ensure_ascii=False).lower()
                 sport_details = re.findall(r'top of the key|free throws?|three.point line|offside|touchdown|penalty kick', line.lower())
                 invented_sport = any(detail not in supplied for detail in sport_details)
-            if line and len(line.split()) <= limit and len(sentences) <= 3 and not duplicate and not invented_sport:
+            unsafe = runtime._unsafe_text_violations(line)
+            grading = any(marker in runtime.normalise(line).lower() for marker in GRADING_MARKERS)
+            if line and len(line.split()) <= limit and len(sentences) <= 3 and not duplicate and not invented_sport and not unsafe and not grading:
                 break
             if attempt == 2:
                 raise RuntimeError('campus reply validation failed')
             payload['REPAIR_OUTPUT'] = ('Your last output invented sport-specific positions or rules. The sport is not established; use a generic activity and ask if needed.' if invented_sport else
                                        ('Your last output repeated another speaker. Contribute a different specific detail.' if duplicate else
-                                        f'Your last output was too long. Write at most 2 sentences and {min(45, limit)} words. Return the same JSON fields.'))
+                                        ('Your last output broke character (AI talk, instructions, a link or abusive language). Reply only as this student, in plain spoken English.' if unsafe else
+                                         ('Your last output taught, corrected or graded the player\'s English. Respond to what they said as a peer; never teach or grade aloud.' if grading else
+                                          f'Your last output was too long. Write at most 2 sentences and {min(45, limit)} words. Return the same JSON fields.'))))
         reply_to = result.get('reply_to', 'player')
         if reply_to not in cast + ['player']:
             reply_to = 'player'
@@ -243,7 +258,8 @@ def iter_events(body, runtime, generate=None):
                 yield {'event': 'audio', 'data': {'reply_id': reply, 'seq': seq, 'pcm_b64': base64.b64encode(chunk).decode()}}
             yield {'event': 'audio_end', 'data': {'reply_id': reply}}
         spoken.append({k: data[k] for k in ('speaker_id', 'reply_to', 'text')})
-        coaching.append(clean_text(result.get('coaching', ''), 300))
+        raw_coaching = result.get('coaching', '')
+        coaching.append(raw_coaching.strip() if isinstance(raw_coaching, str) and len(raw_coaching) <= 300 else '')
         meaningful |= result.get('meaningful') is True
         remember |= result.get('remember') is True
         closed |= result.get('closed') is True

@@ -207,17 +207,15 @@ class SynthesizeNpcLineTest(unittest.TestCase):
             server.word_practice_ask_text(["free-text"])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class WordScoreTest(unittest.TestCase):
     def test_catalog_contains_social_practice_words(self):
         for word in ["morning", "food", "heater", "water", "help"]:
             self.assertIn(word, server.WORD_LINES)
 
     def test_reference_dtw_path_is_labelled(self):
-        with mock.patch.object(server, "word_pronunciation", return_value=85.0):
+        # Transcription only feeds the heard-log here; never load a real model.
+        with mock.patch.object(server, "word_pronunciation", return_value=85.0), \
+             mock.patch.object(server, "_transcribe_with_hotwords", return_value=("morning", {})):
             verdict = server.score_word("morning", "/tmp/not-used.wav")
         self.assertEqual(verdict["pronunciation_source"], "reference_dtw")
         self.assertEqual(verdict["band"], "generous")
@@ -229,3 +227,54 @@ class WordScoreTest(unittest.TestCase):
             verdict = server.score_word("morning", "/tmp/not-used.wav")
         self.assertEqual(verdict["pronunciation_source"], "whisper_confidence")
         self.assertEqual(verdict["pronunciation"], 80.0)
+
+    def test_whisper_fallback_ignores_case_and_punctuation(self):
+        # base.en writes a bare word as 'Morning.'; that is the word, not a miss.
+        for heard in ["Morning.", " morning!", "Good morning.", "MORNING"]:
+            with self.subTest(heard=heard), \
+                 mock.patch.object(server, "word_pronunciation", return_value=None), \
+                 mock.patch.object(server, "_transcribe_with_hotwords", return_value=(heard, {})):
+                verdict = server.score_word("morning", "/tmp/not-used.wav")
+            self.assertEqual((verdict["pronunciation"], verdict["reason"]), (80.0, "VOICE_REASON_ACCEPTED"))
+        for heard in ["Mornings.", "Warning."]:
+            with self.subTest(heard=heard), \
+                 mock.patch.object(server, "word_pronunciation", return_value=None), \
+                 mock.patch.object(server, "_transcribe_with_hotwords", return_value=(heard, {})):
+                verdict = server.score_word("morning", "/tmp/not-used.wav")
+            self.assertEqual((verdict["pronunciation"], verdict["reason"]), (20.0, "VOICE_REASON_SCORE_LOW"))
+
+    def test_asr_failure_without_reference_is_not_a_low_score(self):
+        # No reference scorer and no transcript: a service failure the HTTP
+        # boundary turns into 503, never a fabricated 20-point "try again".
+        with mock.patch.object(server, "word_pronunciation", return_value=None), \
+             mock.patch.object(server, "_transcribe_with_hotwords", side_effect=OSError("model unavailable")):
+            with self.assertRaises(RuntimeError):
+                server.score_word("morning", "/tmp/not-used.wav")
+
+    def test_asr_failure_with_reference_still_scores(self):
+        with mock.patch.object(server, "word_pronunciation", return_value=76.0), \
+             mock.patch.object(server, "_transcribe_with_hotwords", side_effect=OSError("model unavailable")):
+            verdict = server.score_word("morning", "/tmp/not-used.wav")
+        self.assertEqual((verdict["pronunciation_source"], verdict["band"]), ("reference_dtw", "generous"))
+
+    def test_silent_transcript_is_clarify_not_low_score(self):
+        with mock.patch.object(server, "word_pronunciation", return_value=None), \
+             mock.patch.object(server, "_transcribe_with_hotwords", return_value=("", {})):
+            verdict = server.score_word("morning", "/tmp/not-used.wav")
+        self.assertFalse(verdict["accepted"])
+        self.assertEqual((verdict["reason"], verdict["pronunciation_source"]), ("VOICE_REASON_CLARIFY", "none"))
+
+    def test_spoken_choice_uses_realistic_whisper_output(self):
+        verdict = {"accepted": True, "text": "x", "reason": "VOICE_REASON_ACCEPTED", "pronunciation": 80.0,
+                   "score": 80.0, "pronunciation_source": "whisper_confidence", "band": "generous"}
+        for heard, expected in [("Food.", "food"), ("I want water.", "water"), ("Water, please.", "water"),
+                                ("Food and water.", ""), ("Waterfall.", "")]:
+            with self.subTest(heard=heard):
+                self.assertEqual(server.match_word_choice(heard, ["food", "water"]), expected)
+        with mock.patch.object(server, "_transcribe_with_hotwords", return_value=("Food.", {})), \
+             mock.patch.object(server, "score_word", return_value=dict(verdict)):
+            self.assertEqual(server.score_word_choice(["food", "water"], "/tmp/not-used.wav")["lexical_id"], "food")
+
+
+if __name__ == "__main__":
+    unittest.main()

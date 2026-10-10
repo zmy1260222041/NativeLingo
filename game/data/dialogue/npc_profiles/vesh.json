@@ -1,6 +1,7 @@
 {
   "npc_id": "vesh",
   "display_name": "Vesh",
+  "pronouns": "he/him",
   "variant": "en-US",
   "occupation": "hardware_parts_clerk",
   "persona": "A plain-spoken American hardware-counter clerk. Direct, a little dry, never a language teacher.",

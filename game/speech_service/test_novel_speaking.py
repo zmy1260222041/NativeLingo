@@ -90,6 +90,36 @@ class NovelSpeakingTests(unittest.TestCase):
             self.assertTrue(server._prewarm_gemini_session('test', 1))
             self.assertTrue(server._GEMINI_READINESS['ready'])
 
+    def test_health_reports_asr_readiness_separately(self):
+        # A missing Whisper model must not read as "recording service connected".
+        with mock.patch.object(server, '_model', None), mock.patch.dict(server._ASR_STATE, {'ready': False, 'reason': 'not_checked'}), \
+             mock.patch.object(server, 'MODEL_DIR', Path('/nonexistent/whisper-base.en')):
+            fake_whisper = mock.Mock(WhisperModel=mock.Mock(side_effect=OSError('hub unreachable')))
+            with mock.patch.dict('sys.modules', {'faster_whisper': fake_whisper}):
+                with self.assertRaises(OSError):
+                    server.model()
+            health = server._health_payload()
+            self.assertEqual((health['asr_ready'], health['asr_reason']), (False, 'model_missing'))
+            self.assertTrue(health['ok'])
+            self.assertEqual(health['protocol'], 2)
+            with mock.patch.dict('sys.modules', {'faster_whisper': mock.Mock(WhisperModel=mock.Mock(return_value='whisper'))}):
+                self.assertEqual(server.model(), 'whisper')
+            health = server._health_payload()
+            self.assertEqual((health['asr_ready'], health['asr_reason']), (True, ''))
+        with mock.patch.object(server, '_ref_ready', None):
+            self.assertIs(server._health_payload()['reference_scorer_ready'], False)
+        with mock.patch.object(server, '_ref_ready', True):
+            self.assertIs(server._health_payload()['reference_scorer_ready'], True)
+
+    def test_health_dialogue_fields_agree_for_grok_only(self):
+        with mock.patch.object(server, '_gemini_api_key', return_value=''), mock.patch.object(server, '_xai_api_key', return_value='xai-fixture'):
+            health = server._health_payload()
+        self.assertEqual((health['dialogue_provider'], health['dialogue_configured']), ('grok', True))
+        self.assertEqual((health['dialogue_ready'], health['dialogue_reason']), (False, 'provider_unverified'))
+        with mock.patch.object(server, '_gemini_api_key', return_value=''), mock.patch.object(server, '_xai_api_key', return_value=''):
+            health = server._health_payload()
+        self.assertEqual((health['dialogue_provider'], health['dialogue_configured'], health['dialogue_reason']), ('stub', False, 'not_configured'))
+
     def test_region_rejection_exposes_only_safe_code(self):
         response = mock.Mock(status_code=400, text='User location is not supported for the API use.', url='https://example.invalid', headers={})
         session = mock.Mock()

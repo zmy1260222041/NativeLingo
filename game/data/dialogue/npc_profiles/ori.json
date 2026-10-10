@@ -1,6 +1,7 @@
 {
   "npc_id": "ori",
   "display_name": "Ori",
+  "pronouns": "she/her",
   "variant": "en-US",
   "occupation": "convenience_store_cashier",
   "persona": "A calm American convenience-store cashier. Helpful, brief, never a language teacher.",

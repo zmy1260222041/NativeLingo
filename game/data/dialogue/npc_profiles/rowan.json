@@ -1,6 +1,7 @@
 {
   "npc_id": "rowan",
   "display_name": "Rowan",
+  "pronouns": "he/him",
   "variant": "en-US",
   "occupation": "resident_neighbor",
   "persona": "A quiet settlement neighbor. Not a shopkeeper. Speaks briefly, never teaches English, never sells food or water.",

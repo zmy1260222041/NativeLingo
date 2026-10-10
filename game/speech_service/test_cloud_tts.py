@@ -7,6 +7,7 @@ exact request the provider would send.
 from __future__ import annotations
 
 import base64
+import importlib.util
 import json
 import tempfile
 import unittest
@@ -231,6 +232,20 @@ class CloudTTSSynthesisTest(unittest.TestCase):
         self.assertEqual(captured["headers"].get("Authorization"), "Bearer ya29.fixed")
         self.assertEqual(captured["headers"].get("X-goog-user-project"), "nativelingo-test")
 
+    def test_prewarm_touches_only_the_cloud_provider(self):
+        # C2-05: cloud mode never opens the DashScope/Qwen (Beijing) websocket
+        # pool; prewarm only mints (and caches) the Cloud TTS token.
+        with mock.patch.object(server, "_tts_pool", side_effect=AssertionError("dashscope pool touched")) as pool, \
+             mock.patch.object(server, "_cloud_tts_access_token", return_value="ya29.fixed") as token:
+            self.assertTrue(server._prewarm_tts_pool())
+        pool.assert_not_called()
+        token.assert_called_once()
+        with mock.patch.object(server, "_tts_pool", side_effect=AssertionError("dashscope pool touched")) as pool, \
+             mock.patch.object(server, "_cloud_tts_access_token", side_effect=RuntimeError("cloud tts token unavailable")):
+            self.assertFalse(server._prewarm_tts_pool())
+        pool.assert_not_called()
+        self.assertEqual(server._tts_region(), "global")
+
     def test_rate_is_clamped_to_the_documented_range(self):
         self.assertAlmostEqual(server._effective_speaking_rate(0.01), 0.25, places=6)
         self.assertAlmostEqual(server._effective_speaking_rate(9.0), 2.0, places=6)
@@ -284,6 +299,10 @@ class CloudTTSSynthesisTest(unittest.TestCase):
             self.assertFalse(server._tts_configured())
 
 
+@unittest.skipUnless(
+    importlib.util.find_spec("parselmouth") is not None,
+    "praat-parselmouth is not installed (declared in desktop/requirements.txt)",
+)
 class PitchDetectorTest(unittest.TestCase):
     """The acceptance script's verdict is only worth trusting if the detector
     separates a resampled slowdown from a pitch-preserving one."""
