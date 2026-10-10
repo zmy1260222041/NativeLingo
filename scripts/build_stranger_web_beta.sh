@@ -4,7 +4,7 @@
 # What it does:
 #   1. Verifies the exact Godot editor version (4.6.3-stable).
 #   2. Re-imports the project (regenerates .translation resources).
-#   3. Runs the gameplay / HUD / web-no-voice test suites.
+#   3. Runs the offline 2D regression gate (scripts/run_stranger_tests.sh).
 #   4. Exports the "Web Beta" preset (Compatibility, no threads, no PWA,
 #      custom feature web_beta_no_voice) to build/web/.
 #   5. Precompresses index.wasm / index.pck / index.js with gzip -9.
@@ -54,22 +54,6 @@ run_godot_export() {
   "$GODOT" --headless --path "$GAME_DIR" "$@"
 }
 
-expect_pass() {
-  local kind="$1"; shift
-  local label="$1"; shift
-  local log_file
-  log_file="$(mktemp -t stranger_web_beta_test.XXXXXX)"
-  if run_godot_test "$@" >"$log_file" 2>&1; then
-    if grep -Eq 'PASS:|MAIN_ENV_INTEGRATION_PASS' "$log_file"; then
-      log "test OK  $label"
-      rm -f "$log_file"
-      return 0
-    fi
-  fi
-  tail -40 "$log_file" >&2
-  fail "test failed: $label"
-}
-
 # ---------------------------------------------------------------------------
 # 1. Import (idempotent; also regenerates CSV-derived translation resources).
 # ---------------------------------------------------------------------------
@@ -77,17 +61,16 @@ log "importing project"
 run_godot_test --import >/dev/null 2>&1 || fail "godot --import failed"
 
 # ---------------------------------------------------------------------------
-# 2. Tests. The web-no-voice suite is the launch-critical one.
+# 2. Tests: the offline 2D gate, which includes the launch-critical web-no-voice suite.
 # ---------------------------------------------------------------------------
 if [[ "${SKIP_TESTS:-0}" != "1" ]]; then
-  log "running tests"
-  expect_pass scene "game-state smoke" --script res://tests/test_game_state.gd
-  expect_pass scene "HUD smoke" res://tests/HudTest.tscn
-  expect_pass scene "web-beta no-voice" res://tests/WebBetaNoVoiceTest.tscn
-  expect_pass scene "voice target cancel" res://tests/VoiceTargetCancelTest.tscn
-  expect_pass scene "main env integration" res://tests/MainEnvIntegration.tscn
-  expect_pass scene "walk animation safety" --script res://tests/test_walk_fix.gd
-  expect_pass scene "directional locomotion" --script res://tests/test_directional_locomotion.gd
+  # T1-07: the exported main scene is the 2D Novel (project.godot run/main_scene),
+  # so the offline 2D gate guards it (WebBetaNoVoiceTest included); the 3D-era
+  # Main suites no longer do. The web build ships no speech service, so the
+  # Python lane is opt-in.
+  log "running the offline regression gate"
+  HOME="$TEST_HOME" GODOT_BIN="$GODOT" SKIP_PYTHON="${SKIP_PYTHON:-1}" "$ROOT/scripts/run_stranger_tests.sh" \
+    || fail "offline regression gate failed (scripts/run_stranger_tests.sh)"
 else
   log "SKIP_TESTS=1: skipping test phase"
 fi

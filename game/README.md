@@ -331,7 +331,8 @@ The first web beta ships without voice: `web_beta_no_voice` disables
 `SpeechAdapter`, removes every speech UI entry, and leaves the three-day flow
 fully playable through `G` gestures. (Voice-enabled web/desktop beta builds
 now use the `Web Cloud Voice` preset — see the next section.) The reproducible
-no-voice build runs the test suites, exports the `Web Beta` preset,
+no-voice build runs the offline 2D gate (`scripts/run_stranger_tests.sh`,
+Python lane opt-in via `SKIP_PYTHON=0`), exports the `Web Beta` preset,
 precompresses the payload, and writes `SHA256SUMS` + `build-info.json`:
 
 ```sh

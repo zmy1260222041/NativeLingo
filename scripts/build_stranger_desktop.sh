@@ -3,7 +3,7 @@
 #
 # Reuses the Web Beta pipeline discipline:
 #   1. exact Godot 4.6.3-stable version check;
-#   2. --import + eight test suites (existing seven + DesktopBetaNoVoice);
+#   2. --import + the offline 2D regression gate (scripts/run_stranger_tests.sh);
 #   3. export "Windows Desktop Beta" and "macOS Desktop Beta";
 #   4. thin the macOS universal template binary to arm64;
 #   5. sign macOS (Developer ID if configured, ad-hoc otherwise);
@@ -58,21 +58,6 @@ run_godot_export() {
   "$GODOT" --headless --path "$GAME_DIR" "$@"
 }
 
-expect_pass() {
-  local label="$1"; shift
-  local log_file
-  log_file="$(mktemp -t stranger_desktop_test.XXXXXX)"
-  if run_godot_test "$@" >"$log_file" 2>&1; then
-    if grep -Eq 'PASS:|MAIN_ENV_INTEGRATION_PASS' "$log_file"; then
-      log "test OK  $label"
-      rm -f "$log_file"
-      return 0
-    fi
-  fi
-  tail -40 "$log_file" >&2
-  fail "test failed: $label"
-}
-
 # ---------------------------------------------------------------------------
 # 1. Import + tests.
 # ---------------------------------------------------------------------------
@@ -80,15 +65,12 @@ log "importing project"
 run_godot_test --import >/dev/null 2>&1 || fail "godot --import failed"
 
 if [[ "${SKIP_TESTS:-0}" != "1" ]]; then
-  log "running tests"
-  expect_pass "game-state smoke" --script res://tests/test_game_state.gd
-  expect_pass "HUD smoke" res://tests/HudTest.tscn
-  expect_pass "web-beta no-voice" res://tests/WebBetaNoVoiceTest.tscn
-  expect_pass "desktop-beta no-voice" res://tests/DesktopBetaNoVoiceTest.tscn
-  expect_pass "voice target cancel" res://tests/VoiceTargetCancelTest.tscn
-  expect_pass "main env integration" res://tests/MainEnvIntegration.tscn
-  expect_pass "walk animation safety" --script res://tests/test_walk_fix.gd
-  expect_pass "directional locomotion" --script res://tests/test_directional_locomotion.gd
+  # T1-07: the exported main scene is the 2D Novel (project.godot run/main_scene),
+  # so the offline 2D gate guards it; the 3D-era Main suites no longer do. This
+  # no-voice build ships no speech service, so the Python lane is opt-in.
+  log "running the offline regression gate"
+  HOME="$TEST_HOME" GODOT_BIN="$GODOT" SKIP_PYTHON="${SKIP_PYTHON:-1}" "$ROOT/scripts/run_stranger_tests.sh" \
+    || fail "offline regression gate failed (scripts/run_stranger_tests.sh)"
 else
   log "SKIP_TESTS=1: skipping test phase"
 fi
