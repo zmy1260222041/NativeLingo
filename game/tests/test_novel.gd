@@ -446,6 +446,10 @@ func _test_recording_playback_conflict() -> void:
 	NpcDialogueService.scenario_opened.connect(on_open)
 	var pcm := PackedByteArray()
 	pcm.resize(24000) # Half a second of synthetic PCM, no microphone input.
+	# T1-12: wait for the real playback-finished signal (capped), never a fixed wall-clock guess.
+	var finished := [false]
+	var on_finished := func(_npc, line): if line == "test-opening": finished[0] = true
+	NpcVoice.line_audio_finished.connect(on_finished)
 	NpcVoice.feed_reply_pcm("tavi", "test-opening", pcm)
 	screen._refresh_record_button()
 	check(screen.record_button.disabled, "Record control is unavailable while NPC audio plays")
@@ -459,7 +463,11 @@ func _test_recording_playback_conflict() -> void:
 		screen._unhandled_input(key)
 	check(NpcVoice.audio_player.stream == stream and NpcVoice.playing_line_id == "test-opening", "Repeated mouse/key attempts do not replace or restart NPC audio")
 	check(not SpeechAdapter.is_recording() and opened.is_empty(), "Playback clicks neither capture NPC audio nor reopen the greeting")
-	await get_tree().create_timer(0.7).timeout
+	for attempt in range(100):
+		if finished[0]: break
+		await get_tree().create_timer(0.05).timeout
+	NpcVoice.line_audio_finished.disconnect(on_finished)
+	check(finished[0], "Synthetic NPC playback reports its finished signal")
 	screen._refresh_record_button()
 	check(not screen.record_button.disabled, "Record becomes available after the real playback-finished signal")
 	NpcVoice.pending_reply_id = "pending-test-reply"

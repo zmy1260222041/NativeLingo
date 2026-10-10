@@ -14,7 +14,11 @@ func _run() -> void:
 	var dialogue := root.get_node("Dialogue")
 	var service := root.get_node("NpcDialogueService")
 	var runner := root.get_node("NpcScenarioRunner")
-	_expect(registry.scenario_ids_for("mira").is_empty(), "Mira no longer hosts scripted service counters")
+	# T1-01: Mira has a social market conversation (2026-09-14), never a service counter.
+	_expect(not GameStateScript.SERVICE_SCENARIOS.has("mira") and not GameStateScript.SERVICE_SCENARIOS.values().any(func(id): return id in registry.scenario_ids_for("mira")), "Mira hosts no scripted service counter")
+	for scenario_id in registry.scenario_ids_for("mira"):
+		var social: Dictionary = registry.get_scenario(scenario_id)
+		_expect(str(social.get("conversation_mode", "")) == "social" and (social.get("inventory", []) as Array).is_empty() and (social.get("completion_speech_acts", []) as Array).is_empty(), "Mira's conversation sells nothing and completes no order: " + scenario_id)
 	var tavi_ids: Array[String] = registry.scenario_ids_for("tavi")
 	var ori_ids: Array[String] = registry.scenario_ids_for("ori")
 	var vesh_ids: Array[String] = registry.scenario_ids_for("vesh")

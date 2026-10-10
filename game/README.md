@@ -10,29 +10,46 @@
 
 - NPC 语音准备、播放或回应处理中，录音按钮会显示当前状态并暂时禁用；播放结束后即可录音，首次录音不会重播招呼。鼠标与录音快捷键使用同一检查。
 - 交谈、手势与重听同样遵守语音忙碌检查，不会中断正在录制的内容或反复重启配音。打开行囊、成长、设置或回看会结束当前练习／小剧场并恢复现场界面。交互回归：`res://tests/NovelInteractionTest.tscn`。
-- 点左侧地点，或按 1–6 切换；E 交谈，V 开始/结束录音，G 手势，B 行囊，Esc 设置/返回。
+- 点左侧地点，或按 1–6 切换；E 交谈，V 开始/结束录音，G 手势，B 行囊，Esc 设置/返回。小剧场里按 E、→ 或空格推进下一句；从顶栏或「开口灵感」开始小剧场时，焦点落在「下一句」上。
 - Tab / 方向键选择按钮，Enter 或手柄 A 确认；原 InputMap 的交谈、手势、录音也可用。手柄通过界面地点按钮切换场景。
 - 语音不可用时，手势领取最低份量；语音可用时，仍需通过原有具名成交规则取得物品。柜台领取后可以现场使用或打包。
 - 成长页选择单词→听美国语音示范（可重听）→V 录音、再按 V 结束→得到发音反馈→在商店自然交谈中使用。播放示范时禁止录音，低分可免费重试。小剧场听九段四句日常对白，包含打包点餐、选饮品、买电池、借毯子和邻里往来；开口灵感按当前地点提供示例，仍需自己录音交流。在住处安放/安装物品，休息到夜晚，然后睡觉；度过三夜结束。
 - 行囊 / 柜台 / 住处支持分类与合并数量，详情显示来源、剩余次数、用途和当前实际恢复量；主要操作具名回执，满状态不消耗，浪费需确认。柜台提示待取数量，支持全部打包；空行囊可直接前往补给点。
 - 读文字、对话与练习不扣需求，只有明确行动推进时间。住处休息有较低需求消耗。
-- 首次启动读取已有 `stranger_save.json`，后续写入独立 `stranger_novel_save.json`。不会覆盖 3D 存档。设置可存读档、减少动态、调整对话字号、切换逐字显示、重映射键鼠/手柄动作和确认重开。
+- 首次启动读取已有 `stranger_save.json`，后续写入独立 `stranger_novel_save.json`。不会覆盖 3D 存档。设置可存读档、减少动态、调整文字字号（侧栏、卡片、提示、面板、行囊与对白一起放大，小镇与校园共用）、切换逐字显示、重映射键鼠/手柄动作和确认重开。正文与说明文字不小于画布 18 px（1152×720 下约 14 px）。
+- 界面固定为简体中文，不随系统语言变化；NPC 台词、菜单里的英文商品名等学习内容保持英文。
 - 本分支默认使用 xAI 美国 us-east-1 TTS（服务端已有 `XAI.csv` / `XAI_API_KEY`），Gemini 负责自然对话。设置中可重新检查连接；模型失败不会用脚本模拟评分或成交。历史 Qwen 配置仅供显式设置 `STRANGER_TTS_PROVIDER=qwen` 的旧版调试，默认不连接北京端点。
 
 验证：
 
 ```sh
+# 离线回归门禁：全部离线 Godot 套件分别在 en 与 zh_CN 系统语言下运行（每个套件独立的 user://），
+# 再跑语音服务 Python 测试和启动器测试，打印汇总表，任一失败即非零退出。不联网、不写截图。
+scripts/run_stranger_tests.sh
+# 指定引擎、只跑部分套件、跳过 Python：
+GODOT_BIN=/path/to/Godot scripts/run_stranger_tests.sh NovelTest CampusTest
+SKIP_PYTHON=1 LOCALES=zh_CN scripts/run_stranger_tests.sh
+# 单个套件
 /Applications/Godot-4.6.app/Contents/MacOS/Godot --headless --path game res://tests/NovelTest.tscn
-# 行囊、日常对白、焦点、真实鼠标遮挡与小尺寸渲染
-/Applications/Godot-4.6.app/Contents/MacOS/Godot --path game res://tests/NovelEverydayTest.tscn -- --everyday-capture
+# 纯键盘推进小剧场
+/Applications/Godot-4.6.app/Contents/MacOS/Godot --headless --path game res://tests/NovelKeyboardTest.tscn
+# 启动器测试：在仓库根目录以模块方式运行（直接运行 game/test_run_novel.py 会找不到 game 包）
+.venv/bin/python -m unittest game.test_run_novel
 # 真实生活情景对话与新台词美国 TTS（文字测试输入）
 .venv/bin/python game/speech_service/probe_everyday.py
-# 同时生成桌面截图（测试使用独立状态，不读取用户存档）
-/Applications/Godot-4.6.app/Contents/MacOS/Godot --path game res://tests/NovelTest.tscn -- --novel-capture
 # 真实 API + 游戏录音通道 + 多轮交谈 + 物资和词汇闭环（合成输入，不采集真人麦克风）
 .venv/bin/python game/speech_service/probe_novel_live.py
 # 本地导出
 /Applications/Godot-4.6.app/Contents/MacOS/Godot --headless --path game --export-release "macOS 2D Novel" ../build/novel/Stranger2D.app
+```
+
+刷新证据截图（**会覆盖已提交的 `docs/reviews/` 证据图片**，只在有意更新证据时运行；日常回归请用上面的 headless 命令）：
+
+```sh
+# 覆盖 docs/reviews/everyday_inventory_2026-09-11/；加 --capture-dir=/tmp/everyday 可改写到其他目录
+/Applications/Godot-4.6.app/Contents/MacOS/Godot --path game res://tests/NovelEverydayTest.tscn -- --everyday-capture
+# 覆盖 docs/reviews/novel_2d_2026-09-11/ 的桌面截图（测试使用独立状态，不读取用户存档）
+/Applications/Godot-4.6.app/Contents/MacOS/Godot --path game res://tests/NovelTest.tscn -- --novel-capture
 ```
 
 界面配色统一为暖纸白、燕麦灰、鼠尾草绿和少量黄铜棕，涵盖对话、物品、提示与按键设置。配色与对比度验收：`docs/reviews/2026-09-11-soft-palette-fit.md`。
@@ -58,7 +75,10 @@
 **美术进度（2026-09-14）：**六处校园背景与八名成年角色已替换为同系列暖光手绘插画，使用真实透明立绘、纸面底板与小镇一致的晚间调色。已检查多人、小窗口大字号和长对白，并修复跨章节返回、背包补给、住处交互与多人文字覆盖问题。制作与试玩证据见 `docs/reviews/campus_art_2026-09-12/`。
 
 ```sh
-# 本地养成、状态与对话契约；图形模式同时生成窗口截图
+# 本地养成、状态与对话契约（日常回归用 --headless，或直接运行 scripts/run_stranger_tests.sh）
+/Applications/Godot-4.6.app/Contents/MacOS/Godot --headless --path game res://tests/CampusTest.tscn
+# 图形模式（不加 --headless）会覆盖 docs/reviews/campus_unified_2026-09-12/ 的证据截图；
+# CampusArtTest / CampusInteractionTest 的图形模式同样会写入 docs/reviews/campus_art_2026-09-12/
 /Applications/Godot-4.6.app/Contents/MacOS/Godot --path game res://tests/CampusTest.tscn
 # 真实模型验收，使用编写的合成输入，并会调用已配置的付费服务
 .venv/bin/python game/speech_service/probe_campus.py
@@ -232,6 +252,11 @@ The bundled Noto Sans SC variable font is licensed under the SIL Open Font
 License; its license text is stored beside the font in `game/assets/fonts/`.
 
 ## Tests
+
+The 2D branch's offline gate is `scripts/run_stranger_tests.sh` (all offline
+Godot suites under both `en` and `zh_CN`, the speech-service Python suite and
+the launcher test; see the 2D section above). The individual commands below
+are the older per-suite list, kept for reference.
 
 ```sh
 /Applications/Godot-4.6.app/Contents/MacOS/Godot \
