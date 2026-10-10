@@ -3554,6 +3554,9 @@ WORD_LINES = {
 for _scene in NOVEL_DAILY_LIFE:
     for _word in _scene["words"]:
         WORD_LINES.setdefault(_word, _word)
+# The campus practice corner (campus_controller.gd _practice_words) adds these.
+for _word in ("class", "project", "outline", "example", "club", "invite", "join", "prefer", "explain", "practice", "agree", "together"):
+    WORD_LINES.setdefault(_word, _word)
 
 
 _model = None

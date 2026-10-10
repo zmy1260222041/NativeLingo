@@ -32,6 +32,16 @@ class NovelSpeakingTests(unittest.TestCase):
             for word in scene['words']:
                 self.assertIn(word, server.WORD_LINES)
 
+    def test_campus_practice_words_are_scorable(self):
+        # A practice word the server does not know answers 404 on every attempt.
+        import re
+        source = (server.REPO_ROOT / 'game/scripts/novel/campus_controller.gd').read_text()
+        listed = re.search(r'func _practice_words\(\).*?for word in \[([^\]]+)\]', source, re.S)
+        words = re.findall(r'"([a-z]+)"', listed.group(1))
+        self.assertGreaterEqual(len(words), 12)
+        for word in words:
+            self.assertIn(word, server.WORD_LINES)
+
     def test_life_situation_reaches_the_model(self):
         for scenario_id, scenario in server._DIALOGUE_SCENARIOS.items():
             card = server._scene_card(scenario, server._DIALOGUE_PROFILES[scenario['npc_id']])

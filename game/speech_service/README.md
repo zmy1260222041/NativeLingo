@@ -53,12 +53,14 @@ The default is **xAI TTS, US-East (`us-east-1`)**, using the existing server-onl
 
 | Field | Meaning |
 |---|---|
-| `asr_ready` / `asr_reason` | Whisper actually loaded. `asr_reason` is `""` when ready, otherwise `not_checked` (no load attempted yet), `loading`, `asr_not_installed` (no `faster_whisper`), `model_missing` (no `models/whisper-base.en` and the `base.en` download failed) or `load_failed` (local model present but unusable). Each recording retries the load. |
+| `asr_ready` / `asr_reason` | Whisper actually loaded. `asr_reason` is `""` when ready, otherwise `not_checked` (no load attempted yet), `loading`, `asr_not_installed` (no `faster_whisper`), `model_missing` (no `models/whisper-base.en` and the `base.en` download failed) or `load_failed` (local model present but unusable). Each recording retries the load. The 2D client treats `not_checked`/`loading` as "starting" (no gesture minimum, quiet re-poll of `/health`), and only the last three as down. |
 | `reference_scorer_ready` | The desktop SSL+DTW stack imported; when false, word practice uses the labelled transcript check described below. |
 | `dialogue_ready` / `dialogue_reason` | Gemini generation verified. Without a Gemini key the reason is `not_configured`; an xAI-only setup reports `dialogue_provider: grok`, `dialogue_configured: true`, `dialogue_ready: false`, `dialogue_reason: provider_unverified` — Grok has no readiness probe and is not a supported 2D live path. |
 | `tts_region` | `us-east-1` for xAI, `global` for Google Cloud TTS on its default endpoint (otherwise the endpoint host), `legacy-configured` for Qwen. |
 
 `protocol` stays `2`; older fields are unchanged.
+
+When `tts_configured` is false but dialogue works, the 2D town shows each validated reply as text and settles it after a short reading pause instead of its audio, so exchanges, Mira's greeting and orders still count (the campus already asks for text-only turns). Campus dialogue whose every repair attempt fails the content gates answers `422 campus_rejected` (or an SSE `error` with that reason), a free retry; `503 campus_unavailable` stays for provider or transport failures.
 
 Dialogue failures keep the reasons Godot already localizes and add a machine-readable `detail`: `503 VOICE_REASON_SERVICE_UNAVAILABLE` with `detail: not_configured` (strict turn, no model key at all — checked before the relevance gate) or `provider_failed` (provider error/timeout); `422 VOICE_REASON_DIALOGUE_REJECTED` with `detail: reply_rejected` (the model answered but every candidate failed the content gates; the violations are logged as `stage=dialogue_rejected`) or `transcript_rejected` (offline relevance gate). When the work plane returns no usable `player_turn` (missing or truncated JSON), the score event carries `player_turn.idiomaticity: null` and `player_turn.idiomaticity_source: "unavailable"` (otherwise `gemini`, `grok` or `stub`) and `session.running_score: null`; no stub constant or parser default is ever reported as a model score.
 

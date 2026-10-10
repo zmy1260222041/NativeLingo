@@ -156,7 +156,7 @@ class CampusTest(unittest.TestCase):
         self.assertEqual(events[0]['data']['text'], 'I can take the examples if you start the outline.')
         self.assertEqual(events[-1]['data']['coaching'], [''])
         def missing_text(*_): return {'text': None}, 'gemini', 'test-model'
-        with self.assertRaisesRegex(RuntimeError, 'validation failed'):
+        with self.assertRaisesRegex(campus.CampusReplyRejected, 'validation failed'):
             list(campus.iter_events(request(), server, missing_text))
         # Teaching or grading the player's English is repaired, never spoken...
         for bad in ["Good question! Your grammar is great, but you should say 'Is this seat free?' Repeat after me.",
@@ -168,6 +168,29 @@ class CampusTest(unittest.TestCase):
         # ...but ordinary campus talk about class work is not teacher talk.
         def peer(*_): return {'text': 'The grammar section of my essay took forever, honestly.', 'closed': True}, 'gemini', 'test-model'
         self.assertEqual(list(campus.iter_events(request(), server, peer))[0]['event'], 'speaking')
+
+    def test_exhausted_repairs_are_a_retryable_rejection_not_an_outage(self):
+        import io
+
+        class Handler:
+            def __init__(self, sse):
+                raw = json.dumps(request()).encode()
+                self.headers = {'Content-Length': str(len(raw))}
+                self.rfile = io.BytesIO(raw)
+                self.sse = sse
+                self.sent = []
+            def _wants_sse(self): return self.sse
+            def _json(self, status, data): self.sent.append((status, data))
+        grading = ({'text': "Don't worry, your English is fine. Want to sit with us?"}, 'gemini', 'test-model')
+        with patch.object(campus, 'model_json', return_value=grading):
+            handler = Handler(True)
+            campus.handle(handler, server)
+        self.assertEqual(handler.sent, [(422, {'ok': False, 'reason': 'campus_rejected'})])
+        def offline(*_): raise RuntimeError('offline')
+        with patch.object(campus, 'model_json', side_effect=offline):
+            handler = Handler(False)
+            campus.handle(handler, server)
+        self.assertEqual(handler.sent, [(503, {'ok': False, 'reason': 'campus_unavailable'})])
 
     def test_unspecified_sport_does_not_acquire_basketball_rules(self):
         def generate(_prompt, payload):

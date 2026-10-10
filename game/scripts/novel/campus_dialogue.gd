@@ -3,8 +3,9 @@ extends Node
 signal line_ready(line: Dictionary)
 signal completed(receipt: Dictionary, lines: Array)
 ## P3-10: "service" (online dialogue unreachable or unavailable), "invalid" (a reply
-## that failed validation), "audio" (a reply could not play) or "cloud" (cloud voice
-## not activated). The controller words it for the player.
+## that failed validation, including a 422 / campus_rejected after exhausted
+## repairs), "audio" (a reply could not play) or "cloud" (cloud voice not
+## activated). The controller words it for the player.
 signal failed(kind: String)
 signal busy_changed
 var busy := false
@@ -94,7 +95,7 @@ func _process(_delta: float) -> void:
 		if client.request(HTTPClient.METHOD_POST, endpoint.path, headers, body_text) != OK: _fail()
 	elif status == HTTPClient.STATUS_BODY:
 		received_response = true
-		if client.get_response_code() != 200: _fail("invalid" if client.get_response_code() == 400 else "service"); return
+		if client.get_response_code() != 200: _fail("invalid" if client.get_response_code() in [400, 422] else "service"); return
 		var chunk := client.read_response_body_chunk()
 		buffer.append_array(chunk)
 		if buffer.size() > 256 * 1024: _fail("invalid"); return
@@ -169,7 +170,7 @@ func _finish_if_ready() -> void:
 
 func _json_finished(result: int, code: int, _headers: PackedStringArray, data: PackedByteArray) -> void:
 	if not busy: return
-	if result != HTTPRequest.RESULT_SUCCESS or code != 200: _fail("invalid" if code == 400 else "service"); return
+	if result != HTTPRequest.RESULT_SUCCESS or code != 200: _fail("invalid" if code in [400, 422] else "service"); return
 	var parsed = JSON.parse_string(data.get_string_from_utf8())
 	if not parsed is Dictionary or not parsed.get("events") is Array: _fail("invalid"); return
 	for event in parsed.events: accept_event(str(event.get("event", "")), event.get("data", {}))

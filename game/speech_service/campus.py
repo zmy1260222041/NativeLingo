@@ -201,6 +201,10 @@ def model_json(runtime, prompt, payload):
     return result, source, model
 
 
+class CampusReplyRejected(RuntimeError):
+    """Every repair attempt failed validation: a retryable rejection, not an outage."""
+
+
 def iter_events(body, runtime, generate=None):
     context = prepare(body)
     generate = generate or (lambda prompt, payload: model_json(runtime, prompt, payload))
@@ -239,7 +243,7 @@ def iter_events(body, runtime, generate=None):
             if line and len(line.split()) <= limit and len(sentences) <= 3 and not duplicate and not invented_sport and not unsafe and not grading:
                 break
             if attempt == 2:
-                raise RuntimeError('campus reply validation failed')
+                raise CampusReplyRejected('campus reply validation failed')
             payload['REPAIR_OUTPUT'] = ('Your last output invented sport-specific positions or rules. The sport is not established; use a generic activity and ask if needed.' if invented_sport else
                                        ('Your last output repeated another speaker. Contribute a different specific detail.' if duplicate else
                                         ('Your last output broke character (AI talk, instructions, a link or abusive language). Reply only as this student, in plain spoken English.' if unsafe else
@@ -319,6 +323,14 @@ def handle(handler, runtime):
             handler._write_sse('error', {'reason': 'invalid_campus_response'})
         else:
             handler._json(400, {'ok': False, 'reason': 'invalid_campus_request'})
+    except CampusReplyRejected:
+        # Like the town's C2-10 rule: exhausted repairs are a free retry (422),
+        # never "online dialogue is down".
+        runtime._log_stage('campus_rejected', 0)
+        if streaming:
+            handler._write_sse('error', {'reason': 'campus_rejected'})
+        else:
+            handler._json(422, {'ok': False, 'reason': 'campus_rejected'})
     except Exception as exc:
         runtime._log_stage('campus_failed', 0, reason=type(exc).__name__)
         if streaming:
