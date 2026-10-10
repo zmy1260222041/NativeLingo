@@ -27,6 +27,13 @@ const HOME := Color("708162")
 const NEED_FOOD := Color("b29470")
 const NEED_WARMTH := Color("b38f84")
 const NEED_ENERGY := Color("889d83")
+## The 2D chapters are written for Chinese-native learners; English stays the
+## language NPCs speak, never the language of the interface.
+const UI_LOCALE := "zh_CN"
+## P2-06: reading text is at least 18 canvas px (about 14 px at 1152×720). The
+## shared large-text setting scales every reading surface by the same factor.
+const LARGE_TEXT_SCALE := 1.15
+static var text_scale := 1.0
 const UI_FONT := preload("res://assets/fonts/NotoSansSC-Variable.ttf")
 const STORY_FONT := preload("res://assets/fonts/NotoSerifSC-Variable.ttf")
 
@@ -35,6 +42,14 @@ static func font(story := false, weight := 400.0) -> FontVariation:
 	result.base_font = STORY_FONT if story else UI_FONT
 	result.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): weight}
 	return result
+
+static func text_px(size_px: int) -> int:
+	return roundi(size_px * text_scale)
+
+## P1-16 / P2-14: the CJK fonts draw ’ and ‘ full-width ("TAVI’ S", "I’ m"). English
+## shown to the player, authored or from the model, uses the ASCII apostrophe.
+static func plain_quotes(text: String) -> String:
+	return text.replace("’", "'").replace("‘", "'")
 
 static func style(fill: Color, border := Color.TRANSPARENT, width := 0, radius := 6) -> StyleBoxFlat:
 	var result := StyleBoxFlat.new()

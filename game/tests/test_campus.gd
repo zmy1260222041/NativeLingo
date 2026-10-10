@@ -18,11 +18,13 @@ func _ready() -> void:
 	NpcVoice.availability_override = false
 	_test_state()
 	_test_memory_and_personalization()
+	TranslationServer.set_locale("en") # T1-03: an English OS; the campus screen pins the Chinese UI.
 	screen = Screen.instantiate()
 	screen.boot_from_save = false
 	add_child(screen)
 	model = screen.model
 	await get_tree().process_frame
+	check(TranslationServer.get_locale() == "zh_CN" and GameState.items.Catalog.label(["汉堡", "Burger"]) == "汉堡", "Campus pins the Chinese UI locale over an English OS")
 	check(model.location == "class", "Empty profile starts on campus")
 	check(model.campus.catalog.scenarios.size() == 32, "32 scenarios load in actual screen")
 	var snapshot := Vector3(GameState.day_time, GameState.energy, model.campus.social)
@@ -55,8 +57,11 @@ func _ready() -> void:
 	model.travel("sports")
 	model.select_scene("sports_mistake")
 	screen.instant_text = true
-	screen.large_text = true
-	screen.transcript.add_theme_font_size_override("normal_font_size", 30)
+	await check_reading_sizes(18, "standard")
+	screen.set_large_text(true)
+	await check_reading_sizes(21, "large")
+	screen._line("alex", "I’m glad we’re in the same group.")
+	check(screen.transcript.text.contains("I'm glad we're in the same group.") and not screen.transcript.text.contains("’"), "P2-14: campus English uses Latin-width apostrophes")
 	screen._line("casey", "I saw it differently, but I could have missed the first part. Could we talk through what happened before we decide how to continue? I would rather agree on a fair way forward than argue over who was right.")
 	get_window().size = Vector2i(960, 640)
 	await get_tree().process_frame
@@ -317,6 +322,23 @@ func _test_shared_vocabulary() -> void:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 	GameState.save_path = old
 	GameState.persistence_enabled = false
+
+## P2-06: campus reading text meets the 18 canvas px floor, and the shared text-size
+## setting scales the sidebar, scene card, status line and pop-up pages too.
+func check_reading_sizes(minimum: int, mode: String) -> void:
+	var smallest := {"px": 999, "text": "", "where": ""}
+	var inspect := func(root: Node, where: String):
+		for node in root.find_children("*", "Control", true, false):
+			if not (node is Label or node is Button or node is RichTextLabel) or not node.is_visible_in_tree(): continue
+			var px: int = node.get_theme_font_size("normal_font_size" if node is RichTextLabel else "font_size")
+			if px < smallest.px: smallest = {"px": px, "text": str(node.get("text")).left(24), "where": where}
+	inspect.call(screen.canvas, "scene")
+	for page in [screen._plan, screen._settings, screen._hints, screen._words, screen._coaching, screen._history, screen._reviews, screen._example]:
+		page.call()
+		await get_tree().process_frame
+		inspect.call(screen.modal, page.get_method())
+		screen.modal.hide()
+	check(smallest.px >= minimum, "%s campus text is at least %d canvas px; smallest is %d in %s: %s" % [mode, minimum, smallest.px, smallest.where, smallest.text])
 
 func capture(name: String) -> void:
 	if DisplayServer.get_name() == "headless": return

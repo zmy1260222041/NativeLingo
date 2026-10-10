@@ -130,11 +130,13 @@ func _ready() -> void:
 	check(model.visible_items("home").any(func(record): return record.id == id and record.state == "storage"), "Stored item remains visible and recoverable")
 	view._filter("food")
 	await capture("home-storage")
-	# Small viewport + larger dialogue setting: inspect rendered extents too.
+	await check_reading_sizes(18, "standard")
+	# Small viewport + larger text setting: inspect rendered extents too.
 	get_window().size = Vector2i(1152, 720)
-	screen.large_text = true
+	screen.set_large_text(true)
 	screen.reduce_motion = true
-	screen.dialogue_text.add_theme_font_size_override("normal_font_size", 30)
+	await check_reading_sizes(21, "large")
+	check(screen.dialogue_text.get_theme_font_size("normal_font_size") == 30 and screen.objective_label.get_theme_font_size("font_size") == 21, "Large text scales the sidebar as well as the dialogue")
 	screen._open_panel("bag")
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -177,12 +179,10 @@ func _ready() -> void:
 		model.start()
 		await capture("day-scene")
 		get_window().size = Vector2i(1440, 900)
-		screen.large_text = false
-		screen.dialogue_text.add_theme_font_size_override("normal_font_size", 26)
+		screen.set_large_text(false)
 		await capture("day-scene-1440")
 		get_window().size = Vector2i(1152, 720)
-		screen.large_text = true
-		screen.dialogue_text.add_theme_font_size_override("normal_font_size", 30)
+		screen.set_large_text(true)
 		screen._open_panel("settings")
 		await capture("settings")
 		screen._close_panel()
@@ -256,6 +256,28 @@ func check_reading_controls() -> void:
 	screen._show_line("tavi", "See you tomorrow.")
 	await get_tree().process_frame
 	check(scroll.value == 0, "New dialogue resets the previous long response's scroll position")
+
+## P2-06: every reading surface meets the size floor (18 canvas px is about 14 px
+## at 1152×720), and the text-size setting reaches sidebar, cards, toasts and panels.
+func check_reading_sizes(minimum: int, mode: String) -> void:
+	var location: String = model.location
+	model.travel("food")
+	screen._toast("汉堡 ×1 已放到柜台。打开柜台选择现场使用或打包。")
+	await get_tree().process_frame
+	var smallest := {"px": 999, "text": "", "where": ""}
+	var inspect := func(root: Node, where: String):
+		for node in root.find_children("*", "Control", true, false):
+			if not (node is Label or node is Button or node is RichTextLabel) or not node.is_visible_in_tree(): continue
+			var px: int = node.get_theme_font_size("normal_font_size" if node is RichTextLabel else "font_size")
+			if px < smallest.px: smallest = {"px": px, "text": str(node.get("text")).left(24), "where": where}
+	inspect.call(screen.canvas, "scene")
+	for kind in ["counter", "bag", "growth", "theater", "phrases", "history", "settings", "help"]:
+		screen._open_panel(kind)
+		await get_tree().process_frame
+		inspect.call(screen.modal, kind)
+		screen._close_panel()
+	check(smallest.px >= minimum, "%s text is at least %d canvas px; smallest is %d in %s: %s" % [mode, minimum, smallest.px, smallest.where, smallest.text])
+	model.travel(location)
 
 func action_button(view: Node, action: String) -> Button:
 	for button in view.action_buttons:

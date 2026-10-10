@@ -21,6 +21,7 @@ func _ready() -> void:
 	add_child(screen)
 	model = screen.model
 	await get_tree().process_frame
+	check(screen.transcript.selection_enabled and screen.transcript.focus_mode == Control.FOCUS_NONE and screen.situation.focus_mode == Control.FOCUS_NONE, "P2-02: selectable campus text is never a hidden Tab stop")
 	screen._inventory("bag")
 	var guidance: Dictionary = model.inventory_guidance()
 	check(guidance.links.size() == 1 and guidance.links[0][1] == "dining", "Campus has one accurate dining-counter supply link")

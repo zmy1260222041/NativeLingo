@@ -8,6 +8,8 @@ extends Node
 var failures := 0
 
 func _ready() -> void:
+	# T1-02: the desktop copy below is asserted in Chinese, independent of the OS locale.
+	TranslationServer.set_locale("zh_CN")
 	await get_tree().process_frame
 	await get_tree().physics_frame
 	SpeechAdapter.availability_override = false

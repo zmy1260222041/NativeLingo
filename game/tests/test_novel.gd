@@ -10,7 +10,8 @@ func check(condition: bool, message: String) -> void:
 		push_error(message)
 
 func _ready() -> void:
-	TranslationServer.set_locale("zh_CN")
+	# T1-03 / C1-09: boot as on an English OS; the 2D screen pins its own Chinese UI.
+	TranslationServer.set_locale("en")
 	GameState.persistence_enabled = false
 	GameState.reset_run()
 	SpeechAdapter.availability_override = false
@@ -19,6 +20,8 @@ func _ready() -> void:
 	screen.boot_from_save = false
 	add_child(screen)
 	model = screen.model
+	await _test_english_os_locale()
+	await _test_latin_apostrophes()
 	await _test_recording_playback_conflict()
 	await _test_startup_and_opening()
 	await _test_ux_clarity()
@@ -249,6 +252,48 @@ func _test_spoken_handoff() -> void:
 	NpcDialogueService.request_override = Callable()
 
 
+## T1-03 / P1-11 / P2-09 / C1-09: an English OS no longer leaks English goals,
+## toasts or item names into the Chinese UI; NPC lines stay English.
+func _test_english_os_locale() -> void:
+	var chinese := RegEx.new()
+	chinese.compile("[\\x{4e00}-\\x{9fff}]")
+	check(TranslationServer.get_locale() == "zh_CN", "The 2D screen pins the Chinese UI locale over an English OS")
+	check(chinese.search(screen.objective_label.text) != null and screen.objective_label.text == GameState.objective_text(), "The sidebar goal is Chinese: " + screen.objective_label.text)
+	model.travel("food")
+	screen._open_panel("counter")
+	await get_tree().process_frame
+	var menu := ""
+	for label in screen.modal_body.find_children("*", "Label", true, false): menu += str(label.text) + "\n"
+	check(menu.contains("汉堡 / Burger") and not menu.contains("Burger / Burger"), "The menu is bilingual, Chinese name first")
+	screen._close_panel()
+	model.greet()
+	check(str(model.order_guidance().get("title", "")).contains("汉堡 ×1") and screen.feedback_label.text.contains("汉堡 ×1 已放到柜台"), "Pickup card and toast name the item in Chinese")
+	model.travel("neighbor")
+	model.greet()
+	check(screen.dialogue_text.text == "I cannot walk that far. Ask Ori for water first." and screen.speaker_label.text == "Rowan", "Rowan's fallback line stays English in the NPC box")
+	GameState.reset_run()
+	model.travel("plaza")
+	await get_tree().process_frame
+
+
+## P1-16 / P2-14: CJK fonts draw ’ full-width, so English shows the ASCII apostrophe.
+func _test_latin_apostrophes() -> void:
+	model.travel("food")
+	check(screen.location_label.text == "TAVI'S KITCHEN", "Place subtitles use a Latin-width apostrophe: " + screen.location_label.text)
+	screen._show_line("tavi", "I’ll bring it over.")
+	check(screen.dialogue_text.text == "I'll bring it over.", "NPC lines, including model text, use a Latin-width apostrophe")
+	model.travel("neighbor")
+	screen._open_panel("phrases")
+	await get_tree().process_frame
+	var page := ""
+	for label in screen.modal_body.get_children():
+		if label is Label: page += label.text + "\n"
+	check(page.contains("Need anything while I'm out?") and not page.contains("’"), "Speaking ideas use a Latin-width apostrophe")
+	screen._close_panel()
+	model.travel("plaza")
+	await get_tree().process_frame
+
+
 func _test_ux_clarity() -> void:
 	model.travel("store")
 	model.play_social(1)
@@ -353,6 +398,8 @@ func _test_rowan_water_action() -> void:
 		check(screen.speaker_label.text == "Rowan" and not screen.dialogue_text.text.contains("came back"), "Rowan thanks the actual gift, never 'You came back' at a first meeting: " + mode)
 		check(not screen.give_button.visible, "The water action leaves once Rowan has the water: " + mode)
 		check(not model.give_water().get("ok", false) and GameState.relationships.rowan == 3, "A second gift cannot repeat the reward: " + mode)
+		model.greet()
+		check(screen.dialogue_text.text == "You brought water. I will not forget.", "P1-13: Rowan's remembered line is English in the NPC box under the Chinese UI: " + mode)
 		model.cancel_activity()
 	check(not model.item_description("drink_bottled_water").contains("交流时") and model.item_description("drink_bottled_water").contains("送一份水给罗文"), "The water description points to the real action")
 	# P1-03 / P2-08: the growth page shows localized memories, never raw keys.

@@ -5,6 +5,8 @@ var failures := 0
 @onready var hud = $HUD
 
 func _ready() -> void:
+	# T1-02: assert the Chinese copy under the Chinese locale, not whatever the OS uses.
+	TranslationServer.set_locale("zh_CN")
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	await get_tree().process_frame
 	await get_tree().process_frame

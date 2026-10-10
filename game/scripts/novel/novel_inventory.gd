@@ -31,8 +31,8 @@ func setup(controller: Node, kind: String) -> void:
 	mode = kind
 	add_theme_constant_override("separation", 12)
 	custom_minimum_size = Vector2(1056, 548)
-	summary = _text(self, "", 17, MUTED)
-	notice_label = _text(self, "", 17, ACCENT)
+	summary = _text(self, "", 18, MUTED)
+	notice_label = _text(self, "", 18, ACCENT)
 	notice_label.visible = false
 	tabs = HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 8)
@@ -64,7 +64,7 @@ func _text(parent: Node, value: String, font_size := 20, color := TEXT) -> Label
 	label.text = value
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_font_size_override("font_size", Palette.text_px(font_size))
 	label.add_theme_color_override("font_color", color)
 	if font_size >= 23: label.theme_type_variation = "NovelTitle"
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -129,7 +129,7 @@ func refresh() -> void:
 		var label := _text(button, "%s  ×%d" % [title, group.ids.size()], 21)
 		label.position = Vector2(76, 12)
 		label.size = Vector2(290, 31)
-		label = _text(button, str(STATES.get(group.record.state, "")) + (" · 剩余 %d 次" % group.record.uses if int(definition.uses) > 1 else ""), 16, MUTED)
+		label = _text(button, str(STATES.get(group.record.state, "")) + (" · 剩余 %d 次" % group.record.uses if int(definition.uses) > 1 else ""), 18, MUTED)
 		label.position = Vector2(76, 51)
 		label.size = Vector2(290, 27)
 		row_buttons.append(button)
@@ -185,7 +185,7 @@ func _build_details() -> void:
 	var record: Dictionary = group.record
 	var definition: Dictionary = GameState.items.definitions[record.item_id]
 	var title: String = GameState.items.Catalog.label(definition.name)
-	_text(details, str(definition.name[1]).to_upper() + "  /  " + str(STATES.get(record.state, "")), 15, ACCENT)
+	_text(details, str(definition.name[1]).to_upper() + "  /  " + str(STATES.get(record.state, "")), 18, ACCENT)
 	_text(details, title, 32)
 	if not confirmation.is_empty() and confirmation.id == record.id:
 		_text(details, "现在使用会损失一部分效果。仍然使用？", 19, ACCENT)
@@ -199,24 +199,24 @@ func _build_details() -> void:
 		var source: String = str(GameState.items.instances[id].source_service).capitalize()
 		if source.is_empty() or source == "Player": source = "旅程中带来"
 		if not sources.has(source): sources.append(source)
-	_text(details, "来自 " + "、".join(sources) + "   ·   共 %d 件" % group.ids.size(), 16, MUTED)
+	_text(details, "来自 " + "、".join(sources) + "   ·   共 %d 件" % group.ids.size(), 18, MUTED)
 	_text(details, model.item_description(record.item_id), 20)
 	if definition.category in ["food", "drink", "home_consumable"]:
 		var preview: Dictionary = GameState.items.effect_preview(record.id, {"food": GameState.food, "warmth": GameState.warmth, "energy": GameState.energy})
-		_text(details, "这次使用能恢复", 16, ACCENT)
+		_text(details, "这次使用能恢复", 18, ACCENT)
 		var parts: Array[String] = []
 		for key in ["food", "warmth", "energy"]:
 			if float(definition.effects[key]) <= 0.0: continue
 			var current: float = GameState.get(key)
 			parts.append("%s  %s → %s  (+%s)" % [{"food": "饱腹", "warmth": "温暖", "energy": "精力"}[key], str(snappedf(current, 0.1)), str(snappedf(current + float(preview.effects[key]), 0.1)), str(snappedf(preview.effects[key], 0.1))])
 		_text(details, "    ·    ".join(parts), 20, POSITIVE)
-		if not preview.ok: _text(details, "现在状态已满，留到需要时再用。", 17, MUTED)
-		elif preview.waste_ratio >= 0.25: _text(details, "当前只能恢复部分效果。可以先带着，晚些再用。", 17, MUTED)
-		if int(definition.uses) > 1: _text(details, "这一件还可使用 %d 次。每次只消耗一次。" % record.uses, 17, MUTED)
+		if not preview.ok: _text(details, "现在状态已满，留到需要时再用。", 18, MUTED)
+		elif preview.waste_ratio >= 0.25: _text(details, "当前只能恢复部分效果。可以先带着，晚些再用。", 18, MUTED)
+		if int(definition.uses) > 1: _text(details, "这一件还可使用 %d 次。每次只消耗一次。" % record.uses, 18, MUTED)
 	if record.state in ["counter", "storage"]:
 		_action("装进行囊 · 1 件", "pack", record.id, not GameState.items.can_pack([record.id]))
 		if not GameState.items.can_pack([record.id]):
-			_text(details, "这一类行囊已满。先使用随身补给，或回小屋存放。", 17, ACCENT)
+			_text(details, "这一类行囊已满。先使用随身补给，或回小屋存放。", 18, ACCENT)
 	if definition.category in ["food", "drink"] and record.state != "storage":
 		var full := not bool(GameState.items.effect_preview(record.id, {"food": GameState.food, "warmth": GameState.warmth, "energy": GameState.energy}).ok)
 		_action(("喝一口" if int(definition.uses) > 1 else "现在喝") if definition.category == "drink" else "现在吃", "consume", record.id, full)
@@ -255,7 +255,7 @@ func _menu() -> void:
 	_text(details, "怎样领取", 23)
 	var example: String = {"tavi": "Burger", "ori": "Water", "vesh": "Blanket"}.get(model.npc_id(), "Burger")
 	_text(details, "说出具体商品名就可以，不必照念完整句式。比如 “%s, please.”。店员确认并说完后，物品会放到柜台；再选择现在使用或装包。" % example, 18)
-	_text(details, "店员确认了你要的东西就会交付，说得越清楚自然，常常能多拿一份。没有听清可以免费重试；语音不可用时用手势领取最低份量。", 16, MUTED)
+	_text(details, "店员确认了你要的东西就会交付，说得越清楚自然，常常能多拿一份。没有听清可以免费重试；语音不可用时用手势领取最低份量。", 18, MUTED)
 	_text(details, "这里可以买到", 23, ACCENT)
 	_text(details, "\n".join(titles), 18, MUTED)
 

@@ -654,28 +654,34 @@ func _npc_followup_line(npc_id: String) -> Dictionary:
 		"mira":
 			if completed_steps.has("greet_mira"):
 				if food < FOOD_COMFORT:
-					return {"line_key": "hint_food", "text": tr("NPC_MIRA_HINT_FOOD")}
+					return {"line_key": "hint_food", "text": _npc_speech("NPC_MIRA_HINT_FOOD")}
 				if energy < ENERGY_COMFORT:
-					return {"line_key": "hint_rowan", "text": tr("NPC_MIRA_HINT_WATER")}
-				return {"line_key": "remembers", "text": tr("NPC_MIRA_REMEMBERS")}
+					return {"line_key": "hint_rowan", "text": _npc_speech("NPC_MIRA_HINT_WATER")}
+				return {"line_key": "remembers", "text": _npc_speech("NPC_MIRA_REMEMBERS")}
 			return {"line_key": "", "text": tr("MSG_NPC_WARY")}
 		"rowan":
 			if water <= 0 and not completed_steps.has("help_rowan"):
-				return {"line_key": "needs_water", "text": tr("NPC_ROWAN_NEEDS_WATER")}
+				return {"line_key": "needs_water", "text": _npc_speech("NPC_ROWAN_NEEDS_WATER")}
 			if not completed_steps.has("help_rowan"):
 				# Water is at hand but not given yet: Rowan asks; the give action hands it over.
 				return {"line_key": "social_ask_help", "text": "I cannot walk far. Could you bring me water?"}
 			if int(relationships.get("rowan", 0)) > 0:
-				return {"line_key": "remembers", "text": tr("NPC_ROWAN_REMEMBERS")}
-			return {"line_key": "", "text": tr("NPC_ROWAN_WARY")}
+				return {"line_key": "remembers", "text": _npc_speech("NPC_ROWAN_REMEMBERS")}
+			return {"line_key": "", "text": _npc_speech("NPC_ROWAN_WARY")}
 		"tavi":
-			return {"line_key": "hint_food", "text": tr("NPC_TAVI_HINT_FOOD")}
+			return {"line_key": "hint_food", "text": _npc_speech("NPC_TAVI_HINT_FOOD")}
 		"vesh":
-			return {"line_key": "hint_scrap", "text": tr("NPC_VESH_HINT_SCRAP")}
+			return {"line_key": "hint_scrap", "text": _npc_speech("NPC_VESH_HINT_SCRAP")}
 		"ori":
-			return {"line_key": "hint_water", "text": tr("NPC_ORI_HINT_WATER")}
+			return {"line_key": "hint_water", "text": _npc_speech("NPC_ORI_HINT_WATER")}
 		_:
 			return {"line_key": "", "text": tr("MSG_NPC_REMEMBERS") if int(relationships.get(npc_id, 0)) > 0 else tr("MSG_NPC_WARY")}
+
+## P1-13 / T1-03: NPCs speak English whatever the UI locale, so the shown line
+## matches the English server catalog line their voice plays.
+func _npc_speech(key: String) -> String:
+	var english := TranslationServer.get_translation_object("en")
+	return str(english.get_message(key)) if english != null else tr(key)
 
 func _communication_reply(speaker: String, communication: String, line: String) -> String:
 	if communication == "voice":

@@ -33,6 +33,7 @@ var inventory_view: Node
 var scene_picker: Button
 var retry_button: Button
 var connection_label: Label
+var status_paper: Panel
 var relation_label: Label
 var large_text := false
 var instant_text := false
@@ -44,7 +45,10 @@ var scene_only_controls: Array[Control] = []
 const SETTINGS := "user://stranger_novel_settings.cfg"
 
 func _ready() -> void:
+	# T1-03: same Chinese UI locale as the town, whatever the OS language.
+	TranslationServer.set_locale(Palette.UI_LOCALE)
 	_load_settings()
+	set_large_text(large_text)
 	var styles = preload("res://scripts/novel/novel_screen.gd").new()
 	styles._build_theme()
 	theme = styles.theme
@@ -60,7 +64,7 @@ func _ready() -> void:
 	model.scene_changed.connect(_show_scene)
 	model.progression_changed.connect(_refresh)
 	model.line_changed.connect(_line)
-	model.feedback.connect(func(text): status.text = text)
+	model.feedback.connect(_set_status)
 	_build()
 	resized.connect(_layout)
 	_layout()
@@ -68,13 +72,14 @@ func _ready() -> void:
 	_refresh()
 	SpeechAdapter.recording_state_changed.connect(func(_active): _refresh())
 	if boot_from_save and not FileAccess.file_exists(model.novel_save_path): _profile()
-	if not model.save_valid: status.text = "存档读取失败，已保护原文件并停止自动保存。"
+	if not model.save_valid: _set_status("存档读取失败，已保护原文件并停止自动保存。")
 	navigation[0].grab_focus()
 
 func _label(parent: Node, text: String, font_size := 18) -> Label:
 	var node := Label.new()
-	node.text = text
-	node.add_theme_font_size_override("font_size", font_size)
+	node.text = Palette.plain_quotes(text)
+	node.set_meta("text_px", font_size)
+	node.add_theme_font_size_override("font_size", Palette.text_px(font_size))
 	node.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	node.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(node)
@@ -97,6 +102,7 @@ func _rich(parent: Node, height := 0.0) -> RichTextLabel:
 	node.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	node.bbcode_enabled = false
 	node.selection_enabled = true
+	node.focus_mode = Control.FOCUS_NONE # P2-02: selectable, but never a hidden Tab stop.
 	node.fit_content = height == 0
 	parent.add_child(node)
 	return node
@@ -149,8 +155,9 @@ func _build() -> void:
 	brand.add_theme_font_override("font", Palette.font(true, 500))
 	brand.add_theme_color_override("font_color", Palette.ACCENT)
 	_position(brand, Rect2(30, 9, 260, 40))
-	var subtitle := _label(canvas, "校园篇章  /  一点点，找到自己的位置", 13)
-	_position(subtitle, Rect2(32, 49, 330, 24))
+	var subtitle := _label(canvas, "校园篇章  /  一点点，找到自己的位置", 18)
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_position(subtitle, Rect2(32, 50, 330, 25))
 	week_label = _label(canvas, "", 18)
 	_position(week_label, Rect2(367, 22, 270, 44))
 	var top := HBoxContainer.new()
@@ -163,8 +170,8 @@ func _build() -> void:
 	var where := _label(canvas, "去哪里？", 25)
 	where.add_theme_font_override("font", Palette.font(true, 500))
 	_position(where, Rect2(46, 126, 190, 38))
-	var caption := _label(canvas, "从一件日常小事开始。", 14)
-	_position(caption, Rect2(46, 165, 190, 28))
+	var caption := _label(canvas, "从一件日常小事开始。", 18)
+	_position(caption, Rect2(46, 163, 212, 32))
 	var i := 0
 	for place in Controller.PLACES:
 		var button := _button(canvas, "%02d  %s" % [i + 1, Controller.PLACES[place]], func(): model.travel(place))
@@ -173,23 +180,23 @@ func _build() -> void:
 		_position(button, Rect2(40, 211 + i * 52, 212, 44))
 		navigation.append(button)
 		i += 1
-	var needs_title := _label(canvas, "今日状态", 15)
+	var needs_title := _label(canvas, "今日状态", 18)
 	needs_title.add_theme_color_override("font_color", Palette.ACCENT)
-	_position(needs_title, Rect2(46, 544, 190, 26))
+	_position(needs_title, Rect2(46, 527, 190, 28))
 	var colors := [Palette.NEED_FOOD, Palette.NEED_WARMTH, Palette.NEED_ENERGY, Palette.DRINK, Palette.HOME]
 	for index in range(5):
-		var label := _label(canvas, "", 15)
-		_position(label, Rect2(46, 579 + index * 49, 190, 25))
+		var label := _label(canvas, "", 18)
+		_position(label, Rect2(46, 559 + index * 47, 190, 28))
 		meter_labels.append(label)
 		var meter := ProgressBar.new()
 		meter.show_percentage = false
 		meter.add_theme_stylebox_override("background", Palette.style(Palette.SURFACE_INSET, Color.TRANSPARENT, 0, 3))
 		meter.add_theme_stylebox_override("fill", Palette.style(colors[index], Color.TRANSPARENT, 0, 3))
-		_position(meter, Rect2(46, 608 + index * 49, 190, 6))
+		_position(meter, Rect2(46, 591 + index * 47, 190, 6))
 		canvas.add_child(meter)
 		meters.append(meter)
-	var study_note := _label(canvas, "学业按学习活动完成度累计", 12)
-	_position(study_note, Rect2(46, 830, 190, 24))
+	var study_note := _label(canvas, "学业按学习活动完成度累计", 18)
+	_position(study_note, Rect2(46, 800, 220, 60))
 	# Shared town paper treatment keeps context readable over detailed paintings.
 	_paper(Rect2(292, 112, 445, 322), 0.95)
 	scene_title = _label(canvas, "", 27)
@@ -199,10 +206,11 @@ func _build() -> void:
 	scene_picker = _button(canvas, "选择今天的情景", _scenarios)
 	_position(scene_picker, Rect2(1176, 120, 226, 44))
 	situation = _rich(canvas, 74)
-	situation.add_theme_font_size_override("normal_font_size", 17)
+	situation.set_meta("text_px", 18)
+	situation.add_theme_font_size_override("normal_font_size", Palette.text_px(18))
 	situation.add_theme_color_override("default_color", Palette.TEXT)
 	_position(situation, Rect2(314, 204, 401, 116))
-	relation_label = _label(canvas, "", 16)
+	relation_label = _label(canvas, "", 18)
 	relation_label.add_theme_color_override("font_color", Palette.MUTED)
 	_position(relation_label, Rect2(314, 328, 401, 90))
 	var scene_tools := HBoxContainer.new()
@@ -218,17 +226,22 @@ func _build() -> void:
 	speaker_label = _label(canvas, "校园手记", 22)
 	speaker_label.add_theme_font_override("font", Palette.font(true, 500))
 	speaker_label.add_theme_color_override("font_color", Palette.ACCENT)
-	_position(speaker_label, Rect2(320, 588, 880, 34))
+	_position(speaker_label, Rect2(320, 588, 680, 34))
+	# Connection state sits beside the speaker, leaving the status line full width.
+	connection_label = _label(canvas, "", 18)
+	connection_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_position(connection_label, Rect2(1010, 592, 256, 28))
 	reveal_button = _button(canvas, "显示全文", func(): text_elapsed = 9999; transcript.visible_characters = -1; record_button.grab_focus())
 	Palette.quiet(reveal_button)
 	_position(reveal_button, Rect2(1278, 586, 112, 36))
 	transcript = _rich(canvas, 104)
 	transcript.add_theme_font_override("normal_font", Palette.font(true))
-	transcript.add_theme_font_size_override("normal_font_size", 30 if large_text else 26)
+	transcript.set_meta("text_px", 26)
+	transcript.add_theme_font_size_override("normal_font_size", Palette.text_px(26))
 	_position(transcript, Rect2(320, 636, 1072, 102))
 	var helpers := HBoxContainer.new()
 	helpers.add_theme_constant_override("separation", 4)
-	_position(helpers, Rect2(308, 746, 1086, 40))
+	_position(helpers, Rect2(308, 740, 1086, 40))
 	canvas.add_child(helpers)
 	for item in [["开口灵感", _hints], ["重听", func(): model.listen_again()], ["回看", _history], ["表达回顾", _coaching], ["单词练习", _words], ["创作示范", _example]]:
 		var helper := _button(helpers, item[0], item[1])
@@ -242,7 +255,7 @@ func _build() -> void:
 	helpers.add_child(mute)
 	var compose := HBoxContainer.new()
 	compose.add_theme_constant_override("separation", 12)
-	_position(compose, Rect2(320, 802, 1072, 44))
+	_position(compose, Rect2(320, 792, 1072, 44))
 	canvas.add_child(compose)
 	input = LineEdit.new()
 	input.placeholder_text = "输入英语，或用右侧按钮录音…"
@@ -253,11 +266,10 @@ func _build() -> void:
 	send_button = _button(compose, "发送", _send)
 	record_button = _button(compose, "录音 · V", func(): model.record())
 	Palette.primary(record_button)
-	_paper(Rect2(292, 871, 1124, 29), 0.96)
-	status = _label(canvas, "阅读、录音和重试不消耗游戏时间。", 14)
-	_position(status, Rect2(300, 873, 885, 23))
-	connection_label = _label(canvas, "", 13)
-	_position(connection_label, Rect2(1185, 873, 220, 23))
+	status_paper = _paper(Rect2(292, 868, 1124, 32), 0.96)
+	status = _label(canvas, "", 18)
+	_position(status, Rect2(304, 869, 1100, 30))
+	_set_status("阅读、录音和重试不消耗游戏时间。")
 	modal = Window.new()
 	modal.visible = false
 	modal.title = "校园生活"
@@ -307,13 +319,13 @@ func _scenarios() -> void:
 	_open("今天，从哪件事开始？")
 	var domain: String = "class" if model.location == "study" else model.location
 	_label(modal_body, "选择情景 · " + str(Controller.PLACES[model.location]), 26)
-	_label(modal_body, "每段交流都可以澄清、换话题或提前离开。选择情景不消耗时间。", 17)
+	_label(modal_body, "每段交流都可以澄清、换话题或提前离开。选择情景不消耗时间。", 18)
 	for card in model.campus.ranked_scenes(domain if domain != "home" else ""):
 		var name: String = str(card.title) + (" · 已体验" if card.id in model.campus.week_scenes else "")
 		var button := _button(modal_body, name, func(): model.select_scene(str(card.id)); _close_modal())
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		Palette.navigation(button, card.id == model.scene_id)
-		if not str(card.get("personal_detail", "")).is_empty(): _label(modal_body, str(card.personal_detail), 15)
+		if not str(card.get("personal_detail", "")).is_empty(): _label(modal_body, str(card.personal_detail), 18)
 
 func _history() -> void:
 	_open("交流记录 · 按发言顺序回看")
@@ -328,14 +340,14 @@ func _history() -> void:
 		var speaker: String = "你" if entry.speaker_id == "player" else str(model.campus.catalog.profiles[entry.speaker_id].name)
 		var target: String = str(entry.get("reply_to", "group"))
 		var addressed: String = "大家" if target == "group" else ("你" if target == "player" else str(model.campus.catalog.profiles.get(target, {}).get("name", target)))
-		_label(modal_body, speaker + " → " + addressed, 17)
+		_label(modal_body, speaker + " → " + addressed, 18)
 		_label(modal_body, str(entry.text), 22)
 	_button(modal_body, "开始新的一段交流", func(): model.cancel_activity(); model.new_session(); model.save(); _show_scene(); _close_modal())
 
 func _plan() -> void:
 	_open("今日安排")
 	_label(modal_body, "学习、生活，也留一点时间给彼此。", 26)
-	_label(modal_body, "每周课堂和自主学习各五次；当天每类计分一次，周末也可以补足。", 17)
+	_label(modal_body, "每周课堂和自主学习各五次；当天每类计分一次，周末也可以补足。", 18)
 	for kind in ["class", "study"]:
 		var done: bool = model.campus.study_done.has("%d:%s" % [GameState.day, kind])
 		var name := "课堂活动" if kind == "class" else "自主学习"
@@ -350,12 +362,33 @@ func _plan() -> void:
 func _settings() -> void:
 	_open("阅读与声音")
 	_label(modal_body, "与小镇共用阅读偏好", 26)
-	_button(modal_body, "对白字号：" + ("大" if large_text else "标准"), func(): large_text = not large_text; transcript.add_theme_font_size_override("normal_font_size", 30 if large_text else 26); _save_settings(); _settings())
+	_button(modal_body, "文字字号：" + ("大" if large_text else "标准"), func(): set_large_text(not large_text); _save_settings(); _settings())
 	_button(modal_body, "文字即时显示：" + ("开" if instant_text else "关"), func(): instant_text = not instant_text; _save_settings(); _settings())
 	_button(modal_body, "减少动态：" + ("开" if reduce_motion else "关"), func(): reduce_motion = not reduce_motion; _save_settings(); _settings())
 	_button(modal_body, "重新检查语音连接", func(): model._check_local_service(); _close_modal())
-	_button(modal_body, "保存校园进度", func(): status.text = "校园进度已保存。" if model.save() else "保存未完成，请检查存档。")
-	_label(modal_body, "Tab / 方向键选择，确认键执行；录音沿用小镇的按键绑定。输入文字时不会触发录音快捷键。云端激活与按键重映射在小镇设置中管理。", 17)
+	_button(modal_body, "保存校园进度", func(): _set_status("校园进度已保存。" if model.save() else "保存未完成，请检查存档。"))
+	_label(modal_body, "Tab / 方向键选择，确认键执行；录音沿用小镇的按键绑定。输入文字时不会触发录音快捷键。云端激活与按键重映射在小镇设置中管理。", 18)
+
+## P2-06: same shared text-size setting as the town; it resizes every reading
+## surface on the canvas, and modal pages rebuild with it.
+func set_large_text(value: bool) -> void:
+	large_text = value
+	Palette.text_scale = Palette.LARGE_TEXT_SCALE if large_text else 1.0
+	if theme != null: theme.default_font_size = Palette.text_px(18)
+	if canvas == null: return
+	for node in canvas.find_children("*", "Control", true, false):
+		if node.has_meta("text_px"):
+			node.add_theme_font_size_override("normal_font_size" if node is RichTextLabel else "font_size", Palette.text_px(int(node.get_meta("text_px"))))
+	if status != null: _set_status(status.text)
+
+## P2-06: at the larger sizes a long notice takes a second line, growing upward
+## over the empty foot of the dialogue paper instead of running off the window.
+func _set_status(text: String) -> void:
+	status.text = Palette.plain_quotes(text)
+	status.size.y = 0.0
+	status.position.y = 899.0 - status.get_combined_minimum_size().y
+	status_paper.position.y = status.position.y - 2.0
+	status_paper.size.y = 900.0 - status_paper.position.y
 
 func _load_settings() -> void:
 	var config := ConfigFile.new()
@@ -377,20 +410,21 @@ func _show_scene() -> void:
 	_clear(action_row)
 	var scene: Dictionary = model.scene()
 	if last_scene != model.session:
-		status.text = "这里可以学习、整理物品，或好好休息。" if model.location == "home" else "阅读、录音和重试不消耗游戏时间。"
+		_set_status("这里可以学习、整理物品，或好好休息。" if model.location == "home" else "阅读、录音和重试不消耗游戏时间。")
 		transcript_entries.clear()
 		turn_replies.clear()
 		transcript.text = "想说的话，可以从这里开始。先听听自己的想法，不必急着找到完美的句子。"
 		speaker_label.text = "校园手记"
 		if not model.exchange.is_empty():
 			var last: Dictionary = model.exchange[-1]
-			transcript.text = str(last.text)
+			transcript.text = Palette.plain_quotes(str(last.text))
 			speaker_label.text = "你" if last.speaker_id == "player" else str(model.campus.catalog.profiles[last.speaker_id].name)
 		text_elapsed = 9999
 		last_scene = model.session
 	scene_title.text = "校园餐饮柜台" if model.service_mode else str(scene.title)
 	situation.text = "先确认想要的食物。准备好后，可以在柜台直接吃，或放进行囊带走。" if model.service_mode else str(scene.trigger) + "\n" + str(scene.player_goal)
 	if not str(scene.get("personal_detail", "")).is_empty(): situation.text += "\n" + str(scene.personal_detail)
+	situation.text = Palette.plain_quotes(situation.text)
 	visual.place = model.location
 	visual.people = ["tavi"] if model.service_mode else scene.participants
 	if model.location == "home":
@@ -452,6 +486,7 @@ func _refresh() -> void:
 
 func _line(id: String, text: String) -> void:
 	if transcript == null: return
+	text = Palette.plain_quotes(text)
 	var name: String = "你" if id == "you" else str(model.campus.catalog.profiles.get(id, {}).get("name", id))
 	transcript_entries.append(name + "\n" + text)
 	if transcript_entries.size() > 60: transcript_entries.pop_front()
@@ -482,7 +517,7 @@ func _hints() -> void:
 	for pair in [["开场", "open"], ["接话", "follow_up"], ["深入一点", "deepen"]]:
 		_label(modal_body, pair[0], 23)
 		_label(modal_body, str(hints[pair[1]]), 22)
-	_label(modal_body, "这些是创作的表达示例。可以改成自己的话，也可以直接说不、澄清或离开。", 16)
+	_label(modal_body, "这些是创作的表达示例。可以改成自己的话，也可以直接说不、澄清或离开。", 18)
 
 func _open(title: String) -> void:
 	if not modal.visible: previous_focus = get_viewport().gui_get_focus_owner()
@@ -495,17 +530,17 @@ func _profile() -> void:
 	_open("生活档案 · 所有项目均可跳过")
 	profiles.clear()
 	_label(modal_body, "以你的校园生活为背景", 26)
-	_label(modal_body, "未填写的信息保持未知。实际交流仅发送相关背景；完整经历留在本机。", 17)
+	_label(modal_body, "未填写的信息保持未知。实际交流仅发送相关背景；完整经历留在本机。", 18)
 	var fields := {"major": "专业", "year": "年级", "housing": "住宿方式", "courses": "课程兴趣", "interests": "日常兴趣", "clubs": "社团", "sports": "运动"}
 	for key in fields:
-		_label(modal_body, fields[key], 17)
+		_label(modal_body, fields[key], 18)
 		var edit := LineEdit.new()
 		edit.text = str(model.campus.profile.get(key, ""))
 		edit.max_length = 240
 		edit.placeholder_text = "可留空"
 		modal_body.add_child(edit)
 		profiles[key] = edit
-	_label(modal_body, "英语难度", 17)
+	_label(modal_body, "英语难度", 18)
 	var level := OptionButton.new()
 	for item in ["A1 · 简短表达", "A1–A2 · 日常表达", "B1 · 进阶交流", "自由表达"]: level.add_item(item)
 	level.select(["infant", "toddler", "youth", "professional"].find(model.campus.profile.level))
@@ -516,17 +551,17 @@ func _profile() -> void:
 	experiences.text = str(model.campus.profile.get("experiences", ""))
 	experiences.placeholder_text = "当时在哪里、和谁聊、哪一步卡住了？"
 	modal_body.add_child(experiences)
-	_label(modal_body, "用于本次练习的情景摘要 · 会随对话发送，最多 400 字符", 17)
+	_label(modal_body, "用于本次练习的情景摘要 · 会随对话发送，最多 400 字符", 18)
 	var brief := TextEdit.new()
 	brief.custom_minimum_size.y = 85
 	brief.text = model.practice_context
 	brief.placeholder_text = "例如：小组已经聊起来了，我想加入，但不知道怎样接话。不要填写身份信息。"
 	modal_body.add_child(brief)
-	_label(modal_body, "练习卡标题（可留空）", 17)
+	_label(modal_body, "练习卡标题（可留空）", 18)
 	var practice_title := LineEdit.new()
 	practice_title.max_length = 80
 	modal_body.add_child(practice_title)
-	_label(modal_body, "这次想练会什么（可留空）", 17)
+	_label(modal_body, "这次想练会什么（可留空）", 18)
 	var practice_goal := LineEdit.new()
 	practice_goal.max_length = 240
 	modal_body.add_child(practice_goal)
@@ -554,7 +589,7 @@ func _memories() -> void:
 		var known := PackedStringArray()
 		for id in memory.known_to: known.append(str(model.campus.catalog.profiles[id].name))
 		var kind: String = {"shared_fact": "分享的事实", "preference": "偏好", "proposal": "尚待确认的提议", "agreement": "约定", "open_topic": "未完成的话题"}.get(str(memory.get("kind", "shared_fact")), "共同经历")
-		_label(modal_body, "第 %d 天 · %s的原话 · %s\n知情者：%s" % [memory.day, author, kind, ", ".join(known)], 17)
+		_label(modal_body, "第 %d 天 · %s的原话 · %s\n知情者：%s" % [memory.day, author, kind, ", ".join(known)], 18)
 		var edit := TextEdit.new()
 		edit.custom_minimum_size.y = 90
 		edit.text = memory.text
@@ -574,16 +609,16 @@ func _reviews() -> void:
 		_label(modal_body, "%s · %d / 4" % [chain.title, step], 21)
 		if step < 4:
 			var next: Dictionary = model.campus.scenario(str(chain.steps[step]))
-			_label(modal_body, "下一次：" + str(next.title) + ("（明天继续，今天可自由练习）" if int(progress.day) == GameState.day else ""), 16)
+			_label(modal_body, "下一次：" + str(next.title) + ("（明天继续，今天可自由练习）" if int(progress.day) == GameState.day else ""), 18)
 			_button(modal_body, "前往" + str(next.title), func(): model.travel(str(next.domain)); model.select_scene(str(next.id)); modal.hide())
 	for review in model.campus.reviews:
 		_label(modal_body, "第 %d 周 · 学业 %d · 体验 %d 个情景" % [review.week, review.academic, review.scenarios.size()], 22)
-		_label(modal_body, "关系变化：" + JSON.stringify(review.relationships) + "\n练习次数：" + str(review.practice.size()), 16)
+		_label(modal_body, "关系变化：" + JSON.stringify(review.relationships) + "\n练习次数：" + str(review.practice.size()), 18)
 
 func _example() -> void:
 	_open("创作示范 · 非真实录音")
 	_label(modal_body, str(model.scene().title), 25)
-	_label(modal_body, "以下是为练习编写的对白；角色配音由语音服务合成。", 16)
+	_label(modal_body, "以下是为练习编写的对白；角色配音由语音服务合成。", 18)
 	var scene: Dictionary = model.scene()
 	for i in range(scene.example.size()):
 		var line: Dictionary = scene.example[i]
@@ -597,14 +632,14 @@ func _coaching() -> void:
 	var entries: Array = model.campus.practice_log
 	for entry in entries.slice(maxi(0, entries.size() - 12)):
 		_label(modal_body, str(entry.text), 20)
-		_label(modal_body, "\n".join(entry.coaching), 17)
-		_label(modal_body, "语音识别参考：%d（不是发音准确度评分）" % roundi(entry.pronunciation) if entry.has("pronunciation") else "文字交流 · 无发音分数", 15)
+		_label(modal_body, "\n".join(entry.coaching), 18)
+		_label(modal_body, "语音识别参考：%d（不是发音准确度评分）" % roundi(entry.pronunciation) if entry.has("pronunciation") else "文字交流 · 无发音分数", 18)
 
 func _words() -> void:
 	_open("单词练习 · 沿用当前词汇进度")
 	for word in model._practice_words():
 		_button(modal_body, str(word) + " · " + model.word_progress(str(word)), func(): modal.hide(); model.begin_practice(str(word)))
-	_label(modal_body, "听示范后按 V 录音，再按 V 结束；免费重试。完成后点“结束单词练习”返回现场。", 17)
+	_label(modal_body, "听示范后按 V 录音，再按 V 结束；免费重试。完成后点“结束单词练习”返回现场。", 18)
 
 func _offline_activity() -> void:
 	_open("离线共同活动")
@@ -633,7 +668,7 @@ func _inventory_travel(place: String) -> void:
 	else: model.travel(place)
 
 func _inventory_notice(text: String) -> void:
-	status.text = text
+	_set_status(text)
 	if is_instance_valid(inventory_view): inventory_view.show_notice(text)
 
 func _item_action(action: String, id: String, allow_waste: bool) -> void:

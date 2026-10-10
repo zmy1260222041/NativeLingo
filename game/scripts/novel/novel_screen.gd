@@ -73,7 +73,11 @@ var voice_status_label: Label
 @export var boot_from_save := true
 
 func _ready() -> void:
+	# T1-03 / C1-09: the 2D UI is written in Chinese, so domain copy (goals,
+	# toasts, item names) must not follow an English OS. NPCs still speak English.
+	TranslationServer.set_locale(Palette.UI_LOCALE)
 	_load_settings()
+	set_large_text(large_text)
 	_build_theme()
 	_build_screen()
 	model = Controller.new()
@@ -119,7 +123,7 @@ func _build_theme() -> void:
 	theme.set_type_variation("NovelTitle", "Label")
 	theme.set_font("font", "NovelTitle", Palette.font(true, 500.0))
 	theme.set_font("font", "ProgressBar", readable_font)
-	theme.default_font_size = 18
+	theme.default_font_size = Palette.text_px(18)
 	theme.set_color("font_color", "Label", TEXT)
 	theme.set_color("default_color", "RichTextLabel", TEXT)
 	for state in ["normal", "hover", "pressed", "focus", "disabled"]:
@@ -178,7 +182,8 @@ func _label(parent: Node, text: String, rect: Rect2, size_px := 18, color := TEX
 	label.text = text
 	label.position = rect.position
 	label.size = rect.size
-	label.add_theme_font_size_override("font_size", size_px)
+	label.set_meta("text_px", size_px)
+	label.add_theme_font_size_override("font_size", Palette.text_px(size_px))
 	label.add_theme_color_override("font_color", color)
 	if size_px >= 23: label.theme_type_variation = "NovelTitle"
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -252,7 +257,7 @@ func _build_screen() -> void:
 	header.add_theme_stylebox_override("panel", _style(Color(Palette.SURFACE, 0.98), Color.TRANSPARENT, 0, 0))
 	_rule(canvas, Rect2(30, 87, 1380, 1))
 	_label(canvas, "STRANGER", Rect2(30, 9, 265, 42), 29, ACCENT)
-	_label(canvas, "异乡人  /  一点点，成为这里的人", Rect2(32, 48, 350, 25), 13, MUTED)
+	_label(canvas, "异乡人  /  一点点，成为这里的人", Rect2(32, 50, 330, 25), 18, MUTED)
 	clock_label = _label(canvas, "", Rect2(363, 22, 340, 45), 18, MUTED)
 	var campus_button := _button(canvas, "校园篇章", func():
 		model.cancel_activity()
@@ -261,12 +266,12 @@ func _build_screen() -> void:
 	Palette.quiet(campus_button)
 	for entry in [["成长", "growth"], ["行囊", "bag"], ["小剧场", "theater"], ["回看", "history"], ["设置", "settings"]]:
 		var index: int = ["growth", "bag", "theater", "history", "settings"].find(entry[1])
-		var button := _button(canvas, entry[0], _open_panel.bind(entry[1]), Rect2(880 + index * 106, 22, 96, 44))
+		var button := _button(canvas, entry[0], _open_panel.bind(entry[1]), Rect2(868 + index * 108, 22, 100, 44))
 		Palette.quiet(button)
 		if entry[1] == "bag": bag_button = button
 	_box(canvas, Rect2(24, 112, 244, 757), Color(Palette.SURFACE, 0.98))
 	_label(canvas, "去哪里？", Rect2(46, 126, 190, 38), 25)
-	_label(canvas, "沿着日常，慢慢熟悉。", Rect2(46, 165, 190, 32), 14, MUTED)
+	_label(canvas, "沿着日常，慢慢熟悉。", Rect2(46, 163, 210, 32), 18, MUTED)
 	_rule(canvas, Rect2(46, 204, 195, 1))
 	for i in range(Content.PLACES.size()):
 		var entry: Dictionary = Content.PLACES[i]
@@ -274,9 +279,11 @@ func _build_screen() -> void:
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		place_buttons.append(button)
 	_rule(canvas, Rect2(46, 569, 195, 1))
-	_label(canvas, "今日状态", Rect2(46, 580, 190, 30), 17, ACCENT)
+	_label(canvas, "今日状态", Rect2(46, 580, 190, 30), 18, ACCENT)
 	for i in range(3):
-		need_labels.append(_label(canvas, "", Rect2(46, 624 + i * 57, 190, 25), 15))
+		_label(canvas, ["饱腹", "温暖", "精力"][i], Rect2(46, 621 + i * 57, 100, 28))
+		need_labels.append(_label(canvas, "", Rect2(126, 621 + i * 57, 117, 28)))
+		need_labels[i].horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		var bar := ProgressBar.new()
 		bar.position = Vector2(46, 655 + i * 57)
 		bar.size = Vector2(197, 6)
@@ -291,10 +298,11 @@ func _build_screen() -> void:
 		# Before entering this themed canvas, Control clamps against the engine font.
 		bar.set_deferred("size", Vector2(197, 6))
 		needs.append(bar)
-	objective_label = _label(canvas, "", Rect2(46, 803, 195, 49), 13, MUTED)
-	location_label = _label(canvas, "", Rect2(305, 118, 790, 32), 16, Palette.ON_SCENE)
+	objective_label = _label(canvas, "", Rect2(46, 790, 200, 70), 18, MUTED)
+	location_label = _label(canvas, "", Rect2(305, 116, 790, 32), 18, Palette.ON_SCENE)
 	scene_caption = _label(canvas, "", Rect2(303, 155, 660, 56), 34, Palette.ON_SCENE)
-	relationship_label = _label(canvas, "", Rect2(1130, 118, 280, 43), 16, Palette.ON_SCENE)
+	relationship_label = _label(canvas, "", Rect2(1110, 116, 300, 43), 18, Palette.ON_SCENE)
+	relationship_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	for label in [location_label, scene_caption, relationship_label]:
 		label.add_theme_color_override("font_shadow_color", Color(Palette.SHADOW, 0.9))
 		label.add_theme_constant_override("shadow_offset_y", 1)
@@ -305,7 +313,7 @@ func _build_screen() -> void:
 	order_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_rule(order_panel, Rect2(0, 17, 2, 96), Palette.ACCENT)
 	order_title = _label(order_panel, "", Rect2(18, 12, 469, 30), 18, ACCENT)
-	order_detail = _label(order_panel, "", Rect2(18, 49, 469, 72), 16, MUTED)
+	order_detail = _label(order_panel, "", Rect2(18, 46, 469, 76), 18, MUTED)
 	_box(canvas, Rect2(289, 611, 1128, 258), Color(Palette.SURFACE_RAISED, 0.98), Palette.BORDER)
 	_rule(canvas, Rect2(309, 623, 1088, 1), Color(Palette.BORDER, 0.6))
 	var nameplate := _box(canvas, Rect2(319, 587, 174, 48), Palette.SURFACE_RAISED, Palette.BORDER)
@@ -313,18 +321,20 @@ func _build_screen() -> void:
 	_rule(nameplate, Rect2(17, 0, 140, 1), Palette.ACCENT)
 	speaker_label = _label(nameplate, "", Rect2(18, 2, 138, 42), 26, ACCENT)
 	speaker_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	role_label = _label(canvas, "", Rect2(514, 623, 720, 25), 14, MUTED)
+	role_label = _label(canvas, "", Rect2(514, 620, 720, 28), 18, MUTED)
 	reveal_button = _button(canvas, "显示全文", func(): text_elapsed = 9999.0, Rect2(1252, 605, 128, 44))
-	reveal_button.add_theme_font_size_override("font_size", 15)
 	Palette.quiet(reveal_button)
 	dialogue_text = RichTextLabel.new()
 	dialogue_text.position = Vector2(328, 650)
 	dialogue_text.size = Vector2(1048, 142)
 	dialogue_text.add_theme_font_override("normal_font", Palette.font(true))
-	dialogue_text.add_theme_font_size_override("normal_font_size", 30 if large_text else 26)
+	dialogue_text.set_meta("text_px", 26)
+	dialogue_text.add_theme_font_size_override("normal_font_size", Palette.text_px(26))
 	dialogue_text.add_theme_constant_override("line_separation", 1)
 	dialogue_text.bbcode_enabled = false
 	dialogue_text.selection_enabled = true
+	# P2-02: selecting with the mouse must not add an invisible Tab stop.
+	dialogue_text.focus_mode = Control.FOCUS_NONE
 	dialogue_text.mouse_filter = Control.MOUSE_FILTER_PASS
 	canvas.add_child(dialogue_text)
 	action_row = HBoxContainer.new()
@@ -344,7 +354,8 @@ func _build_screen() -> void:
 	player_caption.position = Vector2(16, 10)
 	player_caption.size = Vector2(481, 64)
 	player_caption.bbcode_enabled = true
-	player_caption.add_theme_font_size_override("normal_font_size", 18)
+	player_caption.set_meta("text_px", 18)
+	player_caption.add_theme_font_size_override("normal_font_size", Palette.text_px(18))
 	player_caption_box.add_child(player_caption)
 	_build_modal()
 
@@ -372,7 +383,7 @@ func _build_modal() -> void:
 	modal_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	modal_body.add_theme_constant_override("separation", 15)
 	scroll.add_child(modal_body)
-	modal_status = _label(modal, "", Rect2(32, 679, 1054, 54), 17, MUTED)
+	modal_status = _label(modal, "", Rect2(32, 677, 1054, 60), 18, MUTED)
 
 func _layout() -> void:
 	if canvas == null: return
@@ -406,7 +417,7 @@ func _show_scene() -> void:
 	var tile := Vector2(BG.get_width() / 2.0, BG.get_height() / 3.0)
 	background.texture = _atlas(BG, Rect2(Vector2(index % 2, index / 2) * tile, tile))
 	background.modulate = Color("c6cbce") if GameState.clock_hours() >= 19.0 else Color.WHITE
-	location_label.text = entry.en
+	location_label.text = Palette.plain_quotes(entry.en)
 	scene_caption.text = entry.name
 	portrait.texture = _cast_texture(entry.npc)
 	portrait.visible = not str(entry.npc).is_empty()
@@ -427,6 +438,9 @@ func _show_scene() -> void:
 	_refresh()
 
 func _rebuild_actions() -> void:
+	# P2-02: keyboard focus stays in the action row when its buttons are rebuilt.
+	var focused := get_viewport().gui_get_focus_owner()
+	var keep_focus := focused != null and action_row.is_ancestor_of(focused)
 	for child in action_row.get_children():
 		action_row.remove_child(child)
 		child.queue_free()
@@ -476,6 +490,7 @@ func _rebuild_actions() -> void:
 	for child in action_row.get_children():
 		if child is Button: Palette.quiet(child)
 	Palette.primary(action_row.get_child(-1))
+	if keep_focus: action_row.get_child(-1).grab_focus()
 	_refresh_advance()
 
 func _action_space() -> void:
@@ -503,7 +518,7 @@ func _show_line(speaker: String, text: String) -> void:
 	last_speaker = speaker
 	speaker_label.text = "我" if speaker == "you" else ("异乡手记" if speaker.is_empty() else speaker.capitalize())
 	dialogue_text.bbcode_enabled = false
-	dialogue_text.text = text
+	dialogue_text.text = Palette.plain_quotes(text)
 	dialogue_text.scroll_to_line(0)
 	text_elapsed = 0.0
 	if speaker in Content.CAST:
@@ -531,10 +546,10 @@ func _show_line(speaker: String, text: String) -> void:
 
 func _show_salience(_npc: String, transcript: String, errors: Array) -> void:
 	if transcript != player_transcript or transcript.is_empty(): return
-	var safe := transcript.replace("[", "‹").replace("]", "›").replace("\n", " ")
+	var safe := Palette.plain_quotes(transcript).replace("[", "‹").replace("]", "›").replace("\n", " ")
 	var ranges: Array = []
 	for error in errors:
-		var span := str(error).strip_edges()
+		var span := Palette.plain_quotes(str(error)).strip_edges()
 		var index := safe.to_lower().find(span.to_lower())
 		if span.is_empty() or index < 0: continue
 		var end := index + span.length()
@@ -558,13 +573,12 @@ func _refresh() -> void:
 	var time: Vector2i = GameState.clock_hms()
 	clock_label.text = "第 %d 天  ·  %02d:%02d   /   %d 夜" % [mini(GameState.day, 3), time.x, time.y, mini(GameState.day - 1, 3)]
 	var values := [GameState.food, GameState.warmth, GameState.energy]
-	var names := ["饱腹", "温暖", "精力"]
 	if need_tween: need_tween.kill()
 	if not reduce_motion: need_tween = create_tween().set_parallel(true)
 	for i in range(3):
 		if reduce_motion: needs[i].value = values[i]
 		else: need_tween.tween_property(needs[i], "value", values[i], 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		need_labels[i].text = "%s                       %d / 100" % [names[i], int(values[i])]
+		need_labels[i].text = "%d / 100" % int(values[i])
 	objective_label.text = GameState.objective_text()
 	var npc: String = model.npc_id()
 	bag_button.text = "行囊 · %d" % model.visible_items("bag").size()
@@ -599,6 +613,8 @@ func _refresh() -> void:
 		if not model.faint_note.is_empty():
 			order_title.text = str(model.faint_note.title)
 			order_detail.text = str(model.faint_note.detail)
+	# P2-06: larger text can need another line; the card grows instead of clipping.
+	order_panel.size.y = maxf(130.0, order_detail.position.y + order_detail.get_combined_minimum_size().y + 12.0)
 	_refresh_record_button()
 	if is_instance_valid(give_button):
 		give_button.visible = not model.water_gifts().is_empty()
@@ -629,8 +645,12 @@ func _refresh_record_button() -> void:
 		record_button.tooltip_text = ""
 
 func _toast(text: String) -> void:
+	text = Palette.plain_quotes(text)
 	feedback_label.text = text
 	feedback_panel.visible = not text.is_empty()
+	# P2-06: a long or enlarged notice grows upward, clear of the dialogue box.
+	feedback_panel.size.y = maxf(74.0, feedback_label.position.y + feedback_label.get_combined_minimum_size().y + 10.0)
+	feedback_panel.position.y = 572.0 - feedback_panel.size.y
 	if feedback_tween: feedback_tween.kill()
 	feedback_panel.modulate.a = 1.0 if reduce_motion else 0.0
 	if not reduce_motion:
@@ -692,9 +712,9 @@ func _contain_modal_focus(control: Control) -> void:
 
 func _row_label(text: String, font_size := 20, color := TEXT) -> Label:
 	var label := Label.new()
-	label.text = text
+	label.text = Palette.plain_quotes(text)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_font_size_override("font_size", Palette.text_px(font_size))
 	label.add_theme_color_override("font_color", color)
 	if font_size >= 23: label.theme_type_variation = "NovelTitle"
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -731,12 +751,12 @@ func _refresh_panel() -> void:
 			_row_label("交谈：点录音说话，再点一次结束。对方说完交付物品后，到柜台领取。")
 			_row_label("成长：听单词示范，再录制这个词；练习结束后，在交谈中使用。小剧场可以逐句重听。")
 			_row_label("住处：白天休息到夜晚，再入睡。阅读和练习不扣需求，旅行与休息会推进时间。")
-			_row_label("键盘：1–6 地点 · E 交谈/打招呼 · V 录音开关 · G 手势 · B 行囊 · Esc 设置/返回。Tab / 方向键选择按钮，Enter / 手柄 A 确认。", 18, MUTED)
+			_row_label("键盘：1–6 地点 · E 交谈/打招呼 · V 录音开关 · G 手势 · B 行囊 · Esc 设置/返回。小剧场里按 E、→ 或空格推进下一句。Tab / 方向键选择按钮，Enter / 手柄 A 确认。", 18, MUTED)
 		"bag", "counter", "home": _items_panel()
 		"growth": _growth_panel()
 		"theater":
 			modal_title.text = "聚落日常  /  听他们怎样聊天"
-			_row_label("%d 段日常，从一声问候到顺路帮忙。每段都可以慢慢听、随时重听。" % Content.SOCIAL.size(), 18, MUTED)
+			_row_label("%d 段日常，从一声问候到顺路帮忙。每段都可以慢慢听、随时重听；按 E、→ 或空格推进下一句。" % Content.SOCIAL.size(), 18, MUTED)
 			for i in range(Content.SOCIAL.size()):
 				var scene: Dictionary = Content.SOCIAL[i]
 				_button(modal_body, "%02d   %s   ·   %d 句" % [i + 1, scene.title, scene.lines.size()], _play_social.bind(i))
@@ -754,7 +774,7 @@ func _refresh_panel() -> void:
 			modal_title.text = "回看  /  留下的片段"
 			if model.history.is_empty(): _row_label("旅程才刚刚开始。")
 			for entry in model.history:
-				_row_label("第 %d 天 · %s" % [entry.day, str(entry.speaker).capitalize() if not str(entry.speaker).is_empty() else "手记"], 15, ACCENT)
+				_row_label("第 %d 天 · %s" % [entry.day, str(entry.speaker).capitalize() if not str(entry.speaker).is_empty() else "手记"], 18, ACCENT)
 				_row_label(entry.text, 21)
 		"settings": _settings_panel()
 		"restart":
@@ -829,7 +849,7 @@ func _growth_panel() -> void:
 	for memory in GameState.memories:
 		_row_label(_memory_text(memory), 18, MUTED)
 	_row_label("练习角  /  听见 → 说出 → 使用", 23)
-	_row_label("练习不会扣状态。只有真实语音评分和真实对话会推进习得。", 17, MUTED)
+	_row_label("练习不会扣状态。只有真实语音评分和真实对话会推进习得。", 18, MUTED)
 	# Words the player can still acquire come first; known starting-profile words only consolidate.
 	var fresh: Array = []
 	var known: Array = []
@@ -849,7 +869,7 @@ func _settings_panel() -> void:
 	modal_title.text = "设置  /  按自己的节奏"
 	_button(modal_body, "减少动态：" + ("开" if reduce_motion else "关"), func(): reduce_motion = not reduce_motion; _save_settings(); _refresh_panel())
 	_button(modal_body, "文字显示：" + ("立即显示" if instant_text else "逐字出现"), func(): instant_text = not instant_text; _save_settings(); _refresh_panel())
-	_button(modal_body, "对话字号：" + ("大" if large_text else "标准"), func(): large_text = not large_text; dialogue_text.add_theme_font_size_override("normal_font_size", 30 if large_text else 26); _save_settings(); _refresh_panel())
+	_button(modal_body, "文字字号：" + ("大" if large_text else "标准"), func(): set_large_text(not large_text); _save_settings(); _refresh_panel())
 	_button(modal_body, "键盘 / 手柄按键设置", func(): _close_panel(); remap.open_panel())
 	_button(modal_body, "保存进度", _save)
 	_button(modal_body, "载入上次存档", _load_game)
@@ -858,7 +878,7 @@ func _settings_panel() -> void:
 	if SpeechAdapter.cloud_mode_enabled():
 		_row_label("云端语音：" + ("已激活" if SpeechAdapter.cloud_activated() else "未激活"), 18, ACCENT)
 		# NFR-7 / NFR-8 UI duty: say what leaves the device before activation.
-		_row_label("隐私：激活后，你的录音会上传到评分服务器，评分后立即处理，服务器不会留存录音。识别出的英文句子和最近几轮对话会经服务器发给在线对话模型，用来生成角色回应。", 16, MUTED)
+		_row_label("隐私：激活后，你的录音会上传到评分服务器，评分后立即处理，服务器不会留存录音。识别出的英文句子和最近几轮对话会经服务器发给在线对话模型，用来生成角色回应。", 18, MUTED)
 		activation_input = LineEdit.new()
 		activation_input.placeholder_text = "输入一次性激活码"
 		activation_input.secret = true
@@ -868,11 +888,11 @@ func _settings_panel() -> void:
 			if not SpeechAdapter.activate_cloud(activation_input.text): modal_status.text = "请输入有效激活码，或稍后重试。"
 			else: modal_status.text = "正在激活…")
 	else:
-		voice_status_label = _row_label(model.voice_status, 17, MUTED)
+		voice_status_label = _row_label(model.voice_status, 18, MUTED)
 		# The result arrives later through _refresh; rebuilding here would drop focus.
 		_button(modal_body, "重新检查语音连接", func(): model._check_local_service(); voice_status_label.text = model.voice_status)
 		# NFR-8 UI duty: local mode sends text, never audio, off this machine.
-		_row_label("隐私：录音只在这台电脑上转成文字，不会上传。识别出的英文句子和最近几轮对话会发给在线对话模型（Google Gemini 或 xAI）来生成角色回应；角色台词的文字会发给配音服务（xAI、Google Cloud 或阿里云）合成语音。", 16, MUTED)
+		_row_label("隐私：录音只在这台电脑上转成文字，不会上传。识别出的英文句子和最近几轮对话会发给在线对话模型（Google Gemini 或 xAI）来生成角色回应；角色台词的文字会发给配音服务（xAI、Google Cloud 或阿里云）合成语音。", 18, MUTED)
 
 func _activation_finished(success: bool, message: String) -> void:
 	if modal_kind == "settings":
@@ -882,6 +902,8 @@ func _activation_finished(success: bool, message: String) -> void:
 func _play_social(index: int) -> void:
 	_close_panel()
 	model.play_social(index)
+	# P2-02: the scene owns keyboard focus, never the top-bar entry that opened it.
+	if is_instance_valid(advance_button): advance_button.grab_focus()
 
 func _practice(word: String) -> void:
 	_close_panel()
@@ -930,6 +952,14 @@ func _load_game() -> void:
 		_toast("已载入进度。")
 	else: _toast("没有可读取的存档。")
 
+## P2-02: during a 小剧场, → advances before GUI focus navigation can treat it
+## as ui_right and walk focus into the top bar.
+func _input(event: InputEvent) -> void:
+	if model == null or model.social_index < 0 or modal.visible or (remap != null and remap.visible): return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_RIGHT:
+		_advance()
+		get_viewport().set_input_as_handled()
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.echo: return
 	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
@@ -938,8 +968,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if modal.visible or (remap != null and remap.visible): return
+	# Space on a focused button is that button's ui_accept; never act on it twice.
+	var on_button := get_viewport().gui_get_focus_owner() is BaseButton
 	if model.social_index >= 0:
-		if event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and event.keycode in [KEY_RIGHT, KEY_SPACE]): _advance()
+		if event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and (event.keycode == KEY_RIGHT or (event.keycode == KEY_SPACE and not on_button))): _advance()
 		elif event.is_action_pressed("item_show"): _open_panel("bag")
 		return
 	if event.is_action_pressed("push_to_talk"): model.record()
@@ -954,7 +986,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.keycode >= KEY_1 and event.keycode <= KEY_6:
 			_travel(Content.PLACES[event.keycode - KEY_1].id)
 		elif event.keycode == KEY_B: _open_panel("bag")
-		elif event.keycode == KEY_RIGHT or event.keycode == KEY_SPACE: _advance()
+		elif event.keycode == KEY_RIGHT or (event.keycode == KEY_SPACE and not on_button): _advance()
+
+## P2-06: the text-size setting resizes every reading surface on the canvas (sidebar,
+## order card, toasts, panels, bag), not only the dialogue box. Panels rebuild.
+func set_large_text(value: bool) -> void:
+	large_text = value
+	Palette.text_scale = Palette.LARGE_TEXT_SCALE if large_text else 1.0
+	if theme != null: theme.default_font_size = Palette.text_px(18)
+	if canvas == null: return
+	for node in canvas.find_children("*", "Control", true, false):
+		if node.has_meta("text_px"):
+			node.add_theme_font_size_override("normal_font_size" if node is RichTextLabel else "font_size", Palette.text_px(int(node.get_meta("text_px"))))
 
 func _load_settings() -> void:
 	var config := ConfigFile.new()
