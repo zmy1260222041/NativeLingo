@@ -64,10 +64,18 @@ func _test_no_meal_run_faints() -> void:
 	model.travel("home")
 	var first_faint_day := 0
 	var presses := 0
+	var warned := false
+	var at_home_copy := false
 	while not GameState.game_finished and presses < 20:
 		var faints: int = GameState.faints
+		var starving: bool = not GameState._wants_sleep() and GameState.food <= model.rest_food_cost()
 		await _press_home()
 		presses += 1
+		# X1-01: the first press on a rest that cannot last is a warning, not the rest.
+		if starving and GameState.faints == faints and screen.home_action_button.text.begins_with("仍然") and screen.feedback_label.text.contains("撑不到晚上"):
+			warned = true
+		if GameState.faints > faints and model.history.back().text.contains("还躺在小屋里") and not model.history.back().text.contains("已经回到小屋"):
+			at_home_copy = true
 		if GameState.faints > faints and first_faint_day == 0:
 			first_faint_day = GameState.day
 			check(model.location == "home", "A faint leaves the player at home")
@@ -77,6 +85,7 @@ func _test_no_meal_run_faints() -> void:
 			check(screen.order_panel.visible and screen.order_title.text.contains("昏倒"), "The home panel keeps the faint notice after the scene change")
 			check(screen.feedback_label.text.contains("昏倒"), "The faint toast survives the scene change")
 	check(GameState.game_finished, "The time box still ends after three nights")
+	check(warned and at_home_copy, "A rest sure to end in a faint is named first, and a faint at home says the player was already there")
 	check(first_faint_day > 0 and first_faint_day <= 3, "Never eating faints before night three ends (first faint on day %d)" % first_faint_day)
 	check(GameState.objective_text() == tr("OBJECTIVE_COMPLETE_EMPTY"), "The objective does not claim the player talked for food")
 	var ending: String = model.history.back().text

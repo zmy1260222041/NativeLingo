@@ -31,6 +31,7 @@ func _ready() -> void:
 	model._remember_town_exchange("mira", "campus text", "campus reply", false)
 	check(contacts.mira.completed_exchanges == 1, "Campus callbacks do not mutate town familiarity")
 	await _test_spoken_greeting(model)
+	await _test_text_only_replies(model)
 	screen.queue_free()
 	await get_tree().process_frame
 	print("TownBelongingTest failures=", failures)
@@ -62,14 +63,66 @@ func _test_spoken_greeting(model: Node) -> void:
 	check(GameState.relationships.mira == 0 and GameState.presentation_state.town_contacts.mira.completed_exchanges == 1, "A reply cancelled before playback finished earns nothing")
 	model._recognition("mira", true, "Hi Mira, I just arrived.", "", {"pronunciation": 85.0, "score": 85.0})
 	check(GameState.relationships.mira == 0, "Recognition alone, before the reply plays, earns nothing")
+	var toasts: Array = []
+	var on_feedback := func(text): toasts.append(str(text))
+	model.feedback.connect(on_feedback)
 	await _play_reply("mira", "Welcome. Ori keeps water at the corner store.")
+	model.feedback.disconnect(on_feedback)
 	check(GameState.completed_steps.has("greet_mira") and GameState.relationships.mira == 2 and GameState.memories == ["mira：MEMORY_GREET_MIRA"], "The first clear spoken exchange earns the legacy greeting reward")
+	check(toasts.any(func(text): return text.contains("Mira 记住了你的问候") and text.contains("信任 +2")), "FR-47: the greeting reward is named, not silent")
 	model._recognition("mira", true, "Thanks, see you later.", "", {"pronunciation": 90.0, "score": 90.0})
 	await _play_reply("mira", "See you around. Come back any time.")
 	check(GameState.relationships.mira == 2 and GameState.memories.size() == 1, "Later exchanges do not repeat the greeting reward")
 	NpcDialogueService.cancel()
 	NpcDialogueService.request_override = Callable()
 	SpeechAdapter.availability_override = null
+
+## FR-46: with NPC voice off (/health tts_configured=false) and dialogue working,
+## a validated reply settles once read, so exchanges, Mira's greeting and orders
+## still count; a cancel during the reading pause still voids the reply.
+func _test_text_only_replies(model: Node) -> void:
+	GameState.reset_run()
+	GameState.presentation_state.clear()
+	SpeechAdapter.availability_override = true
+	SpeechAdapter.last_unavailable_reason = ""
+	NpcVoice.availability_override = false
+	NpcDialogueService.request_override = func(_url, _headers, _method, _body): return OK
+	model.cancel_activity()
+	model.location = "plaza"
+	model._health_result(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), JSON.stringify({"ok": true, "dialogue_ready": true, "asr_ready": true, "tts_configured": false}).to_utf8_buffer())
+	check(NpcDialogueService.text_only_replies and not SpeechAdapter.runtime_speech_unavailable(), "Health with NPC voice off switches replies to text without arming the gesture minimum")
+	model._recognition("mira", true, "Hi Mira, I just arrived.", "", {"pronunciation": 82.0, "score": 82.0})
+	_inject_reply("mira", "Welcome. Take your time here.")
+	model.cancel_activity()
+	await get_tree().create_timer(0.3).timeout
+	check(GameState.relationships.mira == 0 and not GameState.presentation_state.get("town_contacts", {}).has("mira"), "A text reply cancelled before it was read earns nothing")
+	model._recognition("mira", true, "Hi Mira, I just arrived.", "", {"pronunciation": 82.0, "score": 82.0})
+	_inject_reply("mira", "Welcome. Take your time here.")
+	check(model.history.back().text == "Welcome. Take your time here." and GameState.relationships.mira == 0, "The reply text shows at once and settles only after the reading pause")
+	await _await_settled()
+	check(GameState.completed_steps.has("greet_mira") and GameState.relationships.mira == 2, "Text-only: the first clear exchange still earns Mira's greeting")
+	check(GameState.presentation_state.town_contacts.mira.completed_exchanges == 1 and GameState.journey_summary().spoken_with.has("mira"), "Text-only: the exchange counts, so the ending knows Mira")
+	model.travel("food")
+	check(NpcDialogueService.begin_scenario("tavi", "food_counter", false), "The counter session opens")
+	model._recognition("tavi", true, "Can I get a burger, please?", "", {"pronunciation": 80.0, "score": 80.0})
+	serial += 1
+	var reply_id := "reply-town-%d" % serial
+	NpcDialogueService._streaming_response = true
+	NpcDialogueService._apply_speaking({"reply_id": reply_id, "npc_id": "tavi", "text": "You got it. I'll get you the burger now.", "speech_act": "confirm_order", "gate": {"accepted": true, "violations": []}, "source": "gemini"})
+	NpcDialogueService._apply_score({"reply_id": reply_id, "npc_id": "tavi", "speech_act": "confirm_order", "next_state": "closed", "source": "gemini", "player_turn": {"idiomaticity": 90.0, "transaction_complete": true, "off_inventory": false, "spoken_delivery_confirmed": true, "requested_item": "burger", "confirmed_item": "burger"}})
+	await _await_settled()
+	check(model.visible_items("counter").size() >= 1 and not NpcDialogueService.has_active_session(), "Text-only: a confirmed order is delivered to the counter after the read (%d)" % model.visible_items("counter").size())
+	model._health_result(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), JSON.stringify({"ok": true, "dialogue_ready": true}).to_utf8_buffer())
+	check(not NpcDialogueService.text_only_replies, "Voice back on: replies wait for their audio again")
+	NpcDialogueService.cancel()
+	NpcDialogueService.request_override = Callable()
+	SpeechAdapter.availability_override = null
+
+func _await_settled() -> void:
+	for attempt in range(80):
+		if NpcDialogueService.current_reply_id.is_empty(): break
+		await get_tree().create_timer(0.1).timeout
+	await get_tree().process_frame
 
 ## Injects one validated reply (speaking + score) for the active turn.
 func _inject_reply(npc: String, text: String) -> String:

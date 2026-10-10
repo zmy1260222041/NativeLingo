@@ -152,6 +152,26 @@ func _test_offline_honesty() -> void:
 	model.pending_turn = "reply-audio"
 	model.conversation.failed.emit("audio")
 	check(screen.status.text.contains("角色语音") and screen.status.text.contains("仅文字"), "An unplayable reply is named as audio, with the text-only option")
+	# Exhausted content repairs (422 campus_rejected) are a free retry, not an outage.
+	model._health_result(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), JSON.stringify({"ok": true, "dialogue_ready": true, "tts_configured": true}).to_utf8_buffer())
+	SpeechAdapter.last_unavailable_reason = ""
+	model.pending_turn = "reply-rejected"
+	model.conversation.busy = true
+	model.conversation._json_finished(HTTPRequest.RESULT_SUCCESS, 422, PackedStringArray(), JSON.stringify({"ok": false, "reason": "campus_rejected"}).to_utf8_buffer())
+	check(model.online_dialogue and SpeechAdapter.last_unavailable_reason.is_empty() and screen.status.text.contains("免费重试"), "A 422 rejection keeps online dialogue on and arms no gesture minimum: " + screen.status.text)
+	model.conversation.busy = true
+	model.conversation.active_turn = "reply-rejected-sse"
+	model.conversation.accept_event("error", {"turn_id": "reply-rejected-sse", "reason": "campus_rejected"})
+	check(model.online_dialogue and SpeechAdapter.last_unavailable_reason.is_empty(), "A streamed campus_rejected error is a rejection, not an outage")
+	# An unreachable check proves nothing about NPC voice; only an explicit tts_configured=false mutes replies.
+	NpcVoice.availability_override = true
+	model.muted = false
+	model._health_result(HTTPRequest.RESULT_CANT_CONNECT, 0, PackedStringArray(), PackedByteArray())
+	check(not model.replies_text_only(), "An unreachable /health does not mute campus replies for the rest of the session")
+	model._health_result(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), JSON.stringify({"ok": true, "dialogue_ready": true, "tts_configured": false}).to_utf8_buffer())
+	check(model.replies_text_only(), "Health that says NPC voice is off keeps campus replies text-only")
+	model._health_result(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), JSON.stringify({"ok": true, "dialogue_ready": true, "tts_configured": true}).to_utf8_buffer())
+	NpcVoice.availability_override = false
 	model.retry_text = ""
 	model.open_counter()
 	check(screen.situation.text.contains("手势领取") and screen.action_row.get_children().any(func(b): return b is Button and b.text.begins_with("手势领取")), "P3-10: the counter's offline card names the real 手势领取 button")

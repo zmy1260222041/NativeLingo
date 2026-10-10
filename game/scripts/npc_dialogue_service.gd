@@ -43,6 +43,10 @@ const AUDIO_FALLBACK_SECONDS := 0.9
 const AUDIO_STALL_SECONDS := 1.5
 const MAX_STREAM_AUDIO_BYTES := 2 * 1024 * 1024
 const PREWARM_THROTTLE_SECONDS := 10.0
+## FR-46: while /health says NPC voice is off, a reply settles once it has been
+## read (typewriter plus a pause) instead of when its audio ends.
+const TEXT_ONLY_MIN_SECONDS := 1.5
+const TEXT_ONLY_MAX_SECONDS := 6.0
 ## FR-45: only the tier enum leaves the device; anything else is dropped.
 const VALID_PLAYER_TIERS := ["infant", "toddler", "youth", "professional"]
 const PLAYER_MISS_REASONS := ["VOICE_REASON_CLARIFY", "VOICE_REASON_TOO_SHORT", "VOICE_REASON_LENGTH", "VOICE_REASON_SCORE_LOW"]
@@ -88,6 +92,11 @@ var _stream_audio_sample_rate := 24000
 var audio_fallback_timer: Timer
 var prewarm_request: HTTPRequest
 var _prewarm_last_msec := 0
+## Set by the 2D controller from /health (tts_configured=false). No reply audio
+## is requested; a cancel before the reading pause ends still voids the reply.
+var text_only_replies := false
+var reading_timer: Timer
+var _reading_reply_id := ""
 
 
 func _ready() -> void:
@@ -109,6 +118,11 @@ func _ready() -> void:
 	audio_fallback_timer.wait_time = AUDIO_FALLBACK_SECONDS
 	audio_fallback_timer.timeout.connect(_on_audio_fallback_timeout)
 	add_child(audio_fallback_timer)
+	reading_timer = Timer.new()
+	reading_timer.name = "NpcDialogueReadingPause"
+	reading_timer.one_shot = true
+	reading_timer.timeout.connect(_on_reading_finished)
+	add_child(reading_timer)
 	prewarm_request = HTTPRequest.new()
 	prewarm_request.name = "NpcDialoguePrewarmHttp"
 	# The request is asynchronous and overlaps recording. Allow enough time for
@@ -615,6 +629,17 @@ func _apply_speaking(parsed: Dictionary) -> bool:
 	if str(parsed.get("speech_act", "")).strip_edges() != "":
 		current_reply_speech_act = str(parsed.get("speech_act", ""))
 	_pending_next_state = next_state
+	if text_only_replies:
+		# NPC voice is known off: show the line and settle it after a read.
+		GameState.set_interaction_time_frozen(false)
+		_reading_reply_id = reply_id
+		if reading_timer != null:
+			reading_timer.start(clampf(1.0 + text.length() / 40.0, TEXT_ONLY_MIN_SECONDS, TEXT_ONLY_MAX_SECONDS))
+		dialogue_ready.emit(current_npc_id, reply_id, text)
+		retry_count = 0
+		pending_transcript = ""
+		_restart_session_timeout()
+		return true
 	if _streaming_response:
 		# The server streams this reply's PCM right after the speaking event;
 		# wait for it (audio_end → feed_reply_pcm) with a timed fallback to the
@@ -1085,6 +1110,13 @@ func _settle_finished_audio() -> void:
 		_restart_session_timeout()
 
 
+func _on_reading_finished() -> void:
+	var reply_id := _reading_reply_id
+	_reading_reply_id = ""
+	if not reply_id.is_empty() and reply_id == current_reply_id:
+		_on_reply_audio_finished(current_npc_id, reply_id)
+
+
 func _on_reply_audio_failed(npc_id: String, reply_id: String, reason: String) -> void:
 	if npc_id == current_npc_id and reply_id == current_reply_id:
 		_fail_reply_audio(reason)
@@ -1105,6 +1137,9 @@ func _close_session(reason: String, cancel_runner := true, cancel_voice := true)
 	var scenario := current_scenario_id
 	if session_timer != null:
 		session_timer.stop()
+	if reading_timer != null:
+		reading_timer.stop()
+	_reading_reply_id = ""
 	if not npc.is_empty() and _dialogue().has_dynamic_session(npc):
 		_dialogue().close(npc)
 	if cancel_voice:

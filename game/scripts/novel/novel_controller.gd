@@ -31,6 +31,13 @@ var social_openings: Dictionary = {}
 ## judged separately so an arrival never retries a path already known to be down.
 var online_dialogue := true
 var npc_voice_ready := true
+## Whisper still loading at startup is "not yet", never an outage: no gesture
+## minimum is armed and /health is polled quietly until recognition settles.
+var asr_pending := false
+var health_reachable := true
+var health_poll_timer: Timer
+var _health_polls := 0
+var _health_quiet := false
 var _status_pending := false
 var _failed_openings: Dictionary = {}
 ## C1-01: the player's recognition score for the social turn now in flight.
@@ -43,6 +50,10 @@ const PLAYER_UNCLEAR_REASONS := ["VOICE_REASON_CLARIFY", "VOICE_REASON_TOO_SHORT
 ## a meal a day, food runs out before the third night ends.
 const REST_HUNGER_COST := 0.4
 const REST_SHELTER_COST := 0.2
+## server.py reports these while the Whisper prewarm has not finished yet.
+const ASR_PENDING_REASONS := ["not_checked", "loading"]
+const HEALTH_POLL_SECONDS := 1.5
+const HEALTH_POLL_LIMIT := 120
 
 func _ready() -> void:
 	Content.load_daily_life()
@@ -195,7 +206,13 @@ func talk() -> void:
 		cancel_activity()
 		scene_changed.emit()
 	if npc_id() in ["mira", "rowan"]:
-		if not NpcDialogueService.is_session_active_for(npc_id()):
+		if not online_dialogue and not NpcDialogueService.is_session_active_for(npc_id()):
+			# Health says online dialogue is down: greet with the authored line
+			# instead of sending an opening that is sure to fail.
+			say(npc_id(), str(Content.place(location).opening))
+			_listen(npc_id(), str(Content.place(location).get("opening_id", "")), [], true)
+			feedback.emit("在线交谈暂时连不上，%s 先说了写好的台词。可以用「手势」回应，也可以去「听日常」。" % npc_id().capitalize())
+		elif not NpcDialogueService.is_session_active_for(npc_id()):
 			# The NPC speaks first, so a failure falls back like an arrival opening.
 			_preparing_opening = true
 			if not NpcDialogueService.start_social_opening(npc_id(), _spoken_scenario(npc_id()), GameState.day):
@@ -301,7 +318,8 @@ func _reply(npc: String, reply_id: String, text: String) -> void:
 		# playback, also handling audio that started before this signal.
 		_pending_spoken_reply = {"npc": npc, "reply": reply_id, "text": text}
 		_replay = {"npc": npc, "reply": reply_id}
-		if NpcVoice.playing_npc_id == npc and NpcVoice.playing_line_id == reply_id and NpcVoice.audio_player.playing:
+		# FR-46: with NPC voice known off the line is shown at once, as text.
+		if NpcDialogueService.text_only_replies or (NpcVoice.playing_npc_id == npc and NpcVoice.playing_line_id == reply_id and NpcVoice.audio_player.playing):
 			_reply_audio_started(npc, reply_id)
 		else:
 			feedback.emit("正在准备语音…")
@@ -363,6 +381,9 @@ func _failure_detail(reason: String, service := false) -> String:
 		text += "还没有交付物品。"
 	if service and SpeechAdapter.runtime_speech_unavailable():
 		return text + "可以点「手势领取」获得最低份量，也可以稍后点「录音」免费重试。"
+	if SpeechAdapter.runtime_speech_unavailable() and not GameState.can_start_service_dialogue(npc_id()):
+		# Voice is known down at Mira or Rowan: point to what works now, not to another recording.
+		return text + "现在可以点「手势」回应，或去「听日常」；语音恢复后再点「录音」，重试不消耗任何东西。"
 	return text + ("再点「录音」说出想要的商品就好，重试不消耗任何东西。" if service else "再点「录音」接着说就好，重试不消耗任何东西。")
 
 func _failure_text(reason: String) -> String:
@@ -583,16 +604,23 @@ func wait_until_evening() -> void:
 	faint_note.clear()
 	# Resting at home runs the clock to evening. Hunger keeps most of its pace;
 	# indoors, warmth and energy drain slowly.
-	var seconds := maxf(0.0, (GameState.SLEEP_HOUR - GameState.DAY_START_HOUR) / (GameState.DAY_END_HOUR - GameState.DAY_START_HOUR) * GameState.DAY_DURATION - GameState.day_time + 0.1)
 	var faints: int = GameState.faints
-	advance_time(seconds, REST_HUNGER_COST, REST_SHELTER_COST)
+	advance_time(_rest_seconds(), REST_HUNGER_COST, REST_SHELTER_COST)
 	if GameState.faints != faints:
-		_wake_after_faint()
+		_wake_after_faint(true)
 		return
 	save()
 	scene_changed.emit()
 	feedback.emit("灯亮起来了。天色已晚，可以睡觉了。")
 	progression_changed.emit()
+
+func _rest_seconds() -> float:
+	return maxf(0.0, (GameState.SLEEP_HOUR - GameState.DAY_START_HOUR) / (GameState.DAY_END_HOUR - GameState.DAY_START_HOUR) * GameState.DAY_DURATION - GameState.day_time + 0.1)
+
+## X1-01: the hunger a rest until evening costs from now, so the screen can warn
+## before a rest that is sure to end in a faint.
+func rest_food_cost() -> float:
+	return _rest_seconds() * GameState.FOOD_DECAY * REST_HUNGER_COST
 
 func sleep() -> bool:
 	if location != "home" or GameState.game_finished:
@@ -611,7 +639,7 @@ func _day_started(day: int) -> void:
 ## X1-01: a faint ends the action at home ("回到安全点并推进时间"). It is told in
 ## the dialogue box and the review log, and stays on the home panel, so the
 ## scene change cannot wipe it.
-func _wake_after_faint() -> void:
+func _wake_after_faint(at_home := false) -> void:
 	location = "home"
 	order_note.clear()
 	var faint: Dictionary = GameState.last_faint
@@ -619,7 +647,7 @@ func _wake_after_faint() -> void:
 	var lost := str(faint.get("lost", ""))
 	var lost_text := "昏倒时丢了随身的%s。" % GameState.items.Catalog.label(GameState.items.definitions[lost].name) if not lost.is_empty() else "随身物品都还在。"
 	var cause := str(faint.get("cause", ""))
-	var text := "你%s，昏倒了。醒来时已经回到小屋，时间到了 %02d:%02d。%s" % [{"food": "饿得撑不住", "warmth": "冻得撑不住"}.get(cause, "累得撑不住"), time.x, time.y, lost_text]
+	var text := "你%s，昏倒了。%s，时间到了 %02d:%02d。%s" % [{"food": "饿得撑不住", "warmth": "冻得撑不住"}.get(cause, "累得撑不住"), "醒来时还躺在小屋里" if at_home else "醒来时已经回到小屋", time.x, time.y, lost_text]
 	var advice: String = {"food": "饱腹只剩 %d。去餐摊吃点东西，或吃掉行囊里的食物。" % int(GameState.food), "warmth": "温暖只剩 %d。吃顿热饭、喝杯热咖啡，或铺好毯子再睡。" % int(GameState.warmth)}.get(cause, "精力只剩 %d。早点休息。" % int(GameState.energy))
 	faint_note = {"title": "你刚才昏倒了 · 第 %d 次" % GameState.faints, "detail": lost_text + advice}
 	save()
@@ -667,18 +695,27 @@ func restart(play_voice := true) -> void:
 	save()
 	start(play_voice)
 
-func _check_local_service() -> void:
+## quiet: a background re-check (Whisper still loading, or a campus turn that
+## worked after an unreachable check) that only speaks up when the result turns
+## worse. refresh asks the service to re-probe online dialogue first.
+func _check_local_service(quiet := false, refresh := true) -> void:
 	if SpeechAdapter.cloud_mode_enabled() or not SpeechAdapter.is_available():
 		return
+	if health_poll_timer != null:
+		health_poll_timer.stop()
+	if not quiet:
+		_health_polls = 0
 	if health_request != null:
 		health_request.cancel_request()
 		health_request.queue_free()
 	health_request = HTTPRequest.new()
 	health_request.timeout = 10.0
 	add_child(health_request)
-	voice_status = "正在检查语音连接…"
+	_health_quiet = quiet
+	if not quiet:
+		voice_status = "正在检查语音连接…"
 	health_request.request_completed.connect(_health_result)
-	health_request.request("http://127.0.0.1:17831/health?refresh=1")
+	health_request.request("http://127.0.0.1:17831/health" + ("?refresh=1" if refresh else ""))
 
 func _health_result(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	var json := JSON.new()
@@ -687,10 +724,15 @@ func _health_result(result: int, code: int, _headers: PackedStringArray, body: P
 	# C2-08: recognition is judged on its own. Older services omit asr_ready and
 	# tts_configured; a missing field keeps the previous meaning (available).
 	var asr_ready := reachable and bool(data.get("asr_ready", true))
+	asr_pending = reachable and not asr_ready and str(data.get("asr_reason", "")) in ASR_PENDING_REASONS
+	health_reachable = reachable
 	online_dialogue = reachable and bool(data.get("dialogue_ready", false))
 	npc_voice_ready = reachable and bool(data.get("tts_configured", true))
-	var healthy := asr_ready and online_dialogue
-	voice_status = _voice_status_text(reachable, asr_ready, str(data.get("dialogue_reason", "")) if reachable else "")
+	# FR-46: health proved NPC voice is off, so replies settle as text after a read.
+	NpcDialogueService.text_only_replies = reachable and not npc_voice_ready
+	var healthy := (asr_ready or asr_pending) and online_dialogue
+	var previous := voice_status
+	voice_status = _voice_status_text(reachable, asr_ready or asr_pending, str(data.get("dialogue_reason", "")) if reachable else "")
 	if healthy:
 		SpeechAdapter.last_unavailable_reason = ""
 		_failed_openings.clear()
@@ -699,7 +741,16 @@ func _health_result(result: int, code: int, _headers: PackedStringArray, body: P
 		# order, so the gesture minimum applies until a later check or attempt.
 		SpeechAdapter.mark_runtime_unavailable("VOICE_REASON_SERVICE_UNAVAILABLE")
 	_status_pending = not healthy or not npc_voice_ready
-	feedback.emit(voice_status)
+	if asr_pending and _health_polls < HEALTH_POLL_LIMIT:
+		_health_polls += 1
+		if health_poll_timer == null:
+			health_poll_timer = Timer.new()
+			health_poll_timer.one_shot = true
+			health_poll_timer.timeout.connect(_check_local_service.bind(true, false))
+			add_child(health_poll_timer)
+		health_poll_timer.start(HEALTH_POLL_SECONDS)
+	if not _health_quiet or (not healthy and voice_status != previous):
+		feedback.emit(voice_status)
 	progression_changed.emit()
 
 ## One player-facing sentence for what the last /health check proved. The campus
@@ -709,7 +760,7 @@ func _voice_status_text(reachable: bool, asr_ready: bool, dialogue_reason: Strin
 		return "语音服务还没有启动。现在可以看文字、听日常，用「手势领取」最低份量；启动后在设置里重新检查。"
 	var text := ""
 	if asr_ready and online_dialogue:
-		text = "语音识别和在线交谈都已连接，可以进入商店开口交谈。"
+		text = "在线交谈已连接，语音识别正在启动，稍等几秒就能开口。" if asr_pending else "语音识别和在线交谈都已连接，可以进入商店开口交谈。"
 	else:
 		var missing: Array[String] = []
 		if not asr_ready: missing.append("语音识别")
@@ -760,17 +811,19 @@ func _listening_finished(npc: String, line: String) -> void:
 	if not practice_word.is_empty():
 		feedback.emit("轮到你了。点录音说出「%s」，再点一次结束；也可以重听示范。" % practice_word)
 
-func _listening_failed(npc: String, line: String, _reason: String) -> void:
+func _listening_failed(npc: String, line: String, reason: String) -> void:
 	if npc != str(_replay.get("npc", "")) or line != str(_replay.get("line", _replay.get("reply", ""))):
 		return
 	_listening = false
 	progression_changed.emit()
-	# P1-05 / P1-14: once the status says NPC voice is off, arrivals stay quiet
-	# and an explicit replay says why instead of inviting another retry.
-	if npc_voice_ready:
+	# P1-05 / P1-14: once the status says NPC voice is off (locally, or cloud
+	# voice not activated), arrivals stay quiet and an explicit replay says why
+	# instead of inviting another retry.
+	var cloud_inactive := reason in ["VOICE_REASON_CLOUD_NOT_ACTIVATED", "VOICE_REASON_CLOUD_UNAUTHORIZED"]
+	if npc_voice_ready and not cloud_inactive:
 		feedback.emit("语音暂时无法播放，可以点「重听」再试。")
 	elif not _replay.get("arrival", false):
-		feedback.emit("角色语音暂未开启，台词以文字显示。")
+		feedback.emit("云端语音需要在设置中激活，台词先以文字显示。" if cloud_inactive else "角色语音暂未开启，台词以文字显示。")
 
 func _exit_tree() -> void:
 	cancel_activity()
@@ -793,8 +846,12 @@ func _remember_town_exchange(npc: String, player_text: String, reply_text: Strin
 	var transcript: Array = contact.get("history", [])
 	if not opening:
 		# C1-01 / X1-06: the first clear spoken exchange with Mira is her greeting.
+		var trust := int(GameState.relationships.get(npc, 0))
 		GameState.record_spoken_exchange(npc, float(_spoken_scores.get(npc, -1.0)))
 		_spoken_scores.erase(npc)
+		if int(GameState.relationships.get(npc, 0)) > trust:
+			# FR-47: the reward is named, like Rowan's gift.
+			feedback.emit("%s 记住了你的问候。%s 的信任 +%d。" % [npc.capitalize(), npc.capitalize(), int(GameState.relationships.get(npc, 0)) - trust])
 		contact["completed_exchanges"] = mini(1000, int(contact.get("completed_exchanges", 0)) + 1)
 		var days: Array = contact.get("days", [])
 		if GameState.day not in days: days.append(GameState.day)

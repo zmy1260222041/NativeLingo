@@ -137,6 +137,16 @@ func _ready() -> void:
 	screen.reduce_motion = true
 	await check_reading_sizes(21, "large")
 	check(screen.dialogue_text.get_theme_font_size("normal_font_size") == 30 and screen.objective_label.get_theme_font_size("font_size") == 21, "Large text scales the sidebar as well as the dialogue")
+	# The top bar's pitch follows the scaled buttons: 行囊 · N never runs into 小剧场.
+	screen.set_large_text(false)
+	screen.bag_button.text = "行囊 · 12"
+	screen.set_large_text(true)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var top: Array = screen.top_buttons.map(func(b): return b.get_global_rect())
+	var apart := range(top.size() - 1).all(func(i): return top[i].end.x <= top[i + 1].position.x)
+	check(apart and top[-1].end.x <= screen.get_viewport_rect().end.x, "Large text: top-bar buttons do not overlap or leave the window")
+	screen._refresh()
 	screen._open_panel("bag")
 	await get_tree().process_frame
 	await get_tree().process_frame

@@ -199,8 +199,14 @@ func offline_note() -> String:
 func connection_text() -> String:
 	if not online_dialogue: return "在线交谈暂不可用"
 	if SpeechAdapter.runtime_speech_unavailable(): return "录音暂不可用，可打字"
-	if muted or not NpcVoice.is_available() or not npc_voice_ready: return "文字交流"
+	if replies_text_only(): return "文字交流"
 	return "语音与文字均可用"
+
+## Replies are text-only when muted, without NPC voice, or when /health was
+## reachable and said voice is off. An unreachable check proves nothing about
+## voice, so it never mutes the rest of the session.
+func replies_text_only() -> bool:
+	return muted or not NpcVoice.is_available() or (health_reachable and not npc_voice_ready)
 
 ## P3-10: the same /health facts in campus terms; the town's 听日常 does not exist here.
 func _voice_status_text(reachable: bool, asr_ready: bool, dialogue_reason: String) -> String:
@@ -211,6 +217,8 @@ func _voice_status_text(reachable: bool, asr_ready: bool, dialogue_reason: Strin
 		return "在线交谈暂时连不上%s。校园生活照常继续：%s%s" % ["（服务商不支持当前地区）" if dialogue_reason == "region_unsupported" else "", OFFLINE_OPTIONS, voice]
 	if not asr_ready:
 		return "录音可以进行，但语音识别暂不可用。可以直接输入英语交流，也可以参加离线活动。" + voice
+	if asr_pending:
+		return "在线交谈已连接，语音识别正在启动，稍等几秒就能开口；现在也可以输入英语交流。" + voice
 	return "语音识别和在线交谈都已连接，可以开口或输入英语交流。" + voice
 
 ## P3-10: a scoring outage keeps the town's honest wording, without pointing to
@@ -255,7 +263,7 @@ func submit_text(text: String, voice := false, pronunciation := -1.0, opening :=
 		body["practice_card"] = {"title": card.title, "trigger": card.trigger, "player_goal": card.player_goal}
 	body["turn_kind"] = "opening" if opening else "reply"
 	if not opening: say("you", pending_text)
-	conversation.submit(body, muted or not NpcVoice.is_available() or not npc_voice_ready)
+	conversation.submit(body, replies_text_only())
 
 func _campus_line(line: Dictionary) -> void:
 	if line.get("turn_id") != pending_turn: return
@@ -270,6 +278,8 @@ func _campus_complete(receipt: Dictionary, lines: Array) -> void:
 		if line.get("speaker_id") not in scene().participants or line.get("speaker_id") in speakers: return
 		if line.get("reply_to") not in scene().participants + ["player", "group"]: return
 		speakers.append(line.speaker_id)
+	# A turn that worked after an unreachable check: refresh what health knows.
+	if not health_reachable: _check_local_service(true)
 	online_dialogue = true
 	if pending_opening:
 		for line in lines:
@@ -480,7 +490,7 @@ func clock_minutes() -> int:
 
 ## P3-18: the town's faint presentation (A3) in campus words. The faint ends the
 ## action, the player wakes in their room, and the note stays on the home card.
-func _wake_after_faint() -> void:
+func _wake_after_faint(_at_home := false) -> void:
 	cancel_activity()
 	location = "home"
 	service_mode = false

@@ -67,6 +67,16 @@ func _ready() -> void:
 	await check_reading_sizes(18, "standard")
 	screen.set_large_text(true)
 	await check_reading_sizes(21, "large")
+	# A two-line notice set before switching to large text is refit, not cut off at the window edge.
+	screen.set_large_text(false)
+	model._health_result(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), JSON.stringify({"ok": true, "dialogue_ready": false, "tts_configured": false}).to_utf8_buffer())
+	await get_tree().process_frame
+	screen.set_large_text(true)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	check(screen.status.get_line_count() >= 2 and screen.status.position.y + screen.status.size.y <= 900.0, "Large text: the status line stays on the canvas (bottom %.0f)" % (screen.status.position.y + screen.status.size.y))
+	model._health_result(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), JSON.stringify({"ok": true, "dialogue_ready": true, "tts_configured": true}).to_utf8_buffer())
+	SpeechAdapter.last_unavailable_reason = ""
 	screen._line("alex", "I’m glad we’re in the same group.")
 	check(screen.transcript.text.contains("I'm glad we're in the same group.") and not screen.transcript.text.contains("’"), "P2-14: campus English uses Latin-width apostrophes")
 	screen._line("casey", "I saw it differently, but I could have missed the first part. Could we talk through what happened before we decide how to continue? I would rather agree on a fair way forward than argue over who was right.")

@@ -275,6 +275,8 @@ func _build() -> void:
 	status_paper = _paper(Rect2(292, 868, 1124, 32), 0.96)
 	status = _label(canvas, "", 18)
 	_position(status, Rect2(304, 869, 1100, 30))
+	# A font-size change reshapes the label a frame later; refit it then.
+	status.resized.connect(_fit_status)
 	_set_status("阅读、录音和重试不消耗游戏时间。")
 	modal = Window.new()
 	modal.visible = false
@@ -391,6 +393,9 @@ func set_large_text(value: bool) -> void:
 ## over the empty foot of the dialogue paper instead of running off the window.
 func _set_status(text: String) -> void:
 	status.text = Palette.plain_quotes(text)
+	_fit_status()
+
+func _fit_status() -> void:
 	status.size.y = 0.0
 	status.position.y = 899.0 - status.get_combined_minimum_size().y
 	status_paper.position.y = status.position.y - 2.0
@@ -677,7 +682,7 @@ func _example() -> void:
 
 func _play_example(npc: String, line: String) -> void:
 	example_line = line
-	if not model.npc_voice_ready or not NpcVoice.is_available():
+	if (model.health_reachable and not model.npc_voice_ready) or not NpcVoice.is_available():
 		example_note.text = "角色语音暂未开启，示范先以文字显示。"
 		return
 	example_note.text = "正在准备示范语音…"

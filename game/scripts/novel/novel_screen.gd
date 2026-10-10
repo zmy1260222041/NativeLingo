@@ -37,6 +37,8 @@ var give_button: Button
 var talk_button: Button
 var replay_button: Button
 var home_action_button: Button
+## X1-01: set once a rest that will end in a faint was named; a second press rests.
+var rest_warned := false
 var record_button: Button
 var action_row: HBoxContainer
 var advance_button: Button
@@ -50,6 +52,8 @@ var modal_scrim: ColorRect
 var inventory_view: VBoxContainer
 var counter_button: Button
 var bag_button: Button
+## 校园篇章 and the five panel buttons, left to right, packed by _layout_top_bar.
+var top_buttons: Array[Button] = []
 var need_tween: Tween
 var modal_title: Label
 var modal_body: VBoxContainer
@@ -259,16 +263,20 @@ func _build_screen() -> void:
 	_label(canvas, "STRANGER", Rect2(30, 9, 265, 42), 29, ACCENT)
 	_label(canvas, "异乡人  /  一点点，成为这里的人", Rect2(32, 50, 330, 25), 18, MUTED)
 	clock_label = _label(canvas, "", Rect2(363, 22, 340, 45), 18, MUTED)
-	var campus_button := _button(canvas, "校园篇章", func():
-		model.cancel_activity()
-		model.save()
-		get_tree().change_scene_to_file("res://scenes/Campus.tscn"), Rect2(750, 22, 112, 44))
+	var campus_button := _button(canvas, "校园篇章", _switch_to_campus, Rect2(750, 22, 112, 44))
 	Palette.quiet(campus_button)
+	top_buttons = [campus_button]
 	for entry in [["成长", "growth"], ["行囊", "bag"], ["小剧场", "theater"], ["回看", "history"], ["设置", "settings"]]:
 		var index: int = ["growth", "bag", "theater", "history", "settings"].find(entry[1])
 		var button := _button(canvas, entry[0], _open_panel.bind(entry[1]), Rect2(868 + index * 108, 22, 100, 44))
 		Palette.quiet(button)
+		top_buttons.append(button)
 		if entry[1] == "bag": bag_button = button
+	for button in top_buttons:
+		button.set_meta("top_width", button.size.x)
+		# A font-size change can reshape the text a frame later; repack then.
+		button.resized.connect(_layout_top_bar)
+	_layout_top_bar()
 	_box(canvas, Rect2(24, 112, 244, 757), Color(Palette.SURFACE, 0.98))
 	_label(canvas, "去哪里？", Rect2(46, 126, 190, 38), 25)
 	_label(canvas, "沿着日常，慢慢熟悉。", Rect2(46, 163, 210, 32), 18, MUTED)
@@ -445,6 +453,7 @@ func _rebuild_actions() -> void:
 		action_row.remove_child(child)
 		child.queue_free()
 	home_action_button = null
+	rest_warned = false
 	record_button = null
 	gesture_button = null
 	give_button = null
@@ -472,6 +481,7 @@ func _rebuild_actions() -> void:
 		_action_space()
 		home_action_button = _button(action_row, "", func():
 			if GameState._wants_sleep(): model.sleep()
+			elif not rest_warned and GameState.food <= model.rest_food_cost(): _warn_rest()
 			else: model.wait_until_evening())
 	else:
 		talk_button = _button(action_row, ("交谈  " if GameState.can_start_service_dialogue(model.npc_id()) else "打招呼  ") + Glyphs.for_action("interact", false), func(): model.talk())
@@ -582,6 +592,7 @@ func _refresh() -> void:
 	objective_label.text = GameState.objective_text()
 	var npc: String = model.npc_id()
 	bag_button.text = "行囊 · %d" % model.visible_items("bag").size()
+	_layout_top_bar()
 	if is_instance_valid(counter_button):
 		var pending: int = model.visible_items("counter").size()
 		counter_button.text = "领取 · %d 件待取" % pending if pending > 0 else "菜单 / 柜台"
@@ -596,6 +607,11 @@ func _refresh() -> void:
 			# P1-14: while voice cannot complete an order, the working gesture leads.
 			Palette.quiet(gesture_button)
 			Palette.primary(gesture_button if SpeechAdapter.runtime_speech_unavailable() else record_button)
+	elif is_instance_valid(gesture_button) and is_instance_valid(record_button):
+		# The same at Mira and Rowan: while voice is down, the gesture leads.
+		Palette.quiet(gesture_button)
+		Palette.quiet(record_button)
+		Palette.primary(gesture_button if SpeechAdapter.runtime_speech_unavailable() else record_button)
 	var guidance: Dictionary = model.order_guidance()
 	if not model.practice_word.is_empty():
 		guidance = {"title": "正在练习 · " + model.practice_word,
@@ -606,7 +622,7 @@ func _refresh() -> void:
 	order_detail.text = str(guidance.get("detail", ""))
 	relationship_label.text = "一段日常 · 随时可以离开" if model.social_index >= 0 else ("信任  %s  ·  %d" % [npc.capitalize(), GameState.relationships.get(npc, 0)] if not npc.is_empty() else "休息 · 安顿 · 明天")
 	if is_instance_valid(home_action_button):
-		home_action_button.text = "入睡 · 下一天" if GameState._wants_sleep() else "休息到夜晚"
+		home_action_button.text = "入睡 · 下一天" if GameState._wants_sleep() else ("仍然休息到夜晚" if rest_warned else "休息到夜晚")
 		order_panel.visible = true
 		order_title.text = "可以入睡了" if GameState._wants_sleep() else "先歇一会儿"
 		order_detail.text = "睡眠会进入下一天，恢复精力与温暖。" if GameState._wants_sleep() else "休息会快进到夜晚。屋里不太冷，也能歇一歇，但肚子照样会饿。"
@@ -998,6 +1014,31 @@ func set_large_text(value: bool) -> void:
 	for node in canvas.find_children("*", "Control", true, false):
 		if node.has_meta("text_px"):
 			node.add_theme_font_size_override("normal_font_size" if node is RichTextLabel else "font_size", Palette.text_px(int(node.get_meta("text_px"))))
+	_layout_top_bar()
+
+func _warn_rest() -> void:
+	rest_warned = true
+	_toast("饱腹撑不到晚上，休息途中会饿得昏倒。先去餐摊吃点东西，或吃掉行囊里的食物？再点一次仍会休息。")
+	_refresh()
+
+## A reply or delivery in progress would be dropped unseen by the scene change,
+## so the chapter waits until it ends, like any other conversation action.
+func _switch_to_campus() -> void:
+	if not model._can_start_conversation_action(): return
+	model.cancel_activity()
+	model.save()
+	get_tree().change_scene_to_file("res://scenes/Campus.tscn")
+
+## P2-06: the top bar's pitch follows each button's scaled minimum width, packed
+## against the right edge, so 行囊 · N never runs into 小剧场 in large text.
+func _layout_top_bar() -> void:
+	var right := 1400.0
+	for i in range(top_buttons.size() - 1, -1, -1):
+		var button: Button = top_buttons[i]
+		var width := maxf(float(button.get_meta("top_width", 100.0)), button.get_combined_minimum_size().x)
+		button.size.x = width
+		button.position.x = right - width
+		right = button.position.x - 8.0
 
 func _load_settings() -> void:
 	var config := ConfigFile.new()

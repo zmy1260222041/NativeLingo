@@ -119,6 +119,9 @@ func _test_interrupted_delivery() -> void:
 	await get_tree().process_frame
 	check(NpcDialogueService.current_transaction_complete and NpcVoice.audio_player.playing, "The clerk's confirmed delivery is still playing")
 	toasts.clear()
+	screen._switch_to_campus()
+	check(NpcDialogueService.current_transaction_complete and toasts.size() == 1 and str(toasts[0]).contains("结束后"), "Switching chapter while the delivery plays waits instead of dropping it unseen")
+	toasts.clear()
 	screen._open_panel("bag")
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -179,6 +182,19 @@ func _test_word_practice_reasons() -> void:
 	SpeechAdapter.request_generation = SpeechAdapter.session_generation
 	SpeechAdapter._on_request_completed(HTTPRequest.RESULT_SUCCESS, 503, PackedStringArray(), JSON.stringify({"accepted": false, "reason": "VOICE_REASON_SERVICE_UNAVAILABLE"}).to_utf8_buffer())
 	check(SpeechAdapter.runtime_speech_unavailable() and str(toasts.back()).contains("不是你的发音问题"), "A 503 word score arms the gesture fallback and is explained as a service fault")
+	# A 404 (a lexical id the service does not know) is no voice outage.
+	SpeechAdapter.last_unavailable_reason = ""
+	SpeechAdapter.session_generation += 1
+	SpeechAdapter.pending_word_mode = true
+	SpeechAdapter.pending_word_lexical_id = "heater"
+	SpeechAdapter.pending_word_options = ["heater"]
+	SpeechAdapter.request_generation = SpeechAdapter.session_generation
+	SpeechAdapter._on_request_completed(HTTPRequest.RESULT_SUCCESS, 404, PackedStringArray(), JSON.stringify({"accepted": false, "reason": "VOICE_REASON_RESULT_INVALID"}).to_utf8_buffer())
+	check(not SpeechAdapter.runtime_speech_unavailable(), "A 404 word score does not arm the gesture minimum")
+	model.cancel_activity()
+	model.travel("food")
+	model.greet()
+	check(model.visible_items("counter").is_empty(), "After a 404 word score a gesture at the counter still delivers nothing while voice works")
 	AudioServer.remove_bus(bus)
 	SpeechAdapter.record_effect = effect
 	SpeechAdapter.last_unavailable_reason = ""
@@ -202,6 +218,29 @@ func _test_health_status() -> void:
 	check(not SpeechAdapter.runtime_speech_unavailable() and model.voice_status.contains("已连接"), "An older service without asr_ready keeps the previous meaning")
 	await get_tree().process_frame
 	check((screen.record_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == Palette.PRIMARY, "Recording leads again once voice works")
+	# Whisper still loading at startup is "not yet": no fallback, a neutral status and a quiet re-poll.
+	for transient in ["not_checked", "loading"]:
+		GameState.reset_run()
+		model.location = "plaza"
+		model.travel("food")
+		SpeechAdapter.last_unavailable_reason = ""
+		toasts.clear()
+		_health({"ok": true, "dialogue_ready": true, "asr_ready": false, "asr_reason": transient, "tts_configured": true})
+		var polling: bool = model.health_poll_timer != null and not model.health_poll_timer.is_stopped()
+		if model.health_poll_timer != null: model.health_poll_timer.stop()
+		check(not SpeechAdapter.runtime_speech_unavailable() and model.voice_status.contains("正在启动") and not model.voice_status.contains("手势"), "asr_reason=%s is pending, not an outage: %s" % [transient, model.voice_status])
+		check(polling and not model._status_pending, "asr_reason=%s re-polls /health instead of flagging the first scene" % transient)
+		model.greet()
+		check(model.visible_items("counter").is_empty(), "asr_reason=%s: a gesture while recognition starts delivers nothing" % transient)
+	model._health_quiet = true
+	toasts.clear()
+	_health({"ok": true, "dialogue_ready": true, "asr_ready": true, "asr_reason": "", "tts_configured": true})
+	check(toasts.is_empty() and model.voice_status.contains("已连接") and (model.health_poll_timer == null or model.health_poll_timer.is_stopped()), "A quiet re-poll that finds recognition ready updates the status silently and stops polling")
+	model._health_quiet = true
+	_health({"ok": true, "dialogue_ready": true, "asr_ready": false, "asr_reason": "model_missing", "tts_configured": true})
+	check(SpeechAdapter.runtime_speech_unavailable() and toasts.size() == 1 and str(toasts[0]).contains("语音识别暂不可用"), "A quiet re-poll that finds recognition down says so once and arms the minimum")
+	model._health_quiet = false
+	_health({"ok": true, "dialogue_ready": true})
 	for case in [null, {"ok": true, "dialogue_ready": false, "dialogue_reason": "not_configured"}, {"ok": true, "dialogue_ready": false, "asr_ready": false, "tts_configured": false}]:
 		_health(case, HTTPRequest.RESULT_CANT_CONNECT if case == null else HTTPRequest.RESULT_SUCCESS)
 		check(not model.voice_status.contains("配置") and _no_english(model.voice_status) and model.voice_status.contains("手势"), "Status is player-facing Chinese: " + model.voice_status)
@@ -247,8 +286,25 @@ func _test_offline_openings() -> void:
 	check(screen.dialogue_text.text == "Welcome, stranger." and voice_toasts.is_empty(), "Later arrivals stay quiet when NPC voice is known off")
 	model.listen_again()
 	check(toasts.size() == 1 and str(toasts[0]).contains("角色语音暂未开启"), "An explicit replay explains that NPC voice is off")
+	# At Mira and Rowan, a known outage points to what works instead of another recording.
+	requests.clear()
+	toasts.clear()
+	model.talk()
+	check(requests.is_empty() and screen.dialogue_text.text == "Welcome, stranger." and str(toasts.back()).contains("手势") and not model._preparing_opening, "打招呼 while dialogue is known down shows the authored line without a doomed request")
+	await get_tree().process_frame
+	check((screen.gesture_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == Palette.PRIMARY and (screen.record_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color != Palette.PRIMARY, "At a social NPC the working gesture leads while voice is down")
+	model._recognition("mira", false, "", "VOICE_REASON_SERVICE_UNAVAILABLE", {})
+	check(str(toasts.back()).contains("手势") and str(toasts.back()).contains("听日常") and not str(toasts.back()).contains("接着说就好"), "A failed recording at Mira names the gesture and 听日常, not another recording: " + str(toasts.back()))
 	model.boot_from_save = false
 	_health({"ok": true, "dialogue_ready": true})
+	# Cloud voice not activated: arrival lines stay quiet; an explicit replay says why.
+	toasts.clear()
+	model._replay = {"npc": "mira", "line": "arrival_greeting", "options": [], "arrival": true}
+	NpcVoice.line_audio_failed.emit("mira", "arrival_greeting", "VOICE_REASON_CLOUD_NOT_ACTIVATED")
+	check(toasts.is_empty(), "An arrival line that needs cloud activation fails quietly")
+	model._replay = {"npc": "mira", "line": "arrival_greeting", "options": [], "arrival": false}
+	NpcVoice.line_audio_failed.emit("mira", "arrival_greeting", "VOICE_REASON_CLOUD_NOT_ACTIVATED")
+	check(toasts.size() == 1 and str(toasts[0]).contains("激活") and not str(toasts[0]).contains("重听"), "An explicit replay names cloud activation instead of inviting a retry")
 
 ## X1-02 / C1-08: a dead service fails fast, is not the player's miss, and speaks 2D Chinese.
 func _test_dialogue_service_faults() -> void:

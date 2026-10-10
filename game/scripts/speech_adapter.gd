@@ -397,7 +397,10 @@ func _word_score_url() -> String:
 func _emit_word_failure(lexical_id: String, generation: int, reason: String) -> void:
 	if generation != session_generation:
 		return
-	mark_runtime_unavailable(reason)
+	# A word the service does not know (404) or an unreadable score says nothing
+	# about the voice path; only real outages arm the gesture minimum.
+	if reason != "VOICE_REASON_RESULT_INVALID":
+		mark_runtime_unavailable(reason)
 	GameState.set_interaction_time_frozen(false)
 	word_score_finished.emit(lexical_id, false, {}, reason)
 
