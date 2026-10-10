@@ -103,11 +103,59 @@ func _ready() -> void:
 	screen._open("Test panel")
 	model._offer_opening()
 	check(model.pending_turn.is_empty(), "An open modal suppresses proactive speech")
+	screen._close_modal()
 	model.boot_from_save = false
+	_test_offline_honesty()
 	screen.queue_free()
 	await get_tree().process_frame
 	print("CampusInteractionTest: %d assertions, %d failures" % [assertions, failures])
 	get_tree().quit(1 if failures else 0)
+
+## P3-10 / P3-11: campus failures name their real cause, and an offline campus
+## says once, persistently, what still works.
+func _test_offline_honesty() -> void:
+	model.travel("class")
+	model.select_scene("class_before_class")
+	var target: String = "campus:" + model.npc_id()
+	model._recognition(target, false, "", "VOICE_REASON_SERVICE_UNAVAILABLE", {})
+	check(not screen.status.text.contains("没有听清") and screen.status.text.contains("这不是你说得不好"), "P3-11: a recognition outage is not worded as unclear speech: " + screen.status.text)
+	model._recognition(target, false, "", "VOICE_REASON_TOO_SHORT", {})
+	check(screen.status.text.contains("没有听清"), "P3-11: genuinely unclear speech still says so")
+	model.practice_word = "class"
+	model._word_score("class", false, {}, "VOICE_REASON_SERVICE_UNAVAILABLE")
+	check(screen.status.text.contains("单词评分暂时不可用") and not screen.status.text.contains("小剧场"), "P3-10: campus word scoring outage points to nothing the campus lacks")
+	model.cancel_activity()
+	# /health: the model is down; campus wording, not the town's 听日常 / 角色会显示写好的台词.
+	model._health_result(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), JSON.stringify({"ok": true, "dialogue_ready": false, "tts_configured": false}).to_utf8_buffer())
+	check(not model.voice_status.contains("听日常") and not model.voice_status.contains("写好的台词") and model.voice_status.contains("离线活动"), "P3-10: campus health status names campus options: " + model.voice_status)
+	check(screen.status.text == model.voice_status, "P3-10: the health result is stated once in the status line")
+	check(screen.connection_label.text != "语音与文字均可用" and screen.connection_label.text.contains("不可用"), "P3-10: the header no longer contradicts the status: " + screen.connection_label.text)
+	check(screen.transcript.text.contains("离线活动") and screen.transcript.text.contains("校园生活照常继续"), "P3-10: the dialogue paper keeps a persistent offline note")
+	model.boot_from_save = true
+	model._offer_opening()
+	check(model.pending_turn.is_empty() and not model.conversation.busy, "P3-10: no automatic opening request while online dialogue is known down")
+	model.boot_from_save = false
+	model.select_scene("class_notes")
+	check(screen.transcript.text.contains("校园生活照常继续"), "P3-10: the offline note survives a scene change")
+	# A turn that fails because the model is unreachable: honest, no text-mode advice.
+	model._health_result(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), JSON.stringify({"ok": true, "dialogue_ready": true, "tts_configured": true}).to_utf8_buffer())
+	check(model.online_dialogue and screen.connection_label.text != "在线交谈暂不可用" and not screen.transcript.text.contains("校园生活照常继续"), "A healthy check restores the online invitation")
+	model.pending_opening = true
+	model.pending_turn = "opening-offline"
+	model.conversation.failed.emit("service")
+	check(not model.online_dialogue and screen.status.text.contains("在线交谈暂时连不上") and not screen.status.text.contains("切换文字") and not screen.status.text.contains("免费重试"), "P3-10: a failed opening promises no retry button or text mode: " + screen.status.text)
+	check(screen.retry_button.visible == false and screen.connection_label.text == "在线交谈暂不可用", "P3-10: no retry control for an opening, header follows the failure")
+	model.retry_text = "Could you say that again?"
+	model.pending_turn = "reply-invalid"
+	model.conversation.failed.emit("invalid")
+	check(screen.status.text.contains("没有结算") and screen.status.text.contains("免费重试") and screen.retry_button.visible, "A rejected reply offers the real retry")
+	model.pending_turn = "reply-audio"
+	model.conversation.failed.emit("audio")
+	check(screen.status.text.contains("角色语音") and screen.status.text.contains("仅文字"), "An unplayable reply is named as audio, with the text-only option")
+	model.retry_text = ""
+	model.open_counter()
+	check(screen.situation.text.contains("手势领取") and screen.action_row.get_children().any(func(b): return b is Button and b.text.begins_with("手势领取")), "P3-10: the counter's offline card names the real 手势领取 button")
+	model.travel("class")
 
 func capture_inventory(name: String) -> void:
 	if DisplayServer.get_name() == "headless": return

@@ -17,6 +17,7 @@ func _ready() -> void:
 	SpeechAdapter.availability_override = false
 	NpcVoice.availability_override = false
 	_test_state()
+	_test_catalog_cast()
 	_test_memory_and_personalization()
 	TranslationServer.set_locale("en") # T1-03: an English OS; the campus screen pins the Chinese UI.
 	screen = Screen.instantiate()
@@ -40,6 +41,8 @@ func _ready() -> void:
 	await capture("group")
 	_test_late_and_duplicate()
 	await _test_group_audio()
+	_test_voice_turn_time()
+	_test_activity_and_memory_changes()
 	screen._profile()
 	check(screen.profiles.size() == 7 and screen.modal.visible, "Optional profile controls are reachable")
 	await capture("profile")
@@ -54,6 +57,10 @@ func _ready() -> void:
 	model.change_memory(memory_id, "", true)
 	check(not model.campus.memories.any(func(m): return m.id == memory_id), "Memory deletion persists locally")
 	_test_two_weeks()
+	_test_weekly_review()
+	_test_evening_reload()
+	_test_campus_faint()
+	_test_example_and_skip()
 	model.travel("sports")
 	model.select_scene("sports_mistake")
 	screen.instant_text = true
@@ -120,6 +127,26 @@ func _test_state() -> void:
 	legacy.week = 2
 	legacy.study_done = {"0:class": true, "4:study": true}
 	check(restored.restore(legacy) and restored.study_done.has("8:class") and restored.study_done.has("12:study"), "v1 weekday keys migrate to calendar days")
+
+## P3-08: every scenario's goal, exit and relationship cards name only people who
+## are there, because the server hands each speaker the whole card as its concern.
+func _test_catalog_cast() -> void:
+	var catalog: Dictionary = State.new().catalog
+	var absent_named: Array = []
+	var bad_examples: Array = []
+	for card in catalog.scenarios:
+		var cast: Array = card.participants
+		var texts: Array = [card.npc_goal, card.exit] + card.relationships.values()
+		for id in catalog.profiles:
+			if id in cast: continue
+			var name := RegEx.create_from_string("\\b" + str(catalog.profiles[id].name).split(" ")[-1] + "\\b")
+			if texts.any(func(text): return name.search(str(text)) != null): absent_named.append("%s:%s" % [card.id, id])
+		for line in card.example:
+			var own := RegEx.create_from_string("\\b" + str(catalog.profiles.get(line.speaker_id, {"name": "player"}).name).split(" ")[-1] + "\\b")
+			if line.speaker_id not in cast + ["player"] or line.reply_to not in cast + ["player", "group"] or (line.speaker_id != "player" and own.search(str(line.text)) != null):
+				bad_examples.append(card.id)
+	check(catalog.scenarios.size() == 32 and absent_named.is_empty(), "P3-08: npc_goal, exit and relationships name only participants: %s" % ", ".join(absent_named))
+	check(bad_examples.is_empty(), "P3-08: example lines are spoken by and to people in the scene, never naming their own speaker: %s" % ", ".join(bad_examples))
 
 func _test_memory_and_personalization() -> void:
 	var state = State.new()
@@ -209,6 +236,150 @@ func _test_two_weeks() -> void:
 	check(model.campus.reviews[0].academic == 100 and model.campus.reviews[1].academic == 100, "Two weeks of balanced learning complete")
 	check(faint_count == 0, "Two-week normal route never relies on faint recovery")
 
+## C1-10 / X1-09: a campus transcription, heard or failed, never leaves the clock
+## frozen, and an online joint activity's hour always costs needs.
+func _test_voice_turn_time() -> void:
+	model.travel("club")
+	model.select_scene("club_first_visit")
+	# Another campus speaker's result: the adapter path runs, nothing goes online.
+	for outcome in [[200, {"accepted": true, "text": "Hi, can I join the meeting today?", "pronunciation": 80.0}], [503, {}]]:
+		GameState.set_interaction_time_frozen(true) # what SpeechAdapter.start_recording() does
+		SpeechAdapter.pending_target_id = "campus:nobody"
+		SpeechAdapter.request_generation = SpeechAdapter.session_generation
+		SpeechAdapter._on_request_completed(HTTPRequest.RESULT_SUCCESS, outcome[0], PackedStringArray(), JSON.stringify(outcome[1]).to_utf8_buffer())
+		check(not GameState.interaction_time_frozen, "Campus transcription %d releases the time freeze" % outcome[0])
+	GameState.set_interaction_time_frozen(true) # any stale freeze, e.g. a recovery prompt
+	model.meaningful_turns = 2
+	var before := Vector4(GameState.food, GameState.warmth, GameState.energy, GameState.clock_hours())
+	model.joint_activity(false)
+	var after := Vector4(GameState.food, GameState.warmth, GameState.energy, GameState.clock_hours())
+	check(is_equal_approx(after.w - before.w, 1.0), "Online joint activity takes one hour")
+	check(after.x < before.x - 8.0 and after.y < before.y - 7.0 and after.z < before.z - 4.0, "Online joint activity after a voice turn still costs food, warmth and energy: %s" % str(after - before))
+	SpeechAdapter.cancel_recording()
+	model.travel("class")
+	model.select_scene("class_project_roles")
+
+## P3-13: an activity is never a quote; P3-14: correcting or deleting a memory
+## removes only those words from the context and keeps the conversation going.
+func _test_activity_and_memory_changes() -> void:
+	model.travel("dining")
+	model.select_scene("dining_story")
+	var quotes: int = model.campus.memories.size()
+	model.joint_activity(true)
+	check(model.campus.memories.size() == quotes, "P3-13: an offline activity writes no quote the player never said")
+	check(model.campus.schedule.any(func(entry): return str(entry.detail).ends_with("离线")), "P3-13: the activity stays a local schedule entry")
+	check(not JSON.stringify(model.campus.relevant_memories(model.scene())).contains("took part"), "P3-13: nothing about the activity reaches the model as player words")
+	model.select_scene("dining_table_chat")
+	var session: String = model.session
+	model.exchange = [{"speaker_id": "player", "reply_to": "group", "text": "I grew up near the sea."},
+		{"speaker_id": "maya", "reply_to": "player", "text": "That sounds lovely. Do you still swim?"},
+		{"speaker_id": "player", "reply_to": "group", "text": "Yes, every summer with my cousins."},
+		{"speaker_id": "sam", "reply_to": "player", "text": "We should find a pool near campus."}]
+	model.topic_summary = "player: I grew up near the sea.\nmaya: That sounds lovely."
+	model.meaningful_turns = 2
+	model.campus.remember_quote("I grew up near the sea.", ["maya", "sam", "jules"], "dining_table_chat", GameState.day)
+	model.change_memory(str(model.campus.memories[-1].id), "", true)
+	check(not JSON.stringify(model.exchange).contains("near the sea") and not model.topic_summary.contains("near the sea"), "P3-14: deleted words leave the history and summary sent to the model")
+	check(model.exchange.size() == 3 and model.topic_summary.contains("That sounds lovely") and model.session == session and model.meaningful_turns == 2, "P3-14: the conversation and its valid-exchange count carry on")
+	var maya: int = model.campus.relationships.maya
+	model.joint_activity(false)
+	check(model.campus.relationships.maya == maya + 1, "P3-14: the joint activity is still allowed after a memory deletion")
+	var legacy := State.new()
+	legacy.memories = [{"id": "memory-1", "text": "We took part in 课前搭话 together.", "speaker_id": "player", "kind": "shared_fact", "known_to": ["alex"], "scenario_id": "class_before_class", "day": 1},
+		{"id": "memory-2", "text": "I like tennis.", "speaker_id": "player", "kind": "shared_fact", "known_to": ["alex"], "scenario_id": "class_before_class", "day": 1}]
+	var migrated := State.new()
+	check(migrated.restore(legacy.serialize()) and migrated.memories.size() == 1 and migrated.memories[0].text == "I like tennis.", "P3-13: a save's fabricated activity quote is dropped on load")
+	model.travel("class")
+	model.select_scene("class_project_roles")
+
+func _modal_texts() -> Array:
+	return screen.modal_body.find_children("*", "Label", true, false).map(func(node): return str(node.text))
+
+## P3-16: this week first, then the archives, then the chains; names, not ids or JSON.
+func _test_weekly_review() -> void:
+	screen._reviews()
+	var texts: Array = _modal_texts()
+	var joined := "\n".join(texts)
+	check(not joined.contains("{") and not joined.contains("prof_chen") and not joined.contains("\"alex\""), "P3-16: the weekly review shows no raw JSON or ids")
+	check(joined.contains("Alex（") and joined.contains("课前搭话") and joined.contains("开口练习"), "P3-16: people, scenes and practice are written out")
+	var archive: int = texts.find(texts.filter(func(text): return text.begins_with("第 2 周回顾"))[0]) if texts.any(func(text): return text.begins_with("第 2 周回顾")) else -1
+	check(texts[0].begins_with("第 3 周") and archive > 0 and archive < texts.find("连续经历") and archive < texts.find(texts.filter(func(text): return text.begins_with("第 1 周回顾"))[0]), "P3-16: the current week, then the newest archive, come before the chains")
+	screen.modal.hide()
+
+## P3-19: a 20:00 save reloads as 20:00, and sleep is allowed.
+func _test_evening_reload() -> void:
+	var path := "user://campus-evening-%d.json" % Time.get_ticks_usec()
+	var old: String = GameState.save_path
+	GameState.persistence_enabled = true
+	GameState.save_path = path
+	model.travel("home")
+	GameState.food = 90
+	GameState.warmth = 90
+	GameState.energy = 90
+	model.wait_until_evening()
+	GameState.day_time = (GameState.SLEEP_HOUR - GameState.DAY_START_HOUR) / (GameState.DAY_END_HOUR - GameState.DAY_START_HOUR) * GameState.DAY_DURATION
+	model.save()
+	GameState.day_time = 0.0
+	check(GameState.load_game(), "Evening campus save loads")
+	screen._refresh()
+	check(screen.week_label.text.ends_with("20:00"), "P3-19: a reloaded 20:00 shows as 20:00: " + screen.week_label.text)
+	var day: int = GameState.day
+	check(model.sleep() and GameState.day == day + 1, "P3-19: sleep is allowed after reloading at 20:00")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	GameState.save_path = old
+	GameState.persistence_enabled = false
+
+## P3-18: a campus faint is told in campus words, names what was lost, ends the
+## action at home and stays on the home card.
+func _test_campus_faint() -> void:
+	model.open_counter()
+	model.greet()
+	check(model.pack_counter().get("ok", false), "A minimum meal is carried for the faint check")
+	model.travel("class")
+	model.select_scene("class_before_class")
+	GameState.food = 80
+	GameState.warmth = 80
+	GameState.energy = 0.5
+	var faints: int = GameState.faints
+	var before: float = GameState.day_time
+	var schedule: int = model.campus.schedule.size()
+	model.joint_activity(true)
+	check(GameState.faints == faints + 1 and model.location == "home" and GameState.day_time > before, "P3-18: the faint ends the activity at home without rewinding the clock")
+	check(screen.status.text.contains("昏倒") and screen.status.text.contains("住处") and not screen.status.text.contains("庇护所") and not screen.status.text.contains("已完成离线共同活动"), "P3-18: the faint is the visible campus notice: " + screen.status.text)
+	check(screen.status.text.contains("丢了随身的汉堡") and model.visible_items("bag").is_empty(), "P3-18: the lost carried item is named")
+	check(screen.situation.text.contains("你刚才昏倒了") and screen.transcript.text.contains("昏倒"), "P3-18: the faint stays on the home card and in the dialogue paper")
+	check(model.campus.schedule.size() == schedule + 1, "The activity done before the faint stays in today's schedule")
+	model.travel("class")
+	check(model.faint_note.is_empty(), "The next explicit action clears the faint note")
+
+## P3-22: example speakers by name, playback that cannot happen says so, and
+## 暂时跳过 is remembered.
+func _test_example_and_skip() -> void:
+	model.select_scene("class_before_class")
+	screen._example()
+	var texts: Array = _modal_texts()
+	check(texts.any(func(text): return text.begins_with("Alex\n")) and texts.any(func(text): return text.begins_with("你\n")) and not texts.any(func(text): return text.begins_with("alex\n") or text.begins_with("player\n")), "P3-22: example lines name their speakers")
+	var listen: Array = screen.modal_body.find_children("*", "Button", true, false).filter(func(node): return node.text == "听这一句")
+	listen[0].pressed.emit()
+	check(screen.example_note.text.contains("角色语音暂未开启"), "P3-22: 听这一句 without NPC voice says so")
+	NpcVoice.line_audio_failed.emit("alex", screen.example_line, "VOICE_REASON_SERVICE_UNAVAILABLE")
+	check(screen.example_note.text.contains("暂时无法播放"), "P3-22: a failed example playback is reported in the panel")
+	screen.modal.hide()
+	var path := "user://campus-skip-%d.json" % Time.get_ticks_usec()
+	var old: String = GameState.save_path
+	var old_chapter: String = model.novel_save_path
+	GameState.persistence_enabled = true
+	GameState.save_path = path
+	model.novel_save_path = path
+	screen._profile()
+	var skip: Array = screen.modal_body.find_children("*", "Button", true, false).filter(func(node): return node.text == "暂时跳过")
+	skip[0].pressed.emit()
+	check(FileAccess.file_exists(path) and not screen.modal.visible, "P3-22: 暂时跳过 is saved, so the profile does not return on the next launch")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	model.novel_save_path = old_chapter
+	GameState.save_path = old
+	GameState.persistence_enabled = false
+
 func _test_group_audio() -> void:
 	var transport: Node = model.conversation
 	var original_player: Callable = transport.play_reply
@@ -251,7 +422,8 @@ func _test_save() -> void:
 	GameState.presentation_state.clear()
 	check(GameState.load_game(), "Campus domain writes and loads shared item format")
 	var restored = State.new()
-	check(restored.restore(GameState.presentation_state.campus) and restored.social == expected, "Campus payload restores separately")
+	# The save keeps 15 significant digits, so a fractional meter compares approximately.
+	check(restored.restore(GameState.presentation_state.campus) and is_equal_approx(restored.social, expected), "Campus payload restores separately")
 	var reloaded = preload("res://scripts/novel/campus_controller.gd").new()
 	reloaded.novel_save_path = path
 	reloaded.boot_from_save = true

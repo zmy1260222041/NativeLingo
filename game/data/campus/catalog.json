@@ -328,7 +328,7 @@
         "Sam can compare one section but is short on time."
       ],
       "player_goal": "Make a bounded request and acknowledge the other person's effort.",
-      "npc_goal": "Alex will share the relevant section but wants to keep the original notebook and avoid doing the player’s work.",
+      "npc_goal": "Sam will share the relevant section but wants to keep the original notebook and avoid doing the player’s work.",
       "depth": [
         "Reciprocity without assuming someone owes you help.",
         "Ask for a concrete example, explain why it mattered, then connect it to what the player said."
@@ -336,8 +336,8 @@
       "exit": "Agree which section to copy and when to return the notebook; borrowing may also be declined.",
       "relationships": {
         "stranger": "First meeting during 借笔记: Before the next class, Sam has a notebook open. Start by establishing the immediate situation. Opening possibility: You can look at that section, but I need the notebook back before I leave. Do not assume a previous meeting.",
-        "acquaintance": "You recognize the player during 借笔记, but know only the supplied memories. Your immediate concern is: Alex will share the relevant section but wants to keep the original notebook and avoid doing the player’s work. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
-        "familiar": "In 借笔记, this familiar person can hear a more candid opinion: Alex will share the relevant section but wants to keep the original notebook and avoid doing the player’s work. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Agree which section to copy and when to return the notebook; borrowing may also be declined."
+        "acquaintance": "You recognize the player during 借笔记, but know only the supplied memories. Your immediate concern is: Sam will share the relevant section but wants to keep the original notebook and avoid doing the player’s work. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
+        "familiar": "In 借笔记, this familiar person can hear a more candid opinion: Sam will share the relevant section but wants to keep the original notebook and avoid doing the player’s work. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Agree which section to copy and when to return the notebook; borrowing may also be declined."
       },
       "profile_fields": [
         "major",
@@ -1122,7 +1122,7 @@
         "Maya would like company but can accept a no."
       ],
       "player_goal": "Decline clearly, optionally suggest a real alternative.",
-      "npc_goal": "Riley needs a clear answer for planning and will accept a refusal without demanding private reasons.",
+      "npc_goal": "Maya needs a clear answer for planning and will accept a refusal without demanding private reasons.",
       "depth": [
         "Keep a friendship without agreeing to every invitation.",
         "Ask for a concrete example, explain why it mattered, then connect it to what the player said."
@@ -1130,8 +1130,8 @@
       "exit": "Decline plainly; offer a smaller role only if the player actually wants it.",
       "relationships": {
         "stranger": "First meeting during 婉拒邀请: A member invites you to stay after the meeting. Start by establishing the immediate situation. Opening possibility: Would you be able to help at the next meeting? Do not assume a previous meeting.",
-        "acquaintance": "You recognize the player during 婉拒邀请, but know only the supplied memories. Your immediate concern is: Riley needs a clear answer for planning and will accept a refusal without demanding private reasons. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
-        "familiar": "In 婉拒邀请, this familiar person can hear a more candid opinion: Riley needs a clear answer for planning and will accept a refusal without demanding private reasons. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Decline plainly; offer a smaller role only if the player actually wants it."
+        "acquaintance": "You recognize the player during 婉拒邀请, but know only the supplied memories. Your immediate concern is: Maya needs a clear answer for planning and will accept a refusal without demanding private reasons. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
+        "familiar": "In 婉拒邀请, this familiar person can hear a more candid opinion: Maya needs a clear answer for planning and will accept a refusal without demanding private reasons. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Decline plainly; offer a smaller role only if the player actually wants it."
       },
       "profile_fields": [
         "clubs",
@@ -1194,7 +1194,7 @@
         "Riley prioritizes inclusion; Jules worries the plan lacks focus."
       ],
       "player_goal": "Name the tradeoff and propose a workable compromise.",
-      "npc_goal": "Jules worries about depth while Maya worries that the proposed event excludes beginners.",
+      "npc_goal": "Jules worries about depth while Riley worries that the proposed event excludes beginners.",
       "depth": [
         "Separate disagreeing about a plan from disliking a person.",
         "Ask for a concrete example, explain why it mattered, then connect it to what the player said."
@@ -1202,8 +1202,8 @@
       "exit": "Record the compromise or the two options still under discussion; nobody must pretend to agree.",
       "relationships": {
         "stranger": "First meeting during 处理意见冲突: Planning has stalled because members want different formats. Start by establishing the immediate situation. Opening possibility: If we make it too open-ended, people might leave without learning anything. Do not assume a previous meeting.",
-        "acquaintance": "You recognize the player during 处理意见冲突, but know only the supplied memories. Your immediate concern is: Jules worries about depth while Maya worries that the proposed event excludes beginners. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
-        "familiar": "In 处理意见冲突, this familiar person can hear a more candid opinion: Jules worries about depth while Maya worries that the proposed event excludes beginners. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Record the compromise or the two options still under discussion; nobody must pretend to agree."
+        "acquaintance": "You recognize the player during 处理意见冲突, but know only the supplied memories. Your immediate concern is: Jules worries about depth while Riley worries that the proposed event excludes beginners. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
+        "familiar": "In 处理意见冲突, this familiar person can hear a more candid opinion: Jules worries about depth while Riley worries that the proposed event excludes beginners. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Record the compromise or the two options still under discussion; nobody must pretend to agree."
       },
       "profile_fields": [
         "clubs",
@@ -1211,29 +1211,29 @@
       ],
       "hints": {
         "open": "I see that concern. I also worry a structured workshop could intimidate beginners.",
-        "follow_up": "That addresses my main concern. Let us check whether Riley has enough help for both parts.",
+        "follow_up": "That addresses my main concern. Do we have enough help for both parts?",
         "deepen": "Separate disagreeing about a plan from disliking a person."
       },
       "example": [
         {
-          "speaker_id": "riley",
+          "speaker_id": "jules",
           "reply_to": "player",
           "text": "If we make it too open-ended, people might leave without learning anything."
         },
         {
           "speaker_id": "player",
-          "reply_to": "riley",
+          "reply_to": "jules",
           "text": "I see that concern. I also worry a structured workshop could intimidate beginners."
         },
         {
-          "speaker_id": "jules",
+          "speaker_id": "riley",
           "reply_to": "player",
           "text": "Could we offer a short guided part and let people opt out of presenting?"
         },
         {
           "speaker_id": "player",
-          "reply_to": "jules",
-          "text": "That addresses my main concern. Let us check whether Riley has enough help for both parts."
+          "reply_to": "riley",
+          "text": "That addresses my main concern. Do we have enough help for both parts?"
         }
       ],
       "authorship": "authored_fiction",
@@ -1265,16 +1265,16 @@
         "Sam is finishing a reading and may want quiet at first."
       ],
       "player_goal": "Ask to sit and respect whether the person wants to talk.",
-      "npc_goal": "Maya is saving a different chair for a friend and wants to avoid an awkward misunderstanding.",
+      "npc_goal": "Sam is saving a different chair for a friend and wants to avoid an awkward misunderstanding.",
       "depth": [
         "Read a short answer without assuming rejection.",
         "Ask for a concrete example, explain why it mattered, then connect it to what the player said."
       ],
-      "exit": "Sit in the available seat or thank Maya and look elsewhere; no conversation is owed.",
+      "exit": "Sit in the available seat or thank Sam and look elsewhere; no conversation is owed.",
       "relationships": {
         "stranger": "First meeting during 询问空位: A shared table has an empty chair. Start by establishing the immediate situation. Opening possibility: This seat is open, but I am saving the one across from me. Do not assume a previous meeting.",
-        "acquaintance": "You recognize the player during 询问空位, but know only the supplied memories. Your immediate concern is: Maya is saving a different chair for a friend and wants to avoid an awkward misunderstanding. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
-        "familiar": "In 询问空位, this familiar person can hear a more candid opinion: Maya is saving a different chair for a friend and wants to avoid an awkward misunderstanding. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Sit in the available seat or thank Maya and look elsewhere; no conversation is owed."
+        "acquaintance": "You recognize the player during 询问空位, but know only the supplied memories. Your immediate concern is: Sam is saving a different chair for a friend and wants to avoid an awkward misunderstanding. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
+        "familiar": "In 询问空位, this familiar person can hear a more candid opinion: Sam is saving a different chair for a friend and wants to avoid an awkward misunderstanding. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Sit in the available seat or thank Sam and look elsewhere; no conversation is owed."
       },
       "profile_fields": [
         "housing",
@@ -1336,7 +1336,7 @@
         "Alex is deciding whether to eat now or take food away."
       ],
       "player_goal": "Use the shared situation to start a low-pressure exchange.",
-      "npc_goal": "Sam has limited time before work and wants a little company without missing the moving line.",
+      "npc_goal": "Alex has limited time before work and wants a little company without missing the moving line.",
       "depth": [
         "Move from today's schedule to how each person balances their week.",
         "Ask for a concrete example, explain why it mattered, then connect it to what the player said."
@@ -1344,8 +1344,8 @@
       "exit": "Move forward when the line moves, then wish the other person well or continue at a table.",
       "relationships": {
         "stranger": "First meeting during 排队闲聊: Waiting in the dining line after class. Start by establishing the immediate situation. Opening possibility: I thought I had plenty of time, and then I saw this line. Do not assume a previous meeting.",
-        "acquaintance": "You recognize the player during 排队闲聊, but know only the supplied memories. Your immediate concern is: Sam has limited time before work and wants a little company without missing the moving line. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
-        "familiar": "In 排队闲聊, this familiar person can hear a more candid opinion: Sam has limited time before work and wants a little company without missing the moving line. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Move forward when the line moves, then wish the other person well or continue at a table."
+        "acquaintance": "You recognize the player during 排队闲聊, but know only the supplied memories. Your immediate concern is: Alex has limited time before work and wants a little company without missing the moving line. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
+        "familiar": "In 排队闲聊, this familiar person can hear a more candid opinion: Alex has limited time before work and wants a little company without missing the moving line. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Move forward when the line moves, then wish the other person well or continue at a table."
       },
       "profile_fields": [
         "housing",
@@ -1480,7 +1480,7 @@
         "Sam is juggling work; Maya wants to make more time for friends."
       ],
       "player_goal": "Join without making the conversation an interview.",
-      "npc_goal": "Alex and Maya are comparing a recent class discussion; both want room to finish their point.",
+      "npc_goal": "Maya and Sam are comparing a recent class discussion; both want room to finish their point while Jules listens.",
       "depth": [
         "Share a comparable experience without taking over the topic.",
         "Ask for a concrete example, explain why it mattered, then connect it to what the player said."
@@ -1488,8 +1488,8 @@
       "exit": "Contribute a related experience and then pass the floor back to one of the original speakers.",
       "relationships": {
         "stranger": "First meeting during 加入同桌话题: Friends are discussing how their week has been. Start by establishing the immediate situation. Opening possibility: We were wondering whether that example really changed anyone’s mind. Do not assume a previous meeting.",
-        "acquaintance": "You recognize the player during 加入同桌话题, but know only the supplied memories. Your immediate concern is: Alex and Maya are comparing a recent class discussion; both want room to finish their point. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
-        "familiar": "In 加入同桌话题, this familiar person can hear a more candid opinion: Alex and Maya are comparing a recent class discussion; both want room to finish their point. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Contribute a related experience and then pass the floor back to one of the original speakers."
+        "acquaintance": "You recognize the player during 加入同桌话题, but know only the supplied memories. Your immediate concern is: Maya and Sam are comparing a recent class discussion; both want room to finish their point while Jules listens. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
+        "familiar": "In 加入同桌话题, this familiar person can hear a more candid opinion: Maya and Sam are comparing a recent class discussion; both want room to finish their point while Jules listens. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Contribute a related experience and then pass the floor back to one of the original speakers."
       },
       "profile_fields": [
         "housing",
@@ -1692,7 +1692,7 @@
         "Sam wants something quick; Jules would rather sit down; dietary facts are unknown."
       ],
       "player_goal": "State preferences, ask about constraints and find a compromise.",
-      "npc_goal": "Maya wants a quieter place while Sam needs an option that fits a short break.",
+      "npc_goal": "Jules wants a quieter place while Sam needs an option that fits a short break.",
       "depth": [
         "Make room for a quieter person's needs.",
         "Ask for a concrete example, explain why it mattered, then connect it to what the player said."
@@ -1700,8 +1700,8 @@
       "exit": "Choose an option that people explicitly accept, or split up without treating it as rejection.",
       "relationships": {
         "stranger": "First meeting during 协调就餐偏好: Choosing where to eat together. Start by establishing the immediate situation. Opening possibility: I could use somewhere quieter today, but I know Sam cannot stay long. Do not assume a previous meeting.",
-        "acquaintance": "You recognize the player during 协调就餐偏好, but know only the supplied memories. Your immediate concern is: Maya wants a quieter place while Sam needs an option that fits a short break. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
-        "familiar": "In 协调就餐偏好, this familiar person can hear a more candid opinion: Maya wants a quieter place while Sam needs an option that fits a short break. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Choose an option that people explicitly accept, or split up without treating it as rejection."
+        "acquaintance": "You recognize the player during 协调就餐偏好, but know only the supplied memories. Your immediate concern is: Jules wants a quieter place while Sam needs an option that fits a short break. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
+        "familiar": "In 协调就餐偏好, this familiar person can hear a more candid opinion: Jules wants a quieter place while Sam needs an option that fits a short break. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Choose an option that people explicitly accept, or split up without treating it as rejection."
       },
       "profile_fields": [
         "housing",
@@ -1714,23 +1714,23 @@
       },
       "example": [
         {
-          "speaker_id": "sam",
+          "speaker_id": "jules",
           "reply_to": "player",
           "text": "I could use somewhere quieter today, but I know Sam cannot stay long."
         },
         {
           "speaker_id": "player",
-          "reply_to": "sam",
+          "reply_to": "jules",
           "text": "Could we find a nearby table and keep lunch short?"
         },
         {
-          "speaker_id": "jules",
+          "speaker_id": "sam",
           "reply_to": "player",
-          "text": "That works for me if there is space. We should ask Sam before deciding."
+          "text": "That works for me if we can order quickly. I only have a short break."
         },
         {
           "speaker_id": "player",
-          "reply_to": "jules",
+          "reply_to": "sam",
           "text": "Agreed. If it does not work, we can eat separately and catch up another day."
         }
       ],
@@ -1763,7 +1763,7 @@
         "A future meal requires an explicit agreement, not an assumed appointment."
       ],
       "player_goal": "Close warmly and make a low-pressure invitation.",
-      "npc_goal": "Maya is open to another lunch but does not want a vague suggestion treated as a firm appointment.",
+      "npc_goal": "Alex is open to another lunch but does not want a vague suggestion treated as a firm appointment.",
       "depth": [
         "Be specific enough to follow up while allowing a refusal.",
         "Ask for a concrete example, explain why it mattered, then connect it to what the player said."
@@ -1771,8 +1771,8 @@
       "exit": "Distinguish a tentative invitation from a confirmed time, then let both people leave.",
       "relationships": {
         "stranger": "First meeting during 结束与下次邀约: Lunch is ending and someone needs to leave. Start by establishing the immediate situation. Opening possibility: I enjoyed this. Would you want to have lunch again? Do not assume a previous meeting.",
-        "acquaintance": "You recognize the player during 结束与下次邀约, but know only the supplied memories. Your immediate concern is: Maya is open to another lunch but does not want a vague suggestion treated as a firm appointment. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
-        "familiar": "In 结束与下次邀约, this familiar person can hear a more candid opinion: Maya is open to another lunch but does not want a vague suggestion treated as a firm appointment. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Distinguish a tentative invitation from a confirmed time, then let both people leave."
+        "acquaintance": "You recognize the player during 结束与下次邀约, but know only the supplied memories. Your immediate concern is: Alex is open to another lunch but does not want a vague suggestion treated as a firm appointment. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
+        "familiar": "In 结束与下次邀约, this familiar person can hear a more candid opinion: Alex is open to another lunch but does not want a vague suggestion treated as a firm appointment. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Distinguish a tentative invitation from a confirmed time, then let both people leave."
       },
       "profile_fields": [
         "housing",
@@ -2049,7 +2049,7 @@
         "Alex uses exercise as a break from commuting and study."
       ],
       "player_goal": "Use downtime to connect over routines.",
-      "npc_goal": "Jules wants to pass the wait without being pressured into personal disclosure or competition.",
+      "npc_goal": "Casey wants to pass the wait without being pressured into personal disclosure or competition.",
       "depth": [
         "What makes a routine sustainable when school gets busy?",
         "Ask for a concrete example, explain why it mattered, then connect it to what the player said."
@@ -2057,8 +2057,8 @@
       "exit": "When the next round is ready, finish the thought and return attention to the activity.",
       "relationships": {
         "stranger": "First meeting during 等待时闲聊: Waiting for a turn at the recreation area. Start by establishing the immediate situation. Opening possibility: Do you usually come for the activity itself, or for the people? Do not assume a previous meeting.",
-        "acquaintance": "You recognize the player during 等待时闲聊, but know only the supplied memories. Your immediate concern is: Jules wants to pass the wait without being pressured into personal disclosure or competition. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
-        "familiar": "In 等待时闲聊, this familiar person can hear a more candid opinion: Jules wants to pass the wait without being pressured into personal disclosure or competition. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: When the next round is ready, finish the thought and return attention to the activity."
+        "acquaintance": "You recognize the player during 等待时闲聊, but know only the supplied memories. Your immediate concern is: Casey wants to pass the wait without being pressured into personal disclosure or competition. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
+        "familiar": "In 等待时闲聊, this familiar person can hear a more candid opinion: Casey wants to pass the wait without being pressured into personal disclosure or competition. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: When the next round is ready, finish the thought and return attention to the activity."
       },
       "profile_fields": [
         "sports",
@@ -2121,7 +2121,7 @@
         "People prefer different amounts of direction; nobody has agreed on roles yet."
       ],
       "player_goal": "Offer a practical adjustment and invite feedback.",
-      "npc_goal": "Casey wants clearer communication; Jules prefers a short cue instead of several instructions at once.",
+      "npc_goal": "Casey wants clearer communication; Sam prefers a short cue instead of several instructions at once.",
       "depth": [
         "Giving advice without sounding like you are blaming a teammate.",
         "Ask for a concrete example, explain why it mattered, then connect it to what the player said."
@@ -2129,8 +2129,8 @@
       "exit": "Agree one cue to try during the next round, then review whether it helped.",
       "relationships": {
         "stranger": "First meeting during 团队配合: A short pause during a shared activity. Start by establishing the immediate situation. Opening possibility: I think we are giving each other too many instructions at once. Do not assume a previous meeting.",
-        "acquaintance": "You recognize the player during 团队配合, but know only the supplied memories. Your immediate concern is: Casey wants clearer communication; Jules prefers a short cue instead of several instructions at once. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
-        "familiar": "In 团队配合, this familiar person can hear a more candid opinion: Casey wants clearer communication; Jules prefers a short cue instead of several instructions at once. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Agree one cue to try during the next round, then review whether it helped."
+        "acquaintance": "You recognize the player during 团队配合, but know only the supplied memories. Your immediate concern is: Casey wants clearer communication; Sam prefers a short cue instead of several instructions at once. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
+        "familiar": "In 团队配合, this familiar person can hear a more candid opinion: Casey wants clearer communication; Sam prefers a short cue instead of several instructions at once. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Agree one cue to try during the next round, then review whether it helped."
       },
       "profile_fields": [
         "sports",
@@ -2264,7 +2264,7 @@
         "Casey enjoyed one improvement but is frustrated by another part."
       ],
       "player_goal": "Offer a specific observation and share your own reaction.",
-      "npc_goal": "Jules wants a specific reflection rather than a score or automatic praise.",
+      "npc_goal": "Casey wants a specific reflection rather than a score or automatic praise.",
       "depth": [
         "Separate enjoying an activity from being good at it.",
         "Ask for a concrete example, explain why it mattered, then connect it to what the player said."
@@ -2272,8 +2272,8 @@
       "exit": "Share one useful observation and let tired players head home.",
       "relationships": {
         "stranger": "First meeting during 赛后交流: Cooling down after an activity. Start by establishing the immediate situation. Opening possibility: What felt different for you in that last round? Do not assume a previous meeting.",
-        "acquaintance": "You recognize the player during 赛后交流, but know only the supplied memories. Your immediate concern is: Jules wants a specific reflection rather than a score or automatic praise. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
-        "familiar": "In 赛后交流, this familiar person can hear a more candid opinion: Jules wants a specific reflection rather than a score or automatic praise. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Share one useful observation and let tired players head home."
+        "acquaintance": "You recognize the player during 赛后交流, but know only the supplied memories. Your immediate concern is: Casey wants a specific reflection rather than a score or automatic praise. Acknowledge a known detail if relevant, then ask whether the player wants to continue it.",
+        "familiar": "In 赛后交流, this familiar person can hear a more candid opinion: Casey wants a specific reflection rather than a score or automatic praise. Connect to a supplied shared experience, leave room for changed preferences, and conclude naturally: Share one useful observation and let tired players head home."
       },
       "profile_fields": [
         "sports",

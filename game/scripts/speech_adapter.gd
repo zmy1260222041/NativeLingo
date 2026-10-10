@@ -609,12 +609,16 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 	last_unavailable_reason = ""
 	if accepted:
 		_clear_recovery(false)
-		if not _wants_fast_transcribe(target_id):
+		# C1-10: town dialogue releases a fast turn when its reply ends; campus
+		# turns are not run by that service, so the clock is released here.
+		if not _wants_fast_transcribe(target_id) or target_id.begins_with("campus:"):
 			GameState.set_interaction_time_frozen(false)
 		recognition_finished.emit(target_id, true, transcript, reason, expression)
 	else:
 		recovery_active = true
 		recovery_target_id = target_id
+		if target_id.begins_with("campus:"):
+			GameState.set_interaction_time_frozen(false)
 		recognition_finished.emit(target_id, false, transcript, reason, expression)
 
 func _extract_expression(parsed: Dictionary) -> Dictionary:
@@ -632,6 +636,9 @@ func _emit_failure(target_id: String, generation: int, reason: String) -> void:
 	mark_runtime_unavailable(reason)
 	recovery_active = true
 	recovery_target_id = target_id
+	# X1-09: the 2D campus has no recovery prompt that holds the clock.
+	if target_id.begins_with("campus:"):
+		GameState.set_interaction_time_frozen(false)
 	recognition_finished.emit(target_id, false, "", reason, {})
 
 func _request_in_flight() -> bool:

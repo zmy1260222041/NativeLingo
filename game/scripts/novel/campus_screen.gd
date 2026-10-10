@@ -42,6 +42,10 @@ var text_elapsed := 0.0
 var reveal_button: Button
 var previous_focus: Control
 var scene_only_controls: Array[Control] = []
+## P3-10: the dialogue paper shows the campus note until a line is spoken.
+var showing_note := false
+var example_note: Label
+var example_line := ""
 const SETTINGS := "user://stranger_novel_settings.cfg"
 
 func _ready() -> void:
@@ -71,6 +75,8 @@ func _ready() -> void:
 	model.start(false)
 	_refresh()
 	SpeechAdapter.recording_state_changed.connect(func(_active): _refresh())
+	NpcVoice.line_audio_ready.connect(_example_audio)
+	NpcVoice.line_audio_failed.connect(func(npc, line, _reason): _example_audio(npc, line, true))
 	if boot_from_save and not FileAccess.file_exists(model.novel_save_path): _profile()
 	if not model.save_valid: _set_status("存档读取失败，已保护原文件并停止自动保存。")
 	navigation[0].grab_focus()
@@ -357,7 +363,7 @@ func _plan() -> void:
 	_button(modal_body, "回住处休息", func(): model.travel("home"); _close_modal())
 	_label(modal_body, "今天已经做过的事", 23)
 	for entry in model.campus.schedule:
-		if int(entry.day) == GameState.day: _label(modal_body, "%02d:%02d  %s" % [int(entry.hour), int(fmod(entry.hour, 1) * 60), entry.detail], 18)
+		if int(entry.day) == GameState.day: _label(modal_body, "%02d:%02d  %s" % [roundi(entry.hour * 60) / 60, roundi(entry.hour * 60) % 60, entry.detail], 18)
 
 func _settings() -> void:
 	_open("阅读与声音")
@@ -413,8 +419,9 @@ func _show_scene() -> void:
 		_set_status("这里可以学习、整理物品，或好好休息。" if model.location == "home" else "阅读、录音和重试不消耗游戏时间。")
 		transcript_entries.clear()
 		turn_replies.clear()
-		transcript.text = "想说的话，可以从这里开始。先听听自己的想法，不必急着找到完美的句子。"
+		transcript.text = _note_text()
 		speaker_label.text = "校园手记"
+		showing_note = model.exchange.is_empty()
 		if not model.exchange.is_empty():
 			var last: Dictionary = model.exchange[-1]
 			transcript.text = Palette.plain_quotes(str(last.text))
@@ -423,6 +430,9 @@ func _show_scene() -> void:
 		last_scene = model.session
 	scene_title.text = "校园餐饮柜台" if model.service_mode else str(scene.title)
 	situation.text = "先确认想要的食物。准备好后，可以在柜台直接吃，或放进行囊带走。" if model.service_mode else str(scene.trigger) + "\n" + str(scene.player_goal)
+	if model.service_mode and SpeechAdapter.runtime_speech_unavailable():
+		# P3-10: the counter's card says what works offline, like the town's.
+		situation.text = "语音点单暂时不可用，也能继续生活。点「手势领取」获得最低份量，再在柜台直接吃，或放进行囊带走。"
 	if not str(scene.get("personal_detail", "")).is_empty(): situation.text += "\n" + str(scene.personal_detail)
 	situation.text = Palette.plain_quotes(situation.text)
 	visual.place = model.location
@@ -431,6 +441,9 @@ func _show_scene() -> void:
 		visual.people = []
 		scene_title.text = "我的住处"
 		situation.text = "放下行囊，给自己一点安静的时间。\n学习、整理，或让今天在好好休息后结束。"
+		if not model.faint_note.is_empty():
+			# P3-18: the faint stays readable at home until the next explicit action.
+			situation.text = str(model.faint_note.title) + "\n" + str(model.faint_note.detail)
 	visual.active = ""
 	visual.queue_redraw()
 	var names := PackedStringArray()
@@ -450,7 +463,7 @@ func _show_scene() -> void:
 		_button(action_row, "休息到晚上", func(): model.wait_until_evening())
 		_button(action_row, "睡觉，开始新一天", func(): model.sleep())
 	elif model.service_mode:
-		_button(action_row, "语音不可用时领取最低份量", func(): model.greet())
+		_button(action_row, "手势领取（语音不可用时）", func(): model.greet())
 	else:
 		_button(action_row, "完成共同活动 · 1 小时", func(): model.joint_activity(false))
 		_button(action_row, "离线参加活动 · 不评口语", _offline_activity)
@@ -462,7 +475,8 @@ func _refresh() -> void:
 	if meters.is_empty(): return
 	visual.evening = GameState.clock_hours() >= 19.0
 	visual.queue_redraw()
-	week_label.text = "第 %d 周 · 第 %d 天 · %02d:%02d" % [model.campus.week, GameState.day, int(GameState.clock_hours()), int(fmod(GameState.clock_hours(), 1) * 60)]
+	var minutes: int = model.clock_minutes()
+	week_label.text = "第 %d 周 · 第 %d 天 · %02d:%02d" % [model.campus.week, GameState.day, minutes / 60, minutes % 60]
 	var values := [GameState.food, GameState.warmth, GameState.energy, model.campus.social, model.campus.academic]
 	var names := ["饮食", "温暖", "精力", "社交需求", "学业成绩"]
 	for i in range(5):
@@ -481,13 +495,21 @@ func _refresh() -> void:
 	record_button.disabled = (busy and not SpeechAdapter.is_recording()) or (at_home and model.practice_word.is_empty())
 	record_button.text = ("结束录音 · " if SpeechAdapter.is_recording() else "录音 · ") + Glyphs.for_action("push_to_talk", false)
 	retry_button.visible = not model.retry_text.is_empty() and not busy
-	connection_label.text = "正在录音" if SpeechAdapter.is_recording() else ("正在回应…" if busy else ("文字交流" if model.muted or not NpcVoice.is_available() else "语音与文字均可用"))
+	connection_label.text = "正在录音" if SpeechAdapter.is_recording() else ("正在回应…" if busy else model.connection_text())
 	if at_home and model.practice_word.is_empty(): connection_label.text = "住处 · 休息与整理"
+	# P3-10: a /health result or failed turn that lands later updates the note in place.
+	if showing_note and transcript.text != _note_text(): transcript.text = _note_text()
+
+## P3-10: the offline note persists like the town's card; otherwise the usual invitation.
+func _note_text() -> String:
+	var note: String = model.offline_note()
+	return note if not note.is_empty() else "想说的话，可以从这里开始。先听听自己的想法，不必急着找到完美的句子。"
 
 func _line(id: String, text: String) -> void:
 	if transcript == null: return
 	text = Palette.plain_quotes(text)
-	var name: String = "你" if id == "you" else str(model.campus.catalog.profiles.get(id, {}).get("name", id))
+	showing_note = false
+	var name: String = "你" if id == "you" else ("校园手记" if id.is_empty() else str(model.campus.catalog.profiles.get(id, {}).get("name", id)))
 	transcript_entries.append(name + "\n" + text)
 	if transcript_entries.size() > 60: transcript_entries.pop_front()
 	if id == "you": turn_replies.clear()
@@ -578,11 +600,13 @@ func _profile() -> void:
 		_button(actions, "建立" + str(Controller.PLACES[domain]) + "练习卡", func():
 			apply.call()
 			if model.create_practice(brief.text, domain, practice_title.text, practice_goal.text): _close_modal())
-	_button(actions, "暂时跳过", func(): modal.hide())
+	# P3-22: skipping counts as having seen the profile; the next launch goes straight in.
+	_button(actions, "暂时跳过", func(): model.save(); _close_modal())
 
-func _memories() -> void:
+func _memories(notice := "") -> void:
 	_open("人物记忆 · 可以更正或删除")
-	if model.campus.memories.is_empty(): _label(modal_body, "还没有共同记忆。分享一件具体的事，或参加一次活动。")
+	if not notice.is_empty(): _label(modal_body, notice, 18).add_theme_color_override("font_color", Palette.POSITIVE)
+	if model.campus.memories.is_empty(): _label(modal_body, "还没有共同记忆。交流时分享一件具体的事，对方会记住你的原话。")
 	for memory in model.campus.memories:
 		var owner: String = str(memory.get("speaker_id", "player"))
 		var author: String = "你" if owner == "player" else str(model.campus.catalog.profiles.get(owner, {}).get("name", owner))
@@ -596,35 +620,74 @@ func _memories() -> void:
 		modal_body.add_child(edit)
 		var row := HBoxContainer.new()
 		modal_body.add_child(row)
-		_button(row, "更正", func(): model.change_memory(str(memory.id), edit.text); _memories())
-		_button(row, "删除", func(): model.change_memory(str(memory.id), "", true); _memories())
+		_button(row, "更正", func(): model.change_memory(str(memory.id), edit.text); _memories("已更正。之后的交谈只会用到新的说法；当前的交流和进度保留。"))
+		_button(row, "删除", func(): model.change_memory(str(memory.id), "", true); _memories("已删除。这句话不会再进入之后的交谈；当前的交流和进度保留。"))
 
+## P3-16: this week, then the archived weeks (newest first), then the continuing
+## experiences; people and scenes by name, never raw ids or JSON.
 func _reviews() -> void:
 	_open("每周回顾与连续经历")
-	_label(modal_body, "第 %d 周 · 学业完成度 %d / 100" % [model.campus.week, model.campus.academic], 25)
-	_label(modal_body, "本周已体验 %d / 32 个情景；完成 %d 次学习活动。" % [model.campus.week_scenes.size(), model.campus.study_done.size()])
-	for chain in model.campus.catalog.chains:
-		var progress: Dictionary = model.campus.chains.get(chain.id, {"step": 0, "day": 0})
+	var campus = model.campus
+	var this_week := {}
+	for id in campus.relationships: this_week[id] = int(campus.relationships[id]) - int(campus.week_relationship_start.get(id, 0))
+	_label(modal_body, "第 %d 周 · 学业完成度 %d / 100" % [campus.week, campus.academic], 25)
+	_label(modal_body, "本周已体验 %d / 32 个情景；完成 %d 次学习活动。" % [campus.week_scenes.size(), campus.study_done.size()])
+	_label(modal_body, _review_text(campus.week_scenes, this_week, campus.practice_log), 18)
+	for index in range(campus.reviews.size() - 1, -1, -1):
+		var review: Dictionary = campus.reviews[index]
+		_label(modal_body, "第 %d 周回顾 · 学业 %d / 100 · 体验 %d 个情景" % [review.week, review.academic, review.scenarios.size()], 22)
+		_label(modal_body, _review_text(review.scenarios, review.relationships, review.practice), 18)
+	_label(modal_body, "连续经历", 23)
+	for chain in campus.catalog.chains:
+		var progress: Dictionary = campus.chains.get(chain.id, {"step": 0, "day": 0})
 		var step := int(progress.step)
 		_label(modal_body, "%s · %d / 4" % [chain.title, step], 21)
 		if step < 4:
-			var next: Dictionary = model.campus.scenario(str(chain.steps[step]))
+			var next: Dictionary = campus.scenario(str(chain.steps[step]))
 			_label(modal_body, "下一次：" + str(next.title) + ("（明天继续，今天可自由练习）" if int(progress.day) == GameState.day else ""), 18)
 			_button(modal_body, "前往" + str(next.title), func(): model.travel(str(next.domain)); model.select_scene(str(next.id)); modal.hide())
-	for review in model.campus.reviews:
-		_label(modal_body, "第 %d 周 · 学业 %d · 体验 %d 个情景" % [review.week, review.academic, review.scenarios.size()], 22)
-		_label(modal_body, "关系变化：" + JSON.stringify(review.relationships) + "\n练习次数：" + str(review.practice.size()), 18)
+
+func _review_text(scenes: Array, relationships: Dictionary, practice: Array) -> String:
+	var titles := PackedStringArray()
+	for id in scenes: titles.append(str(model.campus.scenario(str(id)).get("title", "校园情景")))
+	var people := PackedStringArray()
+	for id in relationships:
+		if int(relationships[id]) > 0: people.append("%s（%d 次进展，现在%s）" % [model.campus.catalog.profiles.get(id, {}).get("name", "同学"), int(relationships[id]), {"stranger": "还未认识", "acquaintance": "初识", "familiar": "熟悉"}[model.campus.relationship_for(id)]])
+	var voice := practice.filter(func(entry): return entry.get("mode") == "voice").size()
+	var lines := PackedStringArray(["体验过的情景：" + ("、".join(titles) if not titles.is_empty() else "还没有")])
+	lines.append("关系进展：" + ("、".join(people) if not people.is_empty() else "这一周还没有新的进展"))
+	lines.append("开口练习 %d 次（语音 %d 次，文字 %d 次）" % [practice.size(), voice, practice.size() - voice])
+	if not practice.is_empty(): lines.append("你说过的一句话：" + Palette.plain_quotes(str(practice[-1].get("text", ""))))
+	return "\n".join(lines)
 
 func _example() -> void:
 	_open("创作示范 · 非真实录音")
 	_label(modal_body, str(model.scene().title), 25)
 	_label(modal_body, "以下是为练习编写的对白；角色配音由语音服务合成。", 18)
 	var scene: Dictionary = model.scene()
+	# P3-22: a playback that cannot happen says so here, above the modal's lines.
+	example_note = _label(modal_body, "", 18)
+	example_note.add_theme_color_override("font_color", Palette.MUTED)
 	for i in range(scene.example.size()):
 		var line: Dictionary = scene.example[i]
-		_label(modal_body, str(line.speaker_id) + "\n" + str(line.text), 20)
+		var name: String = "你" if line.speaker_id == "player" else str(model.campus.catalog.profiles.get(str(line.speaker_id), {}).get("name", "同学"))
+		_label(modal_body, name + "\n" + Palette.plain_quotes(str(line.text)), 20)
 		if line.speaker_id != "player":
-			_button(modal_body, "听这一句", func(): NpcVoice.request_line(str(line.speaker_id), str(scene.get("base_scenario_id", scene.id)) + "_example_" + str(i)))
+			_button(modal_body, "听这一句", _play_example.bind(str(line.speaker_id), str(scene.get("base_scenario_id", scene.id)) + "_example_" + str(i)))
+
+func _play_example(npc: String, line: String) -> void:
+	example_line = line
+	if not model.npc_voice_ready or not NpcVoice.is_available():
+		example_note.text = "角色语音暂未开启，示范先以文字显示。"
+		return
+	example_note.text = "正在准备示范语音…"
+	NpcVoice.stop_all()
+	# A refused request reports through line_audio_failed as well.
+	NpcVoice.request_line(npc, line)
+
+func _example_audio(_npc: String, line: String, failed := false) -> void:
+	if line != example_line or not is_instance_valid(example_note): return
+	example_note.text = "示范语音暂时无法播放，可以先读文字，稍后再试。这不是你的问题。" if failed else ""
 
 func _coaching() -> void:
 	_open("表达回顾")

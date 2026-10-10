@@ -690,20 +690,7 @@ func _health_result(result: int, code: int, _headers: PackedStringArray, body: P
 	online_dialogue = reachable and bool(data.get("dialogue_ready", false))
 	npc_voice_ready = reachable and bool(data.get("tts_configured", true))
 	var healthy := asr_ready and online_dialogue
-	if not reachable:
-		voice_status = "语音服务还没有启动。现在可以看文字、听日常，用「手势领取」最低份量；启动后在设置里重新检查。"
-	elif healthy:
-		voice_status = "语音识别和在线交谈都已连接，可以进入商店开口交谈。"
-	else:
-		var missing: Array[String] = []
-		if not asr_ready: missing.append("语音识别")
-		if not online_dialogue: missing.append("在线交谈")
-		voice_status = ("录音可以进行，但%s暂不可用" if not asr_ready else "%s暂时连不上") % "和".join(missing)
-		if not online_dialogue and str(data.get("dialogue_reason", "")) == "region_unsupported":
-			voice_status += "（服务商不支持当前地区）"
-		voice_status += "%s。现在可以用「手势领取」最低份量，也可以看文字、听日常。" % ("，角色会显示写好的台词" if not online_dialogue else "")
-	if reachable and not npc_voice_ready:
-		voice_status += "角色语音暂未开启，台词以文字显示。"
+	voice_status = _voice_status_text(reachable, asr_ready, str(data.get("dialogue_reason", "")) if reachable else "")
 	if healthy:
 		SpeechAdapter.last_unavailable_reason = ""
 		_failed_openings.clear()
@@ -714,6 +701,26 @@ func _health_result(result: int, code: int, _headers: PackedStringArray, body: P
 	_status_pending = not healthy or not npc_voice_ready
 	feedback.emit(voice_status)
 	progression_changed.emit()
+
+## One player-facing sentence for what the last /health check proved. The campus
+## names its own options for the same facts (P3-10).
+func _voice_status_text(reachable: bool, asr_ready: bool, dialogue_reason: String) -> String:
+	if not reachable:
+		return "语音服务还没有启动。现在可以看文字、听日常，用「手势领取」最低份量；启动后在设置里重新检查。"
+	var text := ""
+	if asr_ready and online_dialogue:
+		text = "语音识别和在线交谈都已连接，可以进入商店开口交谈。"
+	else:
+		var missing: Array[String] = []
+		if not asr_ready: missing.append("语音识别")
+		if not online_dialogue: missing.append("在线交谈")
+		text = ("录音可以进行，但%s暂不可用" if not asr_ready else "%s暂时连不上") % "和".join(missing)
+		if not online_dialogue and dialogue_reason == "region_unsupported":
+			text += "（服务商不支持当前地区）"
+		text += "%s。现在可以用「手势领取」最低份量，也可以看文字、听日常。" % ("，角色会显示写好的台词" if not online_dialogue else "")
+	if not npc_voice_ready:
+		text += "角色语音暂未开启，台词以文字显示。"
+	return text
 
 func _practice_words() -> Array:
 	var words: Array = []

@@ -276,5 +276,7 @@ func restore(data: Dictionary) -> bool:
 	for key in ["practice_scenes", "schedule", "dialogue_log"]:
 		if data.get(key, []) is Array: set(key, data.get(key, []).duplicate(true))
 	if data.get("conversation", {}) is Dictionary: conversation = data.get("conversation", {}).duplicate(true)
+	# P3-13: older saves stored each joint activity as a fabricated player quote.
+	memories = memories.filter(func(memory): return not (memory.get("speaker_id", "player") == "player" and str(memory.get("text", "")) == "We took part in %s together." % str(scenario(str(memory.get("scenario_id", ""))).get("title", ""))))
 	academic = mini(100, study_done.size() * int(catalog.tuning.get("academic_gain", 10)))
 	return true
