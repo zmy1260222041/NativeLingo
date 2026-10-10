@@ -181,7 +181,7 @@ FR-42 三夜需求主线和运行时不可用时的手势保底继续可玩。�
   - 边界的可验证性以 R-18 门控;R-18 不过则 FR-29 不实现,FR-28 本地服务路径不受影响。
 - **NFR-8 Stranger 核心玩法的联网例外(NFR-1 的第三条例外,授予服务器代理能力)**:下列每一条都是**约束**而非许可。
   - **范围**:授予 FR-32 的 `POST /game/tts`(NPC 语音合成)、FR-36 的 `POST /game/score_word`(词级发音评分)、以及 FR-41 的 `POST /game/dialogue`(情景角色对答 + 地道度)。仅 Stranger 模块,仅在用户显式完成云评分激活后生效(本地开发模式可打本机 `127.0.0.1:17831`)。未激活/无语音构建必须**零出站**;失败时静默降级为文字气泡、免费重试或 `gesture_fallback`,三日主线完整可玩。
-  - **TTS 出站白名单**:客户端只发送 `npc_id + line_id|reply_id + voice/format`;动态回复文本由服务器签发的 `reply_id` 解析,**禁止客户端发送自由文本、玩家音频、照片、设备标识、游戏进度**。模型固定 Qwen 官方 `qwen-audio-3.0-tts-plus`;API key 只存服务器,不入库、不入 PCK、不出服务器。
+  - **TTS 出站白名单**:客户端只发送 `npc_id + line_id|reply_id + voice/format`;动态回复文本由服务器签发的 `reply_id` 解析,**禁止客户端发送自由文本、玩家音频、照片、设备标识、游戏进度**。服务器 TTS 供应商由 `STRANGER_TTS_PROVIDER` 选定,只连接当前供应商(启动与 V 键预热亦然):默认 xAI TTS US-East(`api.x.ai/v1/tts`);可选 Google Cloud TTS Chirp 3: HD(`cloud`:NPC 台词文本发往 `texttospeech.googleapis.com`,服务账号签名断言发往 `oauth2.googleapis.com` 换取访问令牌);仅显式选择 `qwen` 时才使用 Qwen 官方 `qwen-audio-3.0-tts-plus`,不作自动回退。各供应商只收服务器侧 NPC 台词文本,不收玩家音频或转写;API key / 服务账号只存服务器,不入库、不入 PCK、不出服务器。
   - **对话出站白名单(FR-41/FR-45)**:服务器可把**转写文本 + 角色卡 + 最近 8 轮对白 + 玩家词汇档位**(`player_level`,仅 infant/toddler/youth/professional 四档枚举值,非身份信息)发给 Gemini `streamGenerateContent`(或非流式 `generateContent`)或(无 Gemini key 时)xAI Chat Completions。**禁止**把玩家音频、录音、照片、设备标识发给对话模型。Gemini / xAI key 只存服务器环境变量或旁路 `GEMINI.csv` / `XAI.csv`(不入库)。对话模型不评发音。
   - **词级评分出站白名单**:单条 ≤15 秒词级 WAV + 词条 ID + 设备 token;参考音频不出设备(服务器随包部署);解码后立即评分、不写录音文件、无冷存储。
   - **服务器合成缓存**:只缓存按台词 ID / `reply_id` + 参数生成的 NPC 音频,带容量上限与清理;缓存不包含任何用户数据。

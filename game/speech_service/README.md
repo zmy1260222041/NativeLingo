@@ -45,9 +45,24 @@ production score against identical audio.
 
 The default is **xAI TTS, US-East (`us-east-1`)**, using the existing server-only `XAI_API_KEY` or `XAI.csv`. All authored lines, word models and dynamic replies use `https://api.x.ai/v1/tts`; 24 kHz mono 16-bit PCM is streamed, then wrapped as valid WAV for playback/cache. The game never receives this credential. Gemini remains the text-only dialogue provider, and local Whisper/SSL-DTW remain the player recognition/scoring path. No player audio is sent to xAI TTS.
 
-`STRANGER_TTS_PROVIDER=qwen` explicitly selects the historical backend described below; there is no automatic Beijing fallback on US TTS errors. The 2D voice cache uses a new namespace so earlier Qwen files cannot mask the change. Voices: Mira/Eve, Tavi/Ara, Ori/Eve, Rowan/Rex, Vesh/Leo.
+`STRANGER_TTS_PROVIDER=qwen` explicitly selects the historical backend described below; there is no automatic Beijing fallback on US TTS errors. The 2D voice cache uses a new namespace so earlier Qwen files cannot mask the change. Voices: Mira/Eve, Tavi/Ara, Ori/Eve, Rowan/Rex, Vesh/Leo (Mira and Ori share Eve). Each town profile carries pronouns that match its voice (Mira, Tavi, Ori: she/her; Rowan, Vesh: he/him), and every town dialogue payload includes `resident_pronouns` so one resident refers to another consistently.
 
 `GET /health` reports `tts_provider`, `tts_region`, `tts_configured`, and a separate `dialogue_ready`; `GET /health?refresh=1` checks real Gemini generation. A configured key is not treated as successful dialogue. 2D requests include `require_live_dialogue=true`; model failure produces a retriable error, never a scored stub transaction.
+
+`/health` judges each capability separately (FR-46 "失败如实提示"); `ok: true` only means the listener answered:
+
+| Field | Meaning |
+|---|---|
+| `asr_ready` / `asr_reason` | Whisper actually loaded. `asr_reason` is `""` when ready, otherwise `not_checked` (no load attempted yet), `loading`, `asr_not_installed` (no `faster_whisper`), `model_missing` (no `models/whisper-base.en` and the `base.en` download failed) or `load_failed` (local model present but unusable). Each recording retries the load. |
+| `reference_scorer_ready` | The desktop SSL+DTW stack imported; when false, word practice uses the labelled transcript check described below. |
+| `dialogue_ready` / `dialogue_reason` | Gemini generation verified. Without a Gemini key the reason is `not_configured`; an xAI-only setup reports `dialogue_provider: grok`, `dialogue_configured: true`, `dialogue_ready: false`, `dialogue_reason: provider_unverified` — Grok has no readiness probe and is not a supported 2D live path. |
+| `tts_region` | `us-east-1` for xAI, `global` for Google Cloud TTS on its default endpoint (otherwise the endpoint host), `legacy-configured` for Qwen. |
+
+`protocol` stays `2`; older fields are unchanged.
+
+Dialogue failures keep the reasons Godot already localizes and add a machine-readable `detail`: `503 VOICE_REASON_SERVICE_UNAVAILABLE` with `detail: not_configured` (strict turn, no model key at all — checked before the relevance gate) or `provider_failed` (provider error/timeout); `422 VOICE_REASON_DIALOGUE_REJECTED` with `detail: reply_rejected` (the model answered but every candidate failed the content gates; the violations are logged as `stage=dialogue_rejected`) or `transcript_rejected` (offline relevance gate). When the work plane returns no usable `player_turn` (missing or truncated JSON), the score event carries `player_turn.idiomaticity: null` and `player_turn.idiomaticity_source: "unavailable"` (otherwise `gemini`, `grok` or `stub`) and `session.running_score: null`; no stub constant or parser default is ever reported as a model score.
+
+Only local callers are served: a `Host` other than `127.0.0.1`/`localhost` (DNS rebinding) or an `Origin` other than absent/`null`/a localhost page gets `403`; JSON endpoints (`/game/dialogue`, `/game/campus/dialogue`, `/game/tts`, `/game/prewarm`) require `Content-Type: application/json` and audio endpoints (`/transcribe`, `/score_word`) require `audio/*`, otherwise `415`. This keeps CORS "simple" cross-site POSTs away from paid model and TTS calls; the Godot client sends exactly these headers. A malformed `Content-Length` or JSON body answers `400` instead of dropping the connection.
 
 `game/run_novel.command` starts this service automatically for local desktop play. `probe_novel_live.py` is an opt-in paid API test: it plays synthetic WAVs through Godot's real recording effect and finish-recording upload path, and checks word acquisition, two-turn dialogue, audible playback completion and usable item rewards. It does not record the user's physical microphone.
 
@@ -106,6 +121,13 @@ new voice. Signing needs `cryptography`, which the venv currently receives only
 as a transitive dependency of `dashscope` — install it directly if the qwen
 backend is ever removed.
 
+Outbound traffic in this mode: NPC line text to `texttospeech.googleapis.com`
+and the signed service-account assertion to `oauth2.googleapis.com`; no player
+audio or transcript. Prewarm (at startup and on `POST /game/prewarm`) follows
+the active provider: in cloud mode it only mints/caches the OAuth token and
+never opens the DashScope/Qwen (Beijing) websocket pool, which is touched only
+when `STRANGER_TTS_PROVIDER=qwen`.
+
 ## Service-point dialogue (FR-41)
 
 `POST /game/dialogue` takes a transcript, role card id, and short history.
@@ -113,6 +135,12 @@ With `Accept: text/event-stream` it emits `speaking` (first sentence +
 `reply_id`) then `score` (`player_turn`) then `done`. Without that header it
 still returns one JSON object for tests and older clients. Godot then asks
 `/game/tts` for that `reply_id`; free text from the client is rejected.
+Both paths run social and town-orientation turns through the same social-depth
+and town-attitude checks with up to three repair rounds. Campus lines
+(`/game/campus/dialogue`) pass the same AI/prompt-injection/link/profanity gate
+plus a narrow never-grade-aloud check (`your grammar`, `repeat after`,
+`pronunciation score`, ...) inside their repair loop; malformed model fields
+are retried before a line is published, never reported after it was spoken.
 
 Set `GEMINI_API_KEY` (or a gitignored `GEMINI.csv` beside this service) to
 send text-only scene cards to Gemini `gemini-3.1-flash-lite` with
@@ -138,6 +166,9 @@ idiomaticity, but cannot reverse the already-spoken real-time transaction
 commitment. `transaction_complete=true` additionally requires a completion speech
 act, a non-question handoff phrase, and `requested_item == confirmed_item` (allowing
 declared inventory aliases). Generic category terms are never settlement evidence.
+Inventory matching accepts simple number inflection on both the transcript and
+the committed NPC line (`two tacos` ↔ `taco`, `sandwiches` ↔ `sandwich`,
+`a battery` ↔ `batteries`), and a quantity word never blocks an order.
 Without a Gemini key, `XAI_API_KEY` / `XAI.csv` may still
 call grok-4.3. With neither key, the stub completes in-inventory orders and
 refuses off-inventory requests so local tests stay offline.
@@ -354,12 +385,23 @@ Text is never accepted from the client. Reference audio is synthesised with the
 bundled Piper voice (the cloud endpoint uses the same voice), and the
 Whisper-confidence proxy is always labelled when the SSL stack is unavailable.
 
-Unit tests:
+Without the SSL stack the proxy (`pronunciation_source: whisper_confidence`) is
+a binary recognition check, not a confidence: 80 when the transcript contains
+the practice word as a whole word (case and punctuation are ignored, so
+Whisper's `Morning.` or `Good morning.` count), otherwise 20. Spoken-choice
+matching uses the same word-boundary rule (`I want water.` selects `water`).
+An empty transcript returns `VOICE_REASON_CLARIFY`; if transcription itself
+fails and there is no reference scorer, the endpoint returns
+`503 VOICE_REASON_SERVICE_UNAVAILABLE` — a service fault is never reported as
+a low score.
+
+Unit tests (from the repository root; the modules import each other by
+directory, so use discovery rather than dotted module names):
 
 ```sh
-.venv/bin/python -m unittest \
-  game.speech_service.test_dialogue \
-  game.speech_service.test_tts \
-  game.speech_service.test_corpus_pipeline \
-  game.speech_service.test_native_speaker_screener -v
+.venv/bin/python -m unittest discover -s game/speech_service -p 'test_*.py'
 ```
+
+No unit test loads Whisper or calls a paid API. The Cloud TTS pitch-detector
+tests skip unless `praat-parselmouth` (declared in `desktop/requirements.txt`)
+is installed.

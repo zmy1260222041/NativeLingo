@@ -48,3 +48,33 @@ class TownContextTest(unittest.TestCase):
         self.assertTrue(town_context.referral_allowed(body))
         self.assertTrue(town_context.reply_violations(body,profile,'Rowan always helps if you have a small task.'))
         self.assertEqual(town_context.reply_violations(body,profile,'Ori handles water and everyday supplies.'),[])
+
+    def test_residents_are_referred_to_with_pronouns_matching_their_voices(self):
+        # Live logs had Mira call Ori "he" (voiced by a female voice) and
+        # Rowan "they" (voiced by a male voice): profiles now carry pronouns.
+        expected={'mira':'she/her','tavi':'she/her','ori':'she/her','rowan':'he/him','vesh':'he/him'}
+        female={'eve','ara','longanlingxin','Kore','Aoede'}
+        for npc,pronouns in expected.items():
+            self.assertEqual(server._DIALOGUE_PROFILES[npc]['pronouns'],pronouns)
+            self.assertEqual(server.NPC_TTS_VOICES[npc] in female,pronouns=='she/her',npc)
+        body={'transcript':'Who can help me settle in?','history':[],'game_context':{'town_contact':{}}}
+        payload=server._dialogue_user_payload(body,server._DIALOGUE_SCENARIOS['market_conversation'],server._DIALOGUE_PROFILES['mira'])
+        self.assertEqual(payload['resident_pronouns'],{'Mira':'she/her','Ori':'she/her','Rowan':'he/him','Tavi':'she/her','Vesh':'he/him'})
+        service=server._dialogue_user_payload({'transcript':'Can I get a burger?'},server._DIALOGUE_SCENARIOS['food_counter'],server._DIALOGUE_PROFILES['tavi'])
+        self.assertEqual(service['resident_pronouns']['Ori'],'she/her')
+        for prompt in (server._social_system_prompt(),server._dialogue_system_prompt()):
+            self.assertIn('resident_pronouns',prompt)
+        campus=server._dialogue_user_payload({'transcript':'Hi','game_context':{'chapter':'campus'}},server._DIALOGUE_SCENARIOS['food_counter'],server._DIALOGUE_PROFILES['tavi'])
+        self.assertNotIn('resident_pronouns',campus)
+
+    def test_settlement_facts_reach_the_prompt(self):
+        # C2-12: the town is cold and heater-dependent; weather, heat, flowers
+        # and music are not authored, and Rowan's thanks must not invent timing.
+        for prompt in (server._social_system_prompt('toddler'),server._dialogue_system_prompt('toddler')):
+            self.assertIn('nights here are cold',prompt)
+            self.assertIn('heaters',prompt)
+            for unknown in ('weather','heat','flowers','music'):
+                self.assertIn(unknown,prompt)
+        help_line=town_context.social_context({'game_context':{'town_contact':{'helped_rowan':True}}},server._DIALOGUE_PROFILES['rowan'])['confirmed_help'][0]
+        self.assertIn('do not invent when',help_line)
+        self.assertIn('weather',help_line)

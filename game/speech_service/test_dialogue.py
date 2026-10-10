@@ -1,4 +1,5 @@
 import contextlib
+import http.client
 import io
 import json
 import sys
@@ -210,6 +211,36 @@ class DialogueAssetTest(unittest.TestCase):
         browsing = [{"role": "player", "text": "Do you have a burger?"}]
         self.assertFalse(server._is_order_request(scenario, "yes", browsing))
 
+    def test_plural_and_quantity_orders_settle_on_the_named_item(self):
+        # C2-04: inventory lists base forms; natural orders inflect them.
+        cases = [
+            ("food_counter", "Can I get two tacos, please?", "Sure thing, I'll get you two tacos.", "taco"),
+            ("food_counter", "Two burgers to go, please.", "You got it. I'll get you two burgers.", "burger"),
+            ("food_counter", "Could I have two sandwiches?", "Sure thing, two sandwiches coming right up.", "sandwich"),
+            ("convenience_store", "Can I get two waters?", "Sure thing, I'll grab you two waters.", "water"),
+            ("parts_desk", "I need two blankets.", "Sure thing, I'll get you two blankets.", "blanket"),
+            ("convenience_store", "Can I get a battery?", "Sure thing, I'll grab you a battery.", "batteries"),
+        ]
+        for scenario_id, transcript, spoken, item in cases:
+            with self.subTest(transcript=transcript):
+                scenario = server._DIALOGUE_SCENARIOS[scenario_id]
+                self.assertTrue(server._is_order_request(scenario, transcript, []))
+                turn = server._normalise_player_turn(
+                    {"transaction_complete": True, "idiomaticity": 80}, transcript, scenario, [], spoken, "confirm_order"
+                )
+                self.assertEqual((turn["requested_item"], turn["confirmed_item"]), (item, item))
+                self.assertFalse(turn["off_inventory"])
+                self.assertTrue(turn["transaction_complete"])
+        food = server._DIALOGUE_SCENARIOS["food_counter"]
+        self.assertTrue(server._is_order_request(food, "Three tacos to go.", []))
+        stub = server._stub_dialogue({"transcript": "Can I get two tacos, please?", "history": []}, food)
+        self.assertTrue(stub["player_turn"]["transaction_complete"])
+        self.assertIn("taco", stub["text"])
+        # Inflection never loosens the word boundary.
+        for transcript in ("Can I get a tacoshell?", "I'd like something watery.", "Can I get burgerish food?"):
+            with self.subTest(transcript=transcript):
+                self.assertEqual(server._requested_inventory_term(food, transcript, []), "")
+
     def test_natural_requests_distinguish_named_off_inventory_from_missing_reference(self):
         scenario = server._DIALOGUE_SCENARIOS["convenience_store"]
         for transcript in ("Do you sell phone chargers?", "I'm looking for a flashlight."):
@@ -374,7 +405,79 @@ class DialogueAssetTest(unittest.TestCase):
             {"idiomaticity": None}, "Burger.", scenario, []
         )
         self.assertEqual(string_turn["idiomaticity"], 91.0)
-        self.assertEqual(null_turn["idiomaticity"], 0.0)
+        # A model that did not score the utterance never becomes a 0 score.
+        self.assertIsNone(null_turn["idiomaticity"])
+        self.assertEqual(null_turn["idiomaticity_source"], "unavailable")
+        missing = server._normalise_player_turn({}, "Burger.", scenario, [], source="gemini")
+        self.assertIsNone(missing["idiomaticity"])
+        self.assertEqual(missing["errors"], [])
+        scored = server._normalise_player_turn({"idiomaticity": 88}, "Burger.", scenario, [], source="gemini")
+        self.assertEqual((scored["idiomaticity"], scored["idiomaticity_source"]), (88.0, "gemini"))
+
+    def test_parser_never_invents_a_default_score(self):
+        parsed = server._parse_gemini_output("You got it. I'll get you the burger now.")
+        self.assertEqual(parsed["text"], "You got it. I'll get you the burger now.")
+        self.assertNotIn("player_turn", parsed)
+
+    def _live_score_events(self, model_output, transcript="Can I get a burger, please?"):
+        payload = {"candidates": [{"content": {"parts": [{"text": model_output}]}}]}
+        lines = [("data: " + json.dumps(payload) + "\n").encode("utf-8")]
+        with mock.patch.dict(server.os.environ, {"GEMINI_API_KEY": "AIza-test-not-real-key-value"}, clear=False):
+            with mock.patch.object(server, "_gemini_post_stream", new=gemini_stream_factory(lines)):
+                events = list(server.iter_dialogue_events({
+                    "npc_id": "tavi",
+                    "scenario_id": "food_counter",
+                    "transcript": transcript,
+                    "history": [],
+                    "game_context": {"pronunciation": 60},
+                    "require_live_dialogue": True,
+                }))
+        speaking = events[0]["data"]
+        score = next(item["data"] for item in events if item["event"] == "score")
+        return speaking, score
+
+    def test_first_sentence_won_but_json_truncated_has_no_simulated_score(self):
+        # C2-03: the live plane spoke, the work plane JSON was cut off. The
+        # stub's constant 82 must not become a "gemini" idiomaticity.
+        spoken = "You got it. I'll get you the burger now."
+        truncated = spoken + "\n\n" + '{"speech_act": "confirm_order", "player_turn": {"idiomat'
+        for output in [truncated, spoken]:
+            with self.subTest(output=output[-20:]):
+                speaking, score = self._live_score_events(output)
+                self.assertEqual((speaking["source"], score["source"]), ("gemini", "gemini"))
+                self.assertIsNone(score["player_turn"]["idiomaticity"])
+                self.assertEqual(score["player_turn"]["idiomaticity_source"], "unavailable")
+                self.assertIsNone(score["session"]["running_score"])
+                # The spoken handoff itself is still auditable and settles.
+                self.assertTrue(score["player_turn"]["transaction_complete"])
+
+    def test_complete_work_plane_reports_gemini_idiomaticity(self):
+        output = "You got it. I'll get you the burger now.\n\n" + json.dumps({
+            "speech_act": "confirm_order", "emotion": "neutral", "next_state": "closed",
+            "player_turn": {"idiomaticity": 74, "progress": "done", "transaction_complete": True, "off_inventory": False},
+        })
+        _speaking, score = self._live_score_events(output)
+        self.assertEqual(score["player_turn"]["idiomaticity"], 74.0)
+        self.assertEqual(score["player_turn"]["idiomaticity_source"], "gemini")
+        self.assertEqual(score["session"]["running_score"], 67.0)
+
+    def test_json_path_text_only_reply_has_no_simulated_score(self):
+        payload = {"candidates": [{"content": {"parts": [{"text": "Sure thing, one burger to go."}]}}]}
+        lines = [("data: " + json.dumps(payload) + "\n").encode("utf-8")]
+        with mock.patch.dict(server.os.environ, {"GEMINI_API_KEY": "AIza-test-not-real-key-value"}, clear=False):
+            with mock.patch.object(server, "_gemini_post_stream", new=gemini_stream_factory(lines)):
+                reply = server.generate_dialogue_reply({
+                    "npc_id": "tavi", "scenario_id": "food_counter", "transcript": "Can I get a burger to go?",
+                    "history": [], "game_context": {"pronunciation": 60},
+                })
+        self.assertEqual(reply["source"], "gemini")
+        self.assertIsNone(reply["player_turn"]["idiomaticity"])
+        self.assertEqual(reply["player_turn"]["idiomaticity_source"], "unavailable")
+        self.assertIsNone(reply["session"]["running_score"])
+        stub = server.generate_dialogue_reply({
+            "npc_id": "tavi", "scenario_id": "food_counter", "transcript": "Can I get a burger to go?", "history": [],
+        })
+        self.assertEqual((stub["source"], stub["player_turn"]["idiomaticity_source"]), ("stub", "stub"))
 
     def test_irrelevant_transcript_is_rejected_before_generation(self):
         with self.assertRaisesRegex(ValueError, "irrelevant transcript"):
@@ -1255,6 +1358,150 @@ class DialogueHttpTest(unittest.TestCase):
             "history": [],
         })
         self.assertEqual((status, payload["reason"]), (422, "VOICE_REASON_DIALOGUE_REJECTED"))
+
+    def _raw(self, method, path, body=b"", headers=None):
+        """Exact request control (bad lengths, foreign Host/Origin) via http.client."""
+        connection = http.client.HTTPConnection("127.0.0.1", self.httpd.server_address[1], timeout=3)
+        try:
+            connection.putrequest(method, path, skip_host=bool(headers and "Host" in headers), skip_accept_encoding=True)
+            sent = dict(headers or {})
+            sent.setdefault("Content-Length", str(len(body)))
+            for key, value in sent.items():
+                connection.putheader(key, value)
+            connection.endheaders(body or None)
+            response = connection.getresponse()
+            raw = response.read()
+            return response.status, json.loads(raw.decode("utf-8")) if raw else {}
+        finally:
+            connection.close()
+
+    def test_live_dialogue_without_any_model_is_503_not_configured(self):
+        # C2-10: no configured model is a service condition, not a refusal.
+        for transcript in ("[NPC opens conversation]", "I just arrived and I feel lonely here."):
+            for accept in ("application/json", "text/event-stream"):
+                with self.subTest(transcript=transcript, accept=accept):
+                    status, payload = self._raw("POST", "/game/dialogue", json.dumps({
+                        "npc_id": "mira", "scenario_id": "market_conversation", "transcript": transcript,
+                        "history": [], "game_context": {"turn_kind": "opening"}, "require_live_dialogue": True,
+                    }).encode(), {"Content-Type": "application/json", "Accept": accept})
+                    self.assertEqual(status, 503)
+                    self.assertEqual((payload["reason"], payload["detail"]), ("VOICE_REASON_SERVICE_UNAVAILABLE", "not_configured"))
+
+    def test_gate_rejected_live_reply_is_retryable_rejection_not_outage(self):
+        # C2-10: the model answered, but the answer failed the content gate.
+        late = {"parsed": {"text": "Sorry, we're out of tacos right now.", "speech_act": "clarify_request", "_provider": "gemini"},
+                "partial": "Sorry, we're out of tacos right now.", "done": True, "thread": mock.Mock()}
+        body = {"npc_id": "tavi", "scenario_id": "food_counter", "transcript": "Can I get a taco, please?",
+                "history": [], "require_live_dialogue": True}
+        with mock.patch.object(server, "_gemini_api_key", return_value="fixture"), \
+             mock.patch.object(server, "_race_gemini_first", return_value=("", late)):
+            with self.assertRaisesRegex(ValueError, "quality gate"):
+                next(server.iter_dialogue_events(body))
+            status, payload = self._raw("POST", "/game/dialogue", json.dumps(body).encode(),
+                                        {"Content-Type": "application/json", "Accept": "text/event-stream"})
+        self.assertEqual(status, 422)
+        self.assertEqual((payload["reason"], payload["detail"]), ("VOICE_REASON_DIALOGUE_REJECTED", "reply_rejected"))
+        # A provider that never answered stays a 503 outage.
+        with mock.patch.object(server, "_gemini_api_key", return_value="fixture"), \
+             mock.patch.object(server, "_race_gemini_first", return_value=("", {"parsed": None, "done": False})):
+            status, payload = self._raw("POST", "/game/dialogue", json.dumps(body).encode(),
+                                        {"Content-Type": "application/json", "Accept": "text/event-stream"})
+        self.assertEqual((status, payload["detail"]), (503, "provider_failed"))
+
+    def test_social_reply_rejected_three_times_is_a_rejection(self):
+        candidate = {"text": "The fountain looks lovely this morning.", "speech_act": "answer_service_question",
+                     "next_state": "awaiting_follow_up", "_provider": "gemini"}
+        body = {"npc_id": "mira", "scenario_id": "market_conversation", "transcript": "What do you like here?",
+                "history": [], "game_context": {"town_contact": {}}, "require_live_dialogue": True}
+        with mock.patch.object(server, "_gemini_api_key", return_value="fixture"), \
+             mock.patch.object(server, "_gemini_dialogue", return_value=dict(candidate)) as model:
+            with self.assertRaisesRegex(ValueError, "quality gate rejected live reply"):
+                next(server.iter_dialogue_events(body))
+        self.assertEqual(model.call_count, 3)
+
+    def test_json_path_applies_the_same_social_and_town_checks(self):
+        # C2-11: the reviewer's sample was accepted as source=gemini on the
+        # JSON (web/headless) path while SSE rejected it four times over.
+        bad = {"text": "The fountain looks lovely this morning. You should go see Vesh, he always helps newcomers. What do you think?",
+               "speech_act": "answer_service_question", "next_state": "awaiting_follow_up", "_provider": "gemini", "_model": "fixture"}
+        good = {"text": "I like seeing the same faces each day. It makes this place feel less strange.",
+                "speech_act": "answer_service_question", "next_state": "awaiting_follow_up",
+                "player_turn": {"idiomaticity": 80}, "_provider": "gemini", "_model": "fixture"}
+        body = {"npc_id": "mira", "scenario_id": "market_conversation", "transcript": "What do you like here?",
+                "history": [{"role": "npc", "text": "What brings you here?"}], "game_context": {"town_contact": {}},
+                "require_live_dialogue": True}
+        violations = server._dialogue_gate(server._DIALOGUE_SCENARIOS["market_conversation"], bad["text"], bad["speech_act"])["violations"]
+        violations += server._social_content_violations(body, bad["text"])
+        violations += server.town_context.reply_violations(body, server._DIALOGUE_PROFILES["mira"], bad["text"])
+        self.assertGreaterEqual(len(violations), 3)
+        with mock.patch.object(server, "_gemini_api_key", return_value="fixture"), \
+             mock.patch.object(server, "_gemini_dialogue", side_effect=[dict(bad), dict(bad), dict(bad)]):
+            with self.assertRaisesRegex(ValueError, "rejected live reply"):
+                server.generate_dialogue_reply(body)
+        with mock.patch.object(server, "_gemini_api_key", return_value="fixture"), \
+             mock.patch.object(server, "_gemini_dialogue", side_effect=[dict(bad), dict(good)]) as model:
+            reply = server.generate_dialogue_reply(body)
+        self.assertEqual((reply["text"], reply["source"]), (good["text"], "gemini"))
+        self.assertEqual(model.call_count, 2)
+        self.assertIn("Rewrite your rejected candidate", model.call_args.args[0]["_social_repair"])
+
+    def test_requests_from_foreign_pages_are_refused(self):
+        # C2-14: DNS rebinding (foreign Host), cross-site pages (foreign Origin)
+        # and CORS-simple bodies cannot reach paid model or TTS calls.
+        body = json.dumps({"npc_id": "tavi", "scenario_id": "food_counter", "transcript": "Can I get a burger, please?", "history": []}).encode()
+        refused = [
+            ({"Content-Type": "application/json", "Origin": "https://evil.example"}, 403),
+            ({"Content-Type": "application/json", "Host": "rebind.evil.example:17831"}, 403),
+            ({"Content-Type": "text/plain;charset=UTF-8"}, 415),
+            ({}, 415),
+            ({"Content-Type": "application/x-www-form-urlencoded"}, 415),
+        ]
+        for headers, expected in refused:
+            with self.subTest(headers=headers):
+                status, payload = self._raw("POST", "/game/dialogue", body, headers)
+                self.assertEqual(status, expected)
+                self.assertFalse(payload["ok"])
+        status, _payload = self._raw("GET", "/health", headers={"Host": "rebind.evil.example:17831"})
+        self.assertEqual(status, 403)
+        status, _payload = self._raw("POST", "/game/prewarm", b"{}", {"Content-Type": "text/plain"})
+        self.assertEqual(status, 415)
+        status, _payload = self._raw("POST", "/score_word", b"0" * 64, {"Content-Type": "text/plain", "X-Stranger-Lexical": "morning"})
+        self.assertEqual(status, 415)
+        # Godot (no Origin, Host 127.0.0.1:port) and local dev pages still work.
+        for headers in ({"Content-Type": "application/json"},
+                        {"Content-Type": "application/json; charset=utf-8", "Origin": "null"},
+                        {"Content-Type": "application/json", "Origin": "http://localhost:8060"},
+                        {"Content-Type": "application/json", "Host": "localhost:17831"}):
+            with self.subTest(headers=headers):
+                status, payload = self._raw("POST", "/game/dialogue", body, headers)
+                self.assertEqual(status, 200)
+                self.assertEqual(payload["npc_id"], "tavi")
+        status, payload = self._raw("GET", "/health")
+        self.assertEqual(status, 200)
+        self.assertIn("asr_ready", payload)
+
+    def test_word_score_service_failure_is_503_over_http(self):
+        with mock.patch.object(server, "word_pronunciation", return_value=None), \
+             mock.patch.object(server, "_transcribe_with_hotwords", side_effect=OSError("no model")):
+            status, payload = self._raw("POST", "/score_word", b"\0" * 128, {"Content-Type": "audio/wav", "X-Stranger-Lexical": "morning"})
+        self.assertEqual((status, payload["reason"]), (503, "VOICE_REASON_SERVICE_UNAVAILABLE"))
+
+    def test_malformed_requests_get_json_errors(self):
+        # C2-15: bad framing or shapes answer 400 instead of dropping the socket.
+        for path in ("/game/dialogue", "/game/tts", "/game/prewarm", "/game/campus/dialogue"):
+            with self.subTest(path=path):
+                status, payload = self._raw("POST", path, b"{}", {"Content-Type": "application/json", "Content-Length": "abc"})
+                self.assertEqual(status, 400)
+                self.assertFalse(payload["ok"])
+        status, payload = self._raw("POST", "/transcribe", b"\0" * 64, {"Content-Type": "audio/wav", "Content-Length": "abc"})
+        self.assertEqual((status, payload["reason"]), (400, "VOICE_REASON_LENGTH"))
+        for body in (b"[1,2]", b"{bad", json.dumps({"npc_id": "mira", "line_id": "word_practice_ask", "options": "food"}).encode()):
+            with self.subTest(body=body):
+                status, payload = self._raw("POST", "/game/tts", body, {"Content-Type": "application/json"})
+                self.assertEqual((status, payload["reason"]), (400, "VOICE_REASON_RESULT_INVALID"))
+        campus_body = {"scenario_id": "class_project_roles", "transcript": "Hi there.", "chain_context": ["x"]}
+        status, payload = self._raw("POST", "/game/campus/dialogue", json.dumps(campus_body).encode(), {"Content-Type": "application/json"})
+        self.assertEqual((status, payload["reason"]), (400, "invalid_campus_request"))
 
     def test_tts_http_rejects_forged_reply_id(self):
         status, payload = self._post("/game/tts", {"npc_id": "tavi", "reply_id": "reply-forged"})

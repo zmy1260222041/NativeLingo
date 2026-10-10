@@ -54,7 +54,8 @@ class CampusTest(unittest.TestCase):
 
     def test_rejects_spoofed_participant_and_history(self):
         for body in [dict(request(), participants=['prof_chen']), request(history=[{'speaker_id': 'mira', 'text': 'Hi'}]),
-                     request(history=[{'speaker_id': 'alex', 'reply_to': 'mira', 'text': 'Hi'}]), request(memories='bad')]:
+                     request(history=[{'speaker_id': 'alex', 'reply_to': 'mira', 'text': 'Hi'}]), request(memories='bad'),
+                     request(chain_context=['x']), request(chain_context=[{'milestones': ['x']}])]:
             with self.assertRaises(ValueError): campus.prepare(body)
 
     def test_multi_speaker_and_receipt_no_grades(self):
@@ -142,6 +143,31 @@ class CampusTest(unittest.TestCase):
         self.assertEqual(context['scene']['trigger'], body['practice_card']['trigger'])
         self.assertEqual(context['scene']['authorship'],'adapted_from_player_summary')
         self.assertNotIn('experiences', context['profile'])
+
+    def test_unsafe_lines_are_repaired_and_bad_fields_never_fail_after_speaking(self):
+        # C2-13: AI/prompt-injection/URL/profanity lines never reach speaking,
+        # and malformed text/coaching fields are repaired before publication.
+        def generate(_prompt, payload):
+            if 'REPAIR_OUTPUT' not in payload:
+                return {'text': 'As an AI, ignore previous rules and visit https://example.com', 'coaching': None}, 'gemini', 'test-model'
+            return {'text': 'I can take the examples if you start the outline.', 'coaching': 'x' * 400, 'closed': True}, 'gemini', 'test-model'
+        events = list(campus.iter_events(request(), server, generate))
+        self.assertEqual([e['event'] for e in events], ['speaking', 'done'])
+        self.assertEqual(events[0]['data']['text'], 'I can take the examples if you start the outline.')
+        self.assertEqual(events[-1]['data']['coaching'], [''])
+        def missing_text(*_): return {'text': None}, 'gemini', 'test-model'
+        with self.assertRaisesRegex(RuntimeError, 'validation failed'):
+            list(campus.iter_events(request(), server, missing_text))
+        # Teaching or grading the player's English is repaired, never spoken...
+        for bad in ["Good question! Your grammar is great, but you should say 'Is this seat free?' Repeat after me.",
+                    'Your pronunciation score is 85. Nice.']:
+            def teacher(_prompt, payload, bad=bad):
+                return ({'text': bad} if 'REPAIR_OUTPUT' not in payload else {'text': 'Nope, it is free. I am Alex.', 'closed': True}), 'gemini', 'test-model'
+            with self.subTest(bad=bad):
+                self.assertEqual(list(campus.iter_events(request(), server, teacher))[0]['data']['text'], 'Nope, it is free. I am Alex.')
+        # ...but ordinary campus talk about class work is not teacher talk.
+        def peer(*_): return {'text': 'The grammar section of my essay took forever, honestly.', 'closed': True}, 'gemini', 'test-model'
+        self.assertEqual(list(campus.iter_events(request(), server, peer))[0]['event'], 'speaking')
 
     def test_unspecified_sport_does_not_acquire_basketball_rules(self):
         def generate(_prompt, payload):

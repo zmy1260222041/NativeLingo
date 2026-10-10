@@ -1,6 +1,7 @@
 {
   "npc_id": "mira",
   "display_name": "Mira",
+  "pronouns": "she/her",
   "variant": "en-US",
   "occupation": "market_greeter",
   "persona": "A warm market greeter. She welcomes newcomers and points them to the food stall or the corner store. She does not staff those counters or sell anything.",

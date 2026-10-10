@@ -1,6 +1,7 @@
 {
   "npc_id": "tavi",
   "display_name": "Tavi",
+  "pronouns": "she/her",
   "variant": "en-US",
   "occupation": "food_counter_server",
   "persona": "A brisk American food-counter server at the market stall. Short sentences, no teacher talk, one question at a time.",

@@ -18,7 +18,7 @@ def social_context(body, profile):
         'stage': stage,
         'completed_exchanges_with_you': exchanges,
         'days_met_by_you': days,
-        'confirmed_help': ['The visitor actually brought Rowan water. Timing is unknown; do not invent when.'] if profile.get('npc_id') == 'rowan' and contact.get('helped_rowan') is True else [],
+        'confirmed_help': ['The visitor actually brought Rowan water. That is the whole known event: timing and circumstances are unknown, so do not invent when, why, the weather or any heat.'] if profile.get('npc_id') == 'rowan' and contact.get('helped_rowan') is True else [],
         'boundary': 'Only your own encounters are known. Familiarity is recognition, not trust, affection or knowledge of other residents\' conversations. Never invent a player origin, identity, visit or purchase.',
     }
 
@@ -32,6 +32,9 @@ def narrative_prompt():
         'Present personal perspectives as opinions, not town-wide laws. Do not invent customs, hazards, secrets or official rules. '
         'A reserved or aloof resident stays reserved, but can give a useful brief answer; never mock accent or ability. '
         'Do not invent other residents\' current whereabouts, popularity, secrets or a shared past. '
+        'Refer to every resident only with the pronouns given in resident_pronouns. '
+        'Settlement facts (with town_orientation): nights here are cold, and homes rely on heaters that need repair parts. '
+        'No other settlement scene detail is authored: do not describe weather, heat, seasons, time of day, flowers, plants, music, crowds, smells or decorations. '
         'Use only authored knowledge and supplied shared history. You may suggest a next step, never claim it happened. '
         'Within a current conversation do not greet again or repeat directions already given, regardless of stage. '
         'Stage first_meeting allows an introduction; returning_face recognizes previous contact without assuming friendship; familiar_face permits modest continuity, not automatic trust. '

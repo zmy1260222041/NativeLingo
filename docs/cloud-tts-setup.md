@@ -21,21 +21,21 @@
 ## 实际执行记录
 
 项目**没有新建**——账号里已有一个开了结算的 `NativeLingo` 项目
-（`gen-lang-client-0152475047`，结算账户 `010485-1B3622-511935`），
+（`<PROJECT_ID>`，结算账户 `<BILLING_ACCOUNT_ID>`；真实 ID 不入库），
 现有的 Gemini key 也属于它，因此复用它。实际只需三步：
 
 ```bash
 # 1. 启用 Cloud Text-to-Speech API
-gcloud services enable texttospeech.googleapis.com --project=gen-lang-client-0152475047
+gcloud services enable texttospeech.googleapis.com --project=<PROJECT_ID>
 
 # 2. 创建服务账号
 gcloud iam service-accounts create tts-runner \
-  --display-name="NativeLingo TTS runner" --project=gen-lang-client-0152475047
+  --display-name="NativeLingo TTS runner" --project=<PROJECT_ID>
 
 # 3. 下载密钥
 gcloud iam service-accounts keys create ~/nativelingo-tts.json \
-  --iam-account=tts-runner@gen-lang-client-0152475047.iam.gserviceaccount.com \
-  --project=gen-lang-client-0152475047
+  --iam-account=tts-runner@<PROJECT_ID>.iam.gserviceaccount.com \
+  --project=<PROJECT_ID>
 ```
 
 **不要尝试授予 `roles/texttospeech.user`**——该角色不存在。项目的角色列表里
@@ -147,18 +147,22 @@ export GOOGLE_TTS_CREDENTIALS=~/nativelingo-tts.json
   与 xAI 路径的 `_pcm_to_wav` 输出格式一致。
 - 声音映射 `CLOUD_TTS_VOICES` 把既有的短声音 id（eve/ara/rex/leo）映到 Chirp 名，
   城镇与校园共用一份 cast。
-- **缓存键按语速分离**（`@r0.85` 后缀），实现 §5 的
-  "音频变体缓存必须区分文本、声音、模型版本、语言、速度"。1.0× 与
+- **服务端内存缓存键按语速分离**（`@r0.85` 后缀）。这只覆盖 §5
+  "音频变体缓存必须区分文本、声音、模型版本、语言、速度"中的文本、声音、速度；
+  键里没有模型版本和语言，Godot 端磁盘缓存命名空间也不含供应商与语速。1.0× 与
   非 cloud provider 保持原键，不影响既有缓存与测试。
+- **预热只连当前供应商**：cloud 模式的启动预热与 `POST /game/prewarm` 只换取并
+  缓存 OAuth token，不会创建 DashScope 连接池、不会连北京 Qwen 端点。`/health`
+  的 `tts_region` 在默认端点下报告 `global`。
 - 流式接口：Cloud TTS 的流式只在 Chirp 3: HD 的 gRPC 路由上，因此 cloud
   分支整段合成后按既有 chunk 形状回放，客户端无需改动。
 - 合成结果的大小上限从 2 MB 提到 8 MB（`_TTS_MAX_WAV_BYTES`）。原 2 MB 是
   流式保护；而 24 kHz 单声道 2 MB 仅 43.7 秒，100 词的校园长句在慢速下会超限。
 
-`game/speech_service/test_cloud_tts.py`：20 个测试，覆盖 JWT 签名（用一次性
+`game/speech_service/test_cloud_tts.py`：21 个测试，覆盖 JWT 签名（用一次性
 RSA 密钥本地验签）、token 缓存与刷新、声音映射、请求体形状与语速字段、
 Bearer 与 `x-goog-user-project` 头、语速夹取、空音频与 HTTP 错误、
-缓存键分离、以及上面的音高检测器。
+缓存键分离、cloud 预热不触碰 DashScope，以及上面的音高检测器（未安装 praat-parselmouth 时这 3 项跳过）。
 
 ## 五、待办
 
