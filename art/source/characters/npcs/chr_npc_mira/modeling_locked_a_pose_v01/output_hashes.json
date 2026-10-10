@@ -110,8 +110,8 @@
     },
     {
       "path": "hunyuan_submission/latest_poll.json",
-      "bytes": 2309,
-      "sha256": "6ac31847119c7993e307eb0b09e88eb8d4007c2be45fd9a7f67ab4ddb3c54a50"
+      "bytes": 1440,
+      "sha256": "1950ebdbe4d8d4da8961ae100495468622ce951eb687a7387119fc5958e300ea"
     },
     {
       "path": "hunyuan_submission/mira_a_pose_hunyuan3d_pro.glb",
@@ -265,8 +265,8 @@
     },
     {
       "path": "hunyuan_submission/reduceface_high/latest_poll.json",
-      "bytes": 2087,
-      "sha256": "50fd3f732079e4dbbf1ee308726f5f109efb06b6acca02c7d07c0beb1d89324b"
+      "bytes": 1443,
+      "sha256": "e6e4e90bc3bd5111340e763587435f623a7608f71d1071c1a710acf483ac3d73"
     },
     {
       "path": "hunyuan_submission/reduceface_high/post_repair_candidates/.DS_Store",

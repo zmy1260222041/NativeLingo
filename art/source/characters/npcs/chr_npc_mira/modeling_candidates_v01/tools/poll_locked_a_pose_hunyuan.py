@@ -20,6 +20,17 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def without_signed_query(value):
+    """Drop presigned URL queries (COS q-ak SecretId and signature) before a reply is stored."""
+    if isinstance(value, dict):
+        return {key: without_signed_query(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [without_signed_query(item) for item in value]
+    if isinstance(value, str) and value.startswith(("http://", "https://")):
+        return value.split("?", 1)[0]
+    return value
+
+
 def load_hunyuan_client(path: Path):
     spec = importlib.util.spec_from_file_location("mira_hunyuan_client", path)
     if spec is None or spec.loader is None:
@@ -46,7 +57,8 @@ def main() -> None:
         "polled_at_utc": datetime.now(timezone.utc).isoformat(),
         "status": reply.get("Status"),
         "request_id": reply.get("RequestId"),
-        "api_response": reply,
+        "api_response": without_signed_query(reply),
+        "url_queries_removed": True,
     }
     if reply.get("Status") == "DONE":
         result = next((item for item in reply.get("ResultFile3Ds", []) if "GLB" in item.get("Type", "")), None)

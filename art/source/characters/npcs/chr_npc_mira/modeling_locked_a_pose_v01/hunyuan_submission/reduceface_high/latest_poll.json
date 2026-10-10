@@ -9,21 +9,22 @@
     "ErrorMessage": "",
     "ResultFile3Ds": [
       {
-        "Url": "https://vcg-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/reduce_face/output/6bf980_output.obj?q-sign-algorithm=sha1&q-ak=AKID8PcPB70x2Ibr49A1vnkdSBcTJ6lMrLgp&q-sign-time=1786699106%3B1786785500&q-key-time=1786699106%3B1786785500&q-header-list=host&q-url-param-list=&q-signature=88a4e0eb9dc00e748d0ef8b2befa82a4fda28ccd",
+        "Url": "https://vcg-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/reduce_face/output/6bf980_output.obj",
         "Type": "OBJ"
       },
       {
-        "Url": "https://vcg-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/reduce_face/output/6bf980_output.glb?q-sign-algorithm=sha1&q-ak=AKID8PcPB70x2Ibr49A1vnkdSBcTJ6lMrLgp&q-sign-time=1786699106%3B1786785500&q-key-time=1786699106%3B1786785500&q-header-list=host&q-url-param-list=&q-signature=2c8042bde520cc7481056c773c57a32ccf5b8969",
+        "Url": "https://vcg-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/reduce_face/output/6bf980_output.glb",
         "Type": "GLB"
       },
       {
         "Type": "IMAGE",
-        "Url": "https://vcg-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/reduce_face/output/6bf980_output.png?q-sign-algorithm=sha1&q-ak=AKID8PcPB70x2Ibr49A1vnkdSBcTJ6lMrLgp&q-sign-time=1786699106%3B1786785500&q-key-time=1786699106%3B1786785500&q-header-list=host&q-url-param-list=&q-signature=1962eaee2a280d7d09c9d90b8d48f8578e879707"
+        "Url": "https://vcg-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/reduce_face/output/6bf980_output.png"
       }
     ],
     "RequestId": "0282ba3a-d6cc-4dfc-a8c6-5e68d747fb24",
     "Status": "DONE"
   },
+  "url_queries_removed": true,
   "downloads": [
     {
       "label": "OBJ",

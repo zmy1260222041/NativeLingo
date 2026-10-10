@@ -13,17 +13,18 @@
     "ResultFile3Ds": [
       {
         "Type": "OBJ",
-        "Url": "https://hunyuan-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/3d/output/1418160727/e879e507-0ee8-4a18-9e24-a7c78461073a_0.zip?q-sign-algorithm=sha1&q-ak=AKIDpRovliU1IJ5ctufBSVIq8AwTlnZ5MN8d&q-sign-time=1786687380%3B1786773780&q-key-time=1786687380%3B1786773780&q-header-list=host&q-url-param-list=&q-signature=a5e2ecf69b87f9193caf94699caa8f43a94f7ab0",
-        "PreviewImageUrl": "https://hunyuan-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/3d/output/1418160727/preview_e879e507-0ee8-4a18-9e24-a7c78461073a_0.png?q-sign-algorithm=sha1&q-ak=AKIDpRovliU1IJ5ctufBSVIq8AwTlnZ5MN8d&q-sign-time=1786687380%3B1786773780&q-key-time=1786687380%3B1786773780&q-header-list=host&q-url-param-list=&q-signature=bb727f931ec732994df0815e9a08a81f36c0c415"
+        "Url": "https://hunyuan-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/3d/output/1418160727/e879e507-0ee8-4a18-9e24-a7c78461073a_0.zip",
+        "PreviewImageUrl": "https://hunyuan-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/3d/output/1418160727/preview_e879e507-0ee8-4a18-9e24-a7c78461073a_0.png"
       },
       {
         "Type": "GLB",
-        "Url": "https://hunyuan-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/3d/output/1418160727/e879e507-0ee8-4a18-9e24-a7c78461073a_0.glb?q-sign-algorithm=sha1&q-ak=AKIDpRovliU1IJ5ctufBSVIq8AwTlnZ5MN8d&q-sign-time=1786687380%3B1786773780&q-key-time=1786687380%3B1786773780&q-header-list=host&q-url-param-list=&q-signature=c5c4e67d386c4a5b18fac9e0510dab4a028809c1",
-        "PreviewImageUrl": "https://hunyuan-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/3d/output/1418160727/preview_e879e507-0ee8-4a18-9e24-a7c78461073a_0.png?q-sign-algorithm=sha1&q-ak=AKIDpRovliU1IJ5ctufBSVIq8AwTlnZ5MN8d&q-sign-time=1786687380%3B1786773780&q-key-time=1786687380%3B1786773780&q-header-list=host&q-url-param-list=&q-signature=bb727f931ec732994df0815e9a08a81f36c0c415"
+        "Url": "https://hunyuan-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/3d/output/1418160727/e879e507-0ee8-4a18-9e24-a7c78461073a_0.glb",
+        "PreviewImageUrl": "https://hunyuan-prod-1258344699.cos.ap-guangzhou.tencentcos.cn/3d/output/1418160727/preview_e879e507-0ee8-4a18-9e24-a7c78461073a_0.png"
       }
     ],
     "ErrorCode": ""
   },
+  "url_queries_removed": true,
   "download": {
     "file": "hunyuan_submission/mira_a_pose_hunyuan3d_pro.glb",
     "bytes": 32863108,
