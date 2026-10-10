@@ -750,6 +750,20 @@ func save_game() -> bool:
 		return false
 	return DirAccess.rename_absolute(ProjectSettings.globalize_path(save_path + ".tmp"), ProjectSettings.globalize_path(save_path)) == OK
 
+## FR-35: reads only the vocabulary copy kept in another chapter's save and never
+## touches the rest of it. Unreadable or newer-version saves contribute nothing.
+func saved_vocabulary_entries(path: String) -> Dictionary:
+	if path.is_empty() or not FileAccess.file_exists(path):
+		return {}
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not parsed is Dictionary:
+		return {}
+	var saved_version := int(parsed.get("version", 1))
+	if saved_version < 1 or saved_version > SAVE_VERSION:
+		return {}
+	var saved_vocabulary = parsed.get("vocabulary_entries", {})
+	return saved_vocabulary if saved_vocabulary is Dictionary else {}
+
 func load_game() -> bool:
 	if not FileAccess.file_exists(save_path):
 		return false

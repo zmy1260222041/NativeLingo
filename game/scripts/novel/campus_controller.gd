@@ -1,7 +1,6 @@
 extends "res://scripts/novel/novel_controller.gd"
 const CampusState := preload("res://scripts/novel/campus_state.gd")
 const CampusDialogue := preload("res://scripts/novel/campus_dialogue.gd")
-const CAMPUS_SAVE := "user://stranger_campus_save.json"
 const PLACES := {"class": "教学区", "study": "学习空间", "club": "社团中心", "dining": "餐饮区", "sports": "运动区", "home": "我的住处"}
 var campus = CampusState.new()
 var conversation: Node
@@ -29,11 +28,13 @@ func _ready() -> void:
 	var restore_saved := boot_from_save
 	boot_from_save = false
 	novel_save_path = CAMPUS_SAVE if novel_save_path == SAVE_PATH else novel_save_path
+	other_chapter_save_path = SAVE_PATH if other_chapter_save_path == CAMPUS_SAVE else other_chapter_save_path
 	super._ready()
 	GameState.reset_run()
 	GameState.set_process(false)
 	GameState.onboarding_active = false
 	GameState.save_path = novel_save_path
+	var carried: Dictionary = GameState.vocabulary_entries
 	if restore_saved and FileAccess.file_exists(novel_save_path):
 		save_valid = GameState.load_game()
 		if save_valid:
@@ -48,6 +49,7 @@ func _ready() -> void:
 	if campus.scenario(scene_id).is_empty(): scene_id = "class_before_class"
 	GameState.presentation_state["chapter"] = "campus"
 	GameState.game_finished = false
+	if restore_saved: _share_vocabulary(carried)
 	GameState.vocabulary_tier = str(campus.profile.level)
 	Vocabulary.sync_from_game_state()
 	conversation = CampusDialogue.new()

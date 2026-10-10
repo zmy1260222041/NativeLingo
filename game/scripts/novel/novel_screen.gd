@@ -805,13 +805,13 @@ func _growth_panel() -> void:
 		_row_label(tr(memory), 18, MUTED)
 	_row_label("练习角  /  听见 → 说出 → 使用", 23)
 	_row_label("练习不会扣状态。只有真实语音评分和真实对话会推进习得。", 17, MUTED)
-	var words := {}
-	for entry in Content.SOCIAL:
-		for word in entry.words: words[word] = true
-	for word in words:
-		var state: String = Vocabulary.word_state(word)
-		var label: String = {"": "尚未听见", "initial": "已有词汇", "heard": "听见", "spoken": "说出", "used": "使用"}.get(state, state)
-		var button := _button(modal_body, "%s     ·     %s     →  练习" % [word, label], _practice.bind(word))
+	# Words the player can still acquire come first; known starting-profile words only consolidate.
+	var fresh: Array = []
+	var known: Array = []
+	for word in model._practice_words():
+		(known if Vocabulary.word_state(word) == "initial" else fresh).append(word)
+	for word in fresh + known:
+		var button := _button(modal_body, "%s     ·     %s     →  练习" % [word, model.word_progress(word)], _practice.bind(word))
 		button.disabled = GameState.game_finished
 
 func _settings_panel() -> void:

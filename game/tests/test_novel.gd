@@ -22,6 +22,7 @@ func _ready() -> void:
 	await _test_recording_playback_conflict()
 	await _test_startup_and_opening()
 	await _test_ux_clarity()
+	await _test_default_profile_practice()
 	await get_tree().process_frame
 	screen.place_buttons[1].pressed.emit()
 	check(model.location == "food", "Location button navigates through the screen")
@@ -276,6 +277,43 @@ func _test_ux_clarity() -> void:
 	GameState.reset_run()
 	model.travel("plaza")
 	await get_tree().process_frame
+
+
+func _test_default_profile_practice() -> void:
+	# The real default toddler profile, not a cleared one: most practice words are already known.
+	check(Vocabulary.tier == "toddler" and Vocabulary.word_state("morning") == "initial" and Vocabulary.word_state("heater").is_empty(), "Default profile tells known words apart from unheard ones")
+	screen._open_panel("growth")
+	await get_tree().process_frame
+	var rows: Array = []
+	for child in screen.modal_body.get_children():
+		if child is Button and str(child.text).contains("→  练习"): rows.append(str(child.text))
+	var row_of := func(word: String) -> int:
+		for index in rows.size():
+			if str(rows[index]).begins_with(word + " "): return index
+		return -1
+	check(rows.size() == model._practice_words().size(), "Growth page lists every practice word")
+	for row in rows:
+		var word := str(row).get_slice(" ", 0)
+		var known: bool = Vocabulary.entries_for_headword(word).any(func(item): return item.state == "initial")
+		check(str(row).contains("已有词汇") == known and str(row).contains("尚未听见") != known, "Growth label matches the default profile: " + word)
+	check(row_of.call("heater") >= 0 and row_of.call("heater") < row_of.call("morning"), "Truly new words are listed before known words")
+	screen._close_panel()
+	var toasts: Array = []
+	var on_feedback := func(text: String): toasts.append(text)
+	model.feedback.connect(on_feedback)
+	model.travel("plaza")
+	model.begin_practice("morning")
+	SpeechAdapter.word_score_finished.emit("morning", true, {"score": 92.0}, "")
+	check(str(toasts.back()).contains("你说出了「morning」") and not str(toasts.back()).contains("再试一次"), "An accepted attempt on a known word is a success")
+	check(Vocabulary.word_state("morning") == "initial", "Known words never advance to spoken or used")
+	SpeechAdapter.word_score_finished.emit("morning", false, {"score": 12.0}, "")
+	check(str(toasts.back()).contains("再试一次"), "A rejected attempt on a known word stays a free retry")
+	model.begin_practice("heater")
+	check(Vocabulary.word_state("heater") == "heard", "Practising a new word starts at heard")
+	SpeechAdapter.word_score_finished.emit("heater", true, {"score": 92.0}, "")
+	check(str(toasts.back()).contains("你说出了「heater」") and Vocabulary.word_state("heater") == "spoken", "A new word still advances heard -> spoken")
+	model.feedback.disconnect(on_feedback)
+	model.cancel_activity()
 
 
 func _test_startup_and_opening() -> void:

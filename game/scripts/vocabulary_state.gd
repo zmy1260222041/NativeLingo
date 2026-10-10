@@ -24,7 +24,9 @@ const TIER_ADMITS := {
 	"professional": ["A1", "A2", "B1", "B2"],
 }
 const VALID_LEVELS := ["A1", "A2", "B1", "B2", "C1", "C2"]
-const STATE_RANK := {"": 0, "initial": 0, "heard": 1, "spoken": 2, "used": 3}
+## ``initial`` ranks above unheard so starting-profile words read as known, but
+## below ``heard``: initial entries never move along heard -> spoken -> used.
+const STATE_RANK := {"": 0, "initial": 1, "heard": 2, "spoken": 3, "used": 4}
 const WORD_SCORE_SPARSE_MIN := 40.0
 
 var tier := "toddler"
@@ -122,12 +124,12 @@ func observe_word(word: String) -> String:
 
 ## A spoken attempt is accepted at the same sparse floor as the game's spoken
 ## requests. Below the floor the word stays heard, costs nothing, and can be
-## retried immediately.
+## retried immediately. An initial word passes the same floor but keeps its state.
 func record_word_spoken(word: String, score: float) -> bool:
 	var clean := word.strip_edges().to_lower()
 	var current := word_state(clean)
 	if current == "initial":
-		return true
+		return score >= WORD_SCORE_SPARSE_MIN
 	if current not in ["heard", "spoken"] or score < WORD_SCORE_SPARSE_MIN:
 		return false
 	var changed := false
@@ -216,6 +218,21 @@ func _sync_to_game_state() -> void:
 	if game_state != null:
 		game_state.vocabulary_tier = tier
 		game_state.vocabulary_entries = profile_data()["entries"]
+
+
+## FR-35: each chapter save carries a copy of the one vocabulary profile. Merging
+## two copies keeps the furthest state of every entry, so no chapter rolls back
+## what was heard, spoken or used in another. Neither source is mutated.
+static func merge_entries(base: Dictionary, incoming: Dictionary) -> Dictionary:
+	var merged := base.duplicate(true)
+	for key in incoming:
+		var item = incoming[key]
+		if not item is Dictionary:
+			continue
+		var current = merged.get(key)
+		if not current is Dictionary or int(STATE_RANK.get(str(item.get("state", "")), 0)) > int(STATE_RANK.get(str(current.get("state", "")), 0)):
+			merged[key] = item.duplicate(true)
+	return merged
 
 
 func sync_from_game_state() -> bool:

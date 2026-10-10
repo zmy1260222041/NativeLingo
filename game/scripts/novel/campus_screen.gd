@@ -603,7 +603,7 @@ func _coaching() -> void:
 func _words() -> void:
 	_open("单词练习 · 沿用当前词汇进度")
 	for word in model._practice_words():
-		_button(modal_body, str(word) + " · " + Vocabulary.word_state(word), func(): modal.hide(); model.begin_practice(str(word)))
+		_button(modal_body, str(word) + " · " + model.word_progress(str(word)), func(): modal.hide(); model.begin_practice(str(word)))
 	_label(modal_body, "听示范后按 V 录音，再按 V 结束；免费重试。完成后点“结束单词练习”返回现场。", 17)
 
 func _offline_activity() -> void:

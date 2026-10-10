@@ -22,6 +22,21 @@ func _ready() -> void:
 		},
 	}
 	_expect(restored.load_profile_data(small_profile) and restored.has_entry("bread", "noun"), "Profile round-trips through JSON-safe dictionaries")
+	var town := {
+		"bread|noun": {"headword": "bread", "pos": "noun", "cefr": "A1", "ngsl_rank": 2262, "source": "initial", "state": "initial"},
+		"kettle|observed": {"headword": "kettle", "pos": "observed", "cefr": "", "ngsl_rank": -1, "source": "observed_npc", "state": "used"},
+		"lantern|observed": {"headword": "lantern", "pos": "observed", "cefr": "", "ngsl_rank": -1, "source": "observed_npc", "state": "heard"},
+	}
+	var campus := {
+		"bread|noun": {"headword": "bread", "pos": "noun", "cefr": "A1", "ngsl_rank": 2262, "source": "initial", "state": "initial"},
+		"kettle|observed": {"headword": "kettle", "pos": "observed", "cefr": "", "ngsl_rank": -1, "source": "observed_npc", "state": "heard"},
+		"lantern|observed": {"headword": "lantern", "pos": "observed", "cefr": "", "ngsl_rank": -1, "source": "observed_npc", "state": "spoken"},
+		"syllabus|observed": {"headword": "syllabus", "pos": "observed", "cefr": "", "ngsl_rank": -1, "source": "observed_npc", "state": "heard"},
+	}
+	var merged := VocabularyState.merge_entries(town, campus)
+	_expect(merged["kettle|observed"].state == "used" and merged["lantern|observed"].state == "spoken" and merged["syllabus|observed"].state == "heard" and merged["bread|noun"].state == "initial", "Chapter merge keeps the furthest state of every entry")
+	_expect(town["lantern|observed"].state == "heard" and not town.has("syllabus|observed"), "Chapter merge never mutates either source profile")
+	_expect(VocabularyState.merge_entries(campus, town) == merged, "Chapter merge is order independent")
 	print("  INFO toddler_build_ms=", elapsed, " entries=", Vocabulary.entries.size())
 	if failures == 0:
 		print("PASS: Stranger vocabulary suite")

@@ -70,7 +70,13 @@ func _ready() -> void:
 	screen._reviews()
 	await capture("weekly-review")
 	screen.modal.hide()
+	screen._words()
+	var word_rows: Array = screen.modal_body.get_children().filter(func(c): return c is Button).map(func(c): return str(c.text))
+	check(word_rows.size() == model._practice_words().size() and not word_rows.any(func(text): return str(text).ends_with("· ")), "Campus word practice shows a status for every word")
+	check(word_rows.has("morning · 已有词汇") and word_rows.has("heater · 尚未听见"), "Campus word practice uses the town's progress labels")
+	screen.modal.hide()
 	_test_save()
+	_test_shared_vocabulary()
 	print("CampusTest: %d assertions, %d failures" % [assertions, failures])
 	get_tree().quit(1 if failures else 0)
 
@@ -250,6 +256,65 @@ func _test_save() -> void:
 	check(not reloaded.history.is_empty(), "Older local display history survives controller reload")
 	reloaded.free()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	GameState.save_path = old
+	GameState.persistence_enabled = false
+
+func _chapter(script: Script, path: String, other: String) -> Node:
+	var chapter: Node = script.new()
+	chapter.novel_save_path = path
+	chapter.other_chapter_save_path = other
+	add_child(chapter)
+	return chapter
+
+func _saved_word_state(path: String, word: String) -> String:
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var entry = parsed.vocabulary_entries.get(word + "|observed", {}) if parsed is Dictionary else {}
+	return str(entry.get("state", ""))
+
+func _test_shared_vocabulary() -> void:
+	# C1-05 / X1-04: town -> campus -> town keeps every word either chapter learned.
+	var town_script := preload("res://scripts/novel/novel_controller.gd")
+	var campus_script := preload("res://scripts/novel/campus_controller.gd")
+	var stamp := Time.get_ticks_usec()
+	var town_path := "user://vocab-town-%d.json" % stamp
+	var campus_path := "user://vocab-campus-%d.json" % stamp
+	var old: String = GameState.save_path
+	GameState.persistence_enabled = true
+	GameState.save_path = town_path
+	GameState.save_game()
+	var town := _chapter(town_script, town_path, campus_path)
+	Vocabulary.observe_word("zebra")
+	Vocabulary.record_word_spoken("zebra", 85.0)
+	town.save()
+	town.free()
+	var campus := _chapter(campus_script, campus_path, town_path)
+	check(Vocabulary.word_state("zebra") == "spoken", "Campus keeps a word spoken in town")
+	Vocabulary.observe_word("giraffe")
+	Vocabulary.record_word_spoken("zebra", 90.0)
+	Vocabulary.record_word_used("zebra")
+	campus.save()
+	campus.free()
+	town = _chapter(town_script, town_path, campus_path)
+	check(Vocabulary.word_state("giraffe") == "heard" and Vocabulary.word_state("zebra") == "used", "Returning to town keeps words heard and used on campus")
+	Vocabulary.observe_word("kettle")
+	town.save()
+	town.free()
+	campus = _chapter(campus_script, campus_path, town_path)
+	check(Vocabulary.word_state("kettle") == "heard" and Vocabulary.word_state("giraffe") == "heard", "Re-entering campus keeps later town words and earlier campus words")
+	Vocabulary.observe_word("otter")
+	campus.save()
+	campus.free()
+	check(_saved_word_state(town_path, "giraffe") == "heard" and _saved_word_state(town_path, "zebra") == "used", "Town save keeps the merged vocabulary")
+	check(_saved_word_state(campus_path, "kettle") == "heard" and _saved_word_state(campus_path, "zebra") == "used", "Campus save keeps the merged vocabulary")
+	# Quitting on campus and relaunching into the town: memory is empty, only the saves remain.
+	GameState.vocabulary_entries = {}
+	Vocabulary.entries.clear()
+	town = _chapter(town_script, town_path, campus_path)
+	check(Vocabulary.word_state("otter") == "heard" and Vocabulary.word_state("zebra") == "used", "Relaunching into the town merges progress saved only on campus")
+	check(Vocabulary.word_state("morning") == "initial", "Merged vocabulary keeps the starting profile")
+	town.free()
+	for path in [town_path, campus_path]:
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 	GameState.save_path = old
 	GameState.persistence_enabled = false
 

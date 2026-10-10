@@ -6,6 +6,7 @@ signal feedback(text: String)
 signal progression_changed
 const Content := preload("res://scripts/novel/novel_content.gd")
 const SAVE_PATH := "user://stranger_novel_save.json"
+const CAMPUS_SAVE := "user://stranger_campus_save.json"
 var location := "plaza"
 var history: Array = []
 var social_index := -1
@@ -13,6 +14,8 @@ var social_line := -1
 var practice_word := ""
 var boot_from_save := true
 var novel_save_path := SAVE_PATH
+## FR-35: the other chapter's save; its copy of the shared vocabulary merges in on load.
+var other_chapter_save_path := CAMPUS_SAVE
 var old_process := true
 var old_save_path := ""
 var _changing := false
@@ -32,9 +35,11 @@ func _ready() -> void:
 	old_save_path = GameState.save_path
 	GameState.set_process(false)
 	if boot_from_save:
+		var carried: Dictionary = GameState.vocabulary_entries
 		GameState.save_path = novel_save_path if FileAccess.file_exists(novel_save_path) else old_save_path
 		GameState.load_game()
 		GameState.save_path = novel_save_path
+		_share_vocabulary(carried)
 		var state: Dictionary = GameState.presentation_state
 		location = str(Content.place(str(state.get("location", "plaza"))).id)
 		history = state.get("history", []).duplicate(true)
@@ -382,7 +387,11 @@ func _word_score(word: String, accepted: bool, expression: Dictionary, _reason: 
 	if _changing or word != practice_word:
 		return
 	if accepted and Vocabulary.record_word_spoken(word, float(expression.get("score", 0.0))):
-		feedback.emit("你说出了「%s」。在之后的真实对话里用用它吧。" % word)
+		# R-32 G-C: a known starting-profile word is praised but never advanced.
+		if Vocabulary.word_state(word) == "initial":
+			feedback.emit("你说出了「%s」。这是你已有的词汇，在真实对话里放心用它吧。" % word)
+		else:
+			feedback.emit("你说出了「%s」。在之后的真实对话里用用它吧。" % word)
 	else:
 		feedback.emit("听一听，再试一次。没有惩罚。")
 	save()
@@ -475,6 +484,13 @@ func _day_started(day: int) -> void:
 	scene_changed.emit()
 	say("", "三夜过去，你开始记得每一个名字。欢迎回家。" if GameState.game_finished else "第 %d 天。新的一天，从一句问候开始。" % day)
 
+## FR-35: vocabulary is one learner asset across both chapters. Loading a chapter
+## keeps the furthest state of every word from memory, this chapter's save and the
+## other chapter's save, so switching chapters or relaunching never rolls words back.
+func _share_vocabulary(carried: Dictionary) -> void:
+	var merged := VocabularyState.merge_entries(GameState.vocabulary_entries, carried)
+	GameState.vocabulary_entries = VocabularyState.merge_entries(merged, GameState.saved_vocabulary_entries(other_chapter_save_path))
+
 func save() -> bool:
 	GameState.presentation_state["location"] = location
 	GameState.presentation_state["history"] = history
@@ -526,6 +542,11 @@ func _practice_words() -> Array:
 		for word in entry.words:
 			if not words.has(word): words.append(word)
 	return words
+
+## FR-36 practice-corner label, shared by both chapters.
+func word_progress(word: String) -> String:
+	var state: String = Vocabulary.word_state(word)
+	return {"": "尚未听见", "initial": "已有词汇", "heard": "听见", "spoken": "说出", "used": "使用"}.get(state, state)
 
 func _listen(npc: String, line: String, options: Array = []) -> void:
 	_replay = {"npc": npc, "line": line, "options": options.duplicate()}

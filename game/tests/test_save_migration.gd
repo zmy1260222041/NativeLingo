@@ -48,6 +48,12 @@ func _init() -> void:
 	_expect(restored.items.snapshot() == migrated_items and restored.food == 55.0 and restored.warmth == 60.0 and restored.energy == 70.0, "Item ledger and needs round-trip without replaying legacy rewards")
 	_expect(restored.vocabulary_entries.has("portions|observed") and restored.vocabulary_tier == "toddler", "Vocabulary profile survives the save round-trip")
 	_expect(str(restored.dialogue_scenario_progress.get("food_counter", {}).get("outcome", "")) == "success", "Service-point dialogue progress survives without changing mainline steps")
+	_expect(restored.saved_vocabulary_entries(path).has("portions|observed") and restored.saved_vocabulary_entries("/tmp/nl_stranger_missing_chapter.json").is_empty(), "Another chapter's vocabulary copy is readable on its own")
+	var future := FileAccess.open(path, FileAccess.WRITE)
+	if future != null:
+		future.store_string(JSON.stringify({"version": GameStateScript.SAVE_VERSION + 1, "vocabulary_entries": legacy_state.vocabulary_entries}))
+		future.close()
+	_expect(restored.saved_vocabulary_entries(path).is_empty(), "A newer-version chapter save never feeds the shared vocabulary")
 	_remove(path)
 	if failures == 0:
 		print("PASS: Stranger save migration suite")
