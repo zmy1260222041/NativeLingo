@@ -89,6 +89,7 @@ CLAUDE.md
 
 # agent session state and editor backups
 .zcode/
+.jspace/
 *.blend1
 
 # Godot CSV auto-import creates per-column translation resources; these are derived build artifacts, not the licensed original files.
@@ -105,6 +106,8 @@ XAI.csv.import
 XAI.xlsx
 GEMINI.csv
 GEMINI.csv.import
+CloudTTS.json
+cloud-tts.json
 game/speech_service/*.xlsx
 
 # Licensed-caption corpus work stays outside the Godot package and source tree.
