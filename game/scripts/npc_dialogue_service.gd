@@ -45,6 +45,7 @@ const MAX_STREAM_AUDIO_BYTES := 2 * 1024 * 1024
 const PREWARM_THROTTLE_SECONDS := 10.0
 ## FR-45: only the tier enum leaves the device; anything else is dropped.
 const VALID_PLAYER_TIERS := ["infant", "toddler", "youth", "professional"]
+const PLAYER_MISS_REASONS := ["VOICE_REASON_CLARIFY", "VOICE_REASON_TOO_SHORT", "VOICE_REASON_LENGTH", "VOICE_REASON_SCORE_LOW"]
 
 var availability_override: Variant = null
 var request_override: Callable
@@ -276,7 +277,7 @@ func reject_empty_transcript(reason := "VOICE_REASON_CLARIFY") -> void:
 		return
 	var safe_reason := reason if not reason.strip_edges().is_empty() else "VOICE_REASON_CLARIFY"
 	GameState.set_interaction_time_frozen(false)
-	_dialogue().dynamic_failed(current_npc_id, safe_reason)
+	_mark_turn_failed(current_npc_id, safe_reason)
 	dialogue_failed.emit(current_npc_id, safe_reason)
 	_restart_session_timeout()
 
@@ -486,7 +487,9 @@ func _poll_dialogue_stream() -> void:
 		if incomplete_score:
 			_retry_or_fail("VOICE_REASON_SERVICE_UNAVAILABLE")
 		return
-	if status == HTTPClient.STATUS_CONNECTION_ERROR or status == HTTPClient.STATUS_TLS_HANDSHAKE_ERROR:
+	# X1-02: a refused or unresolvable host is final at once; waiting for the
+	# session timeout froze the 2D opening and every button for 90 seconds.
+	if status in [HTTPClient.STATUS_CONNECTION_ERROR, HTTPClient.STATUS_TLS_HANDSHAKE_ERROR, HTTPClient.STATUS_CANT_CONNECT, HTTPClient.STATUS_CANT_RESOLVE]:
 		_close_dialogue_stream()
 		_retry_or_fail("VOICE_REASON_SERVICE_UNAVAILABLE")
 
@@ -790,9 +793,12 @@ func _apply_score(parsed: Dictionary) -> void:
 	# Score and audio race independently. The audio timeout/end event owns fallback.
 	var runner := _runner()
 	if runner != null and not current_turn_is_opening:
-		var idiomaticity := float(player_turn.get("idiomaticity", 0.0))
+		# C2-03: an unavailable idiomaticity (null) is never replaced by a stub or
+		# default value; the runner then scores this turn on pronunciation alone.
+		var idiomaticity := -1.0 if player_turn.get("idiomaticity") == null else float(player_turn.get("idiomaticity"))
 		var pronunciation := pending_pronunciation if pending_pronunciation >= 0.0 else idiomaticity
-		runner.record_player_turn(current_npc_id, pronunciation, idiomaticity)
+		if pronunciation >= 0.0:
+			runner.record_player_turn(current_npc_id, pronunciation, idiomaticity)
 	if not current_turn_is_opening:
 		_emit_player_turn_scored(player_turn, score_source)
 		_record_vocabulary_use(current_turn_transcript)
@@ -848,6 +854,9 @@ func _validate_score(reply: Dictionary) -> Dictionary:
 	var player_turn = reply.get("player_turn", {})
 	if not player_turn is Dictionary:
 		return {"ok": false, "reason": "VOICE_REASON_RESULT_INVALID"}
+	# C2-03: JSON null means the model's scoring JSON was missing ("unavailable").
+	if player_turn.has("idiomaticity") and player_turn.idiomaticity == null:
+		return {"ok": true}
 	var idiomaticity := float(player_turn.get("idiomaticity", -1.0))
 	if not is_finite(idiomaticity) or idiomaticity < 0.0 or idiomaticity > 100.0:
 		return {"ok": false, "reason": "VOICE_REASON_RESULT_INVALID"}
@@ -951,7 +960,7 @@ func _retry_or_fail(reason: String) -> void:
 	_close_dialogue_stream()
 	if retry_count < 1 and not pending_transcript.is_empty():
 		retry_count += 1
-		_dialogue().dynamic_failed(current_npc_id, reason)
+		_mark_turn_failed(current_npc_id, reason)
 		_dialogue().retry_generation(current_npc_id)
 		_send_request({"retry": retry_count})
 		return
@@ -963,8 +972,7 @@ func _fail(reason: String, close_session := false) -> void:
 	SpeechAdapter.mark_runtime_unavailable(reason)
 	_clear_stream_audio_state()
 	var npc := current_npc_id
-	if not npc.is_empty() and _dialogue().has_dynamic_session(npc):
-		_dialogue().dynamic_failed(npc, reason)
+	_mark_turn_failed(npc, reason)
 	dialogue_failed.emit(npc, reason)
 	pending_transcript = ""
 	retry_count = 0
@@ -972,6 +980,17 @@ func _fail(reason: String, close_session := false) -> void:
 		_close_session(reason)
 	else:
 		_restart_session_timeout()
+
+
+func _mark_turn_failed(npc: String, reason: String) -> void:
+	## X1-02: only an unclear recording is the player's miss. Outages, timeouts
+	## and rejected model replies leave the clarify state without counting one.
+	if npc.is_empty() or not _dialogue().has_dynamic_session(npc):
+		return
+	var misses: int = _dialogue().misses_for(npc)
+	_dialogue().dynamic_failed(npc, reason)
+	if not reason in PLAYER_MISS_REASONS:
+		_dialogue().sessions[npc]["misses"] = misses
 
 
 func _fail_reply_audio(reason: String) -> void:

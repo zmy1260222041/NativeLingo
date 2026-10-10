@@ -68,6 +68,7 @@ var previous_focus: Control
 var order_panel: Panel
 var order_title: Label
 var order_detail: Label
+var voice_status_label: Label
 @export var boot_from_save := true
 
 func _ready() -> void:
@@ -574,7 +575,9 @@ func _refresh() -> void:
 			Palette.primary(counter_button)
 		else:
 			action_row.move_child(counter_button, 2)
-			Palette.primary(record_button)
+			# P1-14: while voice cannot complete an order, the working gesture leads.
+			Palette.quiet(gesture_button)
+			Palette.primary(gesture_button if SpeechAdapter.runtime_speech_unavailable() else record_button)
 	var guidance: Dictionary = model.order_guidance()
 	if not model.practice_word.is_empty():
 		guidance = {"title": "正在练习 · " + model.practice_word,
@@ -592,6 +595,8 @@ func _refresh() -> void:
 	_refresh_record_button()
 	if is_instance_valid(gesture_button):
 		gesture_button.text = ("手势领取  " if SpeechAdapter.runtime_speech_unavailable() and GameState.can_start_service_dialogue(npc) else "手势  ") + Glyphs.for_action("gesture", false)
+	if modal.visible and modal_kind == "settings" and is_instance_valid(voice_status_label):
+		voice_status_label.text = model.voice_status
 	if modal.visible and modal_kind in ["bag", "counter", "home", "growth"] and not panel_refresh_queued:
 		panel_refresh_queued = true
 		call_deferred("_refresh_panel")
@@ -826,6 +831,8 @@ func _settings_panel() -> void:
 	_button(modal_body, "开始新旅程…", _open_panel.bind("restart"))
 	if SpeechAdapter.cloud_mode_enabled():
 		_row_label("云端语音：" + ("已激活" if SpeechAdapter.cloud_activated() else "未激活"), 18, ACCENT)
+		# NFR-7 / NFR-8 UI duty: say what leaves the device before activation.
+		_row_label("隐私：激活后，你的录音会上传到评分服务器，评分后立即处理，服务器不会留存录音。识别出的英文句子和最近几轮对话会经服务器发给在线对话模型，用来生成角色回应。", 16, MUTED)
 		activation_input = LineEdit.new()
 		activation_input.placeholder_text = "输入一次性激活码"
 		activation_input.secret = true
@@ -835,8 +842,11 @@ func _settings_panel() -> void:
 			if not SpeechAdapter.activate_cloud(activation_input.text): modal_status.text = "请输入有效激活码，或稍后重试。"
 			else: modal_status.text = "正在激活…")
 	else:
-		_row_label(model.voice_status, 17, MUTED)
-		_button(modal_body, "重新检查语音连接", func(): model._check_local_service(); _refresh_panel())
+		voice_status_label = _row_label(model.voice_status, 17, MUTED)
+		# The result arrives later through _refresh; rebuilding here would drop focus.
+		_button(modal_body, "重新检查语音连接", func(): model._check_local_service(); voice_status_label.text = model.voice_status)
+		# NFR-8 UI duty: local mode sends text, never audio, off this machine.
+		_row_label("隐私：录音只在这台电脑上转成文字，不会上传。识别出的英文句子和最近几轮对话会发给在线对话模型（Google Gemini 或 xAI）来生成角色回应；角色台词的文字会发给配音服务（xAI、Google Cloud 或阿里云）合成语音。", 16, MUTED)
 
 func _activation_finished(success: bool, message: String) -> void:
 	if modal_kind == "settings":

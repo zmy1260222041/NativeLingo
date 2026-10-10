@@ -239,7 +239,11 @@ func _test_spoken_handoff() -> void:
 	NpcScenarioRunner.begin("tavi", "food_counter")
 	NpcScenarioRunner.record_player_turn("tavi", 20.0, 30.0)
 	NpcScenarioRunner.apply_validated_reply("tavi", "food_counter", "confirm_order", "closed", true, "burger")
-	check(model.visible_items("counter").is_empty() and str(model.order_guidance().get("title", "")).contains("25 分"), "Low score explains the failed order without delivering food")
+	var low_score: Dictionary = model.order_guidance()
+	var digits := RegEx.new()
+	digits.compile("[0-9]")
+	check(model.visible_items("counter").is_empty() and str(low_score.get("title", "")).contains("还没能确认点单"), "Low score explains the failed order without delivering food")
+	check(digits.search(str(low_score.get("title", "")) + str(low_score.get("detail", ""))) == null and str(low_score.get("detail", "")).contains("免费"), "FR-45: the failed order shows no score, only that retrying is free")
 	NpcDialogueService.request_override = Callable()
 
 

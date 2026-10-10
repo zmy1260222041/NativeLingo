@@ -166,6 +166,7 @@ func start_word_recording(lexical_id: String) -> bool:
 	if record_effect == null and DisplayServer.get_name() != "headless":
 		_setup_audio_input()
 	if record_effect == null:
+		mark_runtime_unavailable("VOICE_REASON_MIC_UNAVAILABLE")
 		word_score_finished.emit(lexical_id, false, {}, "VOICE_REASON_MIC_UNAVAILABLE")
 		return false
 	if is_recording() or _request_in_flight():
@@ -177,7 +178,8 @@ func start_word_recording(lexical_id: String) -> bool:
 	active_lexical_options = [active_lexical_id]
 	word_mode = true
 	active_target_id = ""
-	last_unavailable_reason = ""
+	# A word attempt proves nothing about the dialogue path, so a known outage
+	# stays armed for the gesture fallback (C1-11).
 	recording_started_msec = Time.get_ticks_msec()
 	record_effect.set_recording_active(true)
 	recording_session_active = true
@@ -202,6 +204,7 @@ func start_word_choice_recording(options: Array) -> bool:
 	if record_effect == null and DisplayServer.get_name() != "headless":
 		_setup_audio_input()
 	if record_effect == null:
+		mark_runtime_unavailable("VOICE_REASON_MIC_UNAVAILABLE")
 		word_score_finished.emit(",".join(clean), false, {}, "VOICE_REASON_MIC_UNAVAILABLE")
 		return false
 	if is_recording() or _request_in_flight():
@@ -213,7 +216,6 @@ func start_word_choice_recording(options: Array) -> bool:
 	active_lexical_id = ",".join(clean)
 	word_mode = true
 	active_target_id = ""
-	last_unavailable_reason = ""
 	recording_started_msec = Time.get_ticks_msec()
 	record_effect.set_recording_active(true)
 	recording_session_active = true
@@ -238,6 +240,11 @@ func session_target_id() -> String:
 
 func is_interaction_active() -> bool:
 	return is_recording() or _request_in_flight() or recovery_active
+
+func is_busy() -> bool:
+	## Real in-flight work only. recovery_active keeps the 3D HUD's retry prompt
+	## open after a failure; 2D panels must not read that as "still listening".
+	return is_recording() or _request_in_flight()
 
 func cancel_recording() -> void:
 	var cancelled_target := active_target_id if not active_target_id.is_empty() else (pending_target_id if not pending_target_id.is_empty() else recovery_target_id)
@@ -390,8 +397,16 @@ func _word_score_url() -> String:
 func _emit_word_failure(lexical_id: String, generation: int, reason: String) -> void:
 	if generation != session_generation:
 		return
+	mark_runtime_unavailable(reason)
 	GameState.set_interaction_time_frozen(false)
 	word_score_finished.emit(lexical_id, false, {}, reason)
+
+func _word_failure_reason(body: PackedByteArray) -> String:
+	## /score_word names its own failure (400 too long/empty, 404 unknown word,
+	## 503 recogniser down). Anything else is the service being unavailable.
+	var json := JSON.new()
+	var reason := str(json.data.get("reason", "")) if json.parse(body.get_string_from_utf8()) == OK and json.data is Dictionary else ""
+	return reason if reason in ["VOICE_REASON_LENGTH", "VOICE_REASON_RESULT_INVALID", "VOICE_REASON_CLARIFY"] else "VOICE_REASON_SERVICE_UNAVAILABLE"
 
 func _configure_cloud_tls() -> void:
 	## 桌面端固定内置私有 CA(与 Android/iOS 同源);Web 由浏览器/nignx 承担 TLS。
@@ -553,7 +568,7 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 		if word_generation != session_generation:
 			return
 		if result != HTTPRequest.RESULT_SUCCESS or (response_code != 200 and response_code != 201):
-			var word_reason := "VOICE_REASON_CLOUD_UNAUTHORIZED" if response_code == 401 or response_code == 403 else "VOICE_REASON_SERVICE_UNAVAILABLE"
+			var word_reason := "VOICE_REASON_CLOUD_UNAUTHORIZED" if response_code == 401 or response_code == 403 else _word_failure_reason(body)
 			_emit_word_failure(word_lexical, word_generation, word_reason)
 			return
 		var word_parsed = JSON.parse_string(body.get_string_from_utf8())

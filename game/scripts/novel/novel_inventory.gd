@@ -255,7 +255,7 @@ func _menu() -> void:
 	_text(details, "怎样领取", 23)
 	var example: String = {"tavi": "Burger", "ori": "Water", "vesh": "Blanket"}.get(model.npc_id(), "Burger")
 	_text(details, "说出具体商品名就可以，不必照念完整句式。比如 “%s, please.”。店员确认并说完后，物品会放到柜台；再选择现在使用或装包。" % example, 18)
-	_text(details, "沟通得分达到 40 分可领 1 份，70 分起通常有 2 份。没有听清可以免费重试；语音不可用时用手势领取最低份量。", 16, MUTED)
+	_text(details, "店员确认了你要的东西就会交付，说得越清楚自然，常常能多拿一份。没有听清可以免费重试；语音不可用时用手势领取最低份量。", 16, MUTED)
 	_text(details, "这里可以买到", 23, ACCENT)
 	_text(details, "\n".join(titles), 18, MUTED)
 

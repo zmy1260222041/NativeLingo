@@ -46,7 +46,9 @@ func record_player_turn(npc_id: String, pronunciation: float, idiomaticity: floa
 	var npc := npc_id.strip_edges().to_lower()
 	if not sessions.has(npc):
 		return -1.0
-	var turn_score := clampf(0.5 * pronunciation + 0.5 * idiomaticity, 0.0, 100.0)
+	# C2-03: idiomaticity < 0 means the model sent no score for this turn; the
+	# turn then counts on pronunciation alone instead of an invented value.
+	var turn_score := clampf(pronunciation if idiomaticity < 0.0 else 0.5 * pronunciation + 0.5 * idiomaticity, 0.0, 100.0)
 	var session: Dictionary = sessions[npc]
 	var turns: Array = session.get("turns", [])
 	turns.append({

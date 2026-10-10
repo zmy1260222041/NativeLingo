@@ -20,6 +20,25 @@ func _ready() -> void:
 	failures_seen.clear()
 	_expect(not SpeechAdapter.start_word_choice_recording(["food", "water", "parts"]), "Unavailable speech never starts a spoken-choice recording")
 	_expect(failures_seen == ["VOICE_REASON_SERVICE_UNAVAILABLE"], "Spoken-choice failure reports the same safe localizable reason")
+	# P2-04 / C2-01: /score_word failures keep their own reason; 503 is a service fault, never a low score.
+	for case in [[503, {"accepted": false, "reason": "VOICE_REASON_SERVICE_UNAVAILABLE"}, "VOICE_REASON_SERVICE_UNAVAILABLE"], [400, {"accepted": false, "reason": "VOICE_REASON_LENGTH"}, "VOICE_REASON_LENGTH"], [502, null, "VOICE_REASON_SERVICE_UNAVAILABLE"]]:
+		failures_seen.clear()
+		SpeechAdapter.last_unavailable_reason = ""
+		SpeechAdapter.session_generation += 1
+		SpeechAdapter.pending_word_mode = true
+		SpeechAdapter.pending_word_lexical_id = "morning"
+		SpeechAdapter.pending_word_options = ["morning"]
+		SpeechAdapter.request_generation = SpeechAdapter.session_generation
+		var body := PackedByteArray() if case[1] == null else JSON.stringify(case[1]).to_utf8_buffer()
+		SpeechAdapter._on_request_completed(HTTPRequest.RESULT_SUCCESS, case[0], PackedStringArray(), body)
+		_expect(failures_seen == [case[2]], "HTTP %d word score reports %s" % [case[0], case[2]])
+		_expect((SpeechAdapter.last_unavailable_reason == "VOICE_REASON_SERVICE_UNAVAILABLE") == (case[2] == "VOICE_REASON_SERVICE_UNAVAILABLE"), "HTTP %d arms the gesture fallback only for a service fault" % case[0])
+	SpeechAdapter.last_unavailable_reason = ""
+	SpeechAdapter.availability_override = true
+	failures_seen.clear()
+	_expect(SpeechAdapter.record_effect == null and not SpeechAdapter.start_word_recording("morning"), "Headless word practice has no microphone")
+	_expect(failures_seen == ["VOICE_REASON_MIC_UNAVAILABLE"] and SpeechAdapter.last_unavailable_reason == "VOICE_REASON_MIC_UNAVAILABLE", "C1-11: a missing microphone in word practice arms the gesture fallback")
+	SpeechAdapter.last_unavailable_reason = ""
 	SpeechAdapter.availability_override = previous_availability
 	SpeechAdapter.token_override = null
 	ProjectSettings.set_setting("stranger_cloud/enabled", previous_cloud_enabled)

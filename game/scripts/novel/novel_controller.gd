@@ -27,6 +27,13 @@ var _pending_spoken_reply: Dictionary = {}
 var _preparing_opening := false
 var order_note: Dictionary = {}
 var social_openings: Dictionary = {}
+## FR-46: what the last /health check proved. Online dialogue and NPC voice are
+## judged separately so an arrival never retries a path already known to be down.
+var online_dialogue := true
+var npc_voice_ready := true
+var _status_pending := false
+var _failed_openings: Dictionary = {}
+const PLAYER_UNCLEAR_REASONS := ["VOICE_REASON_CLARIFY", "VOICE_REASON_TOO_SHORT", "VOICE_REASON_LENGTH", "VOICE_REASON_SCORE_LOW"]
 
 func _ready() -> void:
 	Content.load_daily_life()
@@ -76,17 +83,27 @@ func start(play_voice := true) -> void:
 func _present_opening(play_voice := true) -> void:
 	var entry := Content.place(location)
 	var opening_key := "%s:%d" % [npc_id(), GameState.day]
-	if play_voice and boot_from_save and npc_id() in ["mira", "rowan"] and not GameState.game_finished and not social_openings.has(opening_key) and conversation_block_reason().is_empty():
+	# X1-02 / C1-17: dialogue already known to be down (health, or a failed opening
+	# today) is not asked again; the authored line greets instead.
+	if play_voice and boot_from_save and online_dialogue and NpcDialogueService.is_available() and not _failed_openings.has(opening_key) and npc_id() in ["mira", "rowan"] and not GameState.game_finished and not social_openings.has(opening_key) and conversation_block_reason().is_empty():
+		# Set first: a failure reported during the call takes the authored-line path.
+		_preparing_opening = true
 		if NpcDialogueService.start_social_opening(npc_id(), _spoken_scenario(npc_id()), GameState.day):
-			_preparing_opening = true
 			line_changed.emit("", "正在准备开场语音…")
 			feedback.emit("%s 向你搭了句话。可以接话，也可以随时离开。" % npc_id().capitalize())
 			return
+		_preparing_opening = false
+		if _failed_openings.has(opening_key):
+			return
 	say(npc_id(), str(entry.opening))
 	if play_voice and not npc_id().is_empty() and not GameState.game_finished:
-		_listen(npc_id(), str(entry.get("opening_id", "")))
+		_listen(npc_id(), str(entry.get("opening_id", "")), [], true)
 	if GameState.game_finished:
 		feedback.emit("三夜已度过。你已不再是陌生人。可在设置中开始新旅程。")
+	elif play_voice and _status_pending:
+		# G1-09 / P1-14: the first scene after a degraded check states it once.
+		_status_pending = false
+		feedback.emit(voice_status)
 
 func npc_id() -> String:
 	return str(Content.place(location).npc)
@@ -98,6 +115,7 @@ func travel(destination: String) -> bool:
 	if selected.id != destination:
 		return false
 	cancel_activity()
+	order_note.clear()
 	location = destination
 	advance_time(6.0)
 	save()
@@ -106,6 +124,12 @@ func travel(destination: String) -> bool:
 	return true
 
 func cancel_activity() -> void:
+	# FR-46 cancels the delivery; FR-48 says so instead of leaving 店员已确认 on screen.
+	# The clerk may have spoken the named handoff before its score arrived (NFR-9).
+	var service := NpcDialogueService
+	var handoff: bool = service.current_transaction_complete or (not service.current_reply_id.is_empty() \
+		and not service._concrete_item_named_in_reply(service.current_reply_text, service.current_reply_speech_act).is_empty())
+	var interrupted: bool = GameState.can_start_service_dialogue(npc_id()) and service.is_session_active_for(npc_id()) and handoff
 	_changing = true
 	_pending_spoken_reply.clear()
 	_preparing_opening = false
@@ -122,6 +146,11 @@ func cancel_activity() -> void:
 	social_line = -1
 	GameState.set_interaction_time_frozen(false)
 	_changing = false
+	if interrupted:
+		order_note = {"title": "交谈被打断，这次没有交付物品", "detail": "店员刚才的确认已经取消。想要的话，再点「录音」说一次商品名，不消耗任何东西。"}
+		# Deferred so a panel opened by this cancel can show it in its own status line.
+		call_deferred("emit_signal", "feedback", "和 %s 的交谈被打断，这次没有交付物品。再说一次商品名就好，不消耗任何东西。" % npc_id().capitalize())
+	progression_changed.emit()
 
 func advance_time(seconds: float) -> void:
 	# All reading is free. Only explicit travel/wait commands advance survival.
@@ -150,7 +179,10 @@ func talk() -> void:
 		scene_changed.emit()
 	if npc_id() in ["mira", "rowan"]:
 		if not NpcDialogueService.is_session_active_for(npc_id()):
-			NpcDialogueService.start_social_opening(npc_id(), _spoken_scenario(npc_id()), GameState.day)
+			# The NPC speaks first, so a failure falls back like an arrival opening.
+			_preparing_opening = true
+			if not NpcDialogueService.start_social_opening(npc_id(), _spoken_scenario(npc_id()), GameState.day):
+				_preparing_opening = false
 		else:
 			feedback.emit("点录音接着聊，不必重新打招呼。")
 	elif GameState.can_start_service_dialogue(npc_id()):
@@ -211,15 +243,20 @@ func record() -> void:
 	if SpeechAdapter.start_recording(npc_id()):
 		order_note.clear()
 		NpcDialogueService.prewarm(npc_id())
-	else:
+	elif not SpeechAdapter.is_recovery_active():
+		# A refused start that already reported its cause (e.g. no microphone) is not repeated.
 		feedback.emit("暂时无法录音。可以免费重试，或用手势交流。")
 
 func _recognition(target: String, accepted: bool, transcript: String, reason: String, expression: Dictionary) -> void:
 	if _changing or target != npc_id() or GameState.game_finished:
 		return
 	if transcript.is_empty():
-		NpcDialogueService.reject_empty_transcript(reason)
-		feedback.emit(tr(reason) + " 点录音可免费重试。")
+		if NpcDialogueService.is_session_active_for(target):
+			# Keeps the role card open in clarify; _dialogue_failed explains it once.
+			NpcDialogueService.reject_empty_transcript(reason)
+		else:
+			feedback.emit(_failure_text(reason))
+			progression_changed.emit()
 		return
 	if not _spoken_scenario(target).is_empty() and NpcDialogueService.enabled():
 		if not NpcDialogueService.is_session_active_for(target):
@@ -259,28 +296,56 @@ func _reply_audio_started(npc: String, reply_id: String) -> void:
 	say(npc, text)
 
 func _dialogue_failed(npc: String, reason: String) -> void:
+	if npc != npc_id() or _changing:
+		return
 	var text_only := false
-	if npc == npc_id() and not _changing and _preparing_opening:
-		_preparing_opening = false
-		if _pending_spoken_reply.is_empty():
-			line_changed.emit("", "开场语音暂时未能完成，可以稍后再试。")
-	if npc == npc_id() and not _changing and _pending_spoken_reply.get("npc") == npc:
+	var opening := _preparing_opening and _pending_spoken_reply.is_empty()
+	_preparing_opening = false
+	if _pending_spoken_reply.get("npc") == npc:
 		var text := str(_pending_spoken_reply.text)
 		_pending_spoken_reply.clear()
 		say(npc, text)
 		text_only = true
-	if npc == npc_id() and not _changing and not GameState.can_start_service_dialogue(npc):
+	elif opening:
+		# C1-17: the authored opening stays readable. It is written content shown
+		# as-is, never a stand-in model reply, and earns nothing.
+		_failed_openings["%s:%d" % [npc, GameState.day]] = true
+		say(npc, str(Content.place(location).opening))
+		_listen(npc, str(Content.place(location).get("opening_id", "")), [], true)
+	if not GameState.can_start_service_dialogue(npc):
 		order_note.clear()
-		feedback.emit("语音未能播放，已保留文字。可以点「重听」重试。" if text_only else "这次回应未能完成，可以免费重试。 " + tr(reason))
+		if text_only: feedback.emit("语音未能播放，已保留文字。可以点「重听」重试。")
+		elif opening: feedback.emit("%s 的在线问候这次没能生成，先显示写好的台词。可以用手势回应，也可以去听听日常。" % npc.capitalize())
+		else: feedback.emit(_failure_text(reason))
 		progression_changed.emit()
 		return
-	if npc == npc_id() and not _changing:
-		order_note = {"title": "这次还没有交付物品", "detail": "回应或语音未能完成。可以免费重试；语音不可用时，也能用手势领取。"}
-		if reason == "VOICE_REASON_CLARIFY":
-			feedback.emit("没有听清，点录音再试一次。")
-		else:
-			feedback.emit("连接暂时中断。可以重试，或用手势领取最低份量。 " + tr(reason))
-		progression_changed.emit()
+	order_note = {"title": _failure_cause(reason), "detail": ("店员的回应没能播放，已保留文字。" if text_only else "") + _failure_detail(reason, true)}
+	feedback.emit(str(order_note.title) + "。" + str(order_note.detail))
+	progression_changed.emit()
+
+## FR-46/48, NFR-8 UI duty: name the real cause in plain 2D Chinese. Service
+## faults never read as a problem with the player's English.
+func _failure_cause(reason: String) -> String:
+	match reason:
+		"VOICE_REASON_CLARIFY", "VOICE_REASON_TOO_SHORT", "VOICE_REASON_LENGTH", "VOICE_REASON_SCORE_LOW": return "这次没有听清"
+		"VOICE_REASON_MIC_UNAVAILABLE": return "麦克风暂时不可用"
+		"VOICE_REASON_DIALOGUE_TIMEOUT": return "交谈先告一段落"
+		"VOICE_REASON_DIALOGUE_REJECTED": return "对方这次没能组织好回应"
+		"VOICE_REASON_CLOUD_NOT_ACTIVATED", "VOICE_REASON_CLOUD_UNAUTHORIZED": return "云端语音需要在设置中激活"
+	return "语音服务暂时没有回应"
+
+func _failure_detail(reason: String, service := false) -> String:
+	var text := "" if reason in PLAYER_UNCLEAR_REASONS else "这不是你说得不好。"
+	if reason == "VOICE_REASON_DIALOGUE_TIMEOUT":
+		text = "等了一会儿没有新的话，这段交谈先结束了。"
+	if service:
+		text += "还没有交付物品。"
+	if service and SpeechAdapter.runtime_speech_unavailable():
+		return text + "可以点「手势领取」获得最低份量，也可以稍后点「录音」免费重试。"
+	return text + ("再点「录音」说出想要的商品就好，重试不消耗任何东西。" if service else "再点「录音」接着说就好，重试不消耗任何东西。")
+
+func _failure_text(reason: String) -> String:
+	return _failure_cause(reason) + "。" + _failure_detail(reason)
 
 func _service_turn_updated(npc: String, detail: Dictionary) -> void:
 	if not GameState.can_start_service_dialogue(npc): return
@@ -301,7 +366,8 @@ func _service_settled(npc: String, detail: Dictionary) -> void:
 		order_note.clear()
 		save()
 	elif detail.confirmed and float(detail.score) < GameState.SCORE_SPARSE_MIN:
-		order_note = {"title": "这次还没能确认点单 · %d 分" % roundi(detail.score), "detail": "沟通得分达到 40 分才能领取。这次没有消耗物品，可以免费再说一次商品名。"}
+		# FR-41 keeps the <40 rule; FR-45 keeps the number off screen.
+		order_note = {"title": "这次还没能确认点单", "detail": "店员这次没能确认你要的东西，所以还没有交付物品，也没有消耗任何东西。再说一次商品名就好，重试是免费的。"}
 		feedback.emit(str(order_note.title) + "。" + str(order_note.detail))
 	else:
 		order_note = {"title": "这次还没有交付物品", "detail": "可以重新说出想要的商品，或打开柜台查看已经备好的物品。"}
@@ -322,7 +388,7 @@ func order_guidance() -> Dictionary:
 		return {"title": "已备好 · " + summary, "detail": "点「领取」打开柜台，选择现在使用或装进行囊。领取前，物品会一直留在这里。"}
 	if SpeechAdapter.is_recording(): return {"title": "正在听你说", "detail": "说完后，再点一次「结束录音」。不用完整句式，说清想要的商品就好。"}
 	var state: String = Dialogue.state_for(npc_id())
-	if state == "generating" or SpeechAdapter.is_interaction_active(): return {"title": "正在听清并确认你的话", "detail": "稍等店员回应。这时不用再录一次，确认后会提示你领取。"}
+	if state == "generating" or SpeechAdapter.is_busy(): return {"title": "正在听清并确认你的话", "detail": "稍等店员回应。这时不用再录一次，确认后会提示你领取。"}
 	if state == "speaking" or _listening: return {"title": "听听店员的回应", "detail": "对方说完后，继续回答或领取物品。还没有物品放到柜台。"}
 	if not order_note.is_empty(): return order_note
 	if SpeechAdapter.runtime_speech_unavailable(): return {"title": "语音暂时不可用，也能继续生活", "detail": "点「手势领取」获得最低份量，再到柜台使用或装包。也可以在设置中重试语音。"}
@@ -383,7 +449,7 @@ func begin_practice(word: String) -> void:
 	feedback.emit("先听示范，再点「录音」说出这个词，点第二次结束。可以重听，练习不消耗时间。")
 	_listen(npc_id(), "word_practice_model", [word])
 
-func _word_score(word: String, accepted: bool, expression: Dictionary, _reason: String) -> void:
+func _word_score(word: String, accepted: bool, expression: Dictionary, reason: String) -> void:
 	if _changing or word != practice_word:
 		return
 	if accepted and Vocabulary.record_word_spoken(word, float(expression.get("score", 0.0))):
@@ -392,6 +458,13 @@ func _word_score(word: String, accepted: bool, expression: Dictionary, _reason: 
 			feedback.emit("你说出了「%s」。这是你已有的词汇，在真实对话里放心用它吧。" % word)
 		else:
 			feedback.emit("你说出了「%s」。在之后的真实对话里用用它吧。" % word)
+	elif reason == "VOICE_REASON_MIC_UNAVAILABLE":
+		feedback.emit("麦克风暂时不可用，这不是你的发音问题。检查麦克风后再录一次；也可以先重听示范。")
+	elif reason in ["VOICE_REASON_CLARIFY", "VOICE_REASON_TOO_SHORT", "VOICE_REASON_LENGTH"]:
+		feedback.emit("这次没有听到清楚的声音。靠近麦克风，再说一次「%s」就好，没有惩罚。" % word)
+	elif reason in SpeechAdapter.RUNTIME_UNAVAILABLE_REASONS:
+		# P1-07 / C1-11: a scoring outage is never presented as weak pronunciation.
+		feedback.emit("单词评分暂时不可用，这不是你的发音问题。可以先重听示范，或去「小剧场」听听这个词怎么用；稍后再录也不消耗任何东西。")
 	else:
 		feedback.emit("听一听，再试一次。没有惩罚。")
 	save()
@@ -523,16 +596,35 @@ func _check_local_service() -> void:
 func _health_result(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	var json := JSON.new()
 	var data = json.data if json.parse(body.get_string_from_utf8()) == OK else null
-	if result != HTTPRequest.RESULT_SUCCESS or code != 200 or not data is Dictionary:
-		voice_status = "本地语音服务未连接。启动服务后可重新检查。"
-		SpeechAdapter.mark_runtime_unavailable("VOICE_REASON_SERVICE_UNAVAILABLE")
-	elif not bool(data.get("dialogue_ready", false)):
-		var reason := str(data.get("dialogue_reason", "not_checked"))
-		voice_status = "录音服务已连接；在线交谈暂不可用。" + ("服务商拒绝了当前地区的请求。" if reason == "region_unsupported" else "请检查模型服务配置后重试。")
-		SpeechAdapter.mark_runtime_unavailable("VOICE_REASON_SERVICE_UNAVAILABLE")
+	var reachable := result == HTTPRequest.RESULT_SUCCESS and code == 200 and data is Dictionary
+	# C2-08: recognition is judged on its own. Older services omit asr_ready and
+	# tts_configured; a missing field keeps the previous meaning (available).
+	var asr_ready := reachable and bool(data.get("asr_ready", true))
+	online_dialogue = reachable and bool(data.get("dialogue_ready", false))
+	npc_voice_ready = reachable and bool(data.get("tts_configured", true))
+	var healthy := asr_ready and online_dialogue
+	if not reachable:
+		voice_status = "语音服务还没有启动。现在可以看文字、听日常，用「手势领取」最低份量；启动后在设置里重新检查。"
+	elif healthy:
+		voice_status = "语音识别和在线交谈都已连接，可以进入商店开口交谈。"
 	else:
-		voice_status = "本地语音和对话模型已连接。可以进入商店开口交谈。"
+		var missing: Array[String] = []
+		if not asr_ready: missing.append("语音识别")
+		if not online_dialogue: missing.append("在线交谈")
+		voice_status = ("录音可以进行，但%s暂不可用" if not asr_ready else "%s暂时连不上") % "和".join(missing)
+		if not online_dialogue and str(data.get("dialogue_reason", "")) == "region_unsupported":
+			voice_status += "（服务商不支持当前地区）"
+		voice_status += "%s。现在可以用「手势领取」最低份量，也可以看文字、听日常。" % ("，角色会显示写好的台词" if not online_dialogue else "")
+	if reachable and not npc_voice_ready:
+		voice_status += "角色语音暂未开启，台词以文字显示。"
+	if healthy:
 		SpeechAdapter.last_unavailable_reason = ""
+		_failed_openings.clear()
+	else:
+		# FR-46: recognition or dialogue down means voice cannot complete an
+		# order, so the gesture minimum applies until a later check or attempt.
+		SpeechAdapter.mark_runtime_unavailable("VOICE_REASON_SERVICE_UNAVAILABLE")
+	_status_pending = not healthy or not npc_voice_ready
 	feedback.emit(voice_status)
 	progression_changed.emit()
 
@@ -548,15 +640,15 @@ func word_progress(word: String) -> String:
 	var state: String = Vocabulary.word_state(word)
 	return {"": "尚未听见", "initial": "已有词汇", "heard": "听见", "spoken": "说出", "used": "使用"}.get(state, state)
 
-func _listen(npc: String, line: String, options: Array = []) -> void:
-	_replay = {"npc": npc, "line": line, "options": options.duplicate()}
+func _listen(npc: String, line: String, options: Array = [], arrival := false) -> void:
+	_replay = {"npc": npc, "line": line, "options": options.duplicate(), "arrival": arrival}
 	_listening = true
+	# A refused request reports through line_audio_failed -> _listening_failed.
 	if not NpcVoice.request_line(npc, line, "", "wav", options):
 		_listening = false
-		feedback.emit("语音暂时无法播放，请检查连接后点「重听」。")
 
 func listen_again() -> void:
-	if _replay.is_empty() or SpeechAdapter.is_interaction_active() or Dialogue.state_for(npc_id()) in ["generating", "speaking"]:
+	if _replay.is_empty() or SpeechAdapter.is_busy() or Dialogue.state_for(npc_id()) in ["generating", "speaking"]:
 		return
 	if not _can_start_conversation_action(): return
 	NpcVoice.stop_all()
@@ -579,7 +671,12 @@ func _listening_failed(npc: String, line: String, _reason: String) -> void:
 		return
 	_listening = false
 	progression_changed.emit()
-	feedback.emit("语音暂时无法播放，可以点「重听」再试。")
+	# P1-05 / P1-14: once the status says NPC voice is off, arrivals stay quiet
+	# and an explicit replay says why instead of inviting another retry.
+	if npc_voice_ready:
+		feedback.emit("语音暂时无法播放，可以点「重听」再试。")
+	elif not _replay.get("arrival", false):
+		feedback.emit("角色语音暂未开启，台词以文字显示。")
 
 func _exit_tree() -> void:
 	cancel_activity()

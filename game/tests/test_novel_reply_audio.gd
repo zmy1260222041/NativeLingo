@@ -44,7 +44,8 @@ func _ready() -> void:
 	model._preparing_opening = true
 	model.line_changed.emit("", "正在准备开场语音…")
 	NpcDialogueService.dialogue_failed.emit("mira", "VOICE_REASON_SERVICE_UNAVAILABLE")
-	check(not model._preparing_opening and screen.dialogue_text.text.contains("未能完成"), "Opening generation failure clears the waiting message")
+	check(not model._preparing_opening and screen.dialogue_text.text == "Welcome, stranger." and screen.speaker_label.text == "Mira", "Opening generation failure falls back to the authored opening line")
+	check(not screen.feedback_label.text.contains("这次回应") and not screen.feedback_label.text.contains("Local speech"), "An unrequested opening failure is not reported as the player's failed reply")
 	screen.queue_free()
 	await get_tree().process_frame
 	print("NovelReplyAudioTest failures=", failures)
